@@ -9,16 +9,15 @@ fun main(args: Array<String>) {
 
     val token = args.single()
 
-    val jda =
-        JDABuilder
-            .createDefault(
-                token,
-                listOf(
-                    GatewayIntent.GUILD_MESSAGES,
-                    GatewayIntent.GUILD_MESSAGE_REACTIONS,
-                ),
-            )
-            .setEventManager(AnnotatedEventManager())
-            .addEventListeners(BotListener(GlobalPrefixCommandParser("."), MapCommandInvoker(emptyMap())))
-            .build()
+    JDABuilder
+        .createDefault(
+            token,
+            listOf(
+                GatewayIntent.GUILD_MESSAGES,
+                GatewayIntent.GUILD_MESSAGE_REACTIONS,
+            ),
+        )
+        .setEventManager(AnnotatedEventManager())
+        .addEventListeners(BotListener(GlobalPrefixCommandParser("."), MapCommandInvoker(emptyMap())))
+        .build()
 }
