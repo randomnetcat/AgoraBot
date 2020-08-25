@@ -17,3 +17,30 @@ sealed class CommandParseResult {
 interface CommandParser {
     fun parse(event: MessageReceivedEvent): CommandParseResult
 }
+
+/**
+ * Parses a command as if by splitArguments, after removing [prefix]. The first argument is the command name, the rest
+ * are the actual arguments. If the prefix is not present, or if there is no command after the prefix, returns Ignore.
+ *
+ * Throws [IllegalArgumentException] if [prefix] is empty.
+ */
+fun parsePrefixCommand(prefix: String, message: String): CommandParseResult {
+    require(prefix.isNotEmpty())
+
+    val payload = message.removePrefix(prefix)
+
+    // If the prefix was not there to remove (when payload == message), there is no prefix, so no command.
+    if (payload == message) return CommandParseResult.Ignore
+
+    val parts = splitArguments(payload)
+    if (parts.isEmpty()) return CommandParseResult.Ignore // Just a prefix, for some reason
+
+    return CommandParseResult.Invocation(CommandInvocation(parts.first(), parts.drop(1)))
+}
+
+class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
+    override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixCommand(
+        prefix = prefix,
+        message = event.message.contentRaw
+    )
+}
