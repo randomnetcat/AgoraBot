@@ -5,14 +5,14 @@ import kotlinx.collections.immutable.toImmutableMap
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 
-interface CommandInvoker {
+interface CommandRegistry {
     /**
      * Invokes the specified command
      */
     fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation)
 }
 
-class NullCommandInvoker : CommandInvoker {
+class NullCommandRegistry : CommandRegistry {
     override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
         /* do nothing */
     }
@@ -22,7 +22,7 @@ interface Command {
     fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation)
 }
 
-class MapCommandInvoker : CommandInvoker {
+class MapCommandRegistry : CommandRegistry {
     companion object {
         private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
             event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").queue()
