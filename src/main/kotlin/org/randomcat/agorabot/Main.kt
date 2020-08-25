@@ -19,6 +19,6 @@ fun main(args: Array<String>) {
                 ),
             )
             .setEventManager(AnnotatedEventManager())
-            .addEventListeners(BotListener(GlobalPrefixCommandParser("."), NullCommandInvoker()))
+            .addEventListeners(BotListener(GlobalPrefixCommandParser("."), MapCommandInvoker(emptyMap())))
             .build()
 }
