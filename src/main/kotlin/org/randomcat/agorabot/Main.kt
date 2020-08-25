@@ -20,6 +20,6 @@ fun main(args: Array<String>) {
                 ),
             )
             .setEventManager(AnnotatedEventManager())
-            .addEventListeners(BotListener())
+            .addEventListeners(BotListener(GlobalPrefixCommandParser("."), NullCommandInvoker()))
             .build()
 }
