@@ -9,3 +9,9 @@ interface CommandInvoker {
      */
     fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation)
 }
+
+class NullCommandInvoker : CommandInvoker {
+    override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
+        /* do nothing */
+    }
+}
