@@ -14,7 +14,6 @@ fun main(args: Array<String>) {
             .createDefault(
                 token,
                 listOf(
-                    GatewayIntent.GUILD_MEMBERS,
                     GatewayIntent.GUILD_MESSAGES,
                     GatewayIntent.GUILD_MESSAGE_REACTIONS,
                 ),
