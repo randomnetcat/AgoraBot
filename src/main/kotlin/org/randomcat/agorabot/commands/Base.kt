@@ -17,17 +17,16 @@ fun ReadableCommandArgumentParseError(msg: String) = object : ReadableCommandArg
         get() = msg
 }
 
-private class CommandExecutionReceiverImpl<Args>(override val args: Args) : CommandExecutionReceiver<Args>
-
-private class ExecutingArgumentDescriptionReceiver(
+private class ExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
-    private val onError: (message: String) -> Unit
-) : ArgumentDescriptionReceiver {
+    private val onError: (message: String) -> Unit,
+    private val receiver: ExecutionReceiver
+) : ArgumentDescriptionReceiver<ExecutionReceiver> {
     private var alreadyParsed: Boolean = false
 
     override fun <T, E> argsRaw(
         vararg parsers: CommandArgumentParser<T, E>,
-        exec: CommandExecutionReceiverBlock<List<T>>
+        exec: ExecutionReceiver.(args: List<T>) -> Unit
     ) {
         check(!alreadyParsed)
 
@@ -35,7 +34,7 @@ private class ExecutingArgumentDescriptionReceiver(
 
         return when (result) {
             is CommandArgumentParseResult.Success -> {
-                exec(CommandExecutionReceiverImpl(result.value))
+                exec(receiver, result.value)
             }
 
             is CommandArgumentParseResult.Failure -> {
@@ -53,14 +52,17 @@ private class ExecutingArgumentDescriptionReceiver(
 }
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
+    protected class ExecutionReceiverImpl
+
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
-        ExecutingArgumentDescriptionReceiver(
+        ExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
             UnparsedCommandArgs(invocation.args),
-            onError = { msg -> strategy.argumentParseError(event, invocation, msg) }
+            onError = { msg -> strategy.argumentParseError(event, invocation, msg) },
+            ExecutionReceiverImpl(),
         ).impl()
     }
 
-    abstract fun ArgumentDescriptionReceiver.impl()
+    protected abstract fun ArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
 
     protected abstract class CommandArgument<T>(
         val name: String
