@@ -5,6 +5,11 @@ package org.randomcat.agorabot.commands
 private typealias CAP<T, E> = CommandArgumentParser<T, E>
 
 interface ArgumentDescriptionReceiver<ExecutionReceiver> {
+    /**
+     * Specifies an argument set with arguments from [parsers] and that can optionally be executed by [exec].
+     *
+     * Can only be called once on any given instance unless otherwise specified.
+     */
     fun <T, E> argsRaw(vararg parsers: CommandArgumentParser<T, E>, exec: ExecutionReceiver.(args: List<T>) -> Unit)
 }
 
