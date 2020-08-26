@@ -12,11 +12,11 @@ interface CommandArgumentParser<out T> {
 
 private typealias CAP<T> = CommandArgumentParser<T>
 
-interface CommandDescriptionReceiver {
+interface ArgumentDescriptionReceiver {
     fun argsRaw(vararg parsers: CommandArgumentParser<Any?>, exec: CommandExecutionReceiverBlock<List<Any?>>)
 }
 
-private typealias CDR = CommandDescriptionReceiver
+private typealias CDR = ArgumentDescriptionReceiver
 
 inline fun <A> CDR.args(
     a: CAP<A>,
