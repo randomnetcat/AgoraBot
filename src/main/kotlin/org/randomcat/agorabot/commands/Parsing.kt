@@ -15,6 +15,32 @@ interface CommandArgumentParser<out T, out E> {
     fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<T, E>
 }
 
+data class SequentialArgumentParseFailure<E>(val index: Int, val error: E)
+
+fun <T, E> parseCommandArgs(
+    parsers: Iterable<CommandArgumentParser<T, E>>,
+    arguments: UnparsedCommandArgs
+): CommandArgumentParseResult<List<T>, SequentialArgumentParseFailure<E>> {
+    var remainingArgs = arguments
+    val results = mutableListOf<T>()
+
+    parsers.forEachIndexed { index, parser ->
+        @Suppress("Unused")
+        val ensureExhaustive = when (val parseResult = parser.parse(remainingArgs)) {
+            is CommandArgumentParseResult.Success -> {
+                remainingArgs = parseResult.remaining
+                results.add(parseResult.value)
+            }
+
+            is CommandArgumentParseResult.Failure -> {
+                return CommandArgumentParseResult.Failure(SequentialArgumentParseFailure(index, parseResult.error))
+            }
+        }
+    }
+
+    return CommandArgumentParseResult.Success(results, remainingArgs)
+}
+
 private typealias CAP<T, E> = CommandArgumentParser<T, E>
 
 interface ArgumentDescriptionReceiver {
