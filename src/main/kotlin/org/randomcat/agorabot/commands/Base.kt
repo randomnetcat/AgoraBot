@@ -2,7 +2,7 @@ package org.randomcat.agorabot.commands
 
 sealed class CommandArgumentParseResult<out T> {
     object Failure : CommandArgumentParseResult<Nothing>()
-    data class FailureWithMessage<out T>(val message: String) : CommandArgumentParseResult<T>()
+    data class FailureWithMessage(val message: String) : CommandArgumentParseResult<Nothing>()
     data class Success<out T>(val value: T, val remaining: UnparsedCommandArgs) : CommandArgumentParseResult<T>()
 }
 
