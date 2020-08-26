@@ -13,6 +13,12 @@ interface ArgumentDescriptionReceiver<ExecutionReceiver> {
     fun <T, E> argsRaw(vararg parsers: CommandArgumentParser<T, E>, exec: ExecutionReceiver.(args: List<T>) -> Unit)
 }
 
+/**
+ * Syntactically equivalent to [ArgumentMultiDescriptionReceiver], but indicates that `args` or [argsRaw] can be
+ * called multiple times.
+ */
+interface ArgumentMultiDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver>
+
 private typealias CDR<Exec> = ArgumentDescriptionReceiver<Exec>
 
 private typealias CmdExecBlock<ExecutionReceiver, Args> = ExecutionReceiver.(Args) -> Unit
