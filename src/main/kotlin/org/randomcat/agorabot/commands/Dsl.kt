@@ -4,6 +4,10 @@ package org.randomcat.agorabot.commands
 
 private typealias CAP<T, E> = CommandArgumentParser<T, E>
 
+@DslMarker
+annotation class CommandDslMarker
+
+@CommandDslMarker
 interface ArgumentDescriptionReceiver<ExecutionReceiver> {
     /**
      * Specifies an argument set with arguments from [parsers] and that can optionally be executed by [exec].
@@ -17,8 +21,10 @@ interface ArgumentDescriptionReceiver<ExecutionReceiver> {
  * Syntactically equivalent to [ArgumentMultiDescriptionReceiver], but indicates that `args` or [argsRaw] can be
  * called multiple times.
  */
+@CommandDslMarker
 interface ArgumentMultiDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver>
 
+@CommandDslMarker
 interface TopLevelArgumentDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver> {
     /**
      * Indicates that the first [argsRaw] call in [block] that has parameters that match the input should be invoked.
