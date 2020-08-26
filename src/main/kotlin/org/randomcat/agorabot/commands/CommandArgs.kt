@@ -5,6 +5,9 @@ import kotlinx.collections.immutable.toImmutableList
 
 data class UnparsedCommandArgs(val args: ImmutableList<String>) {
     constructor(args: List<String>) : this(args.toImmutableList())
+
+    fun drop(n: Int) = UnparsedCommandArgs(args.drop(n))
+    fun tail() = drop(1)
 }
 
 object CommandArgs0
