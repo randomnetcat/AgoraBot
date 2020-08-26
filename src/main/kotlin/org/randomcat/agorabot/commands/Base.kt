@@ -86,11 +86,18 @@ private class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(!alreadyParsed)
+
         MatchFirstExecutingArgumentDescriptionReceiver(
             arguments = arguments,
-            onNoMatch = { onError("No match for command set") },
+            onNoMatch = {
+                alreadyParsed = true
+                onError("No match for command set")
+            },
             receiver = receiver
         ).executeWholeBlock(block)
+
+        alreadyParsed = true
     }
 
     private fun <E> reportError(index: Int, error: E) {
