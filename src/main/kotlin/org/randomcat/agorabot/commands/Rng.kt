@@ -6,13 +6,13 @@ import kotlin.random.nextInt
 class RngCommand : ChatCommand() {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         matchFirst {
-            args(IntArg("min"), IntArg("max"), NoMoreArgs) { args ->
+            args(IntArg("min"), IntArg("max")) { args ->
                 val min = args.first
                 val max = args.second
                 doResponse(min = min, max = max)
             }
 
-            args(IntArg("max"), NoMoreArgs) { args ->
+            args(IntArg("max")) { args ->
                 val max = args.first
                 doResponse(min = 1, max = max)
             }

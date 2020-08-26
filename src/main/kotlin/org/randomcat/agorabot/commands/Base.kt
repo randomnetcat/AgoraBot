@@ -34,7 +34,7 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
 
         val parseResult = parseCommandArgs(parsers.asList(), arguments)
 
-        if (parseResult is CommandArgumentParseSuccess) {
+        if (parseResult is CommandArgumentParseSuccess && parseResult.remaining.args.isEmpty()) {
             alreadyCalled = true
             exec(receiver, parseResult.value)
         }
@@ -65,7 +65,18 @@ private class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
 
         return when (result) {
             is CommandArgumentParseResult.Success -> {
-                exec(receiver, result.value)
+                val remaining = result.remaining.args
+
+                // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
+                // with special argument.
+                if (remaining.isEmpty()) {
+                    exec(receiver, result.value)
+                } else {
+                    reportError(
+                        index = result.value.size + 1,
+                        ReadableCommandArgumentParseError("extraneous arg: ${remaining.first()}")
+                    )
+                }
             }
 
             is CommandArgumentParseResult.Failure -> {
@@ -149,21 +160,6 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             return CommandArgumentParseSuccess(args.first(), arguments.tail())
         }
     }
-
-    protected data class ExtraneousArg(private val unexpected: String) : ReadableCommandArgumentParseError {
-        override val message: String
-            get() = TODO("extraneous argument: $unexpected")
-    }
-
-    object EmptyArgument
-
-    protected val NoMoreArgs
-        get() = object : CommandArgumentParser<EmptyArgument, ExtraneousArg> {
-            override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<EmptyArgument, ExtraneousArg> {
-                if (arguments.args.isEmpty()) return CommandArgumentParseSuccess(EmptyArgument, arguments)
-                return CommandArgumentParseFailure(ExtraneousArg(arguments.args.first()))
-            }
-        }
 }
 
 abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
