@@ -149,6 +149,21 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             return CommandArgumentParseSuccess(args.first(), arguments.tail())
         }
     }
+
+    protected data class ExtraneousArg(private val unexpected: String) : ReadableCommandArgumentParseError {
+        override val message: String
+            get() = TODO("extraneous argument: $unexpected")
+    }
+
+    object EmptyArgument
+
+    protected val NoMoreArgs
+        get() = object : CommandArgumentParser<EmptyArgument, ExtraneousArg> {
+            override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<EmptyArgument, ExtraneousArg> {
+                if (arguments.args.isEmpty()) return CommandArgumentParseSuccess(EmptyArgument, arguments)
+                return CommandArgumentParseFailure(ExtraneousArg(arguments.args.first()))
+            }
+        }
 }
 
 abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
