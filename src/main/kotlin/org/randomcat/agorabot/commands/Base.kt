@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
 
-interface CommandErrorStrategy {
+interface BaseCommandStrategy {
     fun argumentParseError(event: MessageReceivedEvent, invocation: CommandInvocation, errorMessage: String)
 }
 
@@ -52,11 +52,11 @@ private class ExecutingArgumentDescriptionReceiver(
     }
 }
 
-abstract class BaseCommand(private val errorStrategy: CommandErrorStrategy) : Command {
+abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
         ExecutingArgumentDescriptionReceiver(
             UnparsedCommandArgs(invocation.args),
-            onError = { msg -> errorStrategy.argumentParseError(event, invocation, msg) }
+            onError = { msg -> strategy.argumentParseError(event, invocation, msg) }
         ).impl()
     }
 
@@ -102,7 +102,7 @@ abstract class BaseCommand(private val errorStrategy: CommandErrorStrategy) : Co
     }
 }
 
-abstract class ChatCommand : BaseCommand(object : CommandErrorStrategy {
+abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
     override fun argumentParseError(event: MessageReceivedEvent, invocation: CommandInvocation, errorMessage: String) {
         event.channel.sendMessage(errorMessage).queue()
     }
