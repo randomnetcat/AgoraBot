@@ -18,11 +18,41 @@ fun ReadableCommandArgumentParseError(msg: String) = object : ReadableCommandArg
         get() = msg
 }
 
-private class ExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+    private val arguments: UnparsedCommandArgs,
+    private val onNoMatch: () -> Unit,
+    private val receiver: ExecutionReceiver
+) : ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+    private var alreadyCalled = false
+    private var alreadyUsed = false
+
+    override fun <T, E> argsRaw(
+        vararg parsers: CommandArgumentParser<T, E>,
+        exec: ExecutionReceiver.(args: List<T>) -> Unit
+    ) {
+        if (alreadyCalled) return
+
+        val parseResult = parseCommandArgs(parsers.asList(), arguments)
+
+        if (parseResult is CommandArgumentParseSuccess) {
+            alreadyCalled = true
+            exec(receiver, parseResult.value)
+        }
+    }
+
+    fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(!alreadyUsed)
+        block()
+        alreadyUsed = true
+        if (!alreadyCalled) onNoMatch()
+    }
+}
+
+private class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
     private val onError: (message: String) -> Unit,
     private val receiver: ExecutionReceiver
-) : ArgumentDescriptionReceiver<ExecutionReceiver> {
+) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
     private var alreadyParsed: Boolean = false
 
     override fun <T, E> argsRaw(
@@ -42,6 +72,14 @@ private class ExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
                 reportError(index = result.error.index, error = result.error.error)
             }
         }
+    }
+
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        MatchFirstExecutingArgumentDescriptionReceiver(
+            arguments = arguments,
+            onNoMatch = { onError("No match for command set") },
+            receiver = receiver
+        ).executeWholeBlock(block)
     }
 
     private fun <E> reportError(index: Int, error: E) {
@@ -64,14 +102,14 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     }
 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
-        ExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
+        TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
             UnparsedCommandArgs(invocation.args),
             onError = { msg -> strategy.argumentParseError(event, invocation, msg) },
             ExecutionReceiverImpl(strategy, event, invocation),
         ).impl()
     }
 
-    protected abstract fun ArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
+    protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
 
     protected abstract class CommandArgument<T>(
         val name: String

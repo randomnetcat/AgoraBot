@@ -4,13 +4,24 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 
 class RngCommand : ChatCommand() {
-    override fun ArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
-        args(IntArg("min"), IntArg("max")) { args ->
-            val min = args.first
-            val max = args.second
-            val result = Random.nextInt(min..max)
+    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+        matchFirst {
+            args(IntArg("min"), IntArg("max")) { args ->
+                val min = args.first
+                val max = args.second
+                doResponse(min = min, max = max)
+            }
 
-            respond("Random number from $min to $max: $result")
+            args(IntArg("max")) { args ->
+                val max = args.first
+                doResponse(min = 1, max = max)
+            }
         }
+    }
+
+    private fun ExecutionReceiverImpl.doResponse(min: Int, max: Int) {
+        val result = Random.nextInt(min..max)
+
+        respond("Random number from $min to $max: $result")
     }
 }
