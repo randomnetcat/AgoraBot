@@ -11,6 +11,9 @@ sealed class CommandArgumentParseResult<out T, out E> {
     ) : CommandArgumentParseResult<T, Nothing>()
 }
 
+typealias CommandArgumentParseSuccess<T> = CommandArgumentParseResult.Success<T>
+typealias CommandArgumentParseFailure<E> = CommandArgumentParseResult.Failure<E>
+
 interface CommandArgumentParser<out T, out E> {
     fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<T, E>
 }
