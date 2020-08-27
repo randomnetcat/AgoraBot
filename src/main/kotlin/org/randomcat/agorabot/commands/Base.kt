@@ -9,15 +9,6 @@ interface BaseCommandStrategy {
     fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String)
 }
 
-interface ReadableCommandArgumentParseError {
-    val message: String
-}
-
-fun ReadableCommandArgumentParseError(msg: String) = object : ReadableCommandArgumentParseError {
-    override val message: String
-        get() = msg
-}
-
 private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
     private val onNoMatch: () -> Unit,

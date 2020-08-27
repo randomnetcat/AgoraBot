@@ -20,6 +20,15 @@ interface CommandArgumentParser<out T, out E> {
 
 data class SequentialArgumentParseFailure<E>(val index: Int, val error: E)
 
+interface ReadableCommandArgumentParseError {
+    val message: String
+}
+
+fun ReadableCommandArgumentParseError(msg: String) = object : ReadableCommandArgumentParseError {
+    override val message: String
+        get() = msg
+}
+
 fun <T, E> parseCommandArgs(
     parsers: Iterable<CommandArgumentParser<T, E>>,
     arguments: UnparsedCommandArgs
