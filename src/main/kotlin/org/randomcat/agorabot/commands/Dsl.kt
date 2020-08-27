@@ -15,6 +15,13 @@ interface ArgumentDescriptionReceiver<ExecutionReceiver> {
      * Can only be called once on any given instance unless otherwise specified.
      */
     fun <T, E> argsRaw(vararg parsers: CommandArgumentParser<T, E>, exec: ExecutionReceiver.(args: List<T>) -> Unit)
+
+    /**
+     * Indicates that the first [argsRaw] call in [block] that has parameters that match the input should be invoked.
+     *
+     * This is in top level so that recursive matchFirst calls are impossible.
+     */
+    fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit)
 }
 
 /**
@@ -26,12 +33,6 @@ interface ArgumentMultiDescriptionReceiver<ExecutionReceiver> : ArgumentDescript
 
 @CommandDslMarker
 interface TopLevelArgumentDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver> {
-    /**
-     * Indicates that the first [argsRaw] call in [block] that has parameters that match the input should be invoked.
-     *
-     * This is in top level so that recursive matchFirst calls are impossible.
-     */
-    fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit)
 }
 
 private typealias CDR<Exec> = ArgumentDescriptionReceiver<Exec>

@@ -1,12 +1,27 @@
 package org.randomcat.agorabot.commands
 
+abstract class BaseExecutingArgumentDescriptionReceiver {
+    private var alreadyParsed: Boolean = false
+
+    protected fun beginParsing() {
+        check(!alreadyParsed)
+        alreadyParsed = true
+    }
+}
+
 class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
-    private val onNoMatch: () -> Unit,
+    private val onMatch: () -> Unit,
+    private val endNoMatch: () -> Unit,
     private val receiver: ExecutionReceiver
-) : ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
-    private var alreadyCalled = false
-    private var alreadyUsed = false
+) : BaseExecutingArgumentDescriptionReceiver(), ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+    private var _alreadyCalled = false
+    private val alreadyCalled get() = _alreadyCalled
+
+    private fun markCalled() {
+        _alreadyCalled = true
+        onMatch()
+    }
 
     override fun <T, E> argsRaw(
         vararg parsers: CommandArgumentParser<T, E>,
@@ -16,17 +31,28 @@ class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
 
         val parseResult = parseCommandArgs(parsers.asList(), arguments)
 
-        if (parseResult is CommandArgumentParseSuccess && parseResult.remaining.args.isEmpty()) {
-            alreadyCalled = true
+        if (parseResult is CommandArgumentParseSuccess && parseResult.isFullMatch()) {
+            markCalled()
             exec(receiver, parseResult.value)
         }
     }
 
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        if (alreadyCalled) return
+
+        MatchFirstExecutingArgumentDescriptionReceiver(
+            arguments = arguments,
+            onMatch = { markCalled() },
+            endNoMatch = {},
+            receiver
+        ).executeWholeBlock(block)
+    }
+
     fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        check(!alreadyUsed)
+        beginParsing()
+
         block()
-        alreadyUsed = true
-        if (!alreadyCalled) onNoMatch()
+        if (!_alreadyCalled) endNoMatch()
     }
 }
 
@@ -34,14 +60,12 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
     private val onError: (message: String) -> Unit,
     private val receiver: ExecutionReceiver
-) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
-    private var alreadyParsed: Boolean = false
-
+) : BaseExecutingArgumentDescriptionReceiver(), TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
     override fun <T, E> argsRaw(
         vararg parsers: CommandArgumentParser<T, E>,
         exec: ExecutionReceiver.(args: List<T>) -> Unit
     ) {
-        check(!alreadyParsed)
+        beginParsing()
 
         val result = parseCommandArgs(parsers.asList(), arguments)
 
@@ -68,18 +92,14 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        check(!alreadyParsed)
+        beginParsing()
 
         MatchFirstExecutingArgumentDescriptionReceiver(
             arguments = arguments,
-            onNoMatch = {
-                alreadyParsed = true
-                onError("No match for command set")
-            },
-            receiver = receiver
+            endNoMatch = { onError("No match for command set") },
+            onMatch = {},
+            receiver = receiver,
         ).executeWholeBlock(block)
-
-        alreadyParsed = true
     }
 
     private fun <E> reportError(index: Int, error: E) {
