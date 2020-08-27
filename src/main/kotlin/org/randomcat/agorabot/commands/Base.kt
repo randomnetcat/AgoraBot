@@ -128,45 +128,6 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     }
 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
-
-    protected abstract class CommandArgument<T>(
-        val name: String
-    ) : CommandArgumentParser<T, ReadableCommandArgumentParseError> {
-        abstract val type: String
-
-        protected val noArgumentError =
-            CommandArgumentParseResult.Failure(ReadableCommandArgumentParseError("no argument provided"))
-    }
-
-    protected fun IntArg(name: String) = object : CommandArgument<Int>(name) {
-        override val type: String
-            get() = "int"
-
-        override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<Int, ReadableCommandArgumentParseError> {
-            val args = arguments.args
-            if (args.isEmpty()) return noArgumentError
-
-            val firstArg = args.first()
-            val intArg = firstArg.toIntOrNull()
-
-            return if (intArg != null)
-                CommandArgumentParseSuccess(intArg, arguments.tail())
-            else
-                CommandArgumentParseFailure(ReadableCommandArgumentParseError("invalid int: $firstArg"))
-        }
-    }
-
-    protected fun StringArg(name: String) = object : CommandArgument<String>(name) {
-        override val type: String
-            get() = "string"
-
-        override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<String, ReadableCommandArgumentParseError> {
-            val args = arguments.args
-            if (args.isEmpty()) return noArgumentError
-
-            return CommandArgumentParseSuccess(args.first(), arguments.tail())
-        }
-    }
 }
 
 abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
