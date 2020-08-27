@@ -9,50 +9,138 @@ abstract class BaseExecutingArgumentDescriptionReceiver {
     }
 }
 
-class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
-    private val arguments: UnparsedCommandArgs,
-    private val onMatch: () -> Unit,
-    private val endNoMatch: () -> Unit,
-    private val receiver: ExecutionReceiver
-) : BaseExecutingArgumentDescriptionReceiver(), ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
-    private var _alreadyCalled = false
-    private val alreadyCalled get() = _alreadyCalled
+abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>
+    : BaseExecutingArgumentDescriptionReceiver(), ArgumentDescriptionReceiver<ExecutionReceiver> {
+    protected abstract val onMatch: () -> Unit
+    protected abstract val arguments: UnparsedCommandArgs
+    protected abstract val receiver: ExecutionReceiver
 
-    private fun markCalled() {
+    private var _alreadyCalled = false
+    protected val alreadyCalled get() = _alreadyCalled
+
+    protected fun markCalled() {
         _alreadyCalled = true
         onMatch()
     }
 
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
+    protected fun <T, E> doArgsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
         exec: ExecutionReceiver.(args: List<T>) -> Unit
     ) {
-        if (alreadyCalled) return
+        val parseResult = filterParseResult(parseCommandArgs(parsers, arguments))
 
-        val parseResult = parseCommandArgs(parsers.asList(), arguments)
-
-        if (parseResult is CommandArgumentParseSuccess && parseResult.isFullMatch()) {
+        if (parseResult != null) {
             markCalled()
             exec(receiver, parseResult.value)
         }
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        if (alreadyCalled) return
-
+    protected fun doMatchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
         MatchFirstExecutingArgumentDescriptionReceiver(
             arguments = arguments,
             onMatch = { markCalled() },
             endNoMatch = {},
-            receiver
+            receiver = receiver,
         ).executeWholeBlock(block)
+    }
+
+    companion object {
+        /**
+         * Returns [parseResult] if [parseResult] should be considered a successful parse, otherwise returns null.
+         */
+        @JvmStatic
+        protected fun <T, E> filterParseResult(
+            parseResult: CommandArgumentParseResult<T, E>
+        ): CommandArgumentParseSuccess<T>? {
+            return if (parseResult.isFullMatch()) parseResult as CommandArgumentParseSuccess else null
+        }
+    }
+}
+
+class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+    override val arguments: UnparsedCommandArgs,
+    override val onMatch: () -> Unit,
+    private val endNoMatch: () -> Unit,
+    override val receiver: ExecutionReceiver
+) : BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>(),
+    ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+    override fun <T, E> argsRaw(
+        vararg parsers: CommandArgumentParser<T, E>,
+        exec: ExecutionReceiver.(args: List<T>) -> Unit
+    ) {
+        if (alreadyCalled) return
+        doArgsRaw(parsers.asList(), exec)
+    }
+
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        if (alreadyCalled) return
+        doMatchFirst(block)
     }
 
     fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
         beginParsing()
-
         block()
-        if (!_alreadyCalled) endNoMatch()
+        if (!alreadyCalled) endNoMatch()
+    }
+}
+
+class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+    override val arguments: UnparsedCommandArgs,
+    override val onMatch: () -> Unit,
+    private val endNoMatch: () -> Unit,
+    override val receiver: ExecutionReceiver
+) : BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>(),
+    SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
+    private enum class State {
+        Undetermined, Implementation, SubcommandParent
+    }
+
+    private var state: State = State.Undetermined
+    private val seenSubcommands = mutableSetOf<String>()
+
+    override fun <T, E> argsRaw(
+        vararg parsers: CommandArgumentParser<T, E>,
+        exec: ExecutionReceiver.(args: List<T>) -> Unit
+    ) {
+        check(state == State.Undetermined) { "cannot provide two subcommand implementations" }
+        doArgsRaw(parsers.asList(), exec)
+        state = State.Implementation
+    }
+
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(state == State.Undetermined) { "cannot provide two subcommand implementations" }
+        doMatchFirst(block)
+        state = State.Implementation
+    }
+
+    override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(state == State.Undetermined || state == State.SubcommandParent) {
+            "cannot provide both implementation and nested subcommands"
+        }
+        state = State.SubcommandParent
+
+        check(!seenSubcommands.contains(name)) { "repeated definition of subcommand $name" }
+        seenSubcommands.add(name)
+
+        val argsList = arguments.args
+        if (argsList.isEmpty()) return
+
+        val firstArg = argsList.first()
+
+        if (firstArg.equals(name, ignoreCase = true)) {
+            SubcommandsExecutingArgumentDescriptionReceiver(
+                arguments = arguments.tail(),
+                onMatch = { markCalled() },
+                endNoMatch = { endNoMatch() }, // No other subcommand can go through this path, so a match fail here is permanent
+                receiver = receiver
+            ).executeWholeBlock(block)
+        }
+    }
+
+    fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        beginParsing()
+        block()
+        if (!alreadyCalled) endNoMatch()
     }
 }
 
@@ -96,6 +184,17 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
             arguments = arguments,
             endNoMatch = { onError("No match for command set") },
             onMatch = {},
+            receiver = receiver,
+        ).executeWholeBlock(block)
+    }
+
+    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        beginParsing()
+
+        SubcommandsExecutingArgumentDescriptionReceiver(
+            arguments = arguments,
+            onMatch = {},
+            endNoMatch = { onError("no matching subcommand") },
             receiver = receiver,
         ).executeWholeBlock(block)
     }

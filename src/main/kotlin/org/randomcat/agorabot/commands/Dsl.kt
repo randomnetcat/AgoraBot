@@ -32,7 +32,13 @@ interface ArgumentDescriptionReceiver<ExecutionReceiver> {
 interface ArgumentMultiDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver>
 
 @CommandDslMarker
+interface SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver> {
+    fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit)
+}
+
+@CommandDslMarker
 interface TopLevelArgumentDescriptionReceiver<ExecutionReceiver> : ArgumentDescriptionReceiver<ExecutionReceiver> {
+    fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit)
 }
 
 private typealias CDR<Exec> = ArgumentDescriptionReceiver<Exec>
