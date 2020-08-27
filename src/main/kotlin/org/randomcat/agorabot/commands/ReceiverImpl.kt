@@ -67,15 +67,13 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     ) {
         beginParsing()
 
-        val result = parseCommandArgs(parsers.asList(), arguments)
-
-        return when (result) {
+        return when (val result = parseCommandArgs(parsers.asList(), arguments)) {
             is CommandArgumentParseResult.Success -> {
                 val remaining = result.remaining.args
 
                 // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
                 // with special argument.
-                if (remaining.isEmpty()) {
+                if (result.isFullMatch()) {
                     exec(receiver, result.value)
                 } else {
                     reportError(
