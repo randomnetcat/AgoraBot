@@ -9,6 +9,11 @@ sealed class CommandArgumentParseResult<out T, out E> {
         val value: T,
         val remaining: UnparsedCommandArgs,
     ) : CommandArgumentParseResult<T, Nothing>()
+
+    fun isSuccess() = this is Success
+    fun isFailure() = this is Failure
+
+    fun isFullMatch() = this is Success && remaining.args.isEmpty()
 }
 
 typealias CommandArgumentParseSuccess<T> = CommandArgumentParseResult.Success<T>
