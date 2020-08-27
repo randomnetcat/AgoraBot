@@ -131,7 +131,7 @@ class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
             SubcommandsExecutingArgumentDescriptionReceiver(
                 arguments = arguments.tail(),
                 onMatch = { markCalled() },
-                endNoMatch = { endNoMatch() }, // No other subcommand can go through this path, so a match fail here is permanent
+                endNoMatch = { },
                 receiver = receiver
             ).executeWholeBlock(block)
         }
