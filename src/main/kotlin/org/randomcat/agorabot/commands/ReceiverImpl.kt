@@ -122,6 +122,8 @@ class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         check(!seenSubcommands.contains(name)) { "repeated definition of subcommand $name" }
         seenSubcommands.add(name)
 
+        if (alreadyCalled) return
+
         val argsList = arguments.args
         if (argsList.isEmpty()) return
 
