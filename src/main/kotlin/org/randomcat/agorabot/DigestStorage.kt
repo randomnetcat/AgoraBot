@@ -17,6 +17,9 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 private class OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
@@ -76,31 +79,58 @@ private class JsonMessageDigest(
         }
     }
 
-    private var rawMessages: MutableList<DigestMessageDto> = readInitial(storagePath).toMutableList()
+    private var _rawUnlockedMessages: MutableList<DigestMessageDto> = readInitial(storagePath).toMutableList()
 
-    private fun persist() {
-        val string = Json.encodeToString<List<DigestMessageDto>>(rawMessages)
+    private val lock = ReentrantReadWriteLock()
+
+    private inline fun <R> read(block: (messages: List<DigestMessageDto>) -> R): R {
+        return lock.read { block(_rawUnlockedMessages) }
+    }
+
+    private inline fun <R> write(block: (messages: MutableList<DigestMessageDto>) -> R): R {
+        return lock.write {
+            val result = block(_rawUnlockedMessages)
+            persistUnlocked()
+            result
+        }
+    }
+
+    private inline fun replace(block: (messages: MutableList<DigestMessageDto>) -> MutableList<DigestMessageDto>) {
+        lock.write {
+            _rawUnlockedMessages = block(_rawUnlockedMessages)
+            persistUnlocked()
+        }
+    }
+
+    private fun persistUnlocked() {
+        val string = Json.encodeToString<List<DigestMessageDto>>(_rawUnlockedMessages)
         val bytes = string.toByteArray(FILE_CHARSET)
         Files.write(storagePath, bytes, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
     }
 
+    private fun rawMessages(): ImmutableList<DigestMessageDto> {
+        return read { it.toImmutableList() } // Don't permit a reference to the unsynchronized list to escape
+    }
+
     override fun messages(): ImmutableList<DigestMessage> {
-        return rawMessages.map { it.toMessage() }.toImmutableList()
+        return rawMessages().map { it.toMessage() }.toImmutableList()
     }
 
     override fun add(message: Iterable<DigestMessage>) {
-        rawMessages.addAll(message.map { DigestMessageDto.fromMessage(it) })
-        rawMessages = rawMessages.distinctBy { it.id }.toMutableList()
-        persist()
+        replace { messages ->
+            (messages + message.map { msg -> DigestMessageDto.fromMessage(msg) })
+                .distinctBy { msg -> msg.id }
+                .toMutableList()
+        }
     }
 
     override fun clear() {
-        rawMessages.clear()
-        persist()
+        // Instead of replacing with empty list, clear and maintain list's capacity
+        write { it.clear() }
     }
 
     override fun render(): String {
-        return messages().sortedBy { it.date }.joinToString("\n\n") {
+        return rawMessages().sortedBy { it.date }.joinToString("\n\n") {
             val nickname = it.senderNickname
             val includeNickname = (nickname != null) && (nickname != it.senderUsername)
 
