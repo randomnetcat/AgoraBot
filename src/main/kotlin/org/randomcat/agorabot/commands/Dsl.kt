@@ -45,6 +45,12 @@ private typealias CDR<Exec> = ArgumentDescriptionReceiver<Exec>
 
 private typealias CmdExecBlock<ExecutionReceiver, Args> = ExecutionReceiver.(Args) -> Unit
 
+inline fun <Rec> CDR<Rec>.noArgs(
+    crossinline block: CmdExecBlock<Rec, CommandArgs0>
+) = argsRaw<Nothing, Nothing>() {
+    block(CommandArgs0)
+}
+
 inline fun <A, AE, Rec> CDR<Rec>.args(
     a: CAP<A, AE>,
     crossinline block: CmdExecBlock<Rec, CommandArgs1<A>>,
