@@ -20,6 +20,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         }
 
         fun currentMessageEvent() = event
+        fun currentChannel() = currentMessageEvent().channel
         fun currentGuildId(): String = currentMessageEvent().guild.id
     }
 
