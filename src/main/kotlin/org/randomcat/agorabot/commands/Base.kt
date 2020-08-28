@@ -18,6 +18,8 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         fun respond(message: String) {
             strategy.sendResponse(event, invocation, message)
         }
+
+        fun currentGuildId(): String = event.guild.id
     }
 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
