@@ -9,7 +9,7 @@ abstract class BaseExecutingArgumentDescriptionReceiver {
     }
 }
 
-abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>
+private abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>
     : BaseExecutingArgumentDescriptionReceiver(), ArgumentDescriptionReceiver<ExecutionReceiver> {
     protected abstract val onMatch: () -> Unit
     protected abstract val arguments: UnparsedCommandArgs
@@ -57,7 +57,7 @@ abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>
     }
 }
 
-class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     override val arguments: UnparsedCommandArgs,
     override val onMatch: () -> Unit,
     private val endNoMatch: () -> Unit,
@@ -84,7 +84,7 @@ class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     }
 }
 
-class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     override val arguments: UnparsedCommandArgs,
     override val onMatch: () -> Unit,
     private val endNoMatch: () -> Unit,
