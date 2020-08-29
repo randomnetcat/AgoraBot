@@ -99,6 +99,17 @@ class DigestCommand(
         }
     }
 
+    private fun ExecutionReceiverImpl.getMessageOrError(id: String): Message? {
+        val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
+
+        if (msgResult.isFailure) {
+            respond("Unable to find message $id in *this* channel.")
+            return null
+        }
+
+        return msgResult.get()
+    }
+
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         subcommands {
             subcommand("clear") {
@@ -131,29 +142,13 @@ class DigestCommand(
                 matchFirst {
                     args(StringArg("message_id")) { args ->
                         val messageId = args.first
-                        val message = currentChannel().retrieveMessageById(messageId).complete()
-
-                        if (message == null) {
-                            respond("No message with id $messageId")
-                            return@args
-                        }
+                        val message = getMessageOrError(messageId) ?: return@args
 
                         currentDigest().add(listOf(message.toDigestMessage()))
                         respond("Added one message to digest.")
                     }
 
                     args(StringArg("range_begin"), StringArg("range_end")) { args ->
-                        fun getMessageOrError(id: String): Message? {
-                            val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
-
-                            if (msgResult.isFailure) {
-                                respond("Unable to find message $id in *this* channel.")
-                                return null
-                            }
-
-                            return msgResult.get()
-                        }
-
                         val rangeBeginId = args.first
                         val rangeBegin = getMessageOrError(rangeBeginId) ?: return@args
 
