@@ -5,7 +5,13 @@ import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
 
 interface BaseCommandStrategy {
-    fun argumentParseError(event: MessageReceivedEvent, invocation: CommandInvocation, errorMessage: String)
+    fun argumentParseError(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        errorMessage: String,
+        usage: String,
+    )
+
     fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String)
 }
 
@@ -27,17 +33,33 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
         TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
             UnparsedCommandArgs(invocation.args),
-            onError = { msg -> strategy.argumentParseError(event, invocation, msg) },
+            onError = { msg ->
+                strategy.argumentParseError(
+                    event = event,
+                    invocation = invocation,
+                    errorMessage = msg,
+                    usage = usage()
+                )
+            },
             ExecutionReceiverImpl(strategy, event, invocation),
         ).impl()
     }
 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
+
+    private fun usage(): String {
+        return UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>().apply { impl() }.usage()
+    }
 }
 
 abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
-    override fun argumentParseError(event: MessageReceivedEvent, invocation: CommandInvocation, errorMessage: String) {
-        sendResponse(event, invocation, errorMessage)
+    override fun argumentParseError(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        errorMessage: String,
+        usage: String,
+    ) {
+        sendResponse(event, invocation, "$errorMessage. Usage: $usage")
     }
 
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
