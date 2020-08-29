@@ -13,6 +13,16 @@ abstract class BaseCommandArgument<T>(
 ) : CommandArgumentParser<T, ReadableCommandArgumentParseError>, NamedCommandArgument, TypedCommandArgument {
     protected val noArgumentError =
         CommandArgumentParseResult.Failure(ReadableCommandArgumentParseError("no argument provided"))
+
+    open val count: CommandArgumentUsage.Count get() = CommandArgumentUsage.Count.ONCE
+
+    override fun usage(): CommandArgumentUsage {
+        return CommandArgumentUsage(
+            name = name,
+            type = type,
+            count = count,
+        )
+    }
 }
 
 fun IntArg(name: String) = object : BaseCommandArgument<Int>(name) {

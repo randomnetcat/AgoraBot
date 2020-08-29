@@ -14,6 +14,14 @@ class ParseCommandArgsTest {
             if (args.isEmpty()) return CommandArgumentParseResult.Failure(EmptyArgumentError)
             return CommandArgumentParseResult.Success(args.first(), UnparsedCommandArgs(args.drop(1)))
         }
+
+        override fun usage(): CommandArgumentUsage {
+            return CommandArgumentUsage(
+                name = "echo_arg",
+                type = "string",
+                count = CommandArgumentUsage.Count.ONCE,
+            )
+        }
     }
 
     @Test

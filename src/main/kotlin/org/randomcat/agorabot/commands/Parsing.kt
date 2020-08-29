@@ -21,6 +21,19 @@ typealias CommandArgumentParseFailure<E> = CommandArgumentParseResult.Failure<E>
 
 interface CommandArgumentParser<out T, out E> {
     fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<T, E>
+    fun usage(): CommandArgumentUsage
+}
+
+data class CommandArgumentUsage(
+    val name: String?,
+    val type: String?,
+    val count: Count,
+) {
+    enum class Count {
+        ONCE,
+        OPTIONAL,
+        REPEATING,
+    }
 }
 
 data class SequentialArgumentParseFailure<E>(val index: Int, val error: E)
