@@ -20,8 +20,10 @@ interface MessageDigest {
     fun clear()
 
     val size: Int get() = messages().size
+}
 
-    fun render(): String
+interface DigestFormat {
+    fun format(digest: MessageDigest): String
 }
 
 interface DigestMap {
@@ -35,6 +37,7 @@ interface MessageDigestSendStrategy {
 class DigestCommand(
     private val digestMap: DigestMap,
     private val sendStrategy: MessageDigestSendStrategy,
+    private val digestFormat: DigestFormat
 ) : ChatCommand() {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
@@ -107,7 +110,7 @@ class DigestCommand(
 
             subcommand("upload") {
                 noArgs { _ ->
-                    val content = currentDigest().render()
+                    val content = digestFormat.format(currentDigest())
                     val contentBytes = content.toByteArray(FILE_CHARSET)
 
                     val tempFile = Files.createTempFile("agorabot", "digest")!!

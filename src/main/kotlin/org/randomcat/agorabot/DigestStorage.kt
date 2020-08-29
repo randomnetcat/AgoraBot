@@ -128,20 +128,6 @@ private class JsonMessageDigest(
         // Instead of replacing with empty list, clear and maintain list's capacity
         write { it.clear() }
     }
-
-    override fun render(): String {
-        return rawMessages().sortedBy { it.date }.joinToString("\n\n") {
-            val nickname = it.senderNickname
-            val includeNickname = (nickname != null) && (nickname != it.senderUsername)
-
-            "MESSAGE ${it.id}\n" +
-                    "FROM ${it.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +
-                    "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(it.date)} " +
-                    "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(it.date)}:" +
-                    "\n" +
-                    it.content
-        }
-    }
 }
 
 class JsonDigestMap(

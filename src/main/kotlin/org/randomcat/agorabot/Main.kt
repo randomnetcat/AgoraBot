@@ -7,6 +7,16 @@ import org.randomcat.agorabot.commands.DigestCommand
 import org.randomcat.agorabot.commands.RngCommand
 import java.nio.file.Path
 
+private fun digestCommand(): Command {
+    val digestFormat = DefaultDigestFormat()
+
+    return DigestCommand(
+        JsonDigestMap(Path.of(".", "digests")),
+        SsmtpDigestSendStrategy(digestFormat),
+        digestFormat,
+    )
+}
+
 fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
@@ -27,10 +37,7 @@ fun main(args: Array<String>) {
                 MapCommandRegistry(
                     mapOf(
                         "rng" to RngCommand(),
-                        "digest" to DigestCommand(
-                            JsonDigestMap(Path.of(".", "digests")),
-                            SsmtpDigestSendStrategy()
-                        )
+                        "digest" to digestCommand()
                     )
                 )
             )
