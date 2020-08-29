@@ -1,5 +1,8 @@
 package org.randomcat.agorabot.commands
 
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+
 abstract class BaseExecutingArgumentDescriptionReceiver {
     private var alreadyParsed: Boolean = false
 
@@ -207,4 +210,129 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
 
         onError(message)
     }
+}
+
+private fun countSymbol(count: CommandArgumentUsage.Count): String {
+    return when (count) {
+        CommandArgumentUsage.Count.ONCE -> ""
+        CommandArgumentUsage.Count.OPTIONAL -> "?"
+        CommandArgumentUsage.Count.REPEATING -> "..."
+    }
+}
+
+private fun formatArgumentUsage(usage: CommandArgumentUsage): String {
+    return "${usage.name ?: "_"}${if (usage.type != null) ": " + usage.type else ""}${countSymbol(usage.count)}"
+}
+
+private fun formatArgumentUsages(usages: Iterable<CommandArgumentUsage>): String {
+    return usages.joinToString(" ") { "[${formatArgumentUsage(it)}]" }
+}
+
+private fun formatArgumentSelection(options: List<String>): String {
+    if (options.size == 1) return options.single()
+
+    return options.joinToString(" | ") {
+        when {
+            it.isEmpty() -> "<no args>"
+            else -> it
+        }
+    }
+}
+
+private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
+    ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+    private val options = mutableListOf<String>()
+
+    override fun <T, E> argsRaw(
+        vararg parsers: CommandArgumentParser<T, E>,
+        exec: ExecutionReceiver.(args: List<T>) -> Unit,
+    ) {
+        options += formatArgumentUsages(parsers.map { it.usage() })
+    }
+
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        block()
+    }
+
+    fun options(): ImmutableList<String> {
+        return options.toImmutableList()
+    }
+}
+
+private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
+    : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
+    private var options: List<String>? = null
+
+    override fun <T, E> argsRaw(
+        vararg parsers: CommandArgumentParser<T, E>,
+        exec: ExecutionReceiver.(args: List<T>) -> Unit,
+    ) {
+        check(options == null)
+        options = listOf(formatArgumentUsages(parsers.map { it.usage() }))
+    }
+
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(options == null)
+        options =
+            MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver>()
+                .apply(block)
+                .options()
+    }
+
+    override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        val subOptions =
+            UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>()
+                .apply(block)
+                .options()
+
+        val newOption = name + when {
+            subOptions.isEmpty() -> ""
+            subOptions.size == 1 -> {
+                val subOption = subOptions.single()
+                if (subOption.isEmpty())
+                    ""
+                else
+                    " " + subOptions.single()
+            }
+            else -> " [${formatArgumentSelection(subOptions)}]"
+        }
+
+        options = (options ?: emptyList()) + newOption
+    }
+
+    fun options(): ImmutableList<String> {
+        return checkNotNull(options).toImmutableList()
+    }
+}
+
+class UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiver> :
+    TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
+    private var usageValue: String? = null
+
+    override fun <T, E> argsRaw(
+        vararg parsers: CommandArgumentParser<T, E>,
+        exec: ExecutionReceiver.(args: List<T>) -> Unit,
+    ) {
+        check(usageValue == null)
+        usageValue = formatArgumentUsages(parsers.map { it.usage() })
+    }
+
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(usageValue == null)
+        usageValue = formatArgumentSelection(
+            MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver>().apply(block).options()
+        )
+    }
+
+    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        check(usageValue == null)
+
+        usageValue = formatArgumentSelection(
+            UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>()
+                .also(block)
+                .options()
+        )
+    }
+
+    fun usage(): String = checkNotNull(this.usageValue)
 }
