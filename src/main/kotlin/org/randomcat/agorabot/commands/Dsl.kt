@@ -84,7 +84,3 @@ inline fun <A, AE, B, BE, C, CE, D, DE, Rec> CDR<Rec>.args(
 ) = argsRaw(a, b, c, d) { args ->
     block(CommandArgs4(args[0] as A, args[1] as B, args[2] as C, args[3] as D))
 }
-
-interface CommandExecutionReceiver<out Args> {
-    val args: Args
-}
