@@ -44,3 +44,23 @@ data class MapCommandRegistry(
         registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
     }
 }
+
+class MutableMapCommandRegistry private constructor(
+    registry: Map<String, Command>,
+    private val unknownCommandHook: UnknownCommandHook,
+) : CommandRegistry {
+    private val registry: MutableMap<String, Command> = registry.toMutableMap() // Defensive copy
+
+    fun addCommand(name: String, command: Command) {
+        require(!registry.containsKey(name)) { "Cannot insert duplicate command $name" }
+        registry[name] = command
+    }
+
+    fun addCommands(map: Map<String, Command>) {
+        map.forEach { addCommand(it.key, it.value) }
+    }
+
+    override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
+        registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
+    }
+}
