@@ -34,21 +34,21 @@ interface MessageDigestSendStrategy {
     fun sendDigest(digest: MessageDigest, destination: String)
 }
 
+fun Message.toDigestMessage() = DigestMessage(
+    senderUsername = this.author.name,
+    senderNickname = this.member?.nickname,
+    id = this.id,
+    content = this.contentRaw,
+    date = this.timeCreated,
+)
+
 class DigestCommand(
     private val digestMap: DigestMap,
     private val sendStrategy: MessageDigestSendStrategy,
-    private val digestFormat: DigestFormat
+    private val digestFormat: DigestFormat,
 ) : ChatCommand() {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
-
-        private fun Message.toDigestMessage() = DigestMessage(
-            senderUsername = this.author.name,
-            senderNickname = this.member?.nickname,
-            id = this.id,
-            content = this.contentRaw,
-            date = this.timeCreated,
-        )
 
         private fun retreiveMessagesBetween(rangeBegin: Message, rangeEnd: Message): List<Message> {
             require(rangeBegin.channel == rangeEnd.channel)
