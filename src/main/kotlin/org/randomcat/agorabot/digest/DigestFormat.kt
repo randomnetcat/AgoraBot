@@ -3,11 +3,11 @@ package org.randomcat.agorabot.digest
 import java.time.format.DateTimeFormatter
 
 interface DigestFormat {
-    fun format(digest: MessageDigest): String
+    fun format(digest: Digest): String
 }
 
 class DefaultDigestFormat : DigestFormat {
-    override fun format(digest: MessageDigest): String {
+    override fun format(digest: Digest): String {
         return digest.messages().sortedBy { it.date }.joinToString("\n\n") {
             val nickname = it.senderNickname
             val includeNickname = (nickname != null) && (nickname != it.senderUsername)

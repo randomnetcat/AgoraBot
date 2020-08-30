@@ -11,7 +11,7 @@ data class DigestMessage(
     val date: OffsetDateTime,
 )
 
-interface MessageDigest {
+interface Digest {
     fun messages(): ImmutableList<DigestMessage>
     fun add(messages: Iterable<DigestMessage>)
     fun add(message: DigestMessage) = add(listOf(message))
@@ -31,5 +31,5 @@ interface MessageDigest {
 }
 
 interface DigestMap {
-    fun digestForGuild(guildId: String): MessageDigest
+    fun digestForGuild(guildId: String): Digest
 }

@@ -60,9 +60,9 @@ private data class DigestMessageDto(
     )
 }
 
-private class JsonMessageDigest(
+private class JsonDigest(
     private val storagePath: Path,
-) : MessageDigest {
+) : Digest {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
 
@@ -148,8 +148,8 @@ class JsonDigestMap(
         Files.createDirectories(storageDirectory)
     }
 
-    override fun digestForGuild(guildId: String): MessageDigest {
+    override fun digestForGuild(guildId: String): Digest {
         val jsonFile = storageDirectory.resolve(guildId)
-        return JsonMessageDigest(jsonFile)
+        return JsonDigest(jsonFile)
     }
 }
