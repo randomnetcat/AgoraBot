@@ -37,8 +37,8 @@ private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (Mes
 
                     if (numAdded > 0) {
                         message
-                            .addReaction(DISCORD_WHITE_CHECK_MARK) // Ignores failure if no permission to react
-                            .mapToResult()
+                            .addReaction(DISCORD_WHITE_CHECK_MARK)
+                            .mapToResult() // Ignores failure if no permission to react
                             .queue()
                     }
                 }
