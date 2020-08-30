@@ -141,9 +141,9 @@ private class JsonDigest(
     }
 }
 
-class JsonDigestMap(
+class JsonGuildDigestMap(
     private val storageDirectory: Path,
-) : DigestMap {
+) : GuildDigestMap {
     init {
         Files.createDirectories(storageDirectory)
     }

@@ -9,7 +9,7 @@ import org.randomcat.agorabot.commands.RngCommand
 import org.randomcat.agorabot.digest.*
 import java.nio.file.Path
 
-private fun digestCommand(digestMap: DigestMap): Command {
+private fun digestCommand(digestMap: GuildDigestMap): Command {
     val digestFormat = DefaultDigestFormat()
 
     return DigestCommand(
@@ -21,7 +21,7 @@ private fun digestCommand(digestMap: DigestMap): Command {
 
 private const val DISCORD_WHITE_CHECK_MARK = "\u2705"
 
-private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (MessageReactionAddEvent) -> Unit {
+private fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String): (MessageReactionAddEvent) -> Unit {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
             val emote = event.reactionEmote
@@ -54,7 +54,7 @@ fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
     val token = args.single()
-    val digestMap = JsonDigestMap(Path.of(".", "digests"))
+    val digestMap = JsonGuildDigestMap(Path.of(".", "digests"))
 
     JDABuilder
         .createDefault(

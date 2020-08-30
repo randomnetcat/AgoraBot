@@ -30,6 +30,6 @@ interface Digest {
     val size: Int get() = messages().size
 }
 
-interface DigestMap {
+interface GuildDigestMap {
     fun digestForGuild(guildId: String): Digest
 }

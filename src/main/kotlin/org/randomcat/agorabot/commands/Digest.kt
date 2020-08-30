@@ -2,14 +2,14 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
 import org.randomcat.agorabot.digest.DigestFormat
-import org.randomcat.agorabot.digest.DigestMap
 import org.randomcat.agorabot.digest.DigestSendStrategy
+import org.randomcat.agorabot.digest.GuildDigestMap
 import org.randomcat.agorabot.digest.toDigestMessage
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
 class DigestCommand(
-    private val digestMap: DigestMap,
+    private val digestMap: GuildDigestMap,
     private val sendStrategy: DigestSendStrategy,
     private val digestFormat: DigestFormat,
 ) : ChatCommand() {
