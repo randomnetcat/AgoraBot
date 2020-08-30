@@ -20,7 +20,7 @@ class RngCommand : ChatCommand() {
     }
 
     private fun ExecutionReceiverImpl.doResponse(min: Int, max: Int) {
-        if (min >= max) {
+        if (min > max) {
             respond("Max value must be at least as big as min value.")
             return
         }
