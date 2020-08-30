@@ -1,5 +1,8 @@
 package org.randomcat.agorabot
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
@@ -7,16 +10,35 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.DigestCommand
 import org.randomcat.agorabot.commands.RngCommand
 import org.randomcat.agorabot.digest.*
+import java.nio.file.Files
 import java.nio.file.Path
 
 private fun digestCommand(digestMap: GuildDigestMap): Command {
+    val mailConfigPath = Path.of(".", "mail.json")
+    require(Files.exists(mailConfigPath)) { "mail.json does not exist" }
+
+    val mailConfig = Json.parseToJsonElement(Files.readString(mailConfigPath, Charsets.UTF_8)).jsonObject
+
+    val ssmtpPath = Path.of(
+        (mailConfig["ssmtp_path"] ?: error("must specify ssmtp path in mail config"))
+            .jsonPrimitive
+            .content
+    )
+
+    val ssmtpConfigPath = Path.of(
+        (mailConfig["ssmtp_config_path"] ?: error("must specify ssmtp config path in mail config"))
+            .jsonPrimitive
+            .content
+    )
+
     val digestFormat = DefaultDigestFormat()
 
     return DigestCommand(
         digestMap,
         SsmtpDigestSendStrategy(
             digestFormat = digestFormat,
-            configPath = Path.of(".", "ssmtp.conf"),
+            executablePath = ssmtpPath,
+            configPath = ssmtpConfigPath,
         ),
         digestFormat,
     )
