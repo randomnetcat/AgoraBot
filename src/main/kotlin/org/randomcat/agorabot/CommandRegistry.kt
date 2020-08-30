@@ -53,9 +53,9 @@ data class MapCommandRegistry(
     }
 }
 
-class MutableMapCommandRegistry private constructor(
+class MutableMapCommandRegistry(
     registry: Map<String, Command>,
-    private val unknownCommandHook: UnknownCommandHook,
+    private val unknownCommandHook: UnknownCommandHook = ::defaultUnknownCommand,
 ) : QueryableCommandRegistry {
     private val registry: MutableMap<String, Command> = registry.toMutableMap() // Defensive copy
 
