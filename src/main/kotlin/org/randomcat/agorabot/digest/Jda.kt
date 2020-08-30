@@ -16,7 +16,7 @@ fun Message.digestMessageAction(): RestAction<DigestMessage> {
             senderUsername = message.author.name,
             senderNickname = nickname,
             id = message.id,
-            content = message.contentRaw,
+            content = message.contentDisplay,
             date = message.timeCreated,
             attachmentUrls = message.attachments.map { it.url }.toImmutableList()
         )
