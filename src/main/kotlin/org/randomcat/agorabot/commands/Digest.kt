@@ -157,7 +157,7 @@ class DigestCommand(
                         val messageId = args.first
                         val message = getMessageOrError(messageId) ?: return@args
 
-                        currentDigest().add(listOf(message.toDigestMessage()))
+                        currentDigest().add(message.toDigestMessage())
                         respond("Added one message to digest.")
                     }
 
