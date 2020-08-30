@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.DigestCommand
+import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.RngCommand
 import org.randomcat.agorabot.digest.*
 import java.nio.file.Files
@@ -81,6 +82,13 @@ fun main(args: Array<String>) {
     val token = args.single()
     val digestMap = JsonGuildDigestMap(Path.of(".", "digests"))
 
+    val commandRegistry = MutableMapCommandRegistry(
+        mapOf(
+            "rng" to RngCommand(),
+            "digest" to digestCommand(digestMap)
+        ),
+    )
+
     JDABuilder
         .createDefault(
             token,
@@ -93,14 +101,11 @@ fun main(args: Array<String>) {
         .addEventListeners(
             BotListener(
                 GlobalPrefixCommandParser("."),
-                MapCommandRegistry(
-                    mapOf(
-                        "rng" to RngCommand(),
-                        "digest" to digestCommand(digestMap)
-                    )
-                )
+                commandRegistry,
             ),
             BotEmoteListener(digestEmoteListener(digestMap, DISCORD_STAR)),
         )
         .build()
+
+    commandRegistry.addCommand("help", HelpCommand(commandRegistry))
 }
