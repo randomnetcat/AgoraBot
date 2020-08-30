@@ -1,8 +1,10 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.digest
 
-import org.randomcat.agorabot.commands.DigestFormat
-import org.randomcat.agorabot.commands.MessageDigest
 import java.time.format.DateTimeFormatter
+
+interface DigestFormat {
+    fun format(digest: MessageDigest): String
+}
 
 class DefaultDigestFormat : DigestFormat {
     override fun format(digest: MessageDigest): String {

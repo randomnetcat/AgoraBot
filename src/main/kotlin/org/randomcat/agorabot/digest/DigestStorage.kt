@@ -1,4 +1,4 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.digest
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -9,9 +9,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
-import org.randomcat.agorabot.commands.DigestMap
-import org.randomcat.agorabot.commands.DigestMessage
-import org.randomcat.agorabot.commands.MessageDigest
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption

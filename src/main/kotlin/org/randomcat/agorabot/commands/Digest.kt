@@ -1,57 +1,12 @@
 package org.randomcat.agorabot.commands
 
-import kotlinx.collections.immutable.ImmutableList
 import net.dv8tion.jda.api.entities.Message
+import org.randomcat.agorabot.digest.DigestFormat
+import org.randomcat.agorabot.digest.DigestMap
+import org.randomcat.agorabot.digest.MessageDigestSendStrategy
+import org.randomcat.agorabot.digest.toDigestMessage
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
-import java.time.OffsetDateTime
-
-data class DigestMessage(
-    val senderUsername: String,
-    val senderNickname: String?,
-    val id: String,
-    val content: String,
-    val date: OffsetDateTime
-)
-
-interface MessageDigest {
-    fun messages(): ImmutableList<DigestMessage>
-    fun add(messages: Iterable<DigestMessage>)
-    fun add(message: DigestMessage) = add(listOf(message))
-    fun clear()
-
-    /**
-     * Adds the provided messages to the digest. Returns the number of messages that were actually added.
-     */
-    fun addCounted(messages: Iterable<DigestMessage>): Int
-
-    /**
-     * Adds the provided message to the digest. Returns 1 if it was added, and 0 otherwise.
-     */
-    fun addCounted(message: DigestMessage): Int = addCounted(listOf(message))
-
-    val size: Int get() = messages().size
-}
-
-interface DigestFormat {
-    fun format(digest: MessageDigest): String
-}
-
-interface DigestMap {
-    fun digestForGuild(guildId: String): MessageDigest
-}
-
-interface MessageDigestSendStrategy {
-    fun sendDigest(digest: MessageDigest, destination: String)
-}
-
-fun Message.toDigestMessage() = DigestMessage(
-    senderUsername = this.author.name,
-    senderNickname = this.member?.nickname,
-    id = this.id,
-    content = this.contentRaw,
-    date = this.timeCreated,
-)
 
 class DigestCommand(
     private val digestMap: DigestMap,

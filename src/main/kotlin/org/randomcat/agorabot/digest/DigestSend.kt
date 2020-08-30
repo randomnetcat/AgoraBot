@@ -1,15 +1,16 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.digest
 
-import org.randomcat.agorabot.commands.DigestFormat
-import org.randomcat.agorabot.commands.MessageDigest
-import org.randomcat.agorabot.commands.MessageDigestSendStrategy
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+interface MessageDigestSendStrategy {
+    fun sendDigest(digest: MessageDigest, destination: String)
+}
+
 class SsmtpDigestSendStrategy(
-    private val digestFormat: DigestFormat
+    private val digestFormat: DigestFormat,
 ) : MessageDigestSendStrategy {
     override fun sendDigest(digest: MessageDigest, destination: String) {
         val tempFile = Files.createTempFile("agorabot", "ssmtp-digest-data")!!

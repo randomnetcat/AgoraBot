@@ -5,9 +5,8 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.DigestCommand
-import org.randomcat.agorabot.commands.DigestMap
 import org.randomcat.agorabot.commands.RngCommand
-import org.randomcat.agorabot.commands.toDigestMessage
+import org.randomcat.agorabot.digest.*
 import java.nio.file.Path
 
 private fun digestCommand(digestMap: DigestMap): Command {
