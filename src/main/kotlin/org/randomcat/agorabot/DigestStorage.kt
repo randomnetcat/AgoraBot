@@ -72,8 +72,7 @@ private class JsonMessageDigest(
         private fun readInitial(storagePath: Path): List<DigestMessageDto> {
             if (Files.notExists(storagePath)) return emptyList()
 
-            val contentBytes = Files.readAllBytes(storagePath)
-            val contentString = String(contentBytes, FILE_CHARSET)
+            val contentString = Files.readString(storagePath, FILE_CHARSET)
 
             return Json.decodeFromString<List<DigestMessageDto>>(contentString)
         }
@@ -103,9 +102,12 @@ private class JsonMessageDigest(
     }
 
     private fun persistUnlocked() {
-        val string = Json.encodeToString<List<DigestMessageDto>>(_rawUnlockedMessages)
-        val bytes = string.toByteArray(FILE_CHARSET)
-        Files.write(storagePath, bytes, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
+        Files.writeString(storagePath,
+            Json.encodeToString<List<DigestMessageDto>>(_rawUnlockedMessages),
+            FILE_CHARSET,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.CREATE
+        )
     }
 
     private fun rawMessages(): ImmutableList<DigestMessageDto> {

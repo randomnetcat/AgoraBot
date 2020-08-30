@@ -132,11 +132,14 @@ class DigestCommand(
 
             subcommand("upload") {
                 noArgs { _ ->
-                    val content = digestFormat.format(currentDigest())
-                    val contentBytes = content.toByteArray(FILE_CHARSET)
-
                     val tempFile = Files.createTempFile("agorabot", "digest")!!
-                    Files.write(tempFile, contentBytes, StandardOpenOption.TRUNCATE_EXISTING)
+
+                    Files.writeString(
+                        tempFile,
+                        digestFormat.format(currentDigest()),
+                        FILE_CHARSET,
+                        StandardOpenOption.TRUNCATE_EXISTING,
+                    )
 
                     currentMessageEvent().channel.sendFile(tempFile.toFile(), "digest").complete()
                 }

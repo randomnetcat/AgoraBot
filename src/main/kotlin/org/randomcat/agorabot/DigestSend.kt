@@ -19,7 +19,7 @@ class SsmtpDigestSendStrategy(
 
         val messageText = "To: $destination\nSubject: $subject\n\n$content"
 
-        Files.write(tempFile, messageText.toByteArray(Charsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING)
+        Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
 
         ProcessBuilder("ssmtp", destination)
             .redirectInput(ProcessBuilder.Redirect.from(tempFile.toFile()))
