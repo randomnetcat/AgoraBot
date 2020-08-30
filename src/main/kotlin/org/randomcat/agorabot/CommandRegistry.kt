@@ -24,16 +24,14 @@ interface Command {
 
 typealias UnknownCommandHook = (MessageReceivedEvent, CommandInvocation) -> Unit
 
+private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
+    event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").queue()
+}
+
 data class MapCommandRegistry(
     private val registry: ImmutableMap<String, Command>,
     private val unknownCommandHook: UnknownCommandHook,
 ) : CommandRegistry {
-    companion object {
-        private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
-            event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").queue()
-        }
-    }
-
     constructor(
         registry: Map<String, Command>,
         unknownCommandHook: UnknownCommandHook = ::defaultUnknownCommand,
