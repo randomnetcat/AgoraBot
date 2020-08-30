@@ -12,6 +12,7 @@ interface DigestSendStrategy {
 
 class SsmtpDigestSendStrategy(
     private val digestFormat: DigestFormat,
+    private val executablePath: Path,
     private val configPath: Path,
 ) : DigestSendStrategy {
     override fun sendDigest(digest: Digest, destination: String) {
@@ -24,7 +25,7 @@ class SsmtpDigestSendStrategy(
 
         Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
 
-        ProcessBuilder("ssmtp", "-C${configPath.toAbsolutePath()}", destination)
+        ProcessBuilder(executablePath.toAbsolutePath().toString(), "-C${configPath.toAbsolutePath()}", destination)
             .redirectInput(ProcessBuilder.Redirect.from(tempFile.toFile()))
             .start()
     }
