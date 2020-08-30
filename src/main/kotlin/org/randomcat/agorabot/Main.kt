@@ -35,8 +35,11 @@ private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (Mes
                 val digest = digestMap.digestForGuild(event.guild.id)
 
                 event.retrieveMessage().queue { message ->
-                    digest.add(message.toDigestMessage())
-                    message.channel.sendMessage("Added message ${message.id} to digest.").queue()
+                    val numAdded = digest.addCounted(message.toDigestMessage())
+
+                    if (numAdded > 0) {
+                        message.channel.sendMessage("Added message ${message.id} to digest.").queue()
+                    }
                 }
             }
         }
