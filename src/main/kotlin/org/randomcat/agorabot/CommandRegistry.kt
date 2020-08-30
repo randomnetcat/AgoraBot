@@ -22,23 +22,23 @@ interface Command {
     fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation)
 }
 
-class MapCommandRegistry : CommandRegistry {
+data class MapCommandRegistry(
+    private val registry: ImmutableMap<String, Command>,
+    private val unknownCommandHook: (MessageReceivedEvent, CommandInvocation) -> Unit,
+) : CommandRegistry {
     companion object {
         private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
             event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").queue()
         }
     }
 
-    private val registry: ImmutableMap<String, Command>
-    private val unknownCommandHook: (MessageReceivedEvent, CommandInvocation) -> Unit
-
     constructor(
         registry: Map<String, Command>,
-        unknownCommandHook: (MessageReceivedEvent, CommandInvocation) -> Unit = ::defaultUnknownCommand
-    ) {
-        this.registry = registry.toImmutableMap()
-        this.unknownCommandHook = unknownCommandHook
-    }
+        unknownCommandHook: (MessageReceivedEvent, CommandInvocation) -> Unit = ::defaultUnknownCommand,
+    ) : this(
+        registry.toImmutableMap(),
+        unknownCommandHook,
+    )
 
     override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
         registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
