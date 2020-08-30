@@ -20,10 +20,6 @@ private fun digestCommand(digestMap: DigestMap): Command {
     )
 }
 
-class C {
-    operator fun invoke() {}
-}
-
 private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (MessageReactionAddEvent) -> Unit {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
