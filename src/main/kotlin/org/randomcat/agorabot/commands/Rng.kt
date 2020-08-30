@@ -20,6 +20,11 @@ class RngCommand : ChatCommand() {
     }
 
     private fun ExecutionReceiverImpl.doResponse(min: Int, max: Int) {
+        if (min >= max) {
+            respond("Max value must be at least as big as min value.")
+            return
+        }
+
         val result = Random.nextInt(min..max)
 
         respond("Random number from $min to $max: $result")
