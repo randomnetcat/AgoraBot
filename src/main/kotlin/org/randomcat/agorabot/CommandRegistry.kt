@@ -12,6 +12,10 @@ interface CommandRegistry {
     fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation)
 }
 
+interface QueryableCommandRegistry : CommandRegistry {
+    fun commands(): ImmutableMap<String, Command>
+}
+
 class NullCommandRegistry : CommandRegistry {
     override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
         /* do nothing */
@@ -31,7 +35,7 @@ private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation
 data class MapCommandRegistry(
     private val registry: ImmutableMap<String, Command>,
     private val unknownCommandHook: UnknownCommandHook,
-) : CommandRegistry {
+) : QueryableCommandRegistry {
     constructor(
         registry: Map<String, Command>,
         unknownCommandHook: UnknownCommandHook = ::defaultUnknownCommand,
@@ -39,6 +43,10 @@ data class MapCommandRegistry(
         registry.toImmutableMap(),
         unknownCommandHook,
     )
+
+    override fun commands(): ImmutableMap<String, Command> {
+        return registry
+    }
 
     override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
         registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
@@ -48,7 +56,7 @@ data class MapCommandRegistry(
 class MutableMapCommandRegistry private constructor(
     registry: Map<String, Command>,
     private val unknownCommandHook: UnknownCommandHook,
-) : CommandRegistry {
+) : QueryableCommandRegistry {
     private val registry: MutableMap<String, Command> = registry.toMutableMap() // Defensive copy
 
     fun addCommand(name: String, command: Command) {
@@ -58,6 +66,10 @@ class MutableMapCommandRegistry private constructor(
 
     fun addCommands(map: Map<String, Command>) {
         map.forEach { addCommand(it.key, it.value) }
+    }
+
+    override fun commands(): ImmutableMap<String, Command> {
+        return registry.toImmutableMap()
     }
 
     override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
