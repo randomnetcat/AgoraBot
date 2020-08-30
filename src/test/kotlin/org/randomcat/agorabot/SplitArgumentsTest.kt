@@ -26,6 +26,14 @@ class SplitArgumentsTest {
     }
 
     @Test
+    fun `string with leading and trailing spaces`() {
+        assertEquals(
+            listOf("this", "is", "a", "test"),
+            splitArguments("       this is a test    ")
+        )
+    }
+
+    @Test
     fun `string with quotes`() {
         assertEquals(
             listOf("this", "is a", "test"),
@@ -70,6 +78,14 @@ class SplitArgumentsTest {
         assertEquals(
             listOf("this", "is a", "test"),
             splitArguments("\"this\"   \"is a\"  \"test\"")
+        )
+    }
+
+    @Test
+    fun `string with quotes and leading and trailing spaces`() {
+        assertEquals(
+            listOf("this", "is a", "test"),
+            splitArguments("  this   \"is a\"  test      ")
         )
     }
 }
