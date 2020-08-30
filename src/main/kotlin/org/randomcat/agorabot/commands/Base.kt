@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.commands
 
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
@@ -13,6 +14,7 @@ interface BaseCommandStrategy {
     )
 
     fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String)
+    fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message)
 }
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
@@ -23,6 +25,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     ) {
         fun respond(message: String) {
             strategy.sendResponse(event, invocation, message)
+        }
+
+        fun respond(message: Message) {
+            strategy.sendResponseMessage(event, invocation, message)
         }
 
         fun currentMessageEvent() = event
@@ -63,6 +69,10 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
     }
 
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
+        event.channel.sendMessage(message).queue()
+    }
+
+    override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
         event.channel.sendMessage(message).queue()
     }
 })
