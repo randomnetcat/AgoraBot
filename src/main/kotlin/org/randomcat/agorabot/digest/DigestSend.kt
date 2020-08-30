@@ -25,7 +25,13 @@ class SsmtpDigestSendStrategy(
 
         Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
 
-        ProcessBuilder(executablePath.toAbsolutePath().toString(), "-C${configPath.toAbsolutePath()}", destination)
+        ProcessBuilder(
+            executablePath.toAbsolutePath().toString(),
+            "-C${configPath.toAbsolutePath()}",
+            "-FAgoraBot",
+            "-fAgoraBot",
+            destination
+        )
             .redirectInput(ProcessBuilder.Redirect.from(tempFile.toFile()))
             .start()
     }
