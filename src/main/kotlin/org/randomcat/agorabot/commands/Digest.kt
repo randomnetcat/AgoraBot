@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.entities.Message
 import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.GuildDigestMap
-import org.randomcat.agorabot.digest.toDigestMessage
+import org.randomcat.agorabot.digest.digestMessageAction
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
@@ -115,7 +115,7 @@ class DigestCommand(
                         val messageId = args.first
                         val message = getMessageOrError(messageId) ?: return@args
 
-                        currentDigest().add(message.toDigestMessage())
+                        currentDigest().add(message.digestMessageAction().complete())
                         respond("Added one message to digest.")
                     }
 
@@ -134,7 +134,10 @@ class DigestCommand(
                             return@args
                         }
 
-                        val messages = retreiveMessagesBetween(rangeBegin, rangeEnd).map { it.toDigestMessage() }
+                        val messages =
+                            retreiveMessagesBetween(rangeBegin, rangeEnd)
+                                .map { it.digestMessageAction().complete() }
+
                         currentDigest().add(messages)
 
                         respond("Added ${messages.size} messages to digest.")
