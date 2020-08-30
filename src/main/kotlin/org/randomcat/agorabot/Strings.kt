@@ -22,8 +22,14 @@ fun splitArguments(string: String): List<String> {
     }
 
     fun commitArg() {
-        previousArgs.add(currentString.toString())
-        if (isArgument) currentString.clear()
+        if (isArgument) {
+            previousArgs.add(currentString.toString())
+        }
+
+        currentString.clear()
+        isEscape = false
+        isQuoted = false
+        isArgument = false
     }
 
     for (c in string) {

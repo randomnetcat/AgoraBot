@@ -64,4 +64,12 @@ class SplitArgumentsTest {
             splitArguments("this \"\" is \"\" a test")
         )
     }
+
+    @Test
+    fun `string with quotes and double spaces`() {
+        assertEquals(
+            listOf("this", "is a", "test"),
+            splitArguments("\"this\"   \"is a\"  \"test\"")
+        )
+    }
 }
