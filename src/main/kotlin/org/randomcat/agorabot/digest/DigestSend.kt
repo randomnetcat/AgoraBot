@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.digest
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -11,6 +12,7 @@ interface DigestSendStrategy {
 
 class SsmtpDigestSendStrategy(
     private val digestFormat: DigestFormat,
+    private val configPath: Path,
 ) : DigestSendStrategy {
     override fun sendDigest(digest: Digest, destination: String) {
         val tempFile = Files.createTempFile("agorabot", "ssmtp-digest-data")!!
@@ -22,7 +24,7 @@ class SsmtpDigestSendStrategy(
 
         Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
 
-        ProcessBuilder("ssmtp", destination)
+        ProcessBuilder("ssmtp", "-C${configPath.toAbsolutePath()}", destination)
             .redirectInput(ProcessBuilder.Redirect.from(tempFile.toFile()))
             .start()
     }

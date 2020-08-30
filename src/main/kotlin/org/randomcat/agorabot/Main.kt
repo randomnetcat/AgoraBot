@@ -14,7 +14,10 @@ private fun digestCommand(digestMap: GuildDigestMap): Command {
 
     return DigestCommand(
         digestMap,
-        SsmtpDigestSendStrategy(digestFormat),
+        SsmtpDigestSendStrategy(
+            digestFormat = digestFormat,
+            configPath = Path.of(".", "ssmtp.conf"),
+        ),
         digestFormat,
     )
 }
