@@ -135,6 +135,8 @@ class DigestCommand(
                 args(StringArg("destination")) { args ->
                     val destination = args.first
                     sendStrategy.sendDigest(currentDigest(), destination)
+
+                    respond("Sent digest to $destination.")
                 }
             }
 
