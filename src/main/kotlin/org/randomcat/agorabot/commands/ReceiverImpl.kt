@@ -1,7 +1,43 @@
 package org.randomcat.agorabot.commands
 
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+
+private class SubcommandsReceiverChecker {
+    enum class State {
+        EMPTY, IMPLEMENTATION, SUBCOMMANDS
+    }
+
+    private var state: State = State.EMPTY
+    private var seenSubcommands = mutableListOf<String>()
+
+    fun reset() {
+        state = State.EMPTY
+        seenSubcommands = mutableListOf()
+    }
+
+    private fun checkImplementation() {
+        check(state == State.EMPTY) { "cannot provide two subcommand implementations or implementation and subcommands" }
+        state = State.IMPLEMENTATION
+    }
+
+    fun checkMatchFirst() {
+        checkImplementation()
+    }
+
+    fun checkArgsRaw() {
+        checkImplementation()
+    }
+
+    fun checkSubcommand(subcommand: String) {
+        check(state == State.EMPTY || state == State.SUBCOMMANDS) { "cannot provide implementation and subcommands" }
+        state = State.SUBCOMMANDS
+
+        check(!seenSubcommands.contains(subcommand)) { "cannot use same subcommand twice" }
+        seenSubcommands.add(subcommand)
+    }
+}
 
 abstract class BaseExecutingArgumentDescriptionReceiver {
     private var alreadyParsed: Boolean = false
@@ -94,37 +130,23 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
     override val receiver: ExecutionReceiver
 ) : BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>(),
     SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
-    private enum class State {
-        Undetermined, Implementation, SubcommandParent
-    }
-
-    private var state: State = State.Undetermined
-    private val seenSubcommands = mutableSetOf<String>()
+    private val checker = SubcommandsReceiverChecker()
 
     override fun <T, E> argsRaw(
         vararg parsers: CommandArgumentParser<T, E>,
         exec: ExecutionReceiver.(args: List<T>) -> Unit
     ) {
-        check(state == State.Undetermined) { "cannot provide two subcommand implementations" }
+        checker.checkArgsRaw()
         doArgsRaw(parsers.asList(), exec)
-        state = State.Implementation
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        check(state == State.Undetermined) { "cannot provide two subcommand implementations" }
+        checker.checkMatchFirst()
         doMatchFirst(block)
-        state = State.Implementation
     }
 
     override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        check(state == State.Undetermined || state == State.SubcommandParent) {
-            "cannot provide both implementation and nested subcommands"
-        }
-        state = State.SubcommandParent
-
-        check(!seenSubcommands.contains(name)) { "repeated definition of subcommand $name" }
-        seenSubcommands.add(name)
-
+        checker.checkSubcommand(subcommand = name)
         if (alreadyCalled) return
 
         val argsList = arguments.args
@@ -143,6 +165,7 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
     }
 
     fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        checker.reset()
         beginParsing()
         block()
         if (!alreadyCalled) endNoMatch()
@@ -261,18 +284,19 @@ private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
 
 private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
     : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
-    private var options: List<String>? = null
+    private val checker = SubcommandsReceiverChecker()
+    private var options: ImmutableList<String> = persistentListOf()
 
     override fun <T, E> argsRaw(
         vararg parsers: CommandArgumentParser<T, E>,
         exec: ExecutionReceiver.(args: List<T>) -> Unit,
     ) {
-        check(options == null)
-        options = listOf(formatArgumentUsages(parsers.map { it.usage() }))
+        checker.checkArgsRaw()
+        options = persistentListOf(formatArgumentUsages(parsers.map { it.usage() }))
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        check(options == null)
+        checker.checkMatchFirst()
         options =
             MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver>()
                 .apply(block)
@@ -280,6 +304,8 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
     }
 
     override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+        checker.checkSubcommand(subcommand = name)
+
         val subOptions =
             UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>()
                 .apply(block)
@@ -297,11 +323,11 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
             else -> " [${formatArgumentSelection(subOptions)}]"
         }
 
-        options = (options ?: emptyList()) + newOption
+        options = (options + newOption).toImmutableList()
     }
 
     fun options(): ImmutableList<String> {
-        return checkNotNull(options).toImmutableList()
+        return options
     }
 }
 
