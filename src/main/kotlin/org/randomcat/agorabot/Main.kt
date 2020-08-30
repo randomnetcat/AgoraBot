@@ -1,26 +1,57 @@
 package org.randomcat.agorabot
 
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.DigestCommand
+import org.randomcat.agorabot.commands.DigestMap
 import org.randomcat.agorabot.commands.RngCommand
+import org.randomcat.agorabot.commands.toDigestMessage
 import java.nio.file.Path
 
-private fun digestCommand(): Command {
+private fun digestCommand(digestMap: DigestMap): Command {
     val digestFormat = DefaultDigestFormat()
 
     return DigestCommand(
-        JsonDigestMap(Path.of(".", "digests")),
+        digestMap,
         SsmtpDigestSendStrategy(digestFormat),
         digestFormat,
     )
 }
 
+class C {
+    operator fun invoke() {}
+}
+
+private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (MessageReactionAddEvent) -> Unit {
+    val functor = object {
+        operator fun invoke(event: MessageReactionAddEvent) {
+            val emote = event.reactionEmote
+            if (!emote.isEmoji) return
+
+            val reactionEmoji = emote.emoji
+            if (reactionEmoji == targetEmoji) {
+                val digest = digestMap.digestForGuild(event.guild.id)
+
+                event.retrieveMessage().queue { message ->
+                    digest.add(listOf(message.toDigestMessage()))
+                    message.channel.sendMessage("Added message ${message.id} to digest.").queue()
+                }
+            }
+        }
+    }
+
+    return { functor(it) }
+}
+
+private const val DISCORD_STAR = "\u2B50"
+
 fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
     val token = args.single()
+    val digestMap = JsonDigestMap(Path.of(".", "digests"))
 
     JDABuilder
         .createDefault(
@@ -37,10 +68,11 @@ fun main(args: Array<String>) {
                 MapCommandRegistry(
                     mapOf(
                         "rng" to RngCommand(),
-                        "digest" to digestCommand()
+                        "digest" to digestCommand(digestMap)
                     )
                 )
-            )
+            ),
+            BotEmoteListener(digestEmoteListener(digestMap, DISCORD_STAR)),
         )
         .build()
 }
