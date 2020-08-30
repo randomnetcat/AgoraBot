@@ -22,9 +22,11 @@ interface Command {
     fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation)
 }
 
+typealias UnknownCommandHook = (MessageReceivedEvent, CommandInvocation) -> Unit
+
 data class MapCommandRegistry(
     private val registry: ImmutableMap<String, Command>,
-    private val unknownCommandHook: (MessageReceivedEvent, CommandInvocation) -> Unit,
+    private val unknownCommandHook: UnknownCommandHook,
 ) : CommandRegistry {
     companion object {
         private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
@@ -34,7 +36,7 @@ data class MapCommandRegistry(
 
     constructor(
         registry: Map<String, Command>,
-        unknownCommandHook: (MessageReceivedEvent, CommandInvocation) -> Unit = ::defaultUnknownCommand,
+        unknownCommandHook: UnknownCommandHook = ::defaultUnknownCommand,
     ) : this(
         registry.toImmutableMap(),
         unknownCommandHook,
