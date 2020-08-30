@@ -116,9 +116,10 @@ private class JsonMessageDigest(
         return rawMessages().map { it.toMessage() }.toImmutableList()
     }
 
-    override fun add(message: Iterable<DigestMessage>) {
-        replace { messages ->
-            (messages + message.map { msg -> DigestMessageDto.fromMessage(msg) })
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+    override fun add(newMessages: Iterable<DigestMessage>) {
+        replace { rawMessages ->
+            (rawMessages + newMessages.map { msg -> DigestMessageDto.fromMessage(msg) })
                 .distinctBy { msg -> msg.id }
                 .toMutableList()
         }

@@ -16,13 +16,19 @@ data class DigestMessage(
 
 interface MessageDigest {
     fun messages(): ImmutableList<DigestMessage>
-    fun add(message: Iterable<DigestMessage>)
+    fun add(messages: Iterable<DigestMessage>)
+    fun add(message: DigestMessage) = add(listOf(message))
     fun clear()
 
     /**
      * Adds the provided messages to the digest. Returns the number of messages that were actually added.
      */
     fun addCounted(messages: Iterable<DigestMessage>): Int
+
+    /**
+     * Adds the provided message to the digest. Returns 1 if it was added, and 0 otherwise.
+     */
+    fun addCounted(message: DigestMessage): Int = addCounted(listOf(message))
 
     val size: Int get() = messages().size
 }
