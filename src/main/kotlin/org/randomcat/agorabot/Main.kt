@@ -20,6 +20,8 @@ private fun digestCommand(digestMap: DigestMap): Command {
     )
 }
 
+private const val DISCORD_WHITE_CHECK_MARK = "\u2705"
+
 private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (MessageReactionAddEvent) -> Unit {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
@@ -34,7 +36,10 @@ private fun digestEmoteListener(digestMap: DigestMap, targetEmoji: String): (Mes
                     val numAdded = digest.addCounted(message.toDigestMessage())
 
                     if (numAdded > 0) {
-                        message.channel.sendMessage("Added message ${message.id} to digest.").queue()
+                        message
+                            .addReaction(DISCORD_WHITE_CHECK_MARK) // Ignores failure if no permission to react
+                            .mapToResult()
+                            .queue()
                     }
                 }
             }
