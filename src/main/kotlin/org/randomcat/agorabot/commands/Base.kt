@@ -47,7 +47,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
 
-    private fun usage(): String {
+    fun usage(): String {
         return UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>().apply { impl() }.usage()
     }
 }
