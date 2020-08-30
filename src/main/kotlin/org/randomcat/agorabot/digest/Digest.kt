@@ -1,7 +1,6 @@
 package org.randomcat.agorabot.digest
 
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import java.time.OffsetDateTime
 
 data class DigestMessage(
@@ -10,7 +9,7 @@ data class DigestMessage(
     val id: String,
     val content: String,
     val date: OffsetDateTime,
-    val attachmentUrls: ImmutableList<String> = persistentListOf(),
+    val attachmentUrls: ImmutableList<String>,
 )
 
 interface Digest {
