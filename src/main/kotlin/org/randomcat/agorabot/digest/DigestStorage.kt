@@ -40,6 +40,7 @@ private data class DigestMessageDto(
     val content: String,
     @Serializable(with = OffsetDateTimeSerializer::class)
     val date: OffsetDateTime,
+    val attachmentUrls: List<String> = emptyList(), // Default is for compatibility with versions before this was added
 ) {
     companion object {
         fun fromMessage(message: DigestMessage) = DigestMessageDto(
@@ -48,6 +49,7 @@ private data class DigestMessageDto(
             id = message.id,
             content = message.content,
             date = message.date,
+            attachmentUrls = message.attachmentUrls.toList(),
         )
     }
 
@@ -57,6 +59,7 @@ private data class DigestMessageDto(
         id = id,
         content = content,
         date = date,
+        attachmentUrls = attachmentUrls.toImmutableList(),
     )
 }
 
