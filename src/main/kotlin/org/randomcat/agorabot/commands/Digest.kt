@@ -96,7 +96,7 @@ class DigestCommand(
                         StandardOpenOption.TRUNCATE_EXISTING,
                     )
 
-                    currentMessageEvent().channel.sendFile(tempFile.toFile(), "digest").complete()
+                    currentMessageEvent().channel.sendFile(tempFile.toFile(), "digest.txt").complete()
                 }
             }
 
