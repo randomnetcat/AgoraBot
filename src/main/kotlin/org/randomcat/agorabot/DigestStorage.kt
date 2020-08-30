@@ -124,6 +124,17 @@ private class JsonMessageDigest(
         }
     }
 
+    override fun addCounted(messages: Iterable<DigestMessage>): Int {
+        write { _ ->
+            // Can't use parameter because add replaces the reference.
+            val oldSize = _rawUnlockedMessages.size
+            add(messages)
+            val newSize = _rawUnlockedMessages.size
+
+            return newSize - oldSize
+        }
+    }
+
     override fun clear() {
         // Instead of replacing with empty list, clear and maintain list's capacity
         write { it.clear() }

@@ -19,6 +19,11 @@ interface MessageDigest {
     fun add(message: Iterable<DigestMessage>)
     fun clear()
 
+    /**
+     * Adds the provided messages to the digest. Returns the number of messages that were actually added.
+     */
+    fun addCounted(messages: Iterable<DigestMessage>): Int
+
     val size: Int get() = messages().size
 }
 
