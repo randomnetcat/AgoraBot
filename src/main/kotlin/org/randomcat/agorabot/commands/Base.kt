@@ -94,6 +94,6 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
         fileContent: String,
     ) {
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
-        event.channel.sendFile(bytes, fileName).complete()
+        event.channel.sendFile(bytes, fileName).queue()
     }
 })
