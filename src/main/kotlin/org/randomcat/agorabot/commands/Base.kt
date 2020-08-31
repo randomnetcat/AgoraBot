@@ -15,6 +15,13 @@ interface BaseCommandStrategy {
 
     fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String)
     fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message)
+
+    fun sendResponseAsFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        fileName: String,
+        fileContent: String,
+    )
 }
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
@@ -29,6 +36,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
         fun respond(message: Message) {
             strategy.sendResponseMessage(event, invocation, message)
+        }
+
+        fun respondWithFile(fileName: String, fileContent: String) {
+            strategy.sendResponseAsFile(event, invocation, fileName, fileContent)
         }
 
         fun currentMessageEvent() = event
@@ -74,5 +85,15 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
 
     override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
         event.channel.sendMessage(message).queue()
+    }
+
+    override fun sendResponseAsFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        fileName: String,
+        fileContent: String,
+    ) {
+        val bytes = fileContent.toByteArray(Charsets.UTF_8)
+        event.channel.sendFile(bytes, fileName).complete()
     }
 })
