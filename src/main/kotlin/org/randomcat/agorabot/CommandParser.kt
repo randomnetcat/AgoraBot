@@ -38,9 +38,20 @@ fun parsePrefixCommand(prefix: String, message: String): CommandParseResult {
     return CommandParseResult.Invocation(CommandInvocation(parts.first(), parts.drop(1)))
 }
 
+interface GuildPrefixMap {
+    fun prefixForGuild(guildId: String): String
+}
+
 class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
     override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixCommand(
         prefix = prefix,
         message = event.message.contentRaw
+    )
+}
+
+class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser {
+    override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixCommand(
+        prefix = map.prefixForGuild(event.guild.id),
+        message = event.message.contentRaw,
     )
 }
