@@ -121,14 +121,12 @@ class DigestCommand(
                             return@args
                         }
 
-                        val messages =
-                            retrieveMessagesBetween(rangeBegin, rangeEnd)
-                                .digestMessageActions()
-                                .complete()
-
-                        currentDigest().add(messages)
-
-                        respond("Added ${messages.size} messages to digest.")
+                        retrieveMessagesBetween(rangeBegin, rangeEnd)
+                            .digestMessageActions()
+                            .queue { messages ->
+                                currentDigest().add(messages)
+                                respond("Added ${messages.size} messages to digest.")
+                            }
                     }
                 }
             }
