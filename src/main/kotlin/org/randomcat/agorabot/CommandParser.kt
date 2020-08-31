@@ -42,6 +42,10 @@ interface GuildPrefixMap {
     fun prefixForGuild(guildId: String): String
 }
 
+interface MutableGuildPrefixMap : GuildPrefixMap {
+    fun setPrefixForGuild(guildId: String, prefix: String)
+}
+
 class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
     override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixCommand(
         prefix = prefix,
