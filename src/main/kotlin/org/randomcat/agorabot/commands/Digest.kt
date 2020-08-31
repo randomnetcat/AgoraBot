@@ -14,7 +14,7 @@ class DigestCommand(
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
 
-        private fun retreiveMessagesBetween(rangeBegin: Message, rangeEnd: Message): List<Message> {
+        private fun retrieveMessagesBetween(rangeBegin: Message, rangeEnd: Message): List<Message> {
             require(rangeBegin.channel == rangeEnd.channel)
             val channel = rangeBegin.channel
 
@@ -127,7 +127,7 @@ class DigestCommand(
                         }
 
                         val messages =
-                            retreiveMessagesBetween(rangeBegin, rangeEnd)
+                            retrieveMessagesBetween(rangeBegin, rangeEnd)
                                 .map { it.digestMessageAction().complete() }
 
                         currentDigest().add(messages)
