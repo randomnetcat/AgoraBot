@@ -12,19 +12,28 @@ class DefaultDigestFormat : DigestFormat {
             val nickname = it.senderNickname
             val includeNickname = (nickname != null) && (nickname != it.senderUsername)
 
-            val attachmentFootnote =
-                if (it.attachmentUrls.isNotEmpty())
-                    "\n\nThis message has attachments:\n" + it.attachmentUrls.joinToString("\n")
-                else
-                    ""
+            val attachmentLines = it.attachmentUrls.joinToString("\n")
+
+            val contentPart = if (it.content.isBlank()) {
+                if (it.attachmentUrls.isNotEmpty()) {
+                    "This message consists only of attachments:\n$attachmentLines"
+                } else {
+                    "<no content>"
+                }
+            } else {
+                it.content +
+                        if (it.attachmentUrls.isNotEmpty())
+                            "\n\nThis message has attachments\n$attachmentLines"
+                        else
+                            ""
+            }
 
             "MESSAGE ${it.id}\n" +
                     "FROM ${it.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +
                     "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(it.date)} " +
                     "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(it.date)}:" +
                     "\n" +
-                    it.content +
-                    attachmentFootnote
+                    contentPart
         }
     }
 }
