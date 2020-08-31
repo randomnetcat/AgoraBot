@@ -27,6 +27,8 @@ fun Message.digestMessageAction(): RestAction<DigestMessage> {
     }
 }
 
+fun RestAction<List<Message>>.mapToDigestMessages() = flatMap { it.digestMessageActions() }
+
 fun List<Message>.digestMessageActions(): RestAction<List<DigestMessage>> {
     val messages = this // for clarity
 
