@@ -38,6 +38,17 @@ fun parsePrefixCommand(prefix: String, message: String): CommandParseResult {
     return CommandParseResult.Invocation(CommandInvocation(parts.first(), parts.drop(1)))
 }
 
+fun parsePrefixListCommand(prefixOptions: Iterable<String>, message: String): CommandParseResult {
+    for (prefixOption in prefixOptions) {
+        require(prefixOption.isNotEmpty())
+
+        val parsed = parsePrefixCommand(prefixOption, message)
+        if (parsed !is CommandParseResult.Ignore) return parsed
+    }
+
+    return CommandParseResult.Ignore
+}
+
 interface GuildPrefixMap {
     fun prefixForGuild(guildId: String): String
 }
@@ -58,4 +69,18 @@ class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser 
         prefix = map.prefixForGuild(event.guild.id),
         message = event.message.contentRaw,
     )
+}
+
+class MentionPrefixCommandParser(private val fallback: CommandParser) : CommandParser {
+    override fun parse(event: MessageReceivedEvent): CommandParseResult {
+        val selfUserId = event.jda.selfUser.id
+
+        // These are the two options for raw mentions; see https://discord.com/developers/docs/reference
+        val mentionOptions = listOf("<@$selfUserId>", "<@!$selfUserId>")
+
+        val parseResult = parsePrefixListCommand(prefixOptions = mentionOptions, message = event.message.contentRaw)
+        if (parseResult !is CommandParseResult.Ignore) return parseResult
+
+        return fallback.parse(event)
+    }
 }
