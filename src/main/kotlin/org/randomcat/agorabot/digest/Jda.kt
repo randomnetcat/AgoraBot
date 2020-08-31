@@ -5,8 +5,6 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.requests.RestAction
 
-fun RestAction<Message>.mapToDigestMessage() = this.flatMap { message -> message.digestMessageAction() }
-
 private fun digestMessageWithForcedMember(message: Message, realMember: Member): DigestMessage {
     val nickname = realMember.nickname
 
