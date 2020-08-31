@@ -12,8 +12,6 @@ class DigestCommand(
     private val digestFormat: DigestFormat,
 ) : ChatCommand() {
     companion object {
-        private val FILE_CHARSET = Charsets.UTF_8
-
         private fun retrieveMessagesBetween(rangeBegin: Message, rangeEnd: Message): List<Message> {
             require(rangeBegin.channel == rangeEnd.channel)
             val channel = rangeBegin.channel
