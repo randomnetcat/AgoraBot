@@ -7,10 +7,7 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
-import org.randomcat.agorabot.commands.CopyrightCommand
-import org.randomcat.agorabot.commands.DigestCommand
-import org.randomcat.agorabot.commands.HelpCommand
-import org.randomcat.agorabot.commands.RngCommand
+import org.randomcat.agorabot.commands.*
 import org.randomcat.agorabot.digest.*
 import java.nio.file.Files
 import java.nio.file.Path
@@ -85,11 +82,14 @@ fun main(args: Array<String>) {
     val token = args.single()
     val digestMap = JsonGuildDigestMap(Path.of(".", "digests"))
 
+    val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"))
+
     val commandRegistry = MutableMapCommandRegistry(
         mapOf(
             "rng" to RngCommand(),
             "digest" to digestCommand(digestMap),
             "copyright" to CopyrightCommand(),
+            "prefix" to PrefixCommand(prefixMap),
         ),
     )
 
@@ -104,7 +104,7 @@ fun main(args: Array<String>) {
         .setEventManager(AnnotatedEventManager())
         .addEventListeners(
             BotListener(
-                GlobalPrefixCommandParser("."),
+                GuildPrefixCommandParser(prefixMap),
                 commandRegistry,
             ),
             BotEmoteListener(digestEmoteListener(digestMap, DISCORD_STAR)),
