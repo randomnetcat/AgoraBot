@@ -1,63 +1,61 @@
 package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.digest.*
+import org.randomcat.agorabot.util.CompletedRestAction
+
+private const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
+
+private fun retrieveMessagesExclusiveRange(beginExclusive: Message, endExclusive: Message): RestAction<List<Message>> {
+    require(beginExclusive.jda == endExclusive.jda)
+    require(beginExclusive.channel == endExclusive.channel)
+
+    val jda = beginExclusive.jda
+    val channel = beginExclusive.channel
+
+    if (beginExclusive.id == endExclusive.id) return CompletedRestAction.ofSuccess(jda, emptyList())
+
+    return channel
+        .getHistoryAfter(beginExclusive, JDA_HISTORY_MAX_RETRIEVE_LIMIT)
+        .map { it.retrievedHistory }
+        .map { it.reversed() } // retrievedHistory goes newest -> oldest, we want oldest -> newest
+        .map { messages -> messages.filter { msg -> msg.timeCreated < endExclusive.timeCreated } }
+        .flatMap { messages ->
+            if (messages.isEmpty())
+                CompletedRestAction.ofSuccess(jda, emptyList())
+            else
+                retrieveMessagesExclusiveRange(
+                    beginExclusive = messages.last(),
+                    endExclusive = endExclusive,
+                ).map { rest -> messages + rest }
+        }
+}
+
+private fun retrieveMessagesBetween(beginInclusive: Message, endInclusive: Message): RestAction<List<Message>> {
+    require(beginInclusive.jda == endInclusive.jda)
+    require(beginInclusive.channel == endInclusive.channel)
+
+    val jda = beginInclusive.jda
+
+    if (beginInclusive.id == endInclusive.id) {
+        return CompletedRestAction.ofSuccess(jda, listOf(beginInclusive))
+    }
+
+    return retrieveMessagesExclusiveRange(
+        beginExclusive = beginInclusive,
+        endExclusive = endInclusive
+    ).map {
+        // retrieveMessagesExclusiveRange excludes begin and end, so add them back in here
+        listOf(beginInclusive) + it + endInclusive
+    }
+}
 
 class DigestCommand(
     private val digestMap: GuildDigestMap,
     private val sendStrategy: DigestSendStrategy,
     private val digestFormat: DigestFormat,
 ) : ChatCommand() {
-    companion object {
-        private fun retrieveMessagesBetween(rangeBegin: Message, rangeEnd: Message): List<Message> {
-            require(rangeBegin.channel == rangeEnd.channel)
-            val channel = rangeBegin.channel
-
-            val rangeBeginTime = rangeBegin.timeCreated
-            val rangeEndTime = rangeEnd.timeCreated
-
-            val result = mutableListOf<Message>()
-
-            var currentBatch: List<Message> =
-                channel
-                    .getHistoryAround(rangeBegin, 100)
-                    .complete()
-                    .retrievedHistory
-                    .reversed() // The given list is from newest -> oldest; we want oldest -> newest.
-
-            var currentBegin = rangeBeginTime
-
-            while (true) {
-                var addedAny = false
-
-                for (message in currentBatch) {
-                    val messageTime = message.timeCreated
-
-                    if (messageTime in currentBegin..rangeEndTime) {
-                        result.add(message)
-                        addedAny = true
-                        currentBegin = messageTime
-                    }
-                }
-
-                if (addedAny) {
-                    val lastMessage = currentBatch.last()
-
-                    currentBatch =
-                        lastMessage
-                            .channel
-                            .getHistoryAfter(lastMessage, 100)
-                            .complete()
-                            .retrievedHistory
-                } else {
-                    break
-                }
-            }
-
-            return result
-        }
-    }
-
     private fun ExecutionReceiverImpl.getMessageOrError(id: String): Message? {
         val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
 
@@ -124,7 +122,7 @@ class DigestCommand(
                         }
 
                         retrieveMessagesBetween(rangeBegin, rangeEnd)
-                            .digestMessageActions()
+                            .mapToDigestMessages()
                             .queue { messages ->
                                 currentDigest().add(messages)
                                 respond("Added ${messages.size} messages to digest.")
