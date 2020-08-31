@@ -5,8 +5,6 @@ import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.GuildDigestMap
 import org.randomcat.agorabot.digest.digestMessageAction
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 
 class DigestCommand(
     private val digestMap: GuildDigestMap,
@@ -87,16 +85,10 @@ class DigestCommand(
 
             subcommand("upload") {
                 noArgs { _ ->
-                    val tempFile = Files.createTempFile("agorabot", "digest")!!
-
-                    Files.writeString(
-                        tempFile,
-                        digestFormat.format(currentDigest()),
-                        FILE_CHARSET,
-                        StandardOpenOption.TRUNCATE_EXISTING,
+                    respondWithFile(
+                        fileName = "digest.txt",
+                        fileContent = digestFormat.format(currentDigest())
                     )
-
-                    currentMessageEvent().channel.sendFile(tempFile.toFile(), "digest.txt").complete()
                 }
             }
 
