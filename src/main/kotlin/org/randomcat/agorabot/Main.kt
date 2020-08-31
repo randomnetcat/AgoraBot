@@ -104,7 +104,7 @@ fun main(args: Array<String>) {
         .setEventManager(AnnotatedEventManager())
         .addEventListeners(
             BotListener(
-                GuildPrefixCommandParser(prefixMap),
+                MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
                 commandRegistry,
             ),
             BotEmoteListener(digestEmoteListener(digestMap, DISCORD_STAR)),
