@@ -76,7 +76,7 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
         errorMessage: String,
         usage: String,
     ) {
-        sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { "<no args>" }}")
+        sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
     }
 
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {

@@ -12,7 +12,7 @@ class HelpCommand(private val registry: QueryableCommandRegistry) : ChatCommand(
             for ((name, command) in commands) {
                 val usageHelp =
                     if (command is BaseCommand)
-                        command.usage().ifBlank { "<no arguments>" }
+                        command.usage().ifBlank { NO_ARGUMENTS }
                     else
                         "<no usage available>"
 

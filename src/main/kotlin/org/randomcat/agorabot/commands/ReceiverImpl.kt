@@ -256,7 +256,7 @@ private fun formatArgumentSelection(options: List<String>): String {
 
     return options.joinToString(" | ") {
         when {
-            it.isEmpty() -> "<no args>"
+            it.isEmpty() -> NO_ARGUMENTS
             else -> it
         }
     }
