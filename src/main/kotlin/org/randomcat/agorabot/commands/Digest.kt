@@ -1,10 +1,7 @@
 package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
-import org.randomcat.agorabot.digest.DigestFormat
-import org.randomcat.agorabot.digest.DigestSendStrategy
-import org.randomcat.agorabot.digest.GuildDigestMap
-import org.randomcat.agorabot.digest.digestMessageAction
+import org.randomcat.agorabot.digest.*
 
 class DigestCommand(
     private val digestMap: GuildDigestMap,
@@ -126,7 +123,8 @@ class DigestCommand(
 
                         val messages =
                             retrieveMessagesBetween(rangeBegin, rangeEnd)
-                                .map { it.digestMessageAction().complete() }
+                                .digestMessageActions()
+                                .complete()
 
                         currentDigest().add(messages)
 
