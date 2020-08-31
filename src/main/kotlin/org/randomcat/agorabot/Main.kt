@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
+import org.randomcat.agorabot.commands.CopyrightCommand
 import org.randomcat.agorabot.commands.DigestCommand
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.RngCommand
@@ -87,7 +88,8 @@ fun main(args: Array<String>) {
     val commandRegistry = MutableMapCommandRegistry(
         mapOf(
             "rng" to RngCommand(),
-            "digest" to digestCommand(digestMap)
+            "digest" to digestCommand(digestMap),
+            "copyright" to CopyrightCommand(),
         ),
     )
 
