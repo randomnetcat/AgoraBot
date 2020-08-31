@@ -21,7 +21,13 @@ class SsmtpDigestSendStrategy(
         val subject = "Discord digest ${DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDateTime.now())}"
         val content = digestFormat.format(digest)
 
-        val messageText = "To: $destination\nSubject: $subject\n\n$content"
+        val messageText =
+            "To: $destination\n" +
+                    "Subject: $subject\n" +
+                    "MIME-Version: 1.0\n" +
+                    "Content-Type: text/plain; charset=utf-8" +
+                    "\n\n" +
+                    content
 
         Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
 
