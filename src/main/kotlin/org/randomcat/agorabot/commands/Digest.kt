@@ -102,8 +102,10 @@ class DigestCommand(
                         val messageId = args.first
                         val message = getMessageOrError(messageId) ?: return@args
 
-                        currentDigest().add(message.digestMessageAction().complete())
-                        respond("Added one message to digest.")
+                        message.digestMessageAction().queue { digestMessage ->
+                            currentDigest().add(digestMessage)
+                            respond("Added one message to digest.")
+                        }
                     }
 
                     args(StringArg("range_begin"), StringArg("range_end")) { args ->
