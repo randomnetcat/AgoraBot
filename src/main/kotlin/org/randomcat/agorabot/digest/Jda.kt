@@ -5,9 +5,7 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.requests.RestAction
 
-private fun digestMessageWithForcedMember(message: Message, realMember: Member): DigestMessage {
-    val nickname = realMember.nickname
-
+private fun digestMessageWithNickname(message: Message, nickname: String?): DigestMessage {
     return DigestMessage(
         senderUsername = message.author.name,
         senderNickname = nickname,
@@ -17,6 +15,12 @@ private fun digestMessageWithForcedMember(message: Message, realMember: Member):
         attachmentUrls = message.attachments.map { it.url }.toImmutableList()
     )
 }
+
+private fun digestMessageWithForcedMember(message: Message, realMember: Member): DigestMessage =
+    digestMessageWithNickname(
+        message = message,
+        nickname = realMember.nickname,
+    )
 
 fun Message.digestMessageAction(): RestAction<DigestMessage> {
     val message = this // just for clarity
@@ -32,15 +36,15 @@ fun RestAction<List<Message>>.mapToDigestMessages() = flatMap { it.digestMessage
 fun List<Message>.digestMessageActions(): RestAction<List<DigestMessage>> {
     val messages = this // for clarity
 
-    // Unload all of the members in order to force nickname updates
-    messages.mapNotNull { it.member }.distinctBy { it.idLong }.forEach { it.guild.unloadMember(it.idLong) }
+    val nicknamesMapAction = RestAction.allOf(
+        messages
+            .filter { it.isFromGuild }
+            .distinctBy { it.author.id }
+            .map { it.author to it.guild }
+            .map { (author, guild) -> guild.retrieveMember(author).map { author.id to it.nickname } }
+    ).map { it.toMap() }
 
-    return RestAction.allOf(messages.map { message ->
-        // The false parameter tells JDA not to fetch the member again if it is already in the cache. Since we just
-        // cleared the cache, this will fetch each member once (thus getting an updated nickname), then keep them in
-        // cache (so that we don't have to make a request for each and every message).
-        message.guild.retrieveMember(message.author, false).map { retrievedMember ->
-            digestMessageWithForcedMember(message = message, realMember = retrievedMember)
-        }
-    })
+    return nicknamesMapAction.map { nicknamesMap ->
+        messages.map { digestMessageWithNickname(message = it, nickname = nicknamesMap[it.author.id]) }
+    }
 }
