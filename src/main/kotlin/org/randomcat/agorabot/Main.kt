@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.*
 import org.randomcat.agorabot.digest.*
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -75,6 +76,8 @@ private fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String):
 }
 
 private const val DISCORD_STAR = "\u2B50"
+
+private val logger = LoggerFactory.getLogger("AgoraBot")
 
 fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
