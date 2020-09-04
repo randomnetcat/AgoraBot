@@ -22,7 +22,7 @@ private fun digestMessageWithForcedMember(message: Message, realMember: Member):
         nickname = realMember.nickname,
     )
 
-fun Message.digestMessageAction(): RestAction<DigestMessage> {
+fun Message.retrieveDigestMessage(): RestAction<DigestMessage> {
     val message = this // just for clarity
 
     // Use retrieveMessage to force update of nickname
@@ -31,9 +31,9 @@ fun Message.digestMessageAction(): RestAction<DigestMessage> {
     }
 }
 
-fun RestAction<List<Message>>.mapToDigestMessages() = flatMap { it.digestMessageActions() }
+fun RestAction<List<Message>>.mapToDigestMessages() = flatMap { it.retrieveDigestMessages() }
 
-fun List<Message>.digestMessageActions(): RestAction<List<DigestMessage>> {
+fun List<Message>.retrieveDigestMessages(): RestAction<List<DigestMessage>> {
     val messages = this // for clarity
 
     val nicknamesMapAction = RestAction.allOf(

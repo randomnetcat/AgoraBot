@@ -16,7 +16,7 @@ fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String): BotEmot
                 val digest = digestMap.digestForGuild(event.guild.id)
 
                 event.retrieveMessage().queue { message ->
-                    message.digestMessageAction().queue { digestMessage ->
+                    message.retrieveDigestMessage().queue { digestMessage ->
                         val numAdded = digest.addCounted(digestMessage)
 
                         if (numAdded > 0) {
