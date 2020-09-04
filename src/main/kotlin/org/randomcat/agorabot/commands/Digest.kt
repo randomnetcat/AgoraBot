@@ -53,7 +53,7 @@ private fun retrieveMessagesBetween(beginInclusive: Message, endInclusive: Messa
 
 class DigestCommand(
     private val digestMap: GuildDigestMap,
-    private val sendStrategy: DigestSendStrategy,
+    private val sendStrategy: DigestSendStrategy?,
     private val digestFormat: DigestFormat,
 ) : ChatCommand() {
     private fun ExecutionReceiverImpl.getMessageOrError(id: String): Message? {
@@ -85,12 +85,14 @@ class DigestCommand(
                 }
             }
 
-            subcommand("send") {
-                args(StringArg("destination")) { args ->
-                    val destination = args.first
-                    sendStrategy.sendDigest(currentDigest(), destination)
+            if (sendStrategy != null) {
+                subcommand("send") {
+                    args(StringArg("destination")) { args ->
+                        val destination = args.first
+                        sendStrategy.sendDigest(currentDigest(), destination)
 
-                    respond("Sent digest to $destination.")
+                        respond("Sent digest to $destination.")
+                    }
                 }
             }
 
