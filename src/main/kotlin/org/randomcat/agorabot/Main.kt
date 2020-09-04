@@ -100,6 +100,8 @@ fun main(args: Array<String>) {
         ),
     )
 
+    commandRegistry.addCommand("help", HelpCommand(commandRegistry))
+
     JDABuilder
         .createDefault(
             token,
@@ -117,6 +119,4 @@ fun main(args: Array<String>) {
             digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
         )
         .build()
-
-    commandRegistry.addCommand("help", HelpCommand(commandRegistry))
 }
