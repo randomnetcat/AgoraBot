@@ -96,7 +96,7 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
                 channel.sendMessage(
                     (event.member?.nickname ?: event.author.name) + " says: " +
                             noNewlinesMessage +
-                            attachmentsList
+                            if (attachmentsList.isNotEmpty()) " $attachmentsList" else ""
                 )
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
