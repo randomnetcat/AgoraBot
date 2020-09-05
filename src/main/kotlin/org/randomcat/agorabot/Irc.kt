@@ -66,7 +66,7 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
 
             discordChannel
                 .sendMessage(event.actor.nick + " says: " + event.message)
-                .allowedMentions(emptyList())
+                .disallowMentions()
                 .queue()
         }
     }))
