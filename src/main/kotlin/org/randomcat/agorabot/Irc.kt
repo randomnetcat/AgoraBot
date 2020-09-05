@@ -92,16 +92,11 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
                 val noNewlinesMessage = event.message.contentDisplay.lineSequence().joinToString(" ")
 
                 val attachmentsList = event.message.attachments.joinToString(" + ") { it.url }
-                val attachmentsSection =
-                    if (attachmentsList.isNotEmpty())
-                        " This message has attachments: $attachmentsList"
-                    else
-                        ""
 
                 channel.sendMessage(
                     (event.member?.nickname ?: event.author.name) + " says: " +
                             noNewlinesMessage +
-                            attachmentsSection
+                            attachmentsList
                 )
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
