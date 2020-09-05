@@ -91,7 +91,7 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
             optChannel.ifPresentOrElse({ channel ->
                 val noNewlinesMessage = event.message.contentDisplay.lineSequence().joinToString(" ")
 
-                val attachmentsList = event.message.attachments.joinToString(" + ") { it.url }
+                val attachmentsList = event.message.attachments.joinToString(" ") { it.url }
 
                 channel.sendMessage(
                     (event.member?.nickname ?: event.author.name) + " says: " +
