@@ -72,20 +72,6 @@ fun main(args: Array<String>) {
     if (ircConfig == null) {
         logger.warn("Unable to setup IRC! Check for errors above.")
     } else {
-        val ircClient = setupIrcClient(
-            config = ircConfig.global,
-            ircDir = ircDir,
-        )
-
-        val ircConnections = ircConfig.connections
-
-        for (ircConnection in ircConnections) {
-            logger.info(
-                "Connecting IRC channel ${ircConnection.ircChannelName} " +
-                        "to Discord channel ${ircConnection.discordChannelId}."
-            )
-
-            connectIrcAndDiscordChannels(ircClient, jda, ircConnection)
-        }
+        setupIrc(ircConfig, ircDir, jda)
     }
 }

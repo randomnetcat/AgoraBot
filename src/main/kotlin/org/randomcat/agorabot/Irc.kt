@@ -33,7 +33,7 @@ fun setupIrcClient(config: IrcGlobalConfig, ircDir: Path): IrcClient {
         .buildAndConnect()
 }
 
-fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
+private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
     val discordChannelId = connection.discordChannelId
     val ircChannelName = connection.ircChannelName
 
@@ -113,4 +113,26 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
             })
         }
     })
+}
+
+fun setupIrc(
+    ircConfig: IrcConfig,
+    ircDir: Path,
+    jda: JDA,
+) {
+    val ircClient = setupIrcClient(
+        config = ircConfig.global,
+        ircDir = ircDir,
+    )
+
+    val ircConnections = ircConfig.connections
+
+    for (ircConnection in ircConnections) {
+        logger.info(
+            "Connecting IRC channel ${ircConnection.ircChannelName} " +
+                    "to Discord channel ${ircConnection.discordChannelId}."
+        )
+
+        connectIrcAndDiscordChannels(ircClient, jda, ircConnection)
+    }
 }
