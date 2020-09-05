@@ -90,7 +90,7 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
 
             optChannel.ifPresentOrElse({ channel ->
                 channel.sendMessage(
-                    (event.member?.nickname ?: event.author.name) + " says: " + event.message.contentRaw
+                    (event.member?.nickname ?: event.author.name) + " says: " + event.message.contentDisplay
                 )
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
