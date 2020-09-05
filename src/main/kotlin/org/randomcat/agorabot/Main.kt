@@ -38,13 +38,13 @@ private fun readDigestSendStrategy(mailConfig: JsonObject, digestFormat: DigestF
         "none" -> return null
 
         "ssmtp" -> {
-            val ssmtpPath = digestObject["ssmtp_path"]?.jsonPrimitive?.content.let { Path.of(it) }
+            val ssmtpPath = digestObject["ssmtp_path"]?.jsonPrimitive?.content?.let { Path.of(it) }
             if (ssmtpPath == null) {
                 logger.error("ssmtp_path should be set!")
                 return null
             }
 
-            val ssmtpConfigPath = digestObject["ssmtp_config_path"]?.jsonPrimitive?.content.let { Path.of(it) }
+            val ssmtpConfigPath = digestObject["ssmtp_config_path"]?.jsonPrimitive?.content?.let { Path.of(it) }
             if (ssmtpConfigPath == null) {
                 logger.error("ssmtp_config_path should be set!")
                 return null
