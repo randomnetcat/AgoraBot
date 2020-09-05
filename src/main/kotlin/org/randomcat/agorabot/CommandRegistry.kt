@@ -29,7 +29,7 @@ interface Command {
 typealias UnknownCommandHook = (MessageReceivedEvent, CommandInvocation) -> Unit
 
 private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
-    event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").queue()
+    event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").disallowMentions().queue()
 }
 
 data class MapCommandRegistry(
