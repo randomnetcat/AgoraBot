@@ -9,9 +9,10 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import org.randomcat.agorabot.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
+import java.nio.file.StandardCopyOption
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -102,12 +103,15 @@ private class JsonDigest(
     }
 
     private fun persistUnlocked() {
-        Files.writeString(storagePath,
-            Json.encodeToString<List<DigestMessageDto>>(_rawUnlockedMessages),
-            FILE_CHARSET,
-            StandardOpenOption.TRUNCATE_EXISTING,
-            StandardOpenOption.CREATE
-        )
+        withTempFile { tempFile ->
+            Files.writeString(
+                tempFile,
+                Json.encodeToString<List<DigestMessageDto>>(_rawUnlockedMessages),
+                FILE_CHARSET,
+            )
+
+            Files.move(tempFile, storagePath, StandardCopyOption.REPLACE_EXISTING)
+        }
     }
 
     private fun rawMessages(): ImmutableList<DigestMessageDto> {
