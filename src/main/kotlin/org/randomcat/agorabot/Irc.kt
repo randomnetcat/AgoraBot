@@ -89,8 +89,17 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
             val optChannel = ircClient.getChannel(ircChannelName)
 
             optChannel.ifPresentOrElse({ channel ->
+                val attachmentsList = event.message.attachments.joinToString { "- " + it.url }
+                val attachmentsSection =
+                    if (attachmentsList.isNotEmpty())
+                        "\n\nThis message has attachemnts:\n" + attachmentsList
+                    else
+                        ""
+
                 channel.sendMessage(
-                    (event.member?.nickname ?: event.author.name) + " says: " + event.message.contentDisplay
+                    (event.member?.nickname ?: event.author.name) + " says: " +
+                            event.message.contentDisplay +
+                            attachmentsSection
                 )
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
