@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.digest
 
+import org.randomcat.agorabot.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -16,29 +17,29 @@ class SsmtpDigestSendStrategy(
     private val configPath: Path,
 ) : DigestSendStrategy {
     override fun sendDigest(digest: Digest, destination: String) {
-        val tempFile = Files.createTempFile("agorabot", "ssmtp-digest-data")!!
+        withTempFile("ssmtp-digest-data") { tempFile ->
+            val subject = "Discord digest ${DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDateTime.now())}"
+            val content = digestFormat.format(digest)
 
-        val subject = "Discord digest ${DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDateTime.now())}"
-        val content = digestFormat.format(digest)
+            val messageText =
+                "To: $destination\n" +
+                        "Subject: $subject\n" +
+                        "MIME-Version: 1.0\n" +
+                        "Content-Type: text/plain; charset=utf-8" +
+                        "\n\n" +
+                        content
 
-        val messageText =
-            "To: $destination\n" +
-                    "Subject: $subject\n" +
-                    "MIME-Version: 1.0\n" +
-                    "Content-Type: text/plain; charset=utf-8" +
-                    "\n\n" +
-                    content
+            Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
 
-        Files.writeString(tempFile, messageText, Charsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)
-
-        ProcessBuilder(
-            executablePath.toAbsolutePath().toString(),
-            "-C${configPath.toAbsolutePath()}",
-            "-FAgoraBot",
-            "-fAgoraBot",
-            destination
-        )
-            .redirectInput(ProcessBuilder.Redirect.from(tempFile.toFile()))
-            .start()
+            ProcessBuilder(
+                executablePath.toAbsolutePath().toString(),
+                "-C${configPath.toAbsolutePath()}",
+                "-FAgoraBot",
+                "-fAgoraBot",
+                destination
+            )
+                .redirectInput(ProcessBuilder.Redirect.from(tempFile.toFile()))
+                .start()
+        }
     }
 }
