@@ -50,4 +50,13 @@ class WithTempFileTest {
 
         assertFalse(Files.exists(tempFilePath))
     }
+
+    @Test
+    fun `can delete tempFile in block`() {
+        withTempFile { tempFile ->
+            Files.delete(tempFile)
+        }
+
+        // This should cause no problems - if an exception is thrown, the test will fail
+    }
 }
