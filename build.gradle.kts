@@ -16,6 +16,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.3")
     implementation("net.dv8tion:JDA:4.2.0_198")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
+    implementation("org.kitteh.irc:client-lib:7.3.0")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
     testImplementation(kotlin("test"))
@@ -25,6 +26,8 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "13"
+
+    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.time.ExperimentalTime"
 }
 
 tasks.create<Jar>("fatJar") {
