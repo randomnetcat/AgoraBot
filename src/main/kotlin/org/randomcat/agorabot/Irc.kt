@@ -64,7 +64,10 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
                 return
             }
 
-            discordChannel.sendMessage(event.actor.nick + " says: " + event.message).queue()
+            discordChannel
+                .sendMessage(event.actor.nick + " says: " + event.message)
+                .allowedMentions(emptyList())
+                .queue()
         }
     }))
 
