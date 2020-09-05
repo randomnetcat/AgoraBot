@@ -5,9 +5,7 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.*
-import org.randomcat.agorabot.digest.DefaultDigestFormat
-import org.randomcat.agorabot.digest.JsonGuildDigestMap
-import org.randomcat.agorabot.digest.digestEmoteListener
+import org.randomcat.agorabot.digest.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -15,16 +13,12 @@ private const val DIGEST_ADD_EMOTE = "\u2B50" // Discord :star:
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
 
-fun main(args: Array<String>) {
-    require(args.size == 1) { "Single command line argument of token required" }
-
-    val token = args.single()
-    val digestMap = JsonGuildDigestMap(Path.of(".", "digests"))
-
-    val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"))
-    val digestFormat = DefaultDigestFormat()
-
-    val commandRegistry = MutableMapCommandRegistry(
+private fun makeCommandRegistry(
+    prefixMap: MutableGuildPrefixMap,
+    digestMap: GuildDigestMap,
+    digestFormat: DigestFormat,
+): CommandRegistry {
+    return MutableMapCommandRegistry(
         mapOf(
             "rng" to RngCommand(),
             "digest" to DigestCommand(
@@ -35,9 +29,17 @@ fun main(args: Array<String>) {
             "copyright" to CopyrightCommand(),
             "prefix" to PrefixCommand(prefixMap),
         ),
-    )
+    ).also { it.addCommand("help", HelpCommand(it)) }
+}
 
-    commandRegistry.addCommand("help", HelpCommand(commandRegistry))
+fun main(args: Array<String>) {
+    require(args.size == 1) { "Single command line argument of token required" }
+
+    val token = args.single()
+    val digestMap = JsonGuildDigestMap(Path.of(".", "digests"))
+
+    val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"))
+    val digestFormat = DefaultDigestFormat()
 
     val jda =
         JDABuilder
@@ -52,7 +54,7 @@ fun main(args: Array<String>) {
             .addEventListeners(
                 BotListener(
                     MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
-                    commandRegistry,
+                    makeCommandRegistry(prefixMap, digestMap, digestFormat),
                 ),
                 digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
             )
