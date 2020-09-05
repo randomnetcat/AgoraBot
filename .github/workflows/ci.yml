@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: gh-pages
+  pull_request:
+    branches-ignore: gh-pages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
+      - name: Set up JDK 1.13
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.13
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew assemble
+      - name: Run the tests
+        run: ./gradlew check
+      - name: Upload test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test_report
+          path: build/reports/tests/test
+        if: always()
+
+      - name: Create fat jar
+        run: ./gradlew fatjar
+
+      - name: Upload fat jar
+        uses: actions/upload-artifact@v2
+        with:
+          name: fat_jar
+          path: build/libs/agorabot.jar
