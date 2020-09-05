@@ -7,6 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -24,15 +25,19 @@ class JsonPrefixMap(private val default: String, storagePath: Path) : MutableGui
         }
 
         fun writeToFile(path: Path, data: Map<String, String>) {
-            val content = Json.encodeToString<Map<String, String>>(data)
+            withTempFile { tempFile ->
+                val content = Json.encodeToString<Map<String, String>>(data)
 
-            Files.writeString(
-                path,
-                content,
-                FILE_CHARSET,
-                StandardOpenOption.TRUNCATE_EXISTING,
-                StandardOpenOption.CREATE,
-            )
+                Files.writeString(
+                    tempFile,
+                    content,
+                    FILE_CHARSET,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.CREATE,
+                )
+
+                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING)
+            }
         }
     }
 
