@@ -1,6 +1,5 @@
 package org.randomcat.agorabot
 
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
@@ -60,11 +59,7 @@ fun main(args: Array<String>) {
             )
             .build()
 
-    while (jda.status != JDA.Status.CONNECTED) {
-        // Spin. The remainder of the setup depends on JDA functioning.
-        logger.info("Waiting for JDA, current state: ${jda.status}")
-        Thread.sleep(1000)
-    }
+    jda.awaitReady()
 
     val ircDir = Path.of(".", "irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
