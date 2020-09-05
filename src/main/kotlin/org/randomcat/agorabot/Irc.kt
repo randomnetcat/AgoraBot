@@ -91,10 +91,10 @@ fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: Irc
             optChannel.ifPresentOrElse({ channel ->
                 val noNewlinesMessage = event.message.contentDisplay.lineSequence().joinToString(" ")
 
-                val attachmentsList = event.message.attachments.joinToString { "- " + it.url }
+                val attachmentsList = event.message.attachments.joinToString(" + ") { it.url }
                 val attachmentsSection =
                     if (attachmentsList.isNotEmpty())
-                        " This message has attachemnts:\n$attachmentsList"
+                        " This message has attachments: $attachmentsList"
                     else
                         ""
 
