@@ -1,6 +1,8 @@
 package org.randomcat.agorabot.digest
 
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -15,6 +17,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -155,8 +158,31 @@ class JsonGuildDigestMap(
         Files.createDirectories(storageDirectory)
     }
 
+    private class LoadOnceDigest(private val path: Path) {
+        // lazy will ensure that only a single JsonDigest is created
+        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { JsonDigest(path) }
+    }
+
+    private val map = AtomicReference<PersistentMap<String, LoadOnceDigest>>(persistentMapOf())
+
     override fun digestForGuild(guildId: String): Digest {
-        val jsonFile = storageDirectory.resolve(guildId)
-        return JsonDigest(jsonFile)
+        run {
+            val origMap = map.get()
+
+            val existingAnswer = origMap[guildId]
+            if (existingAnswer != null) return existingAnswer.value
+        }
+
+        return map.updateAndGet { origMap ->
+            // Possible race condition - another thread could already have added it.
+            // This means we have to check if it's already in the map.
+            if (origMap.containsKey(guildId))
+                origMap
+            else
+            // Multiple LoadOnceDigests might be created as the threads compete, but only one will be returned
+            // to the outside world. Then, once that one instance is returned, it will thread-safely create
+            // a single JsonDigest.
+                origMap.put(guildId, LoadOnceDigest(storageDirectory.resolve(guildId)))
+        }.getValue(guildId).value
     }
 }
