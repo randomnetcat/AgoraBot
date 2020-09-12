@@ -27,9 +27,9 @@ private fun readDigestSendStrategyJson(mailConfig: JsonObject, digestFormat: Dig
         return null
     }
 
-    val sendStrategyName = digestObject["send_strategy"]?.jsonPrimitive?.content
+    val sendStrategyName = (digestObject["send_strategy"] as? JsonPrimitive)?.content
     if (sendStrategyName == null) {
-        logger.error("Digest object did not contain send_strategy!")
+        logger.error("Digest object should contain send_strategy and be a JSON primitive!")
         return null
     }
 
@@ -37,15 +37,15 @@ private fun readDigestSendStrategyJson(mailConfig: JsonObject, digestFormat: Dig
         "none" -> return null
 
         "ssmtp" -> {
-            val ssmtpPath = digestObject["ssmtp_path"]?.jsonPrimitive?.content?.let { Path.of(it) }
+            val ssmtpPath = (digestObject["ssmtp_path"] as? JsonPrimitive)?.content?.let { Path.of(it) }
             if (ssmtpPath == null) {
-                logger.error("ssmtp_path should be set!")
+                logger.error("For ssmtp, send_strategy.ssmtp_path should exist and be a JSON primitive!")
                 return null
             }
 
-            val ssmtpConfigPath = digestObject["ssmtp_config_path"]?.jsonPrimitive?.content?.let { Path.of(it) }
+            val ssmtpConfigPath = (digestObject["ssmtp_config_path"] as? JsonPrimitive)?.content?.let { Path.of(it) }
             if (ssmtpConfigPath == null) {
-                logger.error("ssmtp_config_path should be set!")
+                logger.error("For ssmtp, send_strategy.ssmtp_config_path should exist and be a JSON primitive!")
                 return null
             }
 

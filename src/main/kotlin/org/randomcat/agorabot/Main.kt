@@ -16,13 +16,14 @@ private fun makeCommandRegistry(
     prefixMap: MutableGuildPrefixMap,
     digestMap: GuildDigestMap,
     digestFormat: DigestFormat,
+    digestSendStrategy: DigestSendStrategy?,
 ): CommandRegistry {
     return MutableMapCommandRegistry(
         mapOf(
             "rng" to RngCommand(),
             "digest" to DigestCommand(
                 digestMap = digestMap,
-                sendStrategy = readDigestSendStrategyConfig(Path.of(".", "mail.json"), digestFormat),
+                sendStrategy = digestSendStrategy,
                 digestFormat = digestFormat,
             ),
             "copyright" to CopyrightCommand(),
@@ -42,6 +43,11 @@ fun main(args: Array<String>) {
     val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"), persistService)
     val digestFormat = DefaultDigestFormat()
 
+    val digestSendStrategy = readDigestSendStrategyConfig(Path.of(".", "mail.json"), digestFormat)
+    if (digestSendStrategy == null) {
+        logger.warn("Unable to setup digest sending! Check for errors above.")
+    }
+
     val jda =
         JDABuilder
             .createDefault(
@@ -55,7 +61,7 @@ fun main(args: Array<String>) {
             .addEventListeners(
                 BotListener(
                     MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
-                    makeCommandRegistry(prefixMap, digestMap, digestFormat),
+                    makeCommandRegistry(prefixMap, digestMap, digestFormat, digestSendStrategy),
                 ),
                 digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
             )
