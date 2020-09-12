@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import org.randomcat.agorabot.ConfigPersistService
 import org.randomcat.agorabot.util.updateAndMap
 import org.randomcat.agorabot.withTempFile
 import java.nio.file.Files
@@ -113,6 +114,10 @@ private class JsonDigest(
         })
     }
 
+    fun schedulePersistenceOn(service: ConfigPersistService) {
+        service.schedulePersistence({ rawMessages.get() }, { writeToFile(storagePath, it) })
+    }
+
     override fun messages(): ImmutableList<DigestMessage> {
         return rawMessages.get().map { it.toMessage() }.toImmutableList()
     }
@@ -143,14 +148,17 @@ private class JsonDigest(
 
 class JsonGuildDigestMap(
     private val storageDirectory: Path,
+    private val persistenceService: ConfigPersistService,
 ) : GuildDigestMap {
     init {
         Files.createDirectories(storageDirectory)
     }
 
-    private class LoadOnceDigest(private val path: Path) {
+    private inner class LoadOnceDigest(private val path: Path) {
         // lazy will ensure that only a single JsonDigest is created
-        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { JsonDigest(path) }
+        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+            JsonDigest(path).also { it.schedulePersistenceOn(persistenceService) }
+        }
     }
 
     private val map = AtomicReference<PersistentMap<String, LoadOnceDigest>>(persistentMapOf())

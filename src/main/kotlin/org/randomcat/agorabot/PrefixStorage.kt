@@ -9,11 +9,13 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
-class JsonPrefixMap(private val default: String, storagePath: Path) : MutableGuildPrefixMap {
+class JsonPrefixMap(
+    private val default: String,
+    storagePath: Path,
+    persistenceService: ConfigPersistService,
+) : MutableGuildPrefixMap {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
 
@@ -44,24 +46,8 @@ class JsonPrefixMap(private val default: String, storagePath: Path) : MutableGui
     private val map: AtomicReference<ImmutableMap<String, String>> =
         AtomicReference(readFromFile(storagePath).toImmutableMap())
 
-    private val executor = Executors.newSingleThreadScheduledExecutor()
-
     init {
-        executor.scheduleAtFixedRate(object : Runnable {
-            private var lastMap: ImmutableMap<String, String>? = null
-
-            override fun run() {
-                val newMap: ImmutableMap<String, String> = map.get()
-
-                if (newMap != lastMap) {
-                    writeToFile(storagePath, newMap)
-                }
-            }
-        }, 0, 5, TimeUnit.SECONDS)
-
-        Runtime.getRuntime().addShutdownHook(Thread {
-            writeToFile(storagePath, map.get())
-        })
+        persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
     }
 
     override fun setPrefixForGuild(guildId: String, prefix: String) {

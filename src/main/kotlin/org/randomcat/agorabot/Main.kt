@@ -35,9 +35,11 @@ fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
     val token = args.single()
-    val digestMap = JsonGuildDigestMap(Path.of(".", "digests"))
+    val persistService: ConfigPersistService = DefaultConfigPersistService
 
-    val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"))
+    val digestMap = JsonGuildDigestMap(Path.of(".", "digests"), persistService)
+
+    val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"), persistService)
     val digestFormat = DefaultDigestFormat()
 
     val jda =
