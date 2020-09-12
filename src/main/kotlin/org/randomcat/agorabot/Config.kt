@@ -64,7 +64,10 @@ private fun readDigestSendStrategyJson(mailConfig: JsonObject, digestFormat: Dig
 }
 
 fun readDigestSendStrategyConfig(mailConfigPath: Path, digestFormat: DigestFormat): DigestSendStrategy? {
-    require(Files.exists(mailConfigPath)) { "mail.json does not exist" }
+    if (Files.notExists(mailConfigPath)) {
+        logger.warn("Unable to find mail.json!")
+        return null
+    }
 
     val mailConfig = Json.parseToJsonElement(Files.readString(mailConfigPath, Charsets.UTF_8)).jsonObject
 
