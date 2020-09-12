@@ -1,5 +1,6 @@
 package org.randomcat.agorabot
 
+import org.randomcat.agorabot.util.splitArguments
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

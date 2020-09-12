@@ -3,6 +3,7 @@ package org.randomcat.agorabot
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.util.splitArguments
 
 data class CommandInvocation(val command: String, val args: ImmutableList<String>) {
     constructor(command: String, args: List<String>) : this(command, args.toImmutableList())

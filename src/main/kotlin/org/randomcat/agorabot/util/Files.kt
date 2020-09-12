@@ -1,4 +1,4 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.util
 
 import java.nio.file.Files
 import java.nio.file.Path

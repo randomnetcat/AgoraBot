@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.digest
 
-import org.randomcat.agorabot.withTempFile
+import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption

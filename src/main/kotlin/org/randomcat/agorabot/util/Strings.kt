@@ -1,4 +1,4 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.util
 
 /**
  * Splits an arguments string:

@@ -10,7 +10,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.ConfigPersistService
 import org.randomcat.agorabot.util.updateAndMap
-import org.randomcat.agorabot.withTempFile
+import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption

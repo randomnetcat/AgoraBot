@@ -3,6 +3,7 @@ package org.randomcat.agorabot
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.util.disallowMentions
 
 
 interface CommandRegistry {

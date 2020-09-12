@@ -7,6 +7,7 @@ import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
+import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.time.TimeSource
