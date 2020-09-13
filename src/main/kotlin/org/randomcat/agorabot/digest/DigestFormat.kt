@@ -30,7 +30,7 @@ class DefaultDigestFormat : DigestFormat {
 
             "MESSAGE ${message.id}\n" +
                     "FROM ${message.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +
-                    (message.channelName?.let { "IN #$it: " } ?: "") +
+                    (message.channelName?.let { "IN #$it " } ?: "") +
                     "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(message.date)} " +
                     "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(message.date)}:" +
                     "\n" +
