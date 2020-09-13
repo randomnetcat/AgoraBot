@@ -7,6 +7,7 @@ data class DigestMessage(
     val senderUsername: String,
     val senderNickname: String?,
     val id: String,
+    val channelName: String?,
     val content: String,
     val date: OffsetDateTime,
     val attachmentUrls: ImmutableList<String>,

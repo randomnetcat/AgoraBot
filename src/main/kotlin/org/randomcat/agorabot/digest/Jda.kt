@@ -10,6 +10,7 @@ private fun digestMessageWithNickname(message: Message, nickname: String?): Dige
         senderUsername = message.author.name,
         senderNickname = nickname,
         id = message.id,
+        channelName = message.channel.name,
         content = message.contentDisplay,
         date = message.timeCreated,
         attachmentUrls = message.attachments.map { it.url }.toImmutableList()

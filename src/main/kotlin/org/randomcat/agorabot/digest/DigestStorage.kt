@@ -39,6 +39,7 @@ private data class DigestMessageDto(
     val senderUsername: String,
     val senderNickname: String?,
     val id: String,
+    val channelName: String? = null, // Default is for backwards compat
     val content: String,
     @Serializable(with = OffsetDateTimeSerializer::class)
     val date: OffsetDateTime,
@@ -49,6 +50,7 @@ private data class DigestMessageDto(
             senderNickname = message.senderNickname,
             senderUsername = message.senderUsername,
             id = message.id,
+            channelName = message.channelName,
             content = message.content,
             date = message.date,
             attachmentUrls = message.attachmentUrls.toList(),
@@ -59,6 +61,7 @@ private data class DigestMessageDto(
         senderUsername = senderUsername,
         senderNickname = senderNickname,
         id = id,
+        channelName = channelName,
         content = content,
         date = date,
         attachmentUrls = attachmentUrls.toImmutableList(),
