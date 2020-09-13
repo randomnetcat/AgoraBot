@@ -8,31 +8,31 @@ interface DigestFormat {
 
 class DefaultDigestFormat : DigestFormat {
     override fun format(digest: Digest): String {
-        return digest.messages().sortedBy { it.date }.joinToString("\n\n") {
-            val nickname = it.senderNickname
-            val includeNickname = (nickname != null) && (nickname != it.senderUsername)
+        return digest.messages().sortedBy { it.date }.joinToString("\n\n") { message ->
+            val nickname = message.senderNickname
+            val includeNickname = (nickname != null) && (nickname != message.senderUsername)
 
-            val attachmentLines = it.attachmentUrls.joinToString("\n")
+            val attachmentLines = message.attachmentUrls.joinToString("\n")
 
-            val contentPart = if (it.content.isBlank()) {
-                if (it.attachmentUrls.isNotEmpty()) {
+            val contentPart = if (message.content.isBlank()) {
+                if (message.attachmentUrls.isNotEmpty()) {
                     "This message consists only of attachments:\n$attachmentLines"
                 } else {
                     "<no content>"
                 }
             } else {
-                it.content +
-                        if (it.attachmentUrls.isNotEmpty())
+                message.content +
+                        if (message.attachmentUrls.isNotEmpty())
                             "\n\nThis message has attachments\n$attachmentLines"
                         else
                             ""
             }
 
-            "MESSAGE ${it.id}\n" +
-                    "FROM ${it.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +
-                    (it.channelName?.let { channelName -> "IN $channelName: " } ?: "") +
-                    "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(it.date)} " +
-                    "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(it.date)}:" +
+            "MESSAGE ${message.id}\n" +
+                    "FROM ${message.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +
+                    (message.channelName?.let { "IN $it: " } ?: "") +
+                    "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(message.date)} " +
+                    "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(message.date)}:" +
                     "\n" +
                     contentPart
         }
