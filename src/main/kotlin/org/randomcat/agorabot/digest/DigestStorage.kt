@@ -14,11 +14,14 @@ import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.random.Random
 
 private class OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
@@ -70,6 +73,7 @@ private data class DigestMessageDto(
 
 private class JsonDigest(
     private val storagePath: Path,
+    private val backupDir: Path,
 ) : Digest {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
@@ -145,7 +149,19 @@ private class JsonDigest(
     }
 
     override fun clear() {
+        val oldValue = rawMessages.get()
         rawMessages.set(persistentListOf())
+
+        Files.createDirectories(backupDir)
+        val backupPath = backupDir.resolve(
+            DateTimeFormatter
+                .ofPattern("YYYY-MM-dd-HH-mm-ss")
+                .withZone(ZoneId.systemDefault())
+                .format(Instant.now())
+                    + "-" + Random.nextLong()
+        )
+
+        writeToFile(backupPath, oldValue)
     }
 }
 
@@ -157,11 +173,12 @@ class JsonGuildDigestMap(
         Files.createDirectories(storageDirectory)
     }
 
-    private inner class LoadOnceDigest(private val path: Path) {
+    private val backupDirectory
+        get() = storageDirectory.resolve("cleared")
+
+    private inner class LoadOnceDigest(init: () -> Digest) {
         // lazy will ensure that only a single JsonDigest is created
-        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-            JsonDigest(path).also { it.schedulePersistenceOn(persistenceService) }
-        }
+        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED, init)
     }
 
     private val map = AtomicReference<PersistentMap<String, LoadOnceDigest>>(persistentMapOf())
@@ -183,7 +200,12 @@ class JsonGuildDigestMap(
             // Multiple LoadOnceDigests might be created as the threads compete, but only one will be returned
             // to the outside world. Then, once that one instance is returned, it will thread-safely create
             // a single JsonDigest.
-                origMap.put(guildId, LoadOnceDigest(storageDirectory.resolve(guildId)))
+                origMap.put(guildId, LoadOnceDigest {
+                    JsonDigest(
+                        storagePath = storageDirectory.resolve(guildId),
+                        backupDir = backupDirectory.resolve(guildId),
+                    ).also { it.schedulePersistenceOn(persistenceService) }
+                })
         }.getValue(guildId).value
     }
 }
