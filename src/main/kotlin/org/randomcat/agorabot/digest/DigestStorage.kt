@@ -20,8 +20,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.random.Random
 
 private class OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor
@@ -100,6 +100,7 @@ private class JsonDigest(
     }
 
     private val rawMessages = AtomicReference(readFromFile(storagePath).toPersistentList())
+    private val backupCounter = AtomicLong()
 
     private val executor = Executors.newSingleThreadScheduledExecutor()
 
@@ -153,12 +154,18 @@ private class JsonDigest(
         rawMessages.set(persistentListOf())
 
         Files.createDirectories(backupDir)
+
+        // I refuse to believe that a Guild will run through all of the possible Long values for backups within a single
+        // second. A Long will suffice here.
         val backupPath = backupDir.resolve(
             DateTimeFormatter
                 .ofPattern("YYYY-MM-dd-HH-mm-ss")
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.now())
-                    + "-" + Random.nextLong()
+                    + "-" +
+                    "%020d".format(backupCounter.getAndUpdate { old ->
+                        if (old == Long.MAX_VALUE) 0 else (old + 1) // Don't allow negative numbers
+                    })
         )
 
         writeToFile(backupPath, oldValue)
