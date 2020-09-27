@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package org.randomcat.agorabot
 
 import net.dv8tion.jda.api.JDA
@@ -10,6 +12,7 @@ import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 import kotlin.time.minutes
 
