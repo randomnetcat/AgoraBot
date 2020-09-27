@@ -37,6 +37,8 @@ fun setupIrcClient(config: IrcGlobalConfig, ircDir: Path): IrcClient {
         .buildAndConnect()
 }
 
+private const val MAX_IRC_LENGTH = 500
+
 private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
     val discordChannelId = connection.discordChannelId
     val ircChannelName = connection.ircChannelName
@@ -93,15 +95,18 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             val optChannel = ircClient.getChannel(ircChannelName)
 
             optChannel.ifPresentOrElse({ channel ->
-                val noNewlinesMessage = event.message.contentDisplay.lineSequence().joinToString(" ")
+                val fullMessage =
+                    (event.member?.nickname ?: event.author.name) +
+                            " says: " +
+                            event.message.contentDisplay +
+                            (event.message.attachments
+                                .map { it.url }
+                                .filter { it.length <= MAX_IRC_LENGTH }
+                                .takeIf { it.isNotEmpty() }
+                                ?.joinToString(separator = "\n", prefix = "\n")
+                                ?: "")
 
-                val attachmentsList = event.message.attachments.joinToString(" ") { it.url }
-
-                channel.sendMessage(
-                    (event.member?.nickname ?: event.author.name) + " says: " +
-                            noNewlinesMessage +
-                            if (attachmentsList.isNotEmpty()) " $attachmentsList" else ""
-                )
+                fullMessage.lines().forEach { channel.sendMultiLineMessage(it) }
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
                     logger.error(
