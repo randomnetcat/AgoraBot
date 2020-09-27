@@ -75,6 +75,8 @@ fun main(args: Array<String>) {
     if (ircConfig == null) {
         logger.warn("Unable to setup IRC! Check for errors above.")
     } else {
+        logger.info("Connecting IRC...")
         setupIrc(ircConfig, ircDir, jda)
+        logger.info("Done connecting IRC.")
     }
 }
