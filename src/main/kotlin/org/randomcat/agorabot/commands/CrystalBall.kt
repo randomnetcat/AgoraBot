@@ -10,8 +10,14 @@ private val RESPONSES = listOf(
 
 class CrystalBallCommand : ChatCommand() {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
-        noArgs {
-            respond("Judged ${RESPONSES.random()}.")
+        matchFirst {
+            noArgs { _ ->
+                respond("Judged ${RESPONSES.random()}.")
+            }
+
+            args(StringArg("statement")) { (statement) ->
+                respond("\"$statement\" judged ${RESPONSES.random()}.")
+            }
         }
     }
 }
