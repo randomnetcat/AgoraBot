@@ -28,6 +28,7 @@ private fun makeCommandRegistry(
             ),
             "copyright" to CopyrightCommand(),
             "prefix" to PrefixCommand(prefixMap),
+            "ball" to CrystalBallCommand(),
         ),
     ).also { it.addCommand("help", HelpCommand(it)) }
 }
