@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
+import org.randomcat.agorabot.util.disallowMentions
 
 interface BaseCommandStrategy {
     fun argumentParseError(
@@ -80,11 +81,11 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
     }
 
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
-        event.channel.sendMessage(message).queue()
+        event.channel.sendMessage(message).disallowMentions().queue()
     }
 
     override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
-        event.channel.sendMessage(message).queue()
+        event.channel.sendMessage(message).disallowMentions().queue()
     }
 
     override fun sendResponseAsFile(
@@ -94,6 +95,6 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
         fileContent: String,
     ) {
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
-        event.channel.sendFile(bytes, fileName).queue()
+        event.channel.sendFile(bytes, fileName).disallowMentions().queue()
     }
 })
