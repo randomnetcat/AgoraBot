@@ -10,6 +10,11 @@ class PrefixCommand(private val prefixMap: MutableGuildPrefixMap) : ChatCommand(
             }
 
             args(StringArg("new_prefix")) { (newPrefix) ->
+                if (newPrefix.isBlank()) {
+                    respond("The prefix cannot be empty. Stop it.")
+                    return@args
+                }
+
                 prefixMap.setPrefixForGuild(currentGuildId(), newPrefix)
                 respond("The prefix has been updated.")
             }
