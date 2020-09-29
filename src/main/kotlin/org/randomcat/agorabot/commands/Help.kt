@@ -32,8 +32,7 @@ class HelpCommand(private val registry: QueryableCommandRegistry) : ChatCommand(
                 }
             }
 
-            args(StringArg("command")) { args ->
-                val commandName = args.first
+            args(StringArg("command")) { (commandName) ->
                 val commands = registry.commands()
 
                 if (commands.containsKey(commandName)) {

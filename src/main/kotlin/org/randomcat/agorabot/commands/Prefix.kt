@@ -9,8 +9,7 @@ class PrefixCommand(private val prefixMap: MutableGuildPrefixMap) : ChatCommand(
                 respond("The prefix is: ${prefixMap.prefixForGuild(currentGuildId())}")
             }
 
-            args(StringArg("new_prefix")) { args ->
-                val newPrefix = args.first
+            args(StringArg("new_prefix")) { (newPrefix) ->
                 prefixMap.setPrefixForGuild(currentGuildId(), newPrefix)
                 respond("The prefix has been updated.")
             }

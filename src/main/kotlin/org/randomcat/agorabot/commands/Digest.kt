@@ -87,8 +87,7 @@ class DigestCommand(
 
             if (sendStrategy != null) {
                 subcommand("send") {
-                    args(StringArg("destination")) { args ->
-                        val destination = args.first
+                    args(StringArg("destination")) { (destination) ->
                         sendStrategy.sendDigest(currentDigest(), destination)
 
                         respond("Sent digest to $destination.")
@@ -98,8 +97,7 @@ class DigestCommand(
 
             subcommand("add") {
                 matchFirst {
-                    args(StringArg("message_id")) { args ->
-                        val messageId = args.first
+                    args(StringArg("message_id")) { (messageId) ->
                         val message = getMessageOrError(messageId) ?: return@args
 
                         message.retrieveDigestMessage().queue { digestMessage ->
@@ -108,11 +106,8 @@ class DigestCommand(
                         }
                     }
 
-                    args(StringArg("range_begin"), StringArg("range_end")) { args ->
-                        val rangeBeginId = args.first
+                    args(StringArg("range_begin"), StringArg("range_end")) { (rangeBeginId, rangeEndId) ->
                         val rangeBegin = getMessageOrError(rangeBeginId) ?: return@args
-
-                        val rangeEndId = args.second
                         val rangeEnd = getMessageOrError(rangeEndId) ?: return@args
 
                         val rangeBeginTime = rangeBegin.timeCreated
