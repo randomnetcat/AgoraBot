@@ -7,7 +7,7 @@ import org.randomcat.agorabot.CommandInvocation
 import org.randomcat.agorabot.util.disallowMentions
 
 interface BaseCommandArgumentStrategy {
-    fun argumentParseError(
+    fun sendArgumentErrorResponse(
         event: MessageReceivedEvent,
         invocation: CommandInvocation,
         errorMessage: String,
@@ -56,7 +56,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
             UnparsedCommandArgs(invocation.args),
             onError = { msg ->
-                strategy.argumentParseError(
+                strategy.sendArgumentErrorResponse(
                     event = event,
                     invocation = invocation,
                     errorMessage = msg,
@@ -75,7 +75,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 }
 
 val DEFAULT_BASE_COMMAND_STRATEGY = object : BaseCommandStrategy {
-    override fun argumentParseError(
+    override fun sendArgumentErrorResponse(
         event: MessageReceivedEvent,
         invocation: CommandInvocation,
         errorMessage: String,
