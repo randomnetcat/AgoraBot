@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
+import org.randomcat.agorabot.commands.BaseCommandDiscordOutputSink.sendResponse
 import org.randomcat.agorabot.util.disallowMentions
 
 interface BaseCommandArgumentStrategy {
@@ -96,17 +97,22 @@ object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
     }
 }
 
-val DEFAULT_BASE_COMMAND_STRATEGY: BaseCommandStrategy =
-    object : BaseCommandStrategy, BaseCommandOutputSink by BaseCommandDiscordOutputSink {
-        override fun sendArgumentErrorResponse(
-            event: MessageReceivedEvent,
-            invocation: CommandInvocation,
-            errorMessage: String,
-            usage: String,
-        ) {
-            sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
-        }
+object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
+    override fun sendArgumentErrorResponse(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        errorMessage: String,
+        usage: String,
+    ) {
+        sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
     }
+}
+
+val DEFAULT_BASE_COMMAND_STRATEGY: BaseCommandStrategy =
+    object :
+        BaseCommandStrategy,
+        BaseCommandOutputSink by BaseCommandDiscordOutputSink,
+        BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy {}
 
 data class BaseCommandMultiOutputSink(
     private val outputs: ImmutableList<BaseCommandOutputSink>,
