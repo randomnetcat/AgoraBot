@@ -15,7 +15,10 @@ private fun MessageBuilder.appendUsage(name: String, command: Command) {
     append(": $usageHelp")
 }
 
-class HelpCommand(private val registry: QueryableCommandRegistry) : ChatCommand() {
+class HelpCommand(
+    strategy: BaseCommandStrategy,
+    private val registry: QueryableCommandRegistry,
+) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         matchFirst {
             noArgs {

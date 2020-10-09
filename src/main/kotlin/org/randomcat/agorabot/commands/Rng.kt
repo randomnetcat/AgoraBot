@@ -3,7 +3,7 @@ package org.randomcat.agorabot.commands
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-class RngCommand : ChatCommand() {
+class RngCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         matchFirst {
             args(IntArg("max")) { args ->

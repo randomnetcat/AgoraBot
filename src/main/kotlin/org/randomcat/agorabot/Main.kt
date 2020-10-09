@@ -18,19 +18,22 @@ private fun makeCommandRegistry(
     digestFormat: DigestFormat,
     digestSendStrategy: DigestSendStrategy?,
 ): CommandRegistry {
+    val strategy = DEFAULT_BASE_COMMAND_STRATEGY
+
     return MutableMapCommandRegistry(
         mapOf(
-            "rng" to RngCommand(),
+            "rng" to RngCommand(strategy),
             "digest" to DigestCommand(
+                strategy = strategy,
                 digestMap = digestMap,
                 sendStrategy = digestSendStrategy,
                 digestFormat = digestFormat,
             ),
-            "copyright" to CopyrightCommand(),
-            "prefix" to PrefixCommand(prefixMap),
-            "cfj" to CrystalBallCommand(),
+            "copyright" to CopyrightCommand(strategy),
+            "prefix" to PrefixCommand(strategy, prefixMap),
+            "cfj" to CrystalBallCommand(strategy),
         ),
-    ).also { it.addCommand("help", HelpCommand(it)) }
+    ).also { it.addCommand("help", HelpCommand(strategy, it)) }
 }
 
 fun main(args: Array<String>) {

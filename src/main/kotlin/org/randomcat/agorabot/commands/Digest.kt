@@ -52,10 +52,11 @@ private fun retrieveMessagesBetween(beginInclusive: Message, endInclusive: Messa
 }
 
 class DigestCommand(
+    strategy: BaseCommandStrategy,
     private val digestMap: GuildDigestMap,
     private val sendStrategy: DigestSendStrategy?,
     private val digestFormat: DigestFormat,
-) : ChatCommand() {
+) : BaseCommand(strategy) {
     private fun ExecutionReceiverImpl.getMessageOrError(id: String): Message? {
         val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
 

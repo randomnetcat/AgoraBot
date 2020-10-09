@@ -2,7 +2,10 @@ package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.MutableGuildPrefixMap
 
-class PrefixCommand(private val prefixMap: MutableGuildPrefixMap) : ChatCommand() {
+class PrefixCommand(
+    strategy: BaseCommandStrategy,
+    private val prefixMap: MutableGuildPrefixMap,
+) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         matchFirst {
             noArgs {

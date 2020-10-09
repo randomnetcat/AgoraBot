@@ -8,7 +8,7 @@ private val RESPONSES = listOf(
     "SHENANIGANS",
 )
 
-class CrystalBallCommand : ChatCommand() {
+class CrystalBallCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         matchFirst {
             noArgs { _ ->

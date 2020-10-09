@@ -70,7 +70,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     }
 }
 
-abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
+val DEFAULT_BASE_COMMAND_STRATEGY = object : BaseCommandStrategy {
     override fun argumentParseError(
         event: MessageReceivedEvent,
         invocation: CommandInvocation,
@@ -97,4 +97,4 @@ abstract class ChatCommand : BaseCommand(object : BaseCommandStrategy {
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
         event.channel.sendFile(bytes, fileName).disallowMentions().queue()
     }
-})
+}

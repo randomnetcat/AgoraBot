@@ -918,7 +918,7 @@ For your convenience, the full text of the Apache License, version 2.0:
 private val libraryNames
     get() = libraryLicenses.keys
 
-class CopyrightCommand : ChatCommand() {
+class CopyrightCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         subcommands {
             subcommand("info") {
