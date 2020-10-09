@@ -139,7 +139,7 @@ fun setupIrc(
     ircConfig: IrcConfig,
     ircDir: Path,
     jda: JDA,
-) {
+): IrcClient {
     val ircClient = setupIrcClient(
         config = ircConfig.global,
         ircDir = ircDir,
@@ -155,4 +155,6 @@ fun setupIrc(
 
         connectIrcAndDiscordChannels(ircClient, jda, ircConnection)
     }
+
+    return ircClient
 }
