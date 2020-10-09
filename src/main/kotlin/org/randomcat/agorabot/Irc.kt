@@ -3,10 +3,12 @@
 package org.randomcat.agorabot
 
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType
+import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.randomcat.agorabot.util.disallowMentions
@@ -38,6 +40,26 @@ fun setupIrcClient(config: IrcGlobalConfig, ircDir: Path): IrcClient {
 }
 
 private const val MAX_IRC_LENGTH = 500
+
+typealias IrcChannel = Channel
+typealias DiscordMessage = Message
+
+fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
+    val senderName = message.member?.nickname ?: message.author.name
+
+    val fullMessage =
+        senderName +
+                " says: " +
+                message.contentDisplay +
+                (message.attachments
+                    .map { it.url }
+                    .filter { it.length <= MAX_IRC_LENGTH }
+                    .takeIf { it.isNotEmpty() }
+                    ?.joinToString(separator = "\n", prefix = "\n")
+                    ?: "")
+
+    fullMessage.lines().forEach { sendMultiLineMessage(it) }
+}
 
 private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
     val discordChannelId = connection.discordChannelId
@@ -95,18 +117,7 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             val optChannel = ircClient.getChannel(ircChannelName)
 
             optChannel.ifPresentOrElse({ channel ->
-                val fullMessage =
-                    (event.member?.nickname ?: event.author.name) +
-                            " says: " +
-                            event.message.contentDisplay +
-                            (event.message.attachments
-                                .map { it.url }
-                                .filter { it.length <= MAX_IRC_LENGTH }
-                                .takeIf { it.isNotEmpty() }
-                                ?.joinToString(separator = "\n", prefix = "\n")
-                                ?: "")
-
-                fullMessage.lines().forEach { channel.sendMultiLineMessage(it) }
+                channel.sendDiscordMessage(event.message)
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
                     logger.error(
