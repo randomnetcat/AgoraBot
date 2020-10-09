@@ -1,4 +1,4 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.irc
 
 import net.engio.mbassy.listener.Handler
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent

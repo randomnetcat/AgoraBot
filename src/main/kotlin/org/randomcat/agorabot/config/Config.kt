@@ -1,11 +1,13 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.config
 
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.*
 import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.SsmtpDigestSendStrategy
+import org.randomcat.agorabot.irc.IrcConfig
+import org.randomcat.agorabot.irc.IrcConnectionConfig
+import org.randomcat.agorabot.irc.IrcGlobalConfig
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -76,24 +78,6 @@ fun readDigestSendStrategyConfig(mailConfigPath: Path, digestFormat: DigestForma
         digestFormat = digestFormat
     )
 }
-
-
-data class IrcGlobalConfig(
-    val nickname: String,
-    val server: String,
-    val port: Int,
-    val serverIsSecure: Boolean,
-)
-
-data class IrcConnectionConfig(
-    val ircChannelName: String,
-    val discordChannelId: String,
-)
-
-data class IrcConfig(
-    val global: IrcGlobalConfig,
-    val connections: ImmutableList<IrcConnectionConfig>,
-)
 
 private fun JsonObject.readIrcJsonString(name: String): String? {
     val value = (this[name] as? JsonPrimitive?)?.takeIf { it.isString }?.content

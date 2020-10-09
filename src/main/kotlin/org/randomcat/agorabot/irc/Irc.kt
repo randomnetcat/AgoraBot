@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package org.randomcat.agorabot
+package org.randomcat.agorabot.irc
 
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message

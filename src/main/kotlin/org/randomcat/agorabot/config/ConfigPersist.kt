@@ -1,4 +1,4 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.config
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
