@@ -1,5 +1,7 @@
 package org.randomcat.agorabot.commands
 
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.Command
@@ -100,5 +102,47 @@ val DEFAULT_BASE_COMMAND_STRATEGY = object : BaseCommandStrategy {
     ) {
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
         event.channel.sendFile(bytes, fileName).disallowMentions().queue()
+    }
+}
+
+data class BaseCommandMultiOutputSink(
+    private val outputs: ImmutableList<BaseCommandOutputSink>,
+) : BaseCommandOutputSink {
+    constructor(outputs: List<BaseCommandOutputSink>) : this(outputs.toImmutableList())
+
+    override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
+        outputs.forEach {
+            it.sendResponse(
+                event = event,
+                invocation = invocation,
+                message = message,
+            )
+        }
+    }
+
+    override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
+        outputs.forEach {
+            it.sendResponseMessage(
+                event = event,
+                invocation = invocation,
+                message = message,
+            )
+        }
+    }
+
+    override fun sendResponseAsFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        fileName: String,
+        fileContent: String,
+    ) {
+        outputs.forEach {
+            it.sendResponseAsFile(
+                event = event,
+                invocation = invocation,
+                fileName = fileName,
+                fileContent = fileContent,
+            )
+        }
     }
 }
