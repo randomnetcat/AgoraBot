@@ -55,7 +55,7 @@ fun <T, E> parseCommandArgs(
     val results = mutableListOf<T>()
 
     parsers.forEachIndexed { index, parser ->
-        @Suppress("Unused")
+        @Suppress("UNUSED_VARIABLE")
         val ensureExhaustive = when (val parseResult = parser.parse(remainingArgs)) {
             is CommandArgumentParseResult.Success -> {
                 remainingArgs = parseResult.remaining
