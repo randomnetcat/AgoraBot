@@ -121,15 +121,12 @@ fun main(args: Array<String>) {
     val ircDir = Path.of(".", "irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
 
-    val ircClient = if (ircConfig == null) {
-        logger.warn("Unable to setup IRC! Check for errors above.")
-        null
-    } else {
-        logger.info("Connecting IRC...")
-        val value = setupIrc(ircConfig, ircDir, jda)
-        logger.info("Done connecting IRC.")
-        value
-    }
+    val ircClient =
+        ircConfig
+            ?.also { logger.info("Connecting IRC...") }
+            ?.let { setupIrc(it, ircDir, jda) }
+            ?.also { logger.info("Done connecting IRC.") }
+            ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
 
     val commandStrategy =
         object :
