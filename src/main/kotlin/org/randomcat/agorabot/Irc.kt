@@ -44,6 +44,16 @@ private const val MAX_IRC_LENGTH = 500
 typealias IrcChannel = Channel
 typealias DiscordMessage = Message
 
+/**
+ * Sends [message], which may contain multiple lines, splitting at both the length limit and every line in message.
+ *
+ * This differs from [org.kitteh.irc.client.library.element.Channel.sendMultiLineMessage] by allowing newlines
+ * in the message.
+ */
+fun IrcChannel.sendSplitMultiLineMessage(message: String) {
+    message.lineSequence().forEach { sendMultiLineMessage(it) }
+}
+
 private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
     val senderName = message.member?.nickname ?: message.author.name
 
@@ -58,7 +68,7 @@ private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
                     ?.joinToString(separator = "\n", prefix = "\n")
                     ?: "")
 
-    fullMessage.lines().forEach { sendMultiLineMessage(it) }
+    sendSplitMultiLineMessage(fullMessage)
 }
 
 private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {

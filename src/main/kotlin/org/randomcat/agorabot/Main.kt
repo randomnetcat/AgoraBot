@@ -31,13 +31,13 @@ private data class BaseCommandIrcOutputSink(
 
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
         channelForEvent(event)?.run {
-            message.lineSequence().forEach { sendMultiLineMessage(it) }
+            sendSplitMultiLineMessage(message)
         }
     }
 
     override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
         channelForEvent(event)?.run {
-            message.contentRaw.lineSequence().forEach { sendMultiLineMessage(it) }
+            sendSplitMultiLineMessage(message.contentRaw)
         }
     }
 
