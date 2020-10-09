@@ -44,14 +44,15 @@ private const val MAX_IRC_LENGTH = 500
 typealias IrcChannel = Channel
 typealias DiscordMessage = Message
 
-fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
-    val senderName = message.member?.nickname ?: message.author.name
-
+fun IrcChannel.sendDiscordMessage(
+    message: DiscordMessage,
+    prefix: String = "",
+    attachments: List<Message.Attachment> = emptyList(),
+) {
     val fullMessage =
-        senderName +
-                " says: " +
+        prefix +
                 message.contentDisplay +
-                (message.attachments
+                (attachments
                     .map { it.url }
                     .filter { it.length <= MAX_IRC_LENGTH }
                     .takeIf { it.isNotEmpty() }
@@ -117,7 +118,13 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             val optChannel = ircClient.getChannel(ircChannelName)
 
             optChannel.ifPresentOrElse({ channel ->
-                channel.sendDiscordMessage(event.message)
+                val message = event.message
+
+                channel.sendDiscordMessage(
+                    message = message,
+                    prefix = (message.member?.nickname ?: message.author.name) + " says: ",
+                    attachments = message.attachments,
+                )
             }, {
                 if (ircGraceEnd.hasPassedNow()) {
                     logger.error(

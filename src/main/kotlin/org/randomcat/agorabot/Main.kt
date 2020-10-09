@@ -36,7 +36,11 @@ private data class BaseCommandIrcOutputSink(
 
     override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
         channelForEvent(event)?.run {
-            sendDiscordMessage(message)
+            sendDiscordMessage(
+                message = message,
+                prefix = "",
+                attachments = emptyList(),
+            )
         }
     }
 
