@@ -222,7 +222,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         SubcommandsExecutingArgumentDescriptionReceiver(
             arguments = arguments,
             onMatch = {},
-            endNoMatch = { onError("no matching subcommand") },
+            endNoMatch = { onError("No matching subcommand") },
             receiver = receiver,
         ).executeWholeBlock(block)
     }
