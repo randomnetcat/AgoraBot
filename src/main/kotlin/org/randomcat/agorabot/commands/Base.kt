@@ -6,14 +6,16 @@ import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
 import org.randomcat.agorabot.util.disallowMentions
 
-interface BaseCommandStrategy {
+interface BaseCommandArgumentStrategy {
     fun argumentParseError(
         event: MessageReceivedEvent,
         invocation: CommandInvocation,
         errorMessage: String,
         usage: String,
     )
+}
 
+interface BaseCommandOutputSink {
     fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String)
     fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message)
 
@@ -24,6 +26,8 @@ interface BaseCommandStrategy {
         fileContent: String,
     )
 }
+
+interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSink
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     protected class ExecutionReceiverImpl(
