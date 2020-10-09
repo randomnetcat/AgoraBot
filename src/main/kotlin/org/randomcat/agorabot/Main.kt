@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.*
 import org.randomcat.agorabot.digest.*
+import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -36,11 +37,7 @@ private data class BaseCommandIrcOutputSink(
 
     override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
         channelForEvent(event)?.run {
-            sendDiscordMessage(
-                message = message,
-                prefix = "",
-                attachments = emptyList(),
-            )
+            message.contentRaw.lineSequence().forEach { sendMultiLineMessage(it) }
         }
     }
 
@@ -62,27 +59,26 @@ private data class BaseCommandIrcOutputSink(
 }
 
 private fun makeCommandRegistry(
+    commandStrategy: BaseCommandStrategy,
     prefixMap: MutableGuildPrefixMap,
     digestMap: GuildDigestMap,
     digestFormat: DigestFormat,
     digestSendStrategy: DigestSendStrategy?,
 ): CommandRegistry {
-    val strategy = DEFAULT_BASE_COMMAND_STRATEGY
-
     return MutableMapCommandRegistry(
         mapOf(
-            "rng" to RngCommand(strategy),
+            "rng" to RngCommand(commandStrategy),
             "digest" to DigestCommand(
-                strategy = strategy,
+                strategy = commandStrategy,
                 digestMap = digestMap,
                 sendStrategy = digestSendStrategy,
                 digestFormat = digestFormat,
             ),
-            "copyright" to CopyrightCommand(strategy),
-            "prefix" to PrefixCommand(strategy, prefixMap),
-            "cfj" to CrystalBallCommand(strategy),
+            "copyright" to CopyrightCommand(commandStrategy),
+            "prefix" to PrefixCommand(commandStrategy, prefixMap),
+            "cfj" to CrystalBallCommand(commandStrategy),
         ),
-    ).also { it.addCommand("help", HelpCommand(strategy, it)) }
+    ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
 
 fun main(args: Array<String>) {
@@ -111,13 +107,6 @@ fun main(args: Array<String>) {
                 ),
             )
             .setEventManager(AnnotatedEventManager())
-            .addEventListeners(
-                BotListener(
-                    MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
-                    makeCommandRegistry(prefixMap, digestMap, digestFormat, digestSendStrategy),
-                ),
-                digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
-            )
             .build()
 
     jda.awaitReady()
@@ -125,11 +114,48 @@ fun main(args: Array<String>) {
     val ircDir = Path.of(".", "irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
 
-    if (ircConfig == null) {
+    val ircClient = if (ircConfig == null) {
         logger.warn("Unable to setup IRC! Check for errors above.")
+        null
     } else {
         logger.info("Connecting IRC...")
-        setupIrc(ircConfig, ircDir, jda)
+        val value = setupIrc(ircConfig, ircDir, jda)
         logger.info("Done connecting IRC.")
+        value
     }
+
+    val commandStrategy =
+        object :
+            BaseCommandStrategy,
+            BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
+            BaseCommandOutputSink by BaseCommandMultiOutputSink(
+                listOfNotNull(
+                    BaseCommandDiscordOutputSink,
+                    (ircConfig to ircClient)
+                        .coalesceNulls()
+                        ?.let { (config, client) ->
+                            BaseCommandIrcOutputSink(
+                                config
+                                    .connections
+                                    .associate {
+                                        it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
+                                    }
+                            )
+                        }
+                )
+            ) {}
+
+    jda.addEventListener(
+        BotListener(
+            MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
+            makeCommandRegistry(
+                commandStrategy = commandStrategy,
+                prefixMap = prefixMap,
+                digestMap = digestMap,
+                digestFormat = digestFormat,
+                digestSendStrategy = digestSendStrategy,
+            ),
+        ),
+        digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
+    )
 }
