@@ -76,16 +76,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     }
 }
 
-val DEFAULT_BASE_COMMAND_STRATEGY = object : BaseCommandStrategy {
-    override fun sendArgumentErrorResponse(
-        event: MessageReceivedEvent,
-        invocation: CommandInvocation,
-        errorMessage: String,
-        usage: String,
-    ) {
-        sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
-    }
-
+object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
         event.channel.sendMessage(message).disallowMentions().queue()
     }
@@ -104,6 +95,18 @@ val DEFAULT_BASE_COMMAND_STRATEGY = object : BaseCommandStrategy {
         event.channel.sendFile(bytes, fileName).disallowMentions().queue()
     }
 }
+
+val DEFAULT_BASE_COMMAND_STRATEGY: BaseCommandStrategy =
+    object : BaseCommandStrategy, BaseCommandOutputSink by BaseCommandDiscordOutputSink {
+        override fun sendArgumentErrorResponse(
+            event: MessageReceivedEvent,
+            invocation: CommandInvocation,
+            errorMessage: String,
+            usage: String,
+        ) {
+            sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
+        }
+    }
 
 data class BaseCommandMultiOutputSink(
     private val outputs: ImmutableList<BaseCommandOutputSink>,
