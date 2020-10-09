@@ -20,12 +20,12 @@ private val logger = LoggerFactory.getLogger("AgoraBot")
  * @param channelMap a map of Discord channel ids to irc channels.
  */
 private data class BaseCommandIrcOutputSink(
-    private val channelMap: ImmutableMap<String, IrcChannel>,
+    private val channelMap: ImmutableMap<String, () -> IrcChannel?>,
 ) : BaseCommandOutputSink {
-    constructor(channelMap: Map<String, IrcChannel>) : this(channelMap.toImmutableMap())
+    constructor(channelMap: Map<String, () -> IrcChannel?>) : this(channelMap.toImmutableMap())
 
     private fun channelForEvent(event: MessageReceivedEvent): IrcChannel? {
-        return channelMap[event.channel.id]
+        return channelMap[event.channel.id]?.invoke()
     }
 
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
