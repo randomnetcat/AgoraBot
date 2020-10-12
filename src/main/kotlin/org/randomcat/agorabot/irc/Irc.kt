@@ -170,13 +170,18 @@ fun setupIrc(
 
     val ircConnections = ircConfig.connections
 
-    for (ircConnection in ircConnections) {
-        logger.info(
-            "Connecting IRC channel ${ircConnection.ircChannelName} " +
-                    "to Discord channel ${ircConnection.discordChannelId}."
-        )
+    try {
+        for (ircConnection in ircConnections) {
+            logger.info(
+                "Connecting IRC channel ${ircConnection.ircChannelName} " +
+                        "to Discord channel ${ircConnection.discordChannelId}."
+            )
 
-        connectIrcAndDiscordChannels(ircClient, jda, ircConnection)
+            connectIrcAndDiscordChannels(ircClient, jda, ircConnection)
+        }
+    } catch (e: Exception) {
+        ircClient.shutdown("Exception during connection setup")
+        throw e
     }
 
     return ircClient
