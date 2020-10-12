@@ -40,7 +40,7 @@ private fun IrcClientBuilder.user(config: IrcUserConfig): IrcClientBuilder =
 private fun IrcClientBuilder.ircDir(ircDir: Path): IrcClientBuilder =
     this.management().stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))).then()
 
-fun setupIrcClient(serverConfig: IrcServerConfig, userConfig: IrcUserConfig, ircDir: Path): IrcClient {
+private fun setupIrcClient(serverConfig: IrcServerConfig, userConfig: IrcUserConfig, ircDir: Path): IrcClient {
     return Client
         .builder()
         .server(serverConfig)
