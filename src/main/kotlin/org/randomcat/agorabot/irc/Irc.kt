@@ -25,17 +25,27 @@ private val logger = LoggerFactory.getLogger("AgoraBotIRC")
  */
 typealias IrcClient = Client
 
-fun setupIrcClient(config: IrcGlobalConfig, ircDir: Path): IrcClient {
-    return Client
-        .builder()
-        .nick(config.nickname)
+private typealias IrcClientBuilder = Client.Builder
+
+private fun IrcClientBuilder.server(config: IrcServerConfig): IrcClientBuilder =
+    this
         .server()
         .host(config.server)
         .port(config.port, if (config.serverIsSecure) SecurityType.SECURE else SecurityType.INSECURE)
         .then()
-        .management()
-        .stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage")))
-        .then()
+
+private fun IrcClientBuilder.user(config: IrcUserConfig): IrcClientBuilder =
+    this.nick(config.nickname)
+
+private fun IrcClientBuilder.ircDir(ircDir: Path): IrcClientBuilder =
+    this.management().stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))).then()
+
+fun setupIrcClient(serverConfig: IrcServerConfig, userConfig: IrcUserConfig, ircDir: Path): IrcClient {
+    return Client
+        .builder()
+        .server(serverConfig)
+        .user(userConfig)
+        .ircDir(ircDir)
         .buildAndConnect()
 }
 
@@ -153,7 +163,8 @@ fun setupIrc(
     jda: JDA,
 ): IrcClient {
     val ircClient = setupIrcClient(
-        config = ircConfig.global,
+        serverConfig = ircConfig.server,
+        userConfig = ircConfig.user,
         ircDir = ircDir,
     )
 

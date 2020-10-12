@@ -7,7 +7,8 @@ import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.SsmtpDigestSendStrategy
 import org.randomcat.agorabot.irc.IrcConfig
 import org.randomcat.agorabot.irc.IrcConnectionConfig
-import org.randomcat.agorabot.irc.IrcGlobalConfig
+import org.randomcat.agorabot.irc.IrcServerConfig
+import org.randomcat.agorabot.irc.IrcUserConfig
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -146,11 +147,13 @@ private fun readIrcConfigJson(jsonObject: JsonObject): IrcConfig? {
     val serverIsSecure = jsonObject.readIrcJsonBoolean("server_is_secure") ?: return null
 
     return IrcConfig(
-        IrcGlobalConfig(
-            nickname = nickname,
+        IrcServerConfig(
             server = server,
             port = port,
             serverIsSecure = serverIsSecure,
+        ),
+        IrcUserConfig(
+            nickname = nickname,
         ),
         jsonObject.readIrcConnections()?.toImmutableList() ?: return null,
     )
