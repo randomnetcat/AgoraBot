@@ -24,11 +24,9 @@ private fun digestMessageWithForcedMember(message: Message, realMember: Member):
     )
 
 fun Message.retrieveDigestMessage(): RestAction<DigestMessage> {
-    val message = this // just for clarity
-
     // Use retrieveMessage to force update of nickname
-    return message.guild.retrieveMember(message.author).map { retrievedMember ->
-        digestMessageWithForcedMember(message = message, realMember = retrievedMember)
+    return guild.retrieveMember(author).map { retrievedMember ->
+        digestMessageWithForcedMember(message = this, realMember = retrievedMember)
     }
 }
 
