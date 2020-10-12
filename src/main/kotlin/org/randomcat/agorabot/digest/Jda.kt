@@ -40,12 +40,12 @@ fun List<Message>.retrieveDigestMessages(): RestAction<List<DigestMessage>> {
     val nicknamesMapAction = RestAction.allOf(
         messages
             .filter { it.isFromGuild }
-            .distinctBy { it.author.id }
             .map { it.author to it.guild }
-            .map { (author, guild) -> guild.retrieveMember(author).map { author.id to it.nickname } }
+            .distinctBy { it.first.id to it.second.id }
+            .map { (author, guild) -> guild.retrieveMember(author).map { (author.id to guild.id) to it.nickname } }
     ).map { it.toMap() }
 
     return nicknamesMapAction.map { nicknamesMap ->
-        messages.map { digestMessageWithNickname(message = it, nickname = nicknamesMap[it.author.id]) }
+        messages.map { digestMessageWithNickname(message = it, nickname = nicknamesMap[it.author.id to it.guild.id]) }
     }
 }
