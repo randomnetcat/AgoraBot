@@ -33,6 +33,7 @@ interface BaseCommandOutputSink {
 interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSink
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
+    @CommandDslMarker
     protected class ExecutionReceiverImpl(
         private val strategy: BaseCommandStrategy,
         private val event: MessageReceivedEvent,
