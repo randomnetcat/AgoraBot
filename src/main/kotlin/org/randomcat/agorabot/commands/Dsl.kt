@@ -41,24 +41,25 @@ interface TopLevelArgumentDescriptionReceiver<ExecutionReceiver> : ArgumentDescr
     fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit)
 }
 
-private typealias CDR<Exec> = ArgumentDescriptionReceiver<Exec>
+// In order to avoid repeating the full name a lot
+private typealias ADR<Exec> = ArgumentDescriptionReceiver<Exec>
 
 private typealias CmdExecBlock<ExecutionReceiver, Args> = ExecutionReceiver.(Args) -> Unit
 
-inline fun <Rec> CDR<Rec>.noArgs(
-    crossinline block: CmdExecBlock<Rec, CommandArgs0>
+inline fun <Rec> ADR<Rec>.noArgs(
+    crossinline block: CmdExecBlock<Rec, CommandArgs0>,
 ) = argsRaw<Nothing, Nothing>() {
     block(CommandArgs0)
 }
 
-inline fun <A, AE, Rec> CDR<Rec>.args(
+inline fun <A, AE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     crossinline block: CmdExecBlock<Rec, CommandArgs1<A>>,
 ) = argsRaw(a) { args ->
     block(CommandArgs1(args[0] as A))
 }
 
-inline fun <A, AE, B, BE, Rec> CDR<Rec>.args(
+inline fun <A, AE, B, BE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     crossinline block: CmdExecBlock<Rec, CommandArgs2<A, B>>,
@@ -66,7 +67,7 @@ inline fun <A, AE, B, BE, Rec> CDR<Rec>.args(
     block(CommandArgs2(args[0] as A, args[1] as B))
 }
 
-inline fun <A, AE, B, BE, C, CE, Rec> CDR<Rec>.args(
+inline fun <A, AE, B, BE, C, CE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
@@ -75,7 +76,7 @@ inline fun <A, AE, B, BE, C, CE, Rec> CDR<Rec>.args(
     block(CommandArgs3(args[0] as A, args[1] as B, args[2] as C))
 }
 
-inline fun <A, AE, B, BE, C, CE, D, DE, Rec> CDR<Rec>.args(
+inline fun <A, AE, B, BE, C, CE, D, DE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
