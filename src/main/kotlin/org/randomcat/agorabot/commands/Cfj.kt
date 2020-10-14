@@ -32,7 +32,8 @@ class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 respond("Judged ${RESPONSES.random()}.")
             }
 
-            args(StringArg("statement")) { (statement) ->
+            args(RemainingStringArgs("statement")) { (statementParts) ->
+                val statement = statementParts.joinToString(" ")
                 respond("\"$statement\" judged ${RESPONSES.random()}.")
             }
         }
