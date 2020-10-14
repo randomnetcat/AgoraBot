@@ -6,6 +6,16 @@ private val RESPONSES = listOf(
     "DISMISS",
     "IRRELEVANT",
     "SHENANIGANS",
+    "I GUESS",
+    "PROBABLY",
+    "WHO KNOWS",
+    "OH GOD, DEFINITELY NOT",
+    "DON'T ASK ME",
+    "THE ONLY REAL ARGUMENT IN FAVOR OF THIS IS WISHFUL THINKING",
+    "A TYPICAL EXAMPLE OF \"I SAY I DO, THEREFORE I DO\" WHICH HAS PLAGUED AGORA FOR A LONG TIME",
+    "IF YOU SAY SO",
+    "EDIBLE",
+    "INEDIBLE",
 )
 
 class CrystalBallCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
