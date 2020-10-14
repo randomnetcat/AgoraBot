@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.hooks.SubscribeEvent
 class BotListener(private val parser: CommandParser, private val registry: CommandRegistry) {
     @SubscribeEvent
     fun onMessage(event: MessageReceivedEvent) {
+        if (event.author.id == event.jda.selfUser.id) return
+
         return when (val parseResult = parser.parse(event)) {
             is CommandParseResult.Invocation -> registry.invokeCommand(event, parseResult.invocation)
             is CommandParseResult.Message -> respond(event, parseResult.message)
