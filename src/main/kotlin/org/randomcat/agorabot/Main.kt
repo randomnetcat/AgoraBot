@@ -83,7 +83,7 @@ private fun makeCommandRegistry(
             ),
             "copyright" to CopyrightCommand(commandStrategy),
             "prefix" to PrefixCommand(commandStrategy, prefixMap),
-            "cfj" to CrystalBallCommand(commandStrategy),
+            "cfj" to CfjCommand(commandStrategy),
         ),
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }

@@ -25,7 +25,7 @@ private val LIKELY_RESPONSES = listOf(
 
 private val RESPONSES = LIKELY_RESPONSES.repeat(10) + UNLIKELY_RESPONSES
 
-class CrystalBallCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
+class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
         matchFirst {
             noArgs { _ ->
