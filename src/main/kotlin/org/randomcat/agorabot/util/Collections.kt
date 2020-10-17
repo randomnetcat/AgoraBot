@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.util
 
-fun <T, U : T> Iterable<U>.repeat(times: Int): List<T> {
+fun <T, U : T> Iterable<U>.repeated(times: Int): List<T> {
     val source = this // For clarity
     val effectiveSize = if (this is Collection) this.size else 10
 

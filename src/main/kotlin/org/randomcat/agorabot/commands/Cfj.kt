@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.util.repeat
+import org.randomcat.agorabot.util.repeated
 
 private val UNLIKELY_RESPONSES = listOf(
     "SHENANIGANS",
@@ -23,7 +23,7 @@ private val LIKELY_RESPONSES = listOf(
     "IRRELEVANT",
 )
 
-private val RESPONSES = LIKELY_RESPONSES.repeat(10) + UNLIKELY_RESPONSES
+private val RESPONSES = LIKELY_RESPONSES.repeated(10) + UNLIKELY_RESPONSES
 
 class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
