@@ -2,11 +2,11 @@ package org.randomcat.agorabot.util
 
 fun <T, U : T> Iterable<U>.repeated(times: Int): List<T> {
     val source = this // For clarity
-    val effectiveSize = if (this is Collection) this.size else 10
+    val result = if (this is Collection) ArrayList<T>(/* capacity = */ this.size * times) else ArrayList<T>()
 
-    return ArrayList<T>(/* capacity = */ effectiveSize * times).also { res ->
-        repeat(times) {
-            res.addAll(source)
-        }
+    repeat(times) {
+        result.addAll(source)
     }
+
+    return result
 }
