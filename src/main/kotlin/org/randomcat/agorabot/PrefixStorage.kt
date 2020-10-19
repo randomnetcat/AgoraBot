@@ -1,7 +1,7 @@
 package org.randomcat.agorabot
 
-import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -45,19 +45,15 @@ class JsonPrefixMap(
         }
     }
 
-    private val map: AtomicReference<ImmutableMap<String, String>> =
-        AtomicReference(readFromFile(storagePath).toImmutableMap())
+    private val map: AtomicReference<PersistentMap<String, String>> =
+        AtomicReference(readFromFile(storagePath).toPersistentMap())
 
     init {
         persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
     }
 
     override fun setPrefixForGuild(guildId: String, prefix: String) {
-        map.updateAndGet { oldMap ->
-            val mutableMap = oldMap.toMutableMap()
-            mutableMap[guildId] = prefix
-            mutableMap.toImmutableMap()
-        }
+        map.updateAndGet { oldMap -> oldMap.put(guildId, prefix) }
     }
 
     override fun prefixForGuild(guildId: String): String {
