@@ -19,6 +19,7 @@ import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 import kotlin.time.minutes
@@ -100,10 +101,18 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
 
     ircClient.addChannel(connection.ircChannelName)
     ircClient.eventManager.registerEventListener(IrcListener(object : IrcMessageHandler {
-        private var isDisarmed = false
+        private val _isDisarmed = AtomicBoolean(false)
+
+        private fun isDisarmed(): Boolean = _isDisarmed.get()
+
+        /**
+         * Disarms this connection. Returns true if this changed the diarmed state from false to true, and false
+         * otherwise.
+         */
+        private fun disarm(): Boolean = _isDisarmed.compareAndExchange(false, true)
 
         private fun <E> E.mayBeRelevant(): Boolean where E : ActorEvent<IrcUser>, E : ChannelEvent {
-            if (isDisarmed) return false
+            if (isDisarmed()) return false
             if (channel.name != ircChannelName) return false
             if (actor.nick == client.nick) return false
 
@@ -113,12 +122,12 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         private fun tryDiscordChannel() = jda.getTextChannelById(discordChannelId)
 
         private fun requireDiscordChannel() = tryDiscordChannel() ?: null.also {
-            logger.error(
-                "Discord channel $discordChannelId could not be found in order to send a message! " +
-                        "Disarming this connection."
-            )
-
-            isDisarmed = true
+            if (disarm()) {
+                logger.error(
+                    "Discord channel $discordChannelId could not be found in order to send a message! " +
+                            "Disarming this connection."
+                )
+            }
         }
 
         private fun relayToDiscord(text: String) {
