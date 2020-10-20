@@ -133,9 +133,12 @@ private fun JsonObject.readIrcConnections(): List<IrcConnectionConfig>? {
             return@mapNotNull null
         }
 
+        val relayJoinLeave = (it["relay_join_leave"] as? JsonPrimitive)?.booleanOrNull ?: false
+
         IrcConnectionConfig(
             ircChannelName = ircChannel,
             discordChannelId = discordChannel,
+            relayJoinLeaveMessages = relayJoinLeave,
         )
     }
 }

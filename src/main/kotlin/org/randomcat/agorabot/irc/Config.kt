@@ -27,6 +27,7 @@ data class IrcUserConfig(
 data class IrcConnectionConfig(
     val ircChannelName: String,
     val discordChannelId: String,
+    val relayJoinLeaveMessages: Boolean,
 )
 
 data class IrcConfig(
