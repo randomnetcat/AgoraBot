@@ -3,6 +3,7 @@
 package org.randomcat.agorabot.irc
 
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
@@ -132,10 +133,13 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         }
 
         private fun relayToDiscord(text: String) {
-            (requireDiscordChannel() ?: return)
-                .sendMessage(text)
-                .disallowMentions()
-                .queue()
+            val channel = requireDiscordChannel() ?: return
+
+            (MessageBuilder(text).buildAll(MessageBuilder.SplitPolicy.NEWLINE)).forEach {
+                channel.sendMessage(it)
+                    .disallowMentions()
+                    .queue()
+            }
         }
 
         override fun onMessage(event: ChannelMessageEvent) {
