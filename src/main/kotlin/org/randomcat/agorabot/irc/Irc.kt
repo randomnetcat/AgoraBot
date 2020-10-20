@@ -61,6 +61,8 @@ typealias IrcChannel = Channel
 typealias DiscordMessage = Message
 private typealias IrcUser = User
 
+fun ActorEvent<User>.isSelfEvent() = actor.nick == client.nick
+
 /**
  * Sends [message], which may contain multiple lines, splitting at both the length limit and every line in message.
  *
@@ -114,7 +116,6 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         private fun <E> E.mayBeRelevant(): Boolean where E : ActorEvent<IrcUser>, E : ChannelEvent {
             if (isDisarmed()) return false
             if (channel.name != ircChannelName) return false
-            if (actor.nick == client.nick) return false
 
             return true
         }
