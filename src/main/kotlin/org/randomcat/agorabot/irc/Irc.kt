@@ -9,7 +9,12 @@ import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType
 import org.kitteh.irc.client.library.element.Channel
+import org.kitteh.irc.client.library.element.User
+import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
+import org.kitteh.irc.client.library.event.channel.ChannelPartEvent
+import org.kitteh.irc.client.library.event.helper.ActorEvent
+import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
@@ -53,6 +58,7 @@ private const val MAX_IRC_LENGTH = 500
 
 typealias IrcChannel = Channel
 typealias DiscordMessage = Message
+private typealias IrcUser = User
 
 /**
  * Sends [message], which may contain multiple lines, splitting at both the length limit and every line in message.
@@ -96,26 +102,47 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
     ircClient.eventManager.registerEventListener(IrcListener(object : IrcMessageHandler {
         private var isDisarmed = false
 
-        override fun onMessage(event: ChannelMessageEvent) {
-            if (isDisarmed) return
-            if (event.channel.name != ircChannelName) return
-            if (event.actor.nick == event.client.nick) return
+        private fun <E> E.mayBeRelevant(): Boolean where E : ActorEvent<IrcUser>, E : ChannelEvent {
+            if (isDisarmed) return false
+            if (channel.name != ircChannelName) return false
+            if (actor.nick == client.nick) return false
 
-            val discordChannel = jda.getTextChannelById(discordChannelId)
+            return true
+        }
 
-            if (discordChannel == null) {
-                logger.error(
-                    "Discord channel $discordChannelId could not be found in order to send a message! " +
-                            "Disarming this connection."
-                )
+        private fun tryDiscordChannel() = jda.getTextChannelById(discordChannelId)
 
-                return
-            }
+        private fun requireDiscordChannel() = tryDiscordChannel() ?: null.also {
+            logger.error(
+                "Discord channel $discordChannelId could not be found in order to send a message! " +
+                        "Disarming this connection."
+            )
 
-            discordChannel
-                .sendMessage(event.actor.nick + " says: " + event.message)
+            isDisarmed = true
+        }
+
+        private fun relayToDiscord(text: String) {
+            (requireDiscordChannel() ?: return)
+                .sendMessage(text)
                 .disallowMentions()
                 .queue()
+        }
+
+        override fun onMessage(event: ChannelMessageEvent) {
+            if (!event.mayBeRelevant()) return
+            relayToDiscord(event.actor.nick + " says: " + event.message)
+        }
+
+        override fun onJoin(event: ChannelJoinEvent) {
+            if (!event.mayBeRelevant()) return
+            if (!connection.relayJoinLeaveMessages) return
+            relayToDiscord("${event.actor.nick} joined IRC.")
+        }
+
+        override fun onLeave(event: ChannelPartEvent) {
+            if (!event.mayBeRelevant()) return
+            if (!connection.relayJoinLeaveMessages) return
+            relayToDiscord("${event.actor.nick} left IRC.")
         }
     }))
 
