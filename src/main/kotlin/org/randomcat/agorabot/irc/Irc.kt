@@ -116,12 +116,8 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
          */
         private fun disarm(): Boolean = _isDisarmed.compareAndExchange(false, true)
 
-        private fun <E> E.mayBeRelevant(): Boolean where E : ActorEvent<IrcUser>, E : ChannelEvent {
-            if (isDisarmed()) return false
-            if (channel.name != ircChannelName) return false
-
-            return true
-        }
+        private fun <E> E.isInRelevantChannel() where E : ActorEvent<IrcUser>, E : ChannelEvent =
+            channel.name == ircChannelName
 
         private fun tryDiscordChannel() = jda.getTextChannelById(discordChannelId)
 
@@ -145,7 +141,8 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         }
 
         override fun onMessage(event: ChannelMessageEvent) {
-            if (!event.mayBeRelevant()) return
+            if (isDisarmed()) return
+            if (!event.isInRelevantChannel()) return
             relayToDiscord(event.actor.nick + " says: " + event.message)
         }
 
@@ -154,24 +151,28 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         }
 
         override fun onJoin(event: ChannelJoinEvent) {
-            if (!event.mayBeRelevant()) return
+            if (isDisarmed()) return
+            if (!event.isInRelevantChannel()) return
             if (!connection.relayJoinLeaveMessages) return
             relayToDiscord("${event.actor.nick} joined IRC.")
         }
 
         override fun onLeave(event: ChannelPartEvent) {
-            if (!event.mayBeRelevant()) return
+            if (isDisarmed()) return
+            if (!event.isInRelevantChannel()) return
             if (!connection.relayJoinLeaveMessages) return
             handleAnyLeaveEvent(event)
         }
 
         override fun onUnexpectedLeave(event: UnexpectedChannelLeaveViaPartEvent) {
-            if (!event.mayBeRelevant()) return
+            if (isDisarmed()) return
+            if (!event.isInRelevantChannel()) return
             if (!connection.relayJoinLeaveMessages) return
             handleAnyLeaveEvent(event)
         }
 
         override fun onQuit(event: UserQuitEvent) {
+            if (isDisarmed()) return
             if (event.isSelfEvent()) return
             if (!event.user.channels.contains(ircChannelName)) return
             if (!connection.relayJoinLeaveMessages) return
