@@ -14,6 +14,7 @@ import org.kitteh.irc.client.library.element.User
 import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.client.library.event.channel.ChannelPartEvent
+import org.kitteh.irc.client.library.event.channel.UnexpectedChannelLeaveViaPartEvent
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
@@ -154,6 +155,12 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         }
 
         override fun onLeave(event: ChannelPartEvent) {
+            if (!event.mayBeRelevant()) return
+            if (!connection.relayJoinLeaveMessages) return
+            relayToDiscord("${event.actor.nick} left IRC.")
+        }
+
+        override fun onUnexpectedLeave(event: UnexpectedChannelLeaveViaPartEvent) {
             if (!event.mayBeRelevant()) return
             if (!connection.relayJoinLeaveMessages) return
             relayToDiscord("${event.actor.nick} left IRC.")
