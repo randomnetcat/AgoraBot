@@ -93,6 +93,20 @@ private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
     sendSplitMultiLineMessage(fullMessage)
 }
 
+private class DisarmState {
+    private val _isDisarmed = AtomicBoolean(false)
+
+    fun isDisarmed(): Boolean = _isDisarmed.get()
+
+    /**
+     * Disarms this connection. Returns true if this changed the diarmed state from false to true, and false
+     * otherwise.
+     */
+    // compareAndExchange returns the old value; if that old value is false, then we changed the value, otherwise
+    // it is true and nothing changed.
+    fun disarm(): Boolean = !_isDisarmed.compareAndExchange(false, true)
+}
+
 private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
     val discordChannelId = connection.discordChannelId
     val ircChannelName = connection.ircChannelName
@@ -106,17 +120,8 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
 
     ircClient.addChannel(connection.ircChannelName)
     ircClient.eventManager.registerEventListener(IrcListener(object : IrcMessageHandler {
-        private val _isDisarmed = AtomicBoolean(false)
-
-        private fun isDisarmed(): Boolean = _isDisarmed.get()
-
-        /**
-         * Disarms this connection. Returns true if this changed the diarmed state from false to true, and false
-         * otherwise.
-         */
-        // compareAndExchange returns the old value; if that old value is false, then we changed the value, otherwise
-        // it is true and nothing changed.
-        private fun disarm(): Boolean = !_isDisarmed.compareAndExchange(false, true)
+        private val disarmState = DisarmState()
+        private fun isDisarmed() = disarmState.isDisarmed()
 
         private fun <E> E.isInRelevantChannel() where E : ActorEvent<IrcUser>, E : ChannelEvent =
             channel.name == ircChannelName
@@ -124,7 +129,7 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         private fun tryDiscordChannel() = jda.getTextChannelById(discordChannelId)
 
         private fun requireDiscordChannel() = tryDiscordChannel() ?: null.also {
-            if (disarm()) {
+            if (disarmState.disarm()) {
                 logger.error(
                     "Discord channel $discordChannelId could not be found in order to send a message! " +
                             "Disarming this connection."
@@ -188,11 +193,12 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
     val ircGraceEnd = startTime + 1.minutes
 
     jda.addEventListener(object {
-        private var isDisarmed = false
+        private val disarmState = DisarmState()
+        private fun isDisarmed() = disarmState.isDisarmed()
 
         @SubscribeEvent
         fun onMessage(event: GuildMessageReceivedEvent) {
-            if (isDisarmed) return
+            if (isDisarmed()) return
             if (event.channel.id != discordChannelId) return
             if (event.author.id == event.jda.selfUser.id) return
 
@@ -208,6 +214,8 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
                         "IRC channel $ircChannelName could not be found in order to send a message! " +
                                 "Disarming this connection."
                     )
+
+                    disarmState.disarm()
                 } else {
                     logger.warn(
                         "IRC channel $ircChannelName could not be found in order to send a message! " +
