@@ -173,7 +173,6 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
 
         override fun onQuit(event: UserQuitEvent) {
             if (isDisarmed()) return
-            if (event.isSelfEvent()) return
             if (!event.user.channels.contains(ircChannelName)) return
             if (!connection.relayJoinLeaveMessages) return
             handleAnyLeaveEvent(event)
