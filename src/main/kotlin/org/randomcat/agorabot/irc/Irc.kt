@@ -114,7 +114,9 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
          * Disarms this connection. Returns true if this changed the diarmed state from false to true, and false
          * otherwise.
          */
-        private fun disarm(): Boolean = _isDisarmed.compareAndExchange(false, true)
+        // compareAndExchange returns the old value; if that old value is false, then we changed the value, otherwise
+        // it is true and nothing changed.
+        private fun disarm(): Boolean = !_isDisarmed.compareAndExchange(false, true)
 
         private fun <E> E.isInRelevantChannel() where E : ActorEvent<IrcUser>, E : ChannelEvent =
             channel.name == ircChannelName
