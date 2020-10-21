@@ -5,12 +5,14 @@ import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.client.library.event.channel.ChannelPartEvent
 import org.kitteh.irc.client.library.event.channel.UnexpectedChannelLeaveViaPartEvent
+import org.kitteh.irc.client.library.event.user.UserQuitEvent
 
 interface IrcMessageHandler {
     fun onMessage(event: ChannelMessageEvent)
     fun onJoin(event: ChannelJoinEvent)
     fun onLeave(event: ChannelPartEvent)
     fun onUnexpectedLeave(event: UnexpectedChannelLeaveViaPartEvent)
+    fun onQuit(event: UserQuitEvent)
 }
 
 class IrcListener(private val messageHandler: IrcMessageHandler) {
@@ -36,5 +38,11 @@ class IrcListener(private val messageHandler: IrcMessageHandler) {
     fun onUnexpectedLeaveReceived(event: UnexpectedChannelLeaveViaPartEvent) {
         if (event.isSelfEvent()) return
         messageHandler.onUnexpectedLeave(event)
+    }
+
+    @Handler
+    fun onQuitReceived(event: UserQuitEvent) {
+        if (event.isSelfEvent()) return
+        messageHandler.onQuit(event)
     }
 }

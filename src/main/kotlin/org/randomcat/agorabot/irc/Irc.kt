@@ -17,6 +17,7 @@ import org.kitteh.irc.client.library.event.channel.ChannelPartEvent
 import org.kitteh.irc.client.library.event.channel.UnexpectedChannelLeaveViaPartEvent
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
+import org.kitteh.irc.client.library.event.user.UserQuitEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
@@ -148,6 +149,10 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             relayToDiscord(event.actor.nick + " says: " + event.message)
         }
 
+        private fun handleAnyLeaveEvent(event: ActorEvent<IrcUser>) {
+            relayToDiscord("${event.actor.nick} left IRC.")
+        }
+
         override fun onJoin(event: ChannelJoinEvent) {
             if (!event.mayBeRelevant()) return
             if (!connection.relayJoinLeaveMessages) return
@@ -157,13 +162,20 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         override fun onLeave(event: ChannelPartEvent) {
             if (!event.mayBeRelevant()) return
             if (!connection.relayJoinLeaveMessages) return
-            relayToDiscord("${event.actor.nick} left IRC.")
+            handleAnyLeaveEvent(event)
         }
 
         override fun onUnexpectedLeave(event: UnexpectedChannelLeaveViaPartEvent) {
             if (!event.mayBeRelevant()) return
             if (!connection.relayJoinLeaveMessages) return
-            relayToDiscord("${event.actor.nick} left IRC.")
+            handleAnyLeaveEvent(event)
+        }
+
+        override fun onQuit(event: UserQuitEvent) {
+            if (event.isSelfEvent()) return
+            if (!event.user.channels.contains(ircChannelName)) return
+            if (!connection.relayJoinLeaveMessages) return
+            handleAnyLeaveEvent(event)
         }
     }))
 
