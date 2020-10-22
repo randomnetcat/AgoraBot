@@ -78,6 +78,8 @@ private class JsonDigest(
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
 
+        private fun Iterable<DigestMessageDto>.distinctById() = distinctBy { it.id }
+
         private fun readFromFile(storagePath: Path): List<DigestMessageDto> {
             if (Files.notExists(storagePath)) return emptyList()
 
@@ -135,7 +137,7 @@ private class JsonDigest(
         val newRaw = newMessages.map { DigestMessageDto.fromMessage(it) }
 
         rawMessages.getAndUpdate {
-            it.addAll(newRaw).distinctBy { msg -> msg.id }.toPersistentList()
+            it.addAll(newRaw).distinctById().toPersistentList()
         }
     }
 
@@ -144,7 +146,7 @@ private class JsonDigest(
 
         return rawMessages.updateAndMap { orig ->
             // This requires that orig already be distinct by id. add upholds this invariant when adding
-            val result = orig.addAll(newRaw).distinctBy { msg -> msg.id }.toPersistentList()
+            val result = orig.addAll(newRaw).distinctById().toPersistentList()
             result to (result.size - orig.size)
         }
     }
