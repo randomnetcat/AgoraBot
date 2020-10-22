@@ -18,8 +18,6 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
@@ -103,26 +101,6 @@ private class JsonDigest(
 
     private val rawMessages = AtomicReference(readFromFile(storagePath).toPersistentList())
     private val backupCounter = AtomicLong()
-
-    private val executor = Executors.newSingleThreadScheduledExecutor()
-
-    init {
-        executor.scheduleAtFixedRate(object : Runnable {
-            private var lastList: List<DigestMessageDto>? = null
-
-            override fun run() {
-                val newList: List<DigestMessageDto> = rawMessages.get()
-
-                if (newList != lastList) {
-                    writeToFile(storagePath, newList)
-                }
-            }
-        }, 0, 5, TimeUnit.SECONDS)
-
-        Runtime.getRuntime().addShutdownHook(Thread {
-            writeToFile(storagePath, rawMessages.get())
-        })
-    }
 
     fun schedulePersistenceOn(service: ConfigPersistService) {
         service.schedulePersistence({ rawMessages.get() }, { writeToFile(storagePath, it) })
