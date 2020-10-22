@@ -83,7 +83,7 @@ private class JsonDigest(
 
             val contentString = Files.readString(storagePath, FILE_CHARSET)
 
-            return Json.decodeFromString<List<DigestMessageDto>>(contentString)
+            return Json.decodeFromString<List<DigestMessageDto>>(contentString).distinctById()
         }
 
         private fun writeToFile(storagePath: Path, messages: List<DigestMessageDto>) {
