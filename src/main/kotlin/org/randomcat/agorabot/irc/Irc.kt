@@ -164,14 +164,14 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             relayToDiscord("${event.actor.nick} joined IRC.")
         }
 
-        override fun onLeave(event: ChannelPartEvent) {
+        override fun onPart(event: ChannelPartEvent) {
             if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
             if (!connection.relayJoinLeaveMessages) return
             handleAnyLeaveEvent(event)
         }
 
-        override fun onUnexpectedLeave(event: UnexpectedChannelLeaveViaPartEvent) {
+        override fun onUnexpectedPart(event: UnexpectedChannelLeaveViaPartEvent) {
             if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
             if (!connection.relayJoinLeaveMessages) return

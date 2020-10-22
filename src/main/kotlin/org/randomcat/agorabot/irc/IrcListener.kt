@@ -10,8 +10,8 @@ import org.kitteh.irc.client.library.event.user.UserQuitEvent
 interface IrcMessageHandler {
     fun onMessage(event: ChannelMessageEvent)
     fun onJoin(event: ChannelJoinEvent)
-    fun onLeave(event: ChannelPartEvent)
-    fun onUnexpectedLeave(event: UnexpectedChannelLeaveViaPartEvent)
+    fun onPart(event: ChannelPartEvent)
+    fun onUnexpectedPart(event: UnexpectedChannelLeaveViaPartEvent)
     fun onQuit(event: UserQuitEvent)
 }
 
@@ -31,13 +31,13 @@ class IrcListener(private val messageHandler: IrcMessageHandler) {
     @Handler
     fun onLeaveReceived(event: ChannelPartEvent) {
         if (event.isSelfEvent()) return
-        messageHandler.onLeave(event)
+        messageHandler.onPart(event)
     }
 
     @Handler
     fun onUnexpectedLeaveReceived(event: UnexpectedChannelLeaveViaPartEvent) {
         if (event.isSelfEvent()) return
-        messageHandler.onUnexpectedLeave(event)
+        messageHandler.onUnexpectedPart(event)
     }
 
     @Handler
