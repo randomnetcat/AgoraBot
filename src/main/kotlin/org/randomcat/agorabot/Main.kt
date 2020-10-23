@@ -85,6 +85,7 @@ private fun makeCommandRegistry(
             "prefix" to PrefixCommand(commandStrategy, prefixMap),
             "cfj" to CfjCommand(commandStrategy),
             "duck" to DuckCommand(commandStrategy),
+            "sudo" to SudoCommand(commandStrategy),
         ),
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
