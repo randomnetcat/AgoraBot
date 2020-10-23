@@ -14,9 +14,11 @@ private val RESPONSES = listOf(
     "Tell me more.",
     "Okay.",
     "How so?",
-    "Nice.",
-    "Good.",
     "Really?",
+    "Is that correct?",
+    "Okay...",
+    "I guess.",
+    "Alright.",
 )
 
 class DuckCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
