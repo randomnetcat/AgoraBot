@@ -2,6 +2,7 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.requests.RestAction
+import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.util.CompletedRestAction
 

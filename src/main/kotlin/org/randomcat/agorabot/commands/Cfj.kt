@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.commands
 
+import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.util.repeated
 
 private val UNLIKELY_RESPONSES = listOf(

@@ -1,6 +1,6 @@
 package org.randomcat.agorabot
 
-import org.randomcat.agorabot.commands.UnparsedCommandArgs
+import org.randomcat.agorabot.commands.impl.UnparsedCommandArgs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands
+package org.randomcat.agorabot.commands.impl
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.CommandInvocation
-import org.randomcat.agorabot.commands.BaseCommandDiscordOutputSink.sendResponse
+import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
 import org.randomcat.agorabot.util.disallowMentions
 
 interface BaseCommandArgumentStrategy {

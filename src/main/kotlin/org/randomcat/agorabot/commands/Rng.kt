@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.commands
 
+import org.randomcat.agorabot.commands.impl.*
 import kotlin.random.Random
 import kotlin.random.nextInt
 

@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.*
+import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.config.readDigestSendStrategyConfig

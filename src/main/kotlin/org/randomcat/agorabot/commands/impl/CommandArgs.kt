@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands
+package org.randomcat.agorabot.commands.impl
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList

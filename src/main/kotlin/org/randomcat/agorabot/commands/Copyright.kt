@@ -1,5 +1,10 @@
 package org.randomcat.agorabot.commands
 
+import org.randomcat.agorabot.commands.impl.BaseCommand
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
+import org.randomcat.agorabot.commands.impl.TopLevelArgumentDescriptionReceiver
+import org.randomcat.agorabot.commands.impl.noArgs
+
 private val libraryLicenses = mapOf(
     "SLF4J" to """
          Copyright (c) 2004-2017 QOS.ch

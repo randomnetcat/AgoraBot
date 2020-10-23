@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands
 import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.Command
 import org.randomcat.agorabot.QueryableCommandRegistry
+import org.randomcat.agorabot.commands.impl.*
 
 private fun MessageBuilder.appendUsage(name: String, command: Command) {
     val usageHelp =

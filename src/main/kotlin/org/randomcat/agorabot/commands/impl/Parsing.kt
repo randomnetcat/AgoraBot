@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands
+package org.randomcat.agorabot.commands.impl
 
 sealed class CommandArgumentParseResult<out T, out E> {
     data class Failure<out E>(
