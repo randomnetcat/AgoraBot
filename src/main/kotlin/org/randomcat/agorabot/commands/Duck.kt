@@ -48,7 +48,10 @@ class DuckCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                     if (currentListening.contains(listeningSpec)) {
                         if (event.message.contentStripped.equals(END_DUCK_SESSION_CMD, ignoreCase = true)) {
                             event.channel.sendMessage("Good for you! I'll be quiet now.").queue()
-                            jda.removeEventListener(this)
+
+                            listening.updateAndGet {
+                                it.remove(listeningSpec)
+                            }
                         } else {
                             event.channel.sendMessage(RESPONSES.random()).queue()
                         }
