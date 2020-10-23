@@ -69,11 +69,13 @@ class DuckCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 noArgs {
                     registerJdaListener(currentJda())
 
+                    val listeningSpec = ListeningSpec(
+                        channelId = currentChannel().id,
+                        userId = currentMessageEvent().author.id,
+                    )
+
                     listening.updateAndGet {
-                        it.add(ListeningSpec(
-                            channelId = currentChannel().id,
-                            userId = currentMessageEvent().author.id,
-                        ))
+                        it.add(listeningSpec)
                     }
 
                     respond("Alright, I'm listening. Type \"I fixed it\" to stop.")
