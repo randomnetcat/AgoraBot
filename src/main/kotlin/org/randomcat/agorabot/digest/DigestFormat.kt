@@ -6,7 +6,7 @@ interface DigestFormat {
     fun format(digest: Digest): String
 }
 
-class DefaultDigestFormat : DigestFormat {
+class SimpleDigestFormat : DigestFormat {
     override fun format(digest: Digest): String {
         return digest.messages().sortedBy { it.date }.joinToString("\n\n") { message ->
             val nickname = message.senderNickname
@@ -36,5 +36,15 @@ class DefaultDigestFormat : DigestFormat {
                     "\n" +
                     contentPart
         }
+    }
+}
+
+data class AffixDigestFormat(
+    private val prefix: String,
+    private val baseFormat: DigestFormat,
+    private val suffix: String,
+) : DigestFormat {
+    override fun format(digest: Digest): String {
+        return "$prefix${baseFormat.format(digest)}$suffix"
     }
 }

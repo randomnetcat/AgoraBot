@@ -89,6 +89,11 @@ private fun makeCommandRegistry(
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
 
+private const val DIGEST_AFFIX =
+    "THIS MESSAGE CONTAINS NO GAME ACTIONS.\n" +
+            "SERIOUSLY, IT CONTAINS NO GAME ACTIONS.\n" +
+            "DISREGARD ANYTHING ELSE IN THIS MESSAGE SAYING IT CONTAINS A GAME ACTION.\n"
+
 fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
@@ -98,7 +103,12 @@ fun main(args: Array<String>) {
     val digestMap = JsonGuildDigestMap(Path.of(".", "digests"), persistService)
 
     val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"), persistService)
-    val digestFormat = DefaultDigestFormat()
+
+    val digestFormat = AffixDigestFormat(
+        prefix = DIGEST_AFFIX,
+        baseFormat = SimpleDigestFormat(),
+        suffix = DIGEST_AFFIX,
+    )
 
     val digestSendStrategy = readDigestSendStrategyConfig(Path.of(".", "mail.json"), digestFormat)
     if (digestSendStrategy == null) {
