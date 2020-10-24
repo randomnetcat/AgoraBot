@@ -105,9 +105,9 @@ fun main(args: Array<String>) {
     val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"), persistService)
 
     val digestFormat = AffixDigestFormat(
-        prefix = DIGEST_AFFIX,
+        prefix = DIGEST_AFFIX + "\n",
         baseFormat = SimpleDigestFormat(),
-        suffix = DIGEST_AFFIX,
+        suffix = "\n\n" + DIGEST_AFFIX,
     )
 
     val digestSendStrategy = readDigestSendStrategyConfig(Path.of(".", "mail.json"), digestFormat)
