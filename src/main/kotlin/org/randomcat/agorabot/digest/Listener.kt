@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.digest
 
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
-import org.randomcat.agorabot.BotEmoteListener
+import org.randomcat.agorabot.listener.BotEmoteListener
 
 private const val DISCORD_WHITE_CHECK_MARK = "\u2705"
 

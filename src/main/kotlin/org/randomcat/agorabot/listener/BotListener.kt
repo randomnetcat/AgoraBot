@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.randomcat.agorabot
+package org.randomcat.agorabot.listener
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent

@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.MutableGuildPrefixMap
 import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 
 class PrefixCommand(
     strategy: BaseCommandStrategy,

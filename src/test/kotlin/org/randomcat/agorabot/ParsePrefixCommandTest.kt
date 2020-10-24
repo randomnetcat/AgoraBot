@@ -1,5 +1,8 @@
 package org.randomcat.agorabot
 
+import org.randomcat.agorabot.listener.CommandInvocation
+import org.randomcat.agorabot.listener.CommandParseResult
+import org.randomcat.agorabot.listener.parsePrefixCommand
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

@@ -1,11 +1,11 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.config
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
