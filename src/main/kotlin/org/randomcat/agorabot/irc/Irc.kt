@@ -4,7 +4,6 @@ package org.randomcat.agorabot.irc
 
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.kitteh.irc.client.library.Client
@@ -19,6 +18,7 @@ import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.kitteh.irc.client.library.event.user.UserQuitEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
+import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -61,7 +61,6 @@ private fun setupIrcClient(serverConfig: IrcServerConfig, userConfig: IrcUserCon
 private const val MAX_IRC_LENGTH = 500
 
 typealias IrcChannel = Channel
-typealias DiscordMessage = Message
 private typealias IrcUser = User
 
 fun ActorEvent<User>.isSelfEvent() = actor.nick == client.nick
