@@ -1,5 +1,13 @@
 package org.randomcat.agorabot.commands.impl
 
+/**
+ * Returns [parseResult] if [parseResult] should be considered a successful parse, otherwise returns null.
+ */
+private fun <T, E> filterParseResult(
+    parseResult: CommandArgumentParseResult<T, E>,
+): CommandArgumentParseSuccess<T>? {
+    return if (parseResult.isFullMatch()) parseResult as CommandArgumentParseSuccess else null
+}
 
 private abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>
     : ArgumentDescriptionReceiver<ExecutionReceiver> {
@@ -35,18 +43,6 @@ private abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionR
             endNoMatch = {},
             receiver = receiver,
         ).executeWholeBlock(block)
-    }
-
-    companion object {
-        /**
-         * Returns [parseResult] if [parseResult] should be considered a successful parse, otherwise returns null.
-         */
-        @JvmStatic
-        protected fun <T, E> filterParseResult(
-            parseResult: CommandArgumentParseResult<T, E>,
-        ): CommandArgumentParseSuccess<T>? {
-            return if (parseResult.isFullMatch()) parseResult as CommandArgumentParseSuccess else null
-        }
     }
 }
 
