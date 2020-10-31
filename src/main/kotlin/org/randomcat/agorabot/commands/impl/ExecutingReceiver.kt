@@ -7,11 +7,11 @@ private abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionR
     protected abstract val arguments: UnparsedCommandArgs
     protected abstract val receiver: ExecutionReceiver
 
-    private var _alreadyCalled = false
-    protected val alreadyCalled get() = _alreadyCalled
+    protected var alreadyCalled: Boolean = false
+        private set
 
     protected fun markCalled() {
-        _alreadyCalled = true
+        alreadyCalled = true
         onMatch()
     }
 
