@@ -39,17 +39,17 @@ private class SubcommandsReceiverChecker {
     }
 }
 
-abstract class BaseExecutingArgumentDescriptionReceiver {
-    private var alreadyParsed: Boolean = false
+private class ParseOnceFlag {
+    private var isParsing: Boolean = false
 
-    protected fun beginParsing() {
-        check(!alreadyParsed)
-        alreadyParsed = true
+    fun beginParsing() {
+        check(!isParsing)
+        isParsing = true
     }
 }
 
 private abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>
-    : BaseExecutingArgumentDescriptionReceiver(), ArgumentDescriptionReceiver<ExecutionReceiver> {
+    : ArgumentDescriptionReceiver<ExecutionReceiver> {
     protected abstract val onMatch: () -> Unit
     protected abstract val arguments: UnparsedCommandArgs
     protected abstract val receiver: ExecutionReceiver
@@ -104,6 +104,8 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     override val receiver: ExecutionReceiver
 ) : BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>(),
     ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+    private val flag = ParseOnceFlag()
+
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
@@ -121,7 +123,7 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     }
 
     fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        beginParsing()
+        flag.beginParsing()
         block()
         if (!alreadyCalled) endNoMatch()
     }
@@ -135,6 +137,7 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
 ) : BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>(),
     SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
     private val checker = SubcommandsReceiverChecker()
+    private val onceFlag = ParseOnceFlag()
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
@@ -174,7 +177,7 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
 
     fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
         checker.reset()
-        beginParsing()
+        onceFlag.beginParsing()
         block()
         if (!alreadyCalled) endNoMatch()
     }
@@ -183,13 +186,15 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
 class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
     private val onError: (message: String) -> Unit,
-    private val receiver: ExecutionReceiver
-) : BaseExecutingArgumentDescriptionReceiver(), TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
+    private val receiver: ExecutionReceiver,
+) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
+    private val flag = ParseOnceFlag()
+
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
     ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
-        beginParsing()
+        flag.beginParsing()
 
         val safeParsers = parsers.toList()
 
@@ -218,7 +223,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        beginParsing()
+        flag.beginParsing()
 
         MatchFirstExecutingArgumentDescriptionReceiver(
             arguments = arguments,
@@ -229,7 +234,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     }
 
     override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
-        beginParsing()
+        flag.beginParsing()
 
         SubcommandsExecutingArgumentDescriptionReceiver(
             arguments = arguments,
