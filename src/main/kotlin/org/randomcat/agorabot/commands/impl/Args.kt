@@ -2,6 +2,7 @@ package org.randomcat.agorabot.commands.impl
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import java.math.BigInteger
 
 interface NamedCommandArgument {
     val name: String
@@ -28,19 +29,19 @@ abstract class BaseCommandArgument<T>(
     }
 }
 
-fun IntArg(name: String) = object : BaseCommandArgument<Int>(name) {
+fun IntArg(name: String) = object : BaseCommandArgument<BigInteger>(name) {
     override val type: String
         get() = "int"
 
-    override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<Int, ReadableCommandArgumentParseError> {
+    override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<BigInteger, ReadableCommandArgumentParseError> {
         val args = arguments.args
         if (args.isEmpty()) return noArgumentError
 
         val firstArg = args.first()
-        val intArg = firstArg.toIntOrNull()
+        val numberArg = firstArg.toBigIntegerOrNull()
 
-        return if (intArg != null)
-            CommandArgumentParseSuccess(intArg, arguments.tail())
+        return if (numberArg != null)
+            CommandArgumentParseSuccess(numberArg, arguments.tail())
         else
             CommandArgumentParseFailure(ReadableCommandArgumentParseError("invalid int: $firstArg"))
     }
