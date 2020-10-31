@@ -131,30 +131,28 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
         flag.beginParsing()
 
-        val safeParsers = parsers.toList()
+        when (val result = parseCommandArgs(parsers, arguments)) {
+            is CommandArgumentParseResult.Success -> {
+                val remaining = result.remaining.args
 
-        return simpleInvokingPendingExecutionReceiver { exec ->
-            when (val result = parseCommandArgs(safeParsers, arguments)) {
-                is CommandArgumentParseResult.Success -> {
-                    val remaining = result.remaining.args
-
-                    // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
-                    // with special argument.
-                    if (result.isFullMatch()) {
-                        exec(receiver, mapParsed(result.value))
-                    } else {
-                        reportError(
-                            index = result.value.size + 1,
-                            ReadableCommandArgumentParseError("extraneous arg: ${remaining.first()}")
-                        )
-                    }
-                }
-
-                is CommandArgumentParseResult.Failure -> {
-                    reportError(index = result.error.index, error = result.error.error)
+                // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
+                // with special argument.
+                if (result.isFullMatch()) {
+                    return simpleInvokingPendingExecutionReceiver { exec -> exec(receiver, mapParsed(result.value)) }
+                } else {
+                    reportError(
+                        index = result.value.size + 1,
+                        ReadableCommandArgumentParseError("extraneous arg: ${remaining.first()}")
+                    )
                 }
             }
+
+            is CommandArgumentParseResult.Failure -> {
+                reportError(index = result.error.index, error = result.error.error)
+            }
         }
+
+        return NullPendingExecutionReceiver
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
