@@ -15,6 +15,7 @@ private class CallOnceFlag(private val onCall: () -> Unit) {
     public fun hasCalled(): Boolean = _hasCalled
 
     fun markCalled() {
+        check(!hasCalled())
         _hasCalled = true
         onCall()
     }
