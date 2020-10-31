@@ -8,13 +8,35 @@ private typealias CAP<T, E> = CommandArgumentParser<T, E>
 annotation class CommandDslMarker
 
 @CommandDslMarker
+interface ArgumentPendingExecutionReceiver<out ExecutionReceiver, out Arg> {
+    operator fun invoke(block: ExecutionReceiver.(arg: Arg) -> Unit)
+}
+
+inline fun <ExecutionReceiver, Arg> simpleInvokingPendingExecutionReceiver(
+    crossinline handler: (ExecutionReceiver.(Arg) -> Unit) -> Unit,
+): ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg> {
+    return object : ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg> {
+        override fun invoke(block: ExecutionReceiver.(arg: Arg) -> Unit) {
+            handler(block)
+        }
+    }
+}
+
+object NullPendingExecutionReceiver : ArgumentPendingExecutionReceiver<Nothing, Nothing> {
+    override operator fun invoke(block: Nothing.(arg: Nothing) -> Unit) {}
+}
+
+@CommandDslMarker
 interface ArgumentDescriptionReceiver<ExecutionReceiver> {
     /**
      * Specifies an argument set with arguments from [parsers] and that can optionally be executed by [exec].
      *
      * Can only be called once on any given instance unless otherwise specified.
      */
-    fun <T, E> argsRaw(vararg parsers: CommandArgumentParser<T, E>, exec: ExecutionReceiver.(args: List<T>) -> Unit)
+    fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R>
 
     /**
      * Indicates that the first [argsRaw] call in [block] that has parameters that match the input should be invoked.
@@ -44,42 +66,57 @@ private typealias ADR<Exec> = ArgumentDescriptionReceiver<Exec>
 
 private typealias CmdExecBlock<ExecutionReceiver, Args> = ExecutionReceiver.(Args) -> Unit
 
-inline fun <Rec> ADR<Rec>.noArgs(
-    crossinline block: CmdExecBlock<Rec, CommandArgs0>,
-) = argsRaw<Nothing, Nothing>() {
-    block(CommandArgs0)
-}
+fun <Rec> ADR<Rec>.noArgs(
+) = argsRaw<Nothing, Nothing, CommandArgs0>(emptyList()) { CommandArgs0 }
 
-inline fun <A, AE, Rec> ADR<Rec>.args(
+fun <Rec> ADR<Rec>.noArgs(
+    block: CmdExecBlock<Rec, CommandArgs0>,
+) = noArgs().invoke(block)
+
+fun <A, AE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
-    crossinline block: CmdExecBlock<Rec, CommandArgs1<A>>,
-) = argsRaw(a) { args ->
-    block(CommandArgs1(args[0] as A))
-}
+) = argsRaw(listOf(a)) { CommandArgs1(it[0] as A) }
 
-inline fun <A, AE, B, BE, Rec> ADR<Rec>.args(
+fun <A, AE, Rec> ADR<Rec>.args(
+    a: CAP<A, AE>,
+    block: CmdExecBlock<Rec, CommandArgs1<A>>,
+) = args(a).invoke(block)
+
+fun <A, AE, B, BE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
-    crossinline block: CmdExecBlock<Rec, CommandArgs2<A, B>>,
-) = argsRaw(a, b) { args ->
-    block(CommandArgs2(args[0] as A, args[1] as B))
-}
+) = argsRaw(listOf(a, b)) { CommandArgs2(it[0] as A, it[1] as B) }
 
-inline fun <A, AE, B, BE, C, CE, Rec> ADR<Rec>.args(
+fun <A, AE, B, BE, Rec> ADR<Rec>.args(
+    a: CAP<A, AE>,
+    b: CAP<B, BE>,
+    block: CmdExecBlock<Rec, CommandArgs2<A, B>>,
+) = args(a, b).invoke(block)
+
+fun <A, AE, B, BE, C, CE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
-    crossinline block: CmdExecBlock<Rec, CommandArgs3<A, B, C>>,
-) = argsRaw(a, b, c) { args ->
-    block(CommandArgs3(args[0] as A, args[1] as B, args[2] as C))
-}
+) = argsRaw(listOf(a, b, c)) { CommandArgs3(it[0] as A, it[1] as B, it[2] as C) }
 
-inline fun <A, AE, B, BE, C, CE, D, DE, Rec> ADR<Rec>.args(
+fun <A, AE, B, BE, C, CE, Rec> ADR<Rec>.args(
+    a: CAP<A, AE>,
+    b: CAP<B, BE>,
+    c: CAP<C, CE>,
+    block: CmdExecBlock<Rec, CommandArgs3<A, B, C>>,
+) = args(a, b, c).invoke(block)
+
+fun <A, AE, B, BE, C, CE, D, DE, Rec> ADR<Rec>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
     d: CAP<D, DE>,
-    crossinline block: CmdExecBlock<Rec, CommandArgs4<A, B, C, D>>,
-) = argsRaw(a, b, c, d) { args ->
-    block(CommandArgs4(args[0] as A, args[1] as B, args[2] as C, args[3] as D))
-}
+) = argsRaw(listOf(a, b, c, d)) { CommandArgs4(it[0] as A, it[1] as B, it[2] as C, it[3] as D) }
+
+fun <A, AE, B, BE, C, CE, D, DE, Rec> ADR<Rec>.args(
+    a: CAP<A, AE>,
+    b: CAP<B, BE>,
+    c: CAP<C, CE>,
+    d: CAP<D, DE>,
+    block: CmdExecBlock<Rec, CommandArgs4<A, B, C, D>>,
+) = args(a, b, c, d).invoke(block)

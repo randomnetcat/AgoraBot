@@ -62,15 +62,16 @@ private abstract class BaseExecutingNestedArgumentDescriptionReceiver<ExecutionR
         onMatch()
     }
 
-    protected fun <T, E> doArgsRaw(
+    protected fun <T, E, R> doArgsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit
+        mapParsed: (List<T>) -> R,
+        exec: ExecutionReceiver.(arg: R) -> Unit,
     ) {
         val parseResult = filterParseResult(parseCommandArgs(parsers, arguments))
 
         if (parseResult != null) {
             markCalled()
-            exec(receiver, parseResult.value)
+            exec(receiver, mapParsed(parseResult.value))
         }
     }
 
@@ -103,12 +104,15 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     override val receiver: ExecutionReceiver
 ) : BaseExecutingNestedArgumentDescriptionReceiver<ExecutionReceiver>(),
     ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit
-    ) {
-        if (alreadyCalled) return
-        doArgsRaw(parsers.asList(), exec)
+    override fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
+        val safeParsers = parsers.toList()
+
+        return simpleInvokingPendingExecutionReceiver { exec ->
+            if (!alreadyCalled) doArgsRaw(safeParsers, mapParsed, exec)
+        }
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
@@ -132,12 +136,16 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
     SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
     private val checker = SubcommandsReceiverChecker()
 
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit
-    ) {
-        checker.checkArgsRaw()
-        doArgsRaw(parsers.asList(), exec)
+    override fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
+        val safeParsers = parsers.toList()
+
+        return simpleInvokingPendingExecutionReceiver { exec ->
+            checker.checkArgsRaw()
+            doArgsRaw(safeParsers, mapParsed, exec)
+        }
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
@@ -177,30 +185,34 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val onError: (message: String) -> Unit,
     private val receiver: ExecutionReceiver
 ) : BaseExecutingArgumentDescriptionReceiver(), TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit
-    ) {
+    override fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
         beginParsing()
 
-        return when (val result = parseCommandArgs(parsers.asList(), arguments)) {
-            is CommandArgumentParseResult.Success -> {
-                val remaining = result.remaining.args
+        val safeParsers = parsers.toList()
 
-                // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
-                // with special argument.
-                if (result.isFullMatch()) {
-                    exec(receiver, result.value)
-                } else {
-                    reportError(
-                        index = result.value.size + 1,
-                        ReadableCommandArgumentParseError("extraneous arg: ${remaining.first()}")
-                    )
+        return simpleInvokingPendingExecutionReceiver { exec ->
+            when (val result = parseCommandArgs(safeParsers, arguments)) {
+                is CommandArgumentParseResult.Success -> {
+                    val remaining = result.remaining.args
+
+                    // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
+                    // with special argument.
+                    if (result.isFullMatch()) {
+                        exec(receiver, mapParsed(result.value))
+                    } else {
+                        reportError(
+                            index = result.value.size + 1,
+                            ReadableCommandArgumentParseError("extraneous arg: ${remaining.first()}")
+                        )
+                    }
                 }
-            }
 
-            is CommandArgumentParseResult.Failure -> {
-                reportError(index = result.error.index, error = result.error.error)
+                is CommandArgumentParseResult.Failure -> {
+                    reportError(index = result.error.index, error = result.error.error)
+                }
             }
         }
     }
@@ -266,11 +278,12 @@ private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
     ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
     private val options = mutableListOf<String>()
 
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit,
-    ) {
+    override fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
         options += formatArgumentUsages(parsers.map { it.usage() })
+        return NullPendingExecutionReceiver
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
@@ -287,12 +300,13 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
     private val checker = SubcommandsReceiverChecker()
     private var options: ImmutableList<String> = persistentListOf()
 
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit,
-    ) {
+    override fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
         checker.checkArgsRaw()
         options = persistentListOf(formatArgumentUsages(parsers.map { it.usage() }))
+        return NullPendingExecutionReceiver
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
@@ -335,12 +349,13 @@ class UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiver> :
     TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
     private var usageValue: String? = null
 
-    override fun <T, E> argsRaw(
-        vararg parsers: CommandArgumentParser<T, E>,
-        exec: ExecutionReceiver.(args: List<T>) -> Unit,
-    ) {
+    override fun <T, E, R> argsRaw(
+        parsers: List<CommandArgumentParser<T, E>>,
+        mapParsed: (List<T>) -> R,
+    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
         check(usageValue == null)
         usageValue = formatArgumentUsages(parsers.map { it.usage() })
+        return NullPendingExecutionReceiver
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
