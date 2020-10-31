@@ -34,6 +34,8 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
     ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
+        if (callFlag.hasCalled()) return NullPendingExecutionReceiver
+
         val parseResult = filterParseResult(parseCommandArgs(parsers, arguments)) ?: return NullPendingExecutionReceiver
         callFlag.markCalled()
 
