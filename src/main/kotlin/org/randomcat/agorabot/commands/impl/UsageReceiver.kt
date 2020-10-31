@@ -1,11 +1,9 @@
 package org.randomcat.agorabot.commands.impl
 
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.*
 
-private fun countSymbol(count: CommandArgumentUsage.Count): String {
-    return when (count) {
+private fun CommandArgumentUsage.Count.symbol(): String {
+    return when (this) {
         CommandArgumentUsage.Count.ONCE -> ""
         CommandArgumentUsage.Count.OPTIONAL -> "?"
         CommandArgumentUsage.Count.REPEATING -> "..."
@@ -13,7 +11,7 @@ private fun countSymbol(count: CommandArgumentUsage.Count): String {
 }
 
 private fun formatArgumentUsage(usage: CommandArgumentUsage): String {
-    return "${usage.name ?: "_"}${if (usage.type != null) ": " + usage.type else ""}${countSymbol(usage.count)}"
+    return "${usage.name ?: "_"}${usage.type?.let { ": $it" } ?: ""}${usage.count.symbol()}"
 }
 
 private fun formatArgumentUsages(usages: Iterable<CommandArgumentUsage>): String {
@@ -21,12 +19,14 @@ private fun formatArgumentUsages(usages: Iterable<CommandArgumentUsage>): String
 }
 
 private fun formatArgumentSelection(options: List<String>): String {
-    if (options.size == 1) return options.single()
-
-    return options.joinToString(" | ") {
-        when {
-            it.isEmpty() -> NO_ARGUMENTS
-            else -> it
+    return when (options.size) {
+        0 -> ""
+        1 -> options.single()
+        else -> options.joinToString(" | ") {
+            when {
+                it.isEmpty() -> NO_ARGUMENTS
+                else -> it
+            }
         }
     }
 }
@@ -55,7 +55,7 @@ private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
 private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
     : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
     private val checker = SubcommandsReceiverChecker()
-    private var options: ImmutableList<String> = persistentListOf()
+    private var options: PersistentList<String> = persistentListOf()
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
@@ -72,6 +72,7 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
             MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver>()
                 .apply(block)
                 .options()
+                .toPersistentList()
     }
 
     override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
@@ -94,7 +95,7 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
             else -> " [${formatArgumentSelection(subOptions)}]"
         }
 
-        options = (options + newOption).toImmutableList()
+        options = options.add(newOption)
     }
 
     fun options(): ImmutableList<String> {
