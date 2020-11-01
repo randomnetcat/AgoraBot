@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.permissions
 
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.User
 
@@ -23,8 +24,8 @@ fun BotPermissionState.isAllowed(): Boolean = this == BotPermissionState.ALLOW
 
 interface BotPermissionContext {
     fun isBotAdmin(userId: String): Boolean
-    fun checkGlobalPath(userId: String, path: List<String>): BotPermissionState
-    fun checkGuildPath(guildId: String, userId: String, path: List<String>): BotPermissionState
+    fun checkGlobalPath(userId: String, path: PermissionPath): BotPermissionState
+    fun checkGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState
 }
 
 sealed class UserPermissionContext {
@@ -41,9 +42,31 @@ sealed class UserPermissionContext {
     }
 }
 
+const val PERMISSION_PATH_SEPARATOR = "."
+
+data class PermissionPath(
+    val parts: ImmutableList<String>,
+) {
+    init {
+        require(parts.none { it.contains(PERMISSION_PATH_SEPARATOR) })
+    }
+
+    constructor(parts: List<String>) : this(parts.toImmutableList())
+}
+
+data class PermissionScopedPath(
+    val scope: String,
+    val basePath: PermissionPath,
+) {
+    init {
+        require(!scope.contains(PERMISSION_PATH_SEPARATOR))
+    }
+
+    val baseParts get() = basePath.parts
+}
+
 interface BotPermission {
-    val scope: String
-    val path: ImmutableList<String>
+    val path: PermissionScopedPath
 
     fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean
 }

@@ -15,9 +15,7 @@ import org.randomcat.agorabot.irc.IrcChannel
 import org.randomcat.agorabot.irc.sendSplitMultiLineMessage
 import org.randomcat.agorabot.irc.setupIrc
 import org.randomcat.agorabot.listener.*
-import org.randomcat.agorabot.permissions.BotPermission
-import org.randomcat.agorabot.permissions.BotPermissionContext
-import org.randomcat.agorabot.permissions.BotPermissionState
+import org.randomcat.agorabot.permissions.*
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -98,16 +96,12 @@ private fun makePermissionsStrategy(permissionsConfig: PermissionsConfig): BaseC
             return permissionsConfig.botAdmins.contains(userId)
         }
 
-        override fun checkGlobalPath(userId: String, path: List<String>): BotPermissionState {
+        override fun checkGlobalPath(userId: String, path: PermissionPath): BotPermissionState {
             // TODO: actually check
             return BotPermissionState.DEFER
         }
 
-        override fun checkGuildPath(
-            guildId: String,
-            userId: String,
-            path: List<String>,
-        ): BotPermissionState {
+        override fun checkGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState {
             // TODO: actually check
             return BotPermissionState.DEFER
         }
@@ -119,8 +113,10 @@ private fun makePermissionsStrategy(permissionsConfig: PermissionsConfig): BaseC
             invocation: CommandInvocation,
             permission: BotPermission,
         ) {
-            event.channel.sendMessage("Could not execute due to lack of `${permission.scope}`" +
-                    "permission `${(permission.path).joinToString(".")}`").queue()
+            event.channel.sendMessage(
+                "Could not execute due to lack of `${permission.path.scope}`" +
+                        "permission `${(permission.path.baseParts).joinToString(PERMISSION_PATH_SEPARATOR)}`"
+            ).queue()
         }
 
         override val permissionContext: BotPermissionContext
