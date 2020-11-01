@@ -55,6 +55,12 @@ data class PermissionPath(
     }
 
     constructor(parts: List<String>) : this(parts.toImmutableList())
+
+    fun joinToString() = parts.joinToString(PERMISSION_PATH_SEPARATOR)
+
+    companion object {
+        fun fromSplitting(joined: String) = PermissionPath(joined.split(PERMISSION_PATH_SEPARATOR))
+    }
 }
 
 data class PermissionScopedPath(

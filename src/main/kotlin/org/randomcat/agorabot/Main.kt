@@ -120,7 +120,7 @@ private fun makePermissionsStrategy(
         ) {
             event.channel.sendMessage(
                 "Could not execute due to lack of `${permission.path.scope}`" +
-                        "permission `${(permission.path.baseParts).joinToString(PERMISSION_PATH_SEPARATOR)}`"
+                        "permission `${permission.path.basePath.joinToString()}`"
             ).queue()
         }
 

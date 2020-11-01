@@ -31,7 +31,7 @@ class JsonPermissionMap(private val storagePath: Path) : MutablePermissionMap {
             return stored
                 .asIterable()
                 .associate { (permissionPath, idMap) ->
-                    PermissionPath(permissionPath.split(PERMISSION_PATH_SEPARATOR)) to
+                    PermissionPath.fromSplitting(permissionPath) to
                             idMap.mapValues { (_, state) -> BotPermissionState.valueOf(state) }.toPersistentMap()
                 }
                 .toPersistentMap()
@@ -39,7 +39,7 @@ class JsonPermissionMap(private val storagePath: Path) : MutablePermissionMap {
 
         private fun writeToFile(path: Path, value: Map<PermissionPath, Map<String, BotPermissionState>>) {
             val converted = value.asIterable().associate { (permissionPath, idMap) ->
-                permissionPath.parts.joinToString(PERMISSION_PATH_SEPARATOR) to
+                permissionPath.joinToString() to
                         idMap.mapValues { (_, state) -> state.name }
             }
 
