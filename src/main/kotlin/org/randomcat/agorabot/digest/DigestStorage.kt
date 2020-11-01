@@ -163,7 +163,7 @@ class JsonGuildDigestMap(
     private val backupDirectory
         get() = storageDirectory.resolve("cleared")
 
-    private inner class LoadOnceDigest(init: () -> Digest) {
+    private class LoadOnceDigest(init: () -> Digest) {
         // lazy will ensure that only a single JsonDigest is created
         val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED, init)
     }
