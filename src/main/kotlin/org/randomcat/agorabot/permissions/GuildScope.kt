@@ -9,8 +9,9 @@ data class GuildScopeActionPermission(
     private val commandName: String,
     private val actionName: String,
 ) : BotPermission {
-    override val path get() = persistentListOf(GUILD_PERMISSION_SCOPE, commandName, actionName)
-    private val commandPath get() = listOf(GUILD_PERMISSION_SCOPE, commandName)
+    override val scope: String get() = GUILD_PERMISSION_SCOPE
+    override val path = persistentListOf(commandName, actionName)
+    private val commandPath = listOf(commandName)
 
     override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
         return when (userContext) {
@@ -40,7 +41,8 @@ data class GuildScopeActionPermission(
 data class GuildScopeCommandPermission(
     private val commandName: String,
 ) : BotPermission {
-    override val path get() = persistentListOf(GUILD_PERMISSION_SCOPE, commandName)
+    override val scope: String get() = GUILD_PERMISSION_SCOPE
+    override val path get() = persistentListOf(commandName)
 
     override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
         return when (userContext) {

@@ -170,7 +170,7 @@ fun main(args: Array<String>) {
                 ) {
                     event.channel.sendMessage(
                         "Could not execute due to lack of permission " +
-                                "`${permission.path.joinToString(".")}`"
+                                "`${(listOf(permission.scope) + permission.path).joinToString(".")}`"
                     ).queue()
                 }
 

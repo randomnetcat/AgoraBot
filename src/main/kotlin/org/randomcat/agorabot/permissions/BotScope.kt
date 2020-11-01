@@ -8,8 +8,9 @@ data class BotScopeActionPermission(
     private val commandName: String,
     private val actionName: String,
 ) : BotPermission {
-    override val path get() = persistentListOf(BOT_PERMISSION_SCOPE, commandName, actionName)
-    private val commandPath get() = listOf(BOT_PERMISSION_SCOPE, commandName)
+    override val scope: String get() = BOT_PERMISSION_SCOPE
+    override val path get() = persistentListOf(commandName, actionName)
+    private val commandPath get() = listOf(commandName)
 
     override fun isSatisfied(context: BotPermissionContext, userContext: UserPermissionContext): Boolean {
         val user = userContext.user
@@ -22,7 +23,8 @@ data class BotScopeActionPermission(
 }
 
 data class BotScopeCommandPermission(private val commandName: String) : BotPermission {
-    override val path get() = persistentListOf(BOT_PERMISSION_SCOPE, commandName)
+    override val scope: String get() = BOT_PERMISSION_SCOPE
+    override val path get() = persistentListOf(commandName)
 
     fun action(actionName: String) = BotScopeActionPermission(
         commandName = commandName,

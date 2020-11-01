@@ -42,6 +42,7 @@ sealed class UserPermissionContext {
 }
 
 interface BotPermission {
+    val scope: String
     val path: ImmutableList<String>
 
     fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean
