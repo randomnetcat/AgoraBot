@@ -168,10 +168,8 @@ fun main(args: Array<String>) {
                     invocation: CommandInvocation,
                     permission: BotPermission,
                 ) {
-                    event.channel.sendMessage(
-                        "Could not execute due to lack of permission " +
-                                "`${(listOf(permission.scope) + permission.path).joinToString(".")}`"
-                    ).queue()
+                    event.channel.sendMessage("Could not execute due to lack of `${permission.scope}`" +
+                            "permission `${(permission.path).joinToString(".")}`").queue()
                 }
 
                 override val permissionContext: BotPermissionContext
