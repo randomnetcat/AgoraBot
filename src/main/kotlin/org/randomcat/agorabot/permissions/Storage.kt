@@ -24,23 +24,23 @@ class JsonPermissionMap(private val storagePath: Path) : MutablePermissionMap {
 
             // Convert to simpler type for storage
             // Format: map of (permission path joined by PERMISSION_PATH_SEPARATOR) to (
-            //     map of (user id) to (enum name of BotPermissionState)
+            //     map of (entity id) to (enum name of BotPermissionState)
             // )
             val stored = Json.decodeFromString<Map<String, Map<String, String>>>(Files.readString(path, FILE_CHARSET))
 
             return stored
                 .asIterable()
-                .associate { (permissionPath, userMap) ->
+                .associate { (permissionPath, idMap) ->
                     PermissionPath(permissionPath.split(PERMISSION_PATH_SEPARATOR)) to
-                            userMap.mapValues { (_, state) -> BotPermissionState.valueOf(state) }.toPersistentMap()
+                            idMap.mapValues { (_, state) -> BotPermissionState.valueOf(state) }.toPersistentMap()
                 }
                 .toPersistentMap()
         }
 
         private fun writeToFile(path: Path, value: Map<PermissionPath, Map<String, BotPermissionState>>) {
-            val converted = value.asIterable().associate { (permissionPath, userMap) ->
+            val converted = value.asIterable().associate { (permissionPath, idMap) ->
                 permissionPath.parts.joinToString(PERMISSION_PATH_SEPARATOR) to
-                        userMap.mapValues { (_, state) -> state.name }
+                        idMap.mapValues { (_, state) -> state.name }
             }
 
             val content = Json.encodeToString<Map<String, Map<String, String>>>(converted)
@@ -66,16 +66,16 @@ class JsonPermissionMap(private val storagePath: Path) : MutablePermissionMap {
         persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
     }
 
-    override fun stateForUser(path: PermissionPath, userId: String): BotPermissionState? {
-        return map.get().get(path)?.get(userId)
+    override fun stateForId(path: PermissionPath, id: String): BotPermissionState? {
+        return map.get().get(path)?.get(id)
     }
 
-    override fun setStateForUser(path: PermissionPath, userId: String, newState: BotPermissionState) {
+    override fun setStateForId(path: PermissionPath, id: String, newState: BotPermissionState) {
         map.updateAndGet { immutablePermissionsMap ->
             immutablePermissionsMap.mutate { permissionsMap ->
-                val immutableUserMap = permissionsMap.getOrDefault(path, persistentMapOf())
-                permissionsMap[path] = immutableUserMap.mutate { userMap ->
-                    userMap[userId] = newState
+                val immutableIdMap = permissionsMap.getOrDefault(path, persistentMapOf())
+                permissionsMap[path] = immutableIdMap.mutate { idMap ->
+                    idMap[id] = newState
                 }
             }
         }

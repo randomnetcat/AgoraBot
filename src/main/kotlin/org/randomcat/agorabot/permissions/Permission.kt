@@ -3,7 +3,10 @@ package org.randomcat.agorabot.permissions
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.entities.User
+import org.randomcat.agorabot.permissions.PermissionMap.Companion.idForRole
+import org.randomcat.agorabot.permissions.PermissionMap.Companion.idForUser
 
 enum class BotPermissionState {
     ALLOW,
@@ -72,12 +75,37 @@ interface BotPermission {
 }
 
 interface PermissionMap {
-    fun stateForUser(path: PermissionPath, userId: String): BotPermissionState?
+    companion object {
+        fun idForUser(userId: String) = "user.$userId"
+        fun idForRole(roleId: String) = "role.$roleId"
+    }
+
+    fun stateForId(path: PermissionPath, id: String): BotPermissionState?
 }
 
+fun PermissionMap.Companion.idForUser(user: User) = idForUser(userId = user.id)
+fun PermissionMap.stateForUser(path: PermissionPath, userId: String) = stateForId(path, idForUser(userId = userId))
+fun PermissionMap.stateForUser(path: PermissionPath, user: User) = stateForUser(path, userId = user.id)
+
+fun PermissionMap.Companion.idForRole(role: Role) = idForRole(roleId = role.id)
+fun PermissionMap.stateForRole(path: PermissionPath, roleId: String) = stateForId(path, idForRole(roleId = roleId))
+fun PermissionMap.stateForRole(path: PermissionPath, role: Role) = stateForRole(path, roleId = role.id)
+
 interface MutablePermissionMap : PermissionMap {
-    fun setStateForUser(path: PermissionPath, userId: String, newState: BotPermissionState)
+    fun setStateForId(path: PermissionPath, id: String, newState: BotPermissionState)
 }
+
+fun MutablePermissionMap.setStateForUser(path: PermissionPath, userId: String, newState: BotPermissionState) =
+    setStateForId(path, idForUser(userId = userId), newState)
+
+fun MutablePermissionMap.setStateForUser(path: PermissionPath, user: User, newState: BotPermissionState) =
+    setStateForUser(path, userId = user.id, newState)
+
+fun MutablePermissionMap.setStateForRole(path: PermissionPath, roleId: String, newState: BotPermissionState) =
+    setStateForId(path, idForRole(roleId = roleId), newState)
+
+fun MutablePermissionMap.setStateForRole(path: PermissionPath, role: Role, newState: BotPermissionState) =
+    setStateForRole(path, roleId = role.id, newState)
 
 interface GuildPermissionMap {
     fun mapForGuild(guildId: String): PermissionMap
