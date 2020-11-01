@@ -40,6 +40,9 @@ interface BaseCommandPermissionsStrategy {
 
 interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSink, BaseCommandPermissionsStrategy
 
+private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
+    event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
+
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     @CommandDslMarker
     class ExecutionReceiverImpl(
@@ -63,6 +66,11 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         fun currentJda() = event.jda
         fun currentChannel() = currentMessageEvent().channel
         fun currentGuildId(): String = currentMessageEvent().guild.id
+
+        private val userPermissionContext by lazy { userPermissionContextForEvent(event) }
+
+        fun senderHasPermission(permission: BotPermission): Boolean =
+            permission.isSatisfied(strategy.permissionContext, userPermissionContext)
     }
 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
@@ -80,8 +88,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                 ExecutionReceiverImpl(strategy, event, invocation),
             ),
             data = PermissionsReceiverData.AllowExecution(
-                userContext = event.member?.let { UserPermissionContext.InGuild(it) }
-                    ?: UserPermissionContext.Guildless(event.author),
+                userContext = userPermissionContextForEvent(event),
                 permissionsContext = strategy.permissionContext,
                 onError = { strategy.onPermissionsError(event, invocation, it) }
             )
