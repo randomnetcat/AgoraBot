@@ -44,4 +44,15 @@ data class BotScopeCommandPermission(private val commandName: String) : BotPermi
 
 object BotScope {
     fun command(commandName: String) = BotScopeCommandPermission(commandName)
+
+    fun admin() = object : BotPermission {
+        override val path = PermissionScopedPath(
+            scope = BOT_PERMISSION_SCOPE,
+            basePath = PermissionPath(listOf("admin"))
+        )
+
+        override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
+            return botContext.isBotAdmin(userId = userContext.user.id)
+        }
+    }
 }
