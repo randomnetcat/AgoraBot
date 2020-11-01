@@ -90,20 +90,25 @@ private fun makeCommandRegistry(
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
 
-private fun makePermissionsStrategy(permissionsConfig: PermissionsConfig): BaseCommandPermissionsStrategy {
+private fun makePermissionsStrategy(
+    permissionsConfig: PermissionsConfig,
+    botMap: PermissionMap,
+    guildMap: GuildPermissionMap,
+): BaseCommandPermissionsStrategy {
     val botPermissionContext = object : BotPermissionContext {
         override fun isBotAdmin(userId: String): Boolean {
             return permissionsConfig.botAdmins.contains(userId)
         }
 
         override fun checkGlobalPath(userId: String, path: PermissionPath): BotPermissionState {
-            // TODO: actually check
-            return BotPermissionState.DEFER
+            return botMap.stateForUser(path = path, userId = userId) ?: BotPermissionState.DEFER
         }
 
         override fun checkGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState {
-            // TODO: actually check
-            return BotPermissionState.DEFER
+            return guildMap
+                .mapForGuild(guildId = guildId)
+                .stateForUser(path = path, userId = userId)
+                ?: BotPermissionState.DEFER
         }
     }
 
@@ -176,10 +181,16 @@ fun main(args: Array<String>) {
             ?.also { logger.info("Done connecting IRC.") }
             ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
 
-    val permissionsConfig = readPermissionsConfig(Path.of(".", "permissions", "config.json")) ?: run {
+    val permissionsDir = Path.of(".", "permissions")
+    val permissionsConfigPath = permissionsDir.resolve("config.json")
+    val permissionsConfig = readPermissionsConfig(permissionsConfigPath) ?: run {
         logger.warn("Unable to setup permissions config! Check for errors above. Using default permissions config.")
         PermissionsConfig(botAdminList = emptyList())
     }
+
+    val botPermissionMap =
+        JsonPermissionMap(permissionsDir.resolve("bot.json"))
+            .also { it.schedulePersistenceOn(persistService) }
 
     val commandStrategy =
         object :
@@ -201,7 +212,11 @@ fun main(args: Array<String>) {
                         }
                 )
             ),
-            BaseCommandPermissionsStrategy by makePermissionsStrategy(permissionsConfig) {}
+            BaseCommandPermissionsStrategy by makePermissionsStrategy(
+                permissionsConfig = permissionsConfig,
+                botMap = botPermissionMap,
+                guildMap = JsonGuildPermissionMap(permissionsDir.resolve("guild"), persistService)
+            ) {}
 
     jda.addEventListener(
         BotListener(

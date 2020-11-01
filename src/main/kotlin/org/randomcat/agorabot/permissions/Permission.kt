@@ -70,3 +70,19 @@ interface BotPermission {
 
     fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean
 }
+
+interface PermissionMap {
+    fun stateForUser(path: PermissionPath, userId: String): BotPermissionState?
+}
+
+interface MutablePermissionMap : PermissionMap {
+    fun setStateForUser(path: PermissionPath, userId: String, newState: BotPermissionState)
+}
+
+interface GuildPermissionMap {
+    fun mapForGuild(guildId: String): PermissionMap
+}
+
+interface MutableGuildPermissionMap : GuildPermissionMap {
+    override fun mapForGuild(guildId: String): MutablePermissionMap
+}
