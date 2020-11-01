@@ -2,6 +2,7 @@ package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
+import org.randomcat.agorabot.permissions.GuildScope
 
 private val PROHIBITED_CATEGORIES = listOf(
     CharCategory.CONTROL,
@@ -22,15 +23,19 @@ class PrefixCommand(
                 respond("The prefix is: ${prefixMap.prefixForGuild(currentGuildId())}")
             }
 
-            args(StringArg("new_prefix")) { (newPrefix) ->
+            args(
+                StringArg("new_prefix"),
+            ).permissions(
+                GuildScope.command("prefix").action("set"),
+            ) { (newPrefix) ->
                 if (newPrefix.isBlank()) {
                     respond("The prefix cannot be empty. Stop it.")
-                    return@args
+                    return@permissions
                 }
 
                 if (newPrefix.any { PROHIBITED_CATEGORIES.contains(it.category) }) {
                     respond("The specified prefix contains an illegal character.")
-                    return@args
+                    return@permissions
                 }
 
                 prefixMap.setPrefixForGuild(currentGuildId(), newPrefix)
