@@ -7,6 +7,9 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandInvocation
+import org.randomcat.agorabot.permissions.BotPermission
+import org.randomcat.agorabot.permissions.BotPermissionContext
+import org.randomcat.agorabot.permissions.UserPermissionContext
 import org.randomcat.agorabot.util.disallowMentions
 
 interface BaseCommandArgumentStrategy {
@@ -30,7 +33,12 @@ interface BaseCommandOutputSink {
     )
 }
 
-interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSink
+interface BaseCommandPermissionsStrategy {
+    fun onPermissionsError(event: MessageReceivedEvent, invocation: CommandInvocation, permission: BotPermission)
+    val permissionContext: BotPermissionContext
+}
+
+interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSink, BaseCommandPermissionsStrategy
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     @CommandDslMarker
@@ -58,28 +66,40 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     }
 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
-        TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
-            UnparsedCommandArgs(invocation.args),
-            onError = { msg ->
-                strategy.sendArgumentErrorResponse(
-                    event = event,
-                    invocation = invocation,
-                    errorMessage = msg,
-                    usage = usage()
-                )
-            },
-            ExecutionReceiverImpl(strategy, event, invocation),
+        TopLevelPermissionsArgumentDescriptionReceiver(
+            baseReceiver = TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
+                UnparsedCommandArgs(invocation.args),
+                onError = { msg ->
+                    strategy.sendArgumentErrorResponse(
+                        event = event,
+                        invocation = invocation,
+                        errorMessage = msg,
+                        usage = usage()
+                    )
+                },
+                ExecutionReceiverImpl(strategy, event, invocation),
+            ),
+            data = PermissionsReceiverData.AllowExecution(
+                userContext = event.member?.let { UserPermissionContext.InGuild(it) }
+                    ?: UserPermissionContext.Guildless(event.author),
+                permissionsContext = strategy.permissionContext,
+                onError = { strategy.onPermissionsError(event, invocation, it) }
+            )
         ).impl()
     }
 
-    protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, Any?>.impl()
+    protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.impl()
 
     fun usage(): String {
-        return UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>().apply { impl() }.usage()
+        return TopLevelPermissionsArgumentDescriptionReceiver(
+            baseReceiver = UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>(),
+            data = PermissionsReceiverData.NeverExecute,
+        ).apply { impl() }.base().usage()
     }
 }
 
-typealias BaseCommandImplReceiver = TopLevelArgumentDescriptionReceiver<BaseCommand.ExecutionReceiverImpl, Any?>
+typealias BaseCommandImplReceiver =
+        TopLevelArgumentDescriptionReceiver<BaseCommand.ExecutionReceiverImpl, PermissionsExtensionMarker>
 
 object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
@@ -111,12 +131,6 @@ object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
         sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
     }
 }
-
-val DEFAULT_BASE_COMMAND_STRATEGY: BaseCommandStrategy =
-    object :
-        BaseCommandStrategy,
-        BaseCommandOutputSink by BaseCommandDiscordOutputSink,
-        BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy {}
 
 data class BaseCommandMultiOutputSink(
     private val outputs: ImmutableList<BaseCommandOutputSink>,

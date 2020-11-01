@@ -15,6 +15,9 @@ import org.randomcat.agorabot.irc.IrcChannel
 import org.randomcat.agorabot.irc.sendSplitMultiLineMessage
 import org.randomcat.agorabot.irc.setupIrc
 import org.randomcat.agorabot.listener.*
+import org.randomcat.agorabot.permissions.BotPermission
+import org.randomcat.agorabot.permissions.BotPermissionContext
+import org.randomcat.agorabot.permissions.BotPermissionState
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -158,7 +161,41 @@ fun main(args: Array<String>) {
                             )
                         }
                 )
-            ) {}
+            ),
+            BaseCommandPermissionsStrategy by object : BaseCommandPermissionsStrategy {
+                override fun onPermissionsError(
+                    event: MessageReceivedEvent,
+                    invocation: CommandInvocation,
+                    permission: BotPermission,
+                ) {
+                    event.channel.sendMessage(
+                        "Could not execute due to lack of permission " +
+                                "`${permission.path.joinToString(".")}`"
+                    ).queue()
+                }
+
+                override val permissionContext: BotPermissionContext
+                    get() = object : BotPermissionContext {
+                        override fun isBotAdmin(userId: String): Boolean {
+                            // TODO: accept admin list in config
+                            return false
+                        }
+
+                        override fun checkGlobalPath(userId: String, path: List<String>): BotPermissionState {
+                            // TODO: actually check
+                            return BotPermissionState.DEFER
+                        }
+
+                        override fun checkGuildPath(
+                            guildId: String,
+                            userId: String,
+                            path: List<String>,
+                        ): BotPermissionState {
+                            // TODO: actually check
+                            return BotPermissionState.DEFER
+                        }
+                    }
+            } {}
 
     jda.addEventListener(
         BotListener(
