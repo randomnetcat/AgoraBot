@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.commands.impl.BaseCommand
+import org.randomcat.agorabot.commands.impl.BaseCommandImplReceiver
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
-import org.randomcat.agorabot.commands.impl.TopLevelArgumentDescriptionReceiver
 import org.randomcat.agorabot.commands.impl.noArgs
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -69,7 +69,7 @@ class DuckCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("start") {
                 noArgs {

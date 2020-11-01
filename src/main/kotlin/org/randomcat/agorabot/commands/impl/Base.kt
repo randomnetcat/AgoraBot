@@ -34,7 +34,7 @@ interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSi
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     @CommandDslMarker
-    protected class ExecutionReceiverImpl(
+    class ExecutionReceiverImpl(
         private val strategy: BaseCommandStrategy,
         private val event: MessageReceivedEvent,
         private val invocation: CommandInvocation,
@@ -72,12 +72,14 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         ).impl()
     }
 
-    protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl()
+    protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, Any?>.impl()
 
     fun usage(): String {
         return UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>().apply { impl() }.usage()
     }
 }
+
+typealias BaseCommandImplReceiver = TopLevelArgumentDescriptionReceiver<BaseCommand.ExecutionReceiverImpl, Any?>
 
 object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {

@@ -20,7 +20,7 @@ class HelpCommand(
     strategy: BaseCommandStrategy,
     private val registry: QueryableCommandRegistry,
 ) : BaseCommand(strategy) {
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs {
                 val commands = registry.commands()

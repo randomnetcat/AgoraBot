@@ -13,7 +13,7 @@ private fun BigInteger.toLongOrNull(): Long? {
 }
 
 class RngCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             args(IntArg("max")) { (bigMax) ->
                 val max = bigMax.toLongOrNull() ?: run {

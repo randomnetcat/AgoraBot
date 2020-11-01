@@ -27,7 +27,7 @@ private val LIKELY_RESPONSES = listOf(
 private val RESPONSES = LIKELY_RESPONSES.repeated(10) + UNLIKELY_RESPONSES
 
 class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs { _ ->
                 respond("Judged ${RESPONSES.random()}.")

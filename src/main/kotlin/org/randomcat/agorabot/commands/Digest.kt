@@ -69,7 +69,7 @@ class DigestCommand(
         return msgResult.get()
     }
 
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("clear") {
                 noArgs { _ ->

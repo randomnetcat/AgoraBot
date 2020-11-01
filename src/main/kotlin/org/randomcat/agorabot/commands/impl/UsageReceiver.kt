@@ -32,7 +32,7 @@ private fun formatArgumentSelection(options: List<String>): String {
 }
 
 private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
-    ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+    ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?> {
     private val options = mutableListOf<String>()
 
     override fun <T, E, R> argsRaw(
@@ -43,7 +43,7 @@ private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
         return NullPendingExecutionReceiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         block()
     }
 
@@ -53,7 +53,7 @@ private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver> :
 }
 
 private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
-    : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
+    : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?> {
     private val checker = SubcommandsReceiverChecker()
     private var options: PersistentList<String> = persistentListOf()
 
@@ -66,7 +66,7 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
         return NullPendingExecutionReceiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         checker.checkMatchFirst()
         options =
             MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver>()
@@ -75,7 +75,10 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
                 .toPersistentList()
     }
 
-    override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun subcommand(
+        name: String,
+        block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit,
+    ) {
         checker.checkSubcommand(subcommand = name)
 
         val subOptions =
@@ -104,7 +107,7 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver>
 }
 
 class UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiver> :
-    TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
+    TopLevelArgumentDescriptionReceiver<ExecutionReceiver, Any?> {
     private var usageValue: String? = null
 
     override fun <T, E, R> argsRaw(
@@ -116,14 +119,14 @@ class UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiver> :
         return NullPendingExecutionReceiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         check(usageValue == null)
         usageValue = formatArgumentSelection(
             MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver>().apply(block).options()
         )
     }
 
-    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         check(usageValue == null)
 
         usageValue = formatArgumentSelection(

@@ -16,7 +16,7 @@ class PrefixCommand(
     strategy: BaseCommandStrategy,
     private val prefixMap: MutableGuildPrefixMap,
 ) : BaseCommand(strategy) {
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs {
                 respond("The prefix is: ${prefixMap.prefixForGuild(currentGuildId())}")

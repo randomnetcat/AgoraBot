@@ -26,7 +26,7 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     onMatch: () -> Unit,
     private val endNoMatch: () -> Unit,
     private val receiver: ExecutionReceiver,
-) : ArgumentMultiDescriptionReceiver<ExecutionReceiver> {
+) : ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?> {
     private val parseFlag = ParseOnceFlag()
     private val callFlag = CallOnceFlag(onCall = onMatch)
 
@@ -44,7 +44,7 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         }
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         if (callFlag.hasCalled()) return
 
         // This will correctly handle everything. It will mark as called on the first match, it will not call
@@ -52,7 +52,7 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         block()
     }
 
-    fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         parseFlag.beginParsing()
         block()
         if (!callFlag.hasCalled()) endNoMatch()
@@ -64,7 +64,7 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
     onMatch: () -> Unit,
     private val endNoMatch: () -> Unit,
     private val receiver: ExecutionReceiver,
-) : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver> {
+) : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?> {
     private val checker = SubcommandsReceiverChecker()
     private val parseFlag = ParseOnceFlag()
     private val callFlag = CallOnceFlag(onCall = onMatch)
@@ -83,7 +83,7 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
         }
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         checker.checkMatchFirst()
 
         MatchFirstExecutingArgumentDescriptionReceiver(
@@ -94,7 +94,10 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
         ).executeWholeBlock(block)
     }
 
-    override fun subcommand(name: String, block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun subcommand(
+        name: String,
+        block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit,
+    ) {
         checker.checkSubcommand(subcommand = name)
         if (callFlag.hasCalled()) return
 
@@ -113,7 +116,7 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
         }
     }
 
-    fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         checker.reset()
         parseFlag.beginParsing()
         block()
@@ -125,7 +128,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
     private val arguments: UnparsedCommandArgs,
     private val onError: (message: String) -> Unit,
     private val receiver: ExecutionReceiver,
-) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver> {
+) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver, Any?> {
     private val flag = ParseOnceFlag()
 
     override fun <T, E, R> argsRaw(
@@ -158,7 +161,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         return NullPendingExecutionReceiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         flag.beginParsing()
 
         MatchFirstExecutingArgumentDescriptionReceiver(
@@ -169,7 +172,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         ).executeWholeBlock(block)
     }
 
-    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver>.() -> Unit) {
+    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
         flag.beginParsing()
 
         SubcommandsExecutingArgumentDescriptionReceiver(
