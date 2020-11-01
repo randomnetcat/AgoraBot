@@ -60,3 +60,8 @@ tasks.test {
         events("passed", "skipped", "failed")
     }
 }
+val compileKotlin: KotlinCompile by tasks
+
+compileKotlin.kotlinOptions {
+    freeCompilerArgs = listOf("-Xinline-classes")
+}
