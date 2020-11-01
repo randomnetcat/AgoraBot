@@ -70,4 +70,13 @@ data class GuildScopeCommandPermission(
 
 object GuildScope {
     fun command(commandName: String) = GuildScopeCommandPermission(commandName)
+
+    fun byPath(path: PermissionPath) = object : BotPermission {
+        override val path: PermissionScopedPath
+            get() = PermissionScopedPath(scope = GUILD_PERMISSION_SCOPE, basePath = path)
+
+        override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
+            return checkGuildPermission(botContext, userContext, path)
+        }
+    }
 }
