@@ -137,7 +137,9 @@ fun main(args: Array<String>) {
 
     val digestMap = JsonGuildDigestMap(Path.of(".", "digests"), persistService)
 
-    val prefixMap = JsonPrefixMap(default = ".", Path.of(".", "prefixes"), persistService)
+    val prefixMap =
+        JsonPrefixMap(default = ".", Path.of(".", "prefixes"))
+            .apply { schedulePersistenceOn(persistService) }
 
     val digestFormat = AffixDigestFormat(
         prefix = DIGEST_AFFIX + "\n",

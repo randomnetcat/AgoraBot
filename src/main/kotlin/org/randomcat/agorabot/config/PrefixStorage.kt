@@ -15,8 +15,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 class JsonPrefixMap(
     private val default: String,
-    storagePath: Path,
-    persistenceService: ConfigPersistService,
+    private val storagePath: Path,
 ) : MutableGuildPrefixMap {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
@@ -48,7 +47,7 @@ class JsonPrefixMap(
     private val map: AtomicReference<PersistentMap<String, String>> =
         AtomicReference(readFromFile(storagePath).toPersistentMap())
 
-    init {
+    fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
         persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
     }
 
