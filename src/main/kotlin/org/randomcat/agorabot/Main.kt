@@ -92,6 +92,42 @@ private fun makeCommandRegistry(
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
 
+private fun makePermissionsStrategy(permissionsConfig: PermissionsConfig): BaseCommandPermissionsStrategy {
+    val botPermissionContext = object : BotPermissionContext {
+        override fun isBotAdmin(userId: String): Boolean {
+            return permissionsConfig.botAdmins.contains(userId)
+        }
+
+        override fun checkGlobalPath(userId: String, path: List<String>): BotPermissionState {
+            // TODO: actually check
+            return BotPermissionState.DEFER
+        }
+
+        override fun checkGuildPath(
+            guildId: String,
+            userId: String,
+            path: List<String>,
+        ): BotPermissionState {
+            // TODO: actually check
+            return BotPermissionState.DEFER
+        }
+    }
+
+    return object : BaseCommandPermissionsStrategy {
+        override fun onPermissionsError(
+            event: MessageReceivedEvent,
+            invocation: CommandInvocation,
+            permission: BotPermission,
+        ) {
+            event.channel.sendMessage("Could not execute due to lack of `${permission.scope}`" +
+                    "permission `${(permission.path).joinToString(".")}`").queue()
+        }
+
+        override val permissionContext: BotPermissionContext
+            get() = botPermissionContext
+    }
+}
+
 private const val DIGEST_AFFIX =
     "THIS MESSAGE CONTAINS NO GAME ACTIONS.\n" +
             "SERIOUSLY, IT CONTAINS NO GAME ACTIONS.\n" +
@@ -142,6 +178,11 @@ fun main(args: Array<String>) {
             ?.also { logger.info("Done connecting IRC.") }
             ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
 
+    val permissionsConfig = readPermissionsConfig(Path.of(".", "permissions", "config.json")) ?: run {
+        logger.warn("Unable to setup permissions config! Check for errors above. Using default permissions config.")
+        PermissionsConfig(botAdminList = emptyList())
+    }
+
     val commandStrategy =
         object :
             BaseCommandStrategy,
@@ -162,38 +203,7 @@ fun main(args: Array<String>) {
                         }
                 )
             ),
-            BaseCommandPermissionsStrategy by object : BaseCommandPermissionsStrategy {
-                override fun onPermissionsError(
-                    event: MessageReceivedEvent,
-                    invocation: CommandInvocation,
-                    permission: BotPermission,
-                ) {
-                    event.channel.sendMessage("Could not execute due to lack of `${permission.scope}`" +
-                            "permission `${(permission.path).joinToString(".")}`").queue()
-                }
-
-                override val permissionContext: BotPermissionContext
-                    get() = object : BotPermissionContext {
-                        override fun isBotAdmin(userId: String): Boolean {
-                            // TODO: accept admin list in config
-                            return false
-                        }
-
-                        override fun checkGlobalPath(userId: String, path: List<String>): BotPermissionState {
-                            // TODO: actually check
-                            return BotPermissionState.DEFER
-                        }
-
-                        override fun checkGuildPath(
-                            guildId: String,
-                            userId: String,
-                            path: List<String>,
-                        ): BotPermissionState {
-                            // TODO: actually check
-                            return BotPermissionState.DEFER
-                        }
-                    }
-            } {}
+            BaseCommandPermissionsStrategy by makePermissionsStrategy(permissionsConfig) {}
 
     jda.addEventListener(
         BotListener(

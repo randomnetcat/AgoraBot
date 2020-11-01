@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.config
 
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.*
 import org.randomcat.agorabot.digest.DigestFormat
@@ -175,4 +176,34 @@ fun readIrcConfig(configPath: Path): IrcConfig? {
     }
 
     return readIrcConfigJson(json)
+}
+
+data class PermissionsConfig(
+    val botAdmins: ImmutableList<String>,
+) {
+    constructor(botAdminList: List<String>) : this(botAdminList.toImmutableList())
+}
+
+fun readPermissionsConfig(configPath: Path): PermissionsConfig? {
+    if (Files.notExists(configPath)) {
+        logger.warn("Permissions config path $configPath does not exist!")
+        return null
+    }
+
+    val json = Json.parseToJsonElement(Files.readString(configPath, Charsets.UTF_8))
+    if (json !is JsonObject) {
+        logger.error("Permissions config should be a JSON object!")
+        return null
+    }
+
+    val adminList = json["admins"] ?: return PermissionsConfig(botAdminList = emptyList())
+
+    if (adminList !is JsonArray || adminList.any { it !is JsonPrimitive }) {
+        logger.error("permissions.admins should be an array of user IDs!")
+        return null
+    }
+
+    return PermissionsConfig(
+        botAdminList = adminList.map { (it as JsonPrimitive).content }
+    )
 }
