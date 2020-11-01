@@ -66,16 +66,16 @@ class JsonPermissionMap(private val storagePath: Path) : MutablePermissionMap {
         persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
     }
 
-    override fun stateForId(path: PermissionPath, id: String): BotPermissionState? {
-        return map.get().get(path)?.get(id)
+    override fun stateForId(path: PermissionPath, id: PermissionMapId): BotPermissionState? {
+        return map.get().get(path)?.get(id.raw)
     }
 
-    override fun setStateForId(path: PermissionPath, id: String, newState: BotPermissionState) {
+    override fun setStateForId(path: PermissionPath, id: PermissionMapId, newState: BotPermissionState) {
         map.updateAndGet { immutablePermissionsMap ->
             immutablePermissionsMap.mutate { permissionsMap ->
                 val immutableIdMap = permissionsMap.getOrDefault(path, persistentMapOf())
                 permissionsMap[path] = immutableIdMap.mutate { idMap ->
-                    idMap[id] = newState
+                    idMap[id.raw] = newState
                 }
             }
         }

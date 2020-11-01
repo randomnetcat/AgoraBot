@@ -80,13 +80,15 @@ interface BotPermission {
     fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean
 }
 
+inline class PermissionMapId(val raw: String)
+
 interface PermissionMap {
     companion object {
-        fun idForUser(userId: String) = "user.$userId"
-        fun idForRole(roleId: String) = "role.$roleId"
+        fun idForUser(userId: String) = PermissionMapId("user.$userId")
+        fun idForRole(roleId: String) = PermissionMapId("role.$roleId")
     }
 
-    fun stateForId(path: PermissionPath, id: String): BotPermissionState?
+    fun stateForId(path: PermissionPath, id: PermissionMapId): BotPermissionState?
 }
 
 fun PermissionMap.Companion.idForUser(user: User) = idForUser(userId = user.id)
@@ -98,7 +100,7 @@ fun PermissionMap.stateForRole(path: PermissionPath, roleId: String) = stateForI
 fun PermissionMap.stateForRole(path: PermissionPath, role: Role) = stateForRole(path, roleId = role.id)
 
 interface MutablePermissionMap : PermissionMap {
-    fun setStateForId(path: PermissionPath, id: String, newState: BotPermissionState)
+    fun setStateForId(path: PermissionPath, id: PermissionMapId, newState: BotPermissionState)
 }
 
 fun MutablePermissionMap.setStateForUser(path: PermissionPath, userId: String, newState: BotPermissionState) =
