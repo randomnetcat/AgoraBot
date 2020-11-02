@@ -111,10 +111,17 @@ private fun makePermissionsStrategy(
             return botMap.stateForUser(path = path, userId = userId) ?: BotPermissionState.DEFER
         }
 
-        override fun checkGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState {
+        override fun checkUserGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState {
             return guildMap
                 .mapForGuild(guildId = guildId)
                 .stateForUser(path = path, userId = userId)
+                ?: BotPermissionState.DEFER
+        }
+
+        override fun checkRoleGuildPath(guildId: String, roleId: String, path: PermissionPath): BotPermissionState {
+            return guildMap
+                .mapForGuild(guildId = guildId)
+                .stateForRole(path = path, roleId = roleId)
                 ?: BotPermissionState.DEFER
         }
     }

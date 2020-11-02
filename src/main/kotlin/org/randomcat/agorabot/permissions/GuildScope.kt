@@ -13,19 +13,30 @@ private fun checkGuildPermission(
         is UserPermissionContext.Guildless -> false
 
         is UserPermissionContext.InGuild -> {
+            fun stateToBool(state: BotPermissionState): Boolean? {
+                return when (state) {
+                    BotPermissionState.ALLOW -> true
+                    BotPermissionState.DENY -> false
+                    BotPermissionState.DEFER -> null
+                }
+            }
+
             val member = userContext.member
             if (member.hasPermission(DiscordPermission.ADMINISTRATOR)) return true
 
+            // Member returns roles from highest->lowest, which is the same order as we should check.
+            // Member also does not include the @everyone role, so include that here.
+            val roles = member.roles + userContext.guild.publicRole
+
             for (path in paths) {
-                @Suppress("UNUSED_VARIABLE")
-                val ensureExhaustive = when (
-                    botContext.checkGuildPath(guildId = userContext.guild.id, userId = userContext.user.id, path)
-                ) {
-                    BotPermissionState.ALLOW -> return true
-                    BotPermissionState.DENY -> return false
-                    BotPermissionState.DEFER -> {
-                        // continue around the loop
-                    }
+                stateToBool(
+                    botContext.checkUserGuildPath(guildId = userContext.guild.id, userId = userContext.user.id, path)
+                )?.let { return it }
+
+                for (role in roles) {
+                    stateToBool(
+                        botContext.checkRoleGuildPath(guildId = userContext.guild.id, roleId = role.id, path)
+                    )?.let { return it }
                 }
             }
 

@@ -28,7 +28,8 @@ fun BotPermissionState.isAllowed(): Boolean = this == BotPermissionState.ALLOW
 interface BotPermissionContext {
     fun isBotAdmin(userId: String): Boolean
     fun checkGlobalPath(userId: String, path: PermissionPath): BotPermissionState
-    fun checkGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState
+    fun checkUserGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState
+    fun checkRoleGuildPath(guildId: String, roleId: String, path: PermissionPath): BotPermissionState
 }
 
 sealed class UserPermissionContext {
