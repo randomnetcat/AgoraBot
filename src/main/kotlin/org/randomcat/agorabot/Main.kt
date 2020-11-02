@@ -71,6 +71,8 @@ private fun makeCommandRegistry(
     digestMap: GuildDigestMap,
     digestFormat: DigestFormat,
     digestSendStrategy: DigestSendStrategy?,
+    botPermissionMap: MutablePermissionMap,
+    guildPermissionMap: MutableGuildPermissionMap,
 ): CommandRegistry {
     return MutableMapCommandRegistry(
         mapOf(
@@ -86,6 +88,11 @@ private fun makeCommandRegistry(
             "cfj" to CfjCommand(commandStrategy),
             "duck" to DuckCommand(commandStrategy),
             "sudo" to SudoCommand(commandStrategy),
+            "permissions" to PermissionsCommand(
+                commandStrategy,
+                botMap = botPermissionMap,
+                guildMap = guildPermissionMap,
+            )
         ),
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
@@ -188,9 +195,10 @@ fun main(args: Array<String>) {
         PermissionsConfig(botAdminList = emptyList())
     }
 
-    val botPermissionMap =
-        JsonPermissionMap(permissionsDir.resolve("bot.json"))
-            .also { it.schedulePersistenceOn(persistService) }
+    val botPermissionMap = JsonPermissionMap(permissionsDir.resolve("bot.json"))
+    botPermissionMap.schedulePersistenceOn(persistService)
+
+    val guildPermissionMap = JsonGuildPermissionMap(permissionsDir.resolve("guild"), persistService)
 
     val commandStrategy =
         object :
@@ -215,7 +223,7 @@ fun main(args: Array<String>) {
             BaseCommandPermissionsStrategy by makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
                 botMap = botPermissionMap,
-                guildMap = JsonGuildPermissionMap(permissionsDir.resolve("guild"), persistService)
+                guildMap = guildPermissionMap
             ) {}
 
     jda.addEventListener(
@@ -227,6 +235,8 @@ fun main(args: Array<String>) {
                 digestMap = digestMap,
                 digestFormat = digestFormat,
                 digestSendStrategy = digestSendStrategy,
+                botPermissionMap = botPermissionMap,
+                guildPermissionMap = guildPermissionMap,
             ),
         ),
         digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
