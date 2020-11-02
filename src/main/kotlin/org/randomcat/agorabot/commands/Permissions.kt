@@ -75,13 +75,19 @@ class PermissionsCommand(
 
             subcommand("role") {
                 args(
-                    StringArg("role_id"),
+                    StringArg("role_descriptor"),
                     StringArg("permission_path")
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
-                ) { (userId, stringPath) ->
+                ) { (roleString, stringPath) ->
+                    val role = resolveRole(roleString)
+                    if (role == null) {
+                        respond("Unable to locate single role with name/id \"$roleString\".")
+                        return@permissions
+                    }
+
                     handleGuildSetState(
-                        id = PermissionMap.idForRole(userId),
+                        id = PermissionMap.idForRole(role),
                         stringPath = stringPath.toLowerCase(),
                         newState = state,
                     )
