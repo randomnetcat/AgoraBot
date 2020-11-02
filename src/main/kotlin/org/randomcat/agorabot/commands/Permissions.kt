@@ -19,6 +19,11 @@ class PermissionsCommand(
 
         val permissionPath = PermissionPath.fromSplitting(stringPath)
 
+        if (permissionPath.parts.contains("discord")) {
+            respond("This command cannot grant Discord permissions.")
+            return
+        }
+
         if (senderHasPermission(GuildScope.byPath(permissionPath))) {
             guildMap
                 .mapForGuild(currentGuildId())
