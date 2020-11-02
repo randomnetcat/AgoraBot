@@ -14,7 +14,7 @@ fun Guild.resolveRoleString(roleString: String): Role? {
 
     if (cleanRoleString == "everyone") return publicRole
 
-    val byId = getRoleById(cleanRoleString)
+    val byId = cleanRoleString.toLongOrNull()?.let { getRoleById(it) }
     if (byId != null) return byId
 
     val byName = getRolesByName(cleanRoleString, /*ignoreCase=*/ true)
