@@ -120,13 +120,13 @@ class PermissionsCommand(
         subcommands {
             subcommand("guild") {
                 guildSubcommand("grant", BotPermissionState.ALLOW)
-                guildSubcommand("revoke", BotPermissionState.DEFER)
+                guildSubcommand("clear", BotPermissionState.DEFER)
                 guildSubcommand("deny", BotPermissionState.DENY)
             }
 
             subcommand("bot") {
                 botSubcommand("grant", BotPermissionState.ALLOW)
-                botSubcommand("revoke", BotPermissionState.DEFER)
+                botSubcommand("clear", BotPermissionState.DEFER)
                 botSubcommand("deny", BotPermissionState.DENY)
             }
         }
