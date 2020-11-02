@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands.impl
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
 import org.randomcat.agorabot.listener.Command
@@ -11,6 +12,7 @@ import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
 import org.randomcat.agorabot.permissions.UserPermissionContext
 import org.randomcat.agorabot.util.disallowMentions
+import org.randomcat.agorabot.util.resolveRoleString
 
 interface BaseCommandArgumentStrategy {
     fun sendArgumentErrorResponse(
@@ -66,6 +68,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         fun currentJda() = event.jda
         fun currentChannel() = currentMessageEvent().channel
         fun currentGuildId(): String = currentMessageEvent().guild.id
+        fun resolveRole(roleString: String): Role? = currentMessageEvent().guild.resolveRoleString(roleString)
 
         private val userPermissionContext by lazy { userPermissionContextForEvent(event) }
 
