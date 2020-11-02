@@ -133,7 +133,7 @@ private fun makePermissionsStrategy(
             permission: BotPermission,
         ) {
             event.channel.sendMessage(
-                "Could not execute due to lack of `${permission.path.scope}`" +
+                "Could not execute due to lack of `${permission.path.scope}` " +
                         "permission `${permission.path.basePath.joinToString()}`"
             ).queue()
         }
