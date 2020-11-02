@@ -130,8 +130,7 @@ private class JsonDigest(
     }
 
     override fun clear() {
-        val oldValue = rawMessages.get()
-        rawMessages.set(persistentListOf())
+        val oldValue = rawMessages.getAndSet(persistentListOf())
 
         Files.createDirectories(backupDir)
 
