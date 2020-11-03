@@ -92,7 +92,8 @@ private fun makeCommandRegistry(
                 commandStrategy,
                 botMap = botPermissionMap,
                 guildMap = guildPermissionMap,
-            )
+            ),
+            "halt" to HaltCommand(commandStrategy),
         ),
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
