@@ -12,6 +12,7 @@ import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
 import org.randomcat.agorabot.permissions.UserPermissionContext
+import org.randomcat.agorabot.util.DiscordPermission
 import org.randomcat.agorabot.util.disallowMentions
 import org.randomcat.agorabot.util.resolveRoleString
 
@@ -91,6 +92,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
         fun inGuild() = event.isFromGuild
         fun currentGuildInfo(): GuildInfo? = if (inGuild()) GuildInfo() else null
+
+        fun botHasPermission(permission: DiscordPermission): Boolean {
+            return event.guild.selfMember.hasPermission(permission)
+        }
 
         fun respondNeedGuild() {
             respond("This command can only be run in a Guild.")
