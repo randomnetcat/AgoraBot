@@ -1,6 +1,9 @@
 package org.randomcat.agorabot.digest
 
-import kotlinx.collections.immutable.*
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -9,6 +12,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.randomcat.agorabot.util.updateAndMap
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
@@ -167,31 +171,14 @@ class JsonGuildDigestMap(
         val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED, init)
     }
 
-    private val map = AtomicReference<PersistentMap<String, LoadOnceDigest>>(persistentMapOf())
+    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonDigest>()
 
     override fun digestForGuild(guildId: String): Digest {
-        run {
-            val origMap = map.get()
-
-            val existingAnswer = origMap[guildId]
-            if (existingAnswer != null) return existingAnswer.value
+        return map.getOrPut(guildId) {
+            JsonDigest(
+                storagePath = storageDirectory.resolve(guildId),
+                backupDir = backupDirectory.resolve(guildId),
+            ).also { it.schedulePersistenceOn(persistenceService) }
         }
-
-        return map.updateAndGet { origMap ->
-            // Possible race condition - another thread could already have added it.
-            // This means we have to check if it's already in the map.
-            if (origMap.containsKey(guildId))
-                origMap
-            else
-            // Multiple LoadOnceDigests might be created as the threads compete, but only one will be returned
-            // to the outside world. Then, once that one instance is returned, it will thread-safely create
-            // a single JsonDigest.
-                origMap.put(guildId, LoadOnceDigest {
-                    JsonDigest(
-                        storagePath = storageDirectory.resolve(guildId),
-                        backupDir = backupDirectory.resolve(guildId),
-                    ).also { it.schedulePersistenceOn(persistenceService) }
-                })
-        }.getValue(guildId).value
     }
 }

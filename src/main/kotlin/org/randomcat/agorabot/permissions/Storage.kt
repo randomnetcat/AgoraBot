@@ -8,6 +8,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -90,33 +91,12 @@ class JsonGuildPermissionMap(
         Files.createDirectories(storageDir)
     }
 
-    private class LoadOncePermissionMap(init: () -> MutablePermissionMap) {
-        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED, init)
-    }
-
-    private val map = AtomicReference<PersistentMap<String, LoadOncePermissionMap>>(persistentMapOf())
+    private val map = AtomicLoadOnceMap<String /* GuildId */, MutablePermissionMap>()
 
     override fun mapForGuild(guildId: String): MutablePermissionMap {
-        run {
-            val origMap = map.get()
-
-            val existing = origMap[guildId]
-            if (existing != null) return existing.value
+        return map.getOrPut(guildId) {
+            JsonPermissionMap(storagePath = storageDir.resolve(guildId))
+                .also { it.schedulePersistenceOn(persistenceService) }
         }
-
-        return map.updateAndGet { origMap ->
-            // If the map already contains the guild, don't add a new one - this would result in two
-            // LoadOncePermissionMaps reaching the outside world.
-            if (origMap.containsKey(guildId))
-                origMap
-            else
-            // Only one JsonPermissionMap must be created (so it has exclusive ownership over the file). Only one
-            // LoadOncePermissionMap will be returned to the outside world, and that one instance will lazy initialize
-            // the one JsonPermissionMap when its value is accessed.
-                origMap.put(guildId, LoadOncePermissionMap {
-                    JsonPermissionMap(storagePath = storageDir.resolve(guildId))
-                        .also { it.schedulePersistenceOn(persistenceService) }
-                })
-        }.getValue(guildId).value
     }
 }
