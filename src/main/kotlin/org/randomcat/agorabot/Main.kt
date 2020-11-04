@@ -94,6 +94,7 @@ private fun makeCommandRegistry(
                 guildMap = guildPermissionMap,
             ),
             "halt" to HaltCommand(commandStrategy),
+            "selfassign" to SelfAssignCommand(commandStrategy),
         ),
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
