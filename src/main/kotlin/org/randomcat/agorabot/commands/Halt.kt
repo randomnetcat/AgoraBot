@@ -7,7 +7,7 @@ import kotlin.system.exitProcess
 class HaltCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
         noArgs().permissions(BotScope.admin()) {
-            currentJda().shutdown()
+            currentJda().shutdownNow()
             exitProcess(1)
         }
     }
