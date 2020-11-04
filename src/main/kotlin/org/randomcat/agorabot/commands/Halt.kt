@@ -8,7 +8,7 @@ class HaltCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
         noArgs().permissions(BotScope.admin()) {
             currentJda().shutdownNow()
-            exitProcess(1)
+            exitProcess(0)
         }
     }
 }
