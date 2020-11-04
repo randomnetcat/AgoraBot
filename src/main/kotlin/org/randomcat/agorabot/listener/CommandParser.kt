@@ -75,9 +75,10 @@ class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser 
 class MentionPrefixCommandParser(private val fallback: CommandParser) : CommandParser {
     override fun parse(event: MessageReceivedEvent): CommandParseResult {
         val selfUserId = event.jda.selfUser.id
+        val selfRoleId = event.guild.selfMember.roles.singleOrNull { it.isManaged }?.id
 
         // These are the two options for raw mentions; see https://discord.com/developers/docs/reference
-        val mentionOptions = listOf("<@$selfUserId>", "<@!$selfUserId>")
+        val mentionOptions = listOfNotNull("<@$selfUserId>", "<@!$selfUserId>", selfRoleId?.let { "<@&$it>" })
 
         val parseResult = parsePrefixListCommand(prefixOptions = mentionOptions, message = event.message.contentRaw)
         if (parseResult !is CommandParseResult.Ignore) return parseResult
