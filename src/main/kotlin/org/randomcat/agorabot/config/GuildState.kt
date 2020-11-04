@@ -10,6 +10,7 @@ import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.atomic.AtomicReference
 
@@ -54,12 +55,12 @@ class JsonGuildState(private val storagePath: Path) : GuildState {
                 Files.writeString(
                     tempFile,
                     Json.encodeToString<Map<String, String>>(data),
-                    Charsets.UTF_8,
+                    FILE_CHARSET,
                     StandardOpenOption.TRUNCATE_EXISTING,
                     StandardOpenOption.CREATE,
                 )
 
-                Files.move(tempFile, path)
+                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING)
             }
         }
     }
@@ -91,6 +92,10 @@ class JsonGuildStateMap(
     private val storageDirectory: Path,
     private val persistService: ConfigPersistService,
 ) : GuildStateMap {
+    init {
+        Files.createDirectories(storageDirectory)
+    }
+
     private val map = AtomicLoadOnceMap<String /* GuildId */, JsonGuildState>()
 
     override fun stateForGuild(guildId: String): GuildState {
