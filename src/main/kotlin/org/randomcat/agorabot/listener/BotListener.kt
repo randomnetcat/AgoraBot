@@ -11,6 +11,10 @@ class BotListener(private val parser: CommandParser, private val registry: Comma
     fun onMessage(event: MessageReceivedEvent) {
         if (event.author.id == event.jda.selfUser.id) return
 
+        // Webhooks shouldn't be reacted to, and they cause problems later on because the event can't return a
+        // Member object if the message is from a webhook.
+        if (event.message.isWebhookMessage) return
+
         return when (val parseResult = parser.parse(event)) {
             is CommandParseResult.Invocation -> registry.invokeCommand(event, parseResult.invocation)
             is CommandParseResult.Message -> respond(event, parseResult.message)

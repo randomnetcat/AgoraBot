@@ -85,6 +85,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             val guild by lazy { event.guild }
             val guildId by lazy { guild.id }
             val guildState by lazy { strategy.guildStateFor(guildId = guildId) }
+            val senderMember by lazy { event.member ?: error("Expected event to have a Member") }
             fun resolveRole(roleString: String): Role? = guild.resolveRoleString(roleString)
         }
 
