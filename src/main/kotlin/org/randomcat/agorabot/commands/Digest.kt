@@ -73,16 +73,26 @@ class DigestCommand(
         subcommands {
             subcommand("clear") {
                 noArgs { _ ->
-                    currentDigest().clear()
+                    val digest = currentDigest() ?: run {
+                        respondNeedGuild()
+                        return@noArgs
+                    }
+
+                    digest.clear()
                     respond("Successfully cleared digest.")
                 }
             }
 
             subcommand("upload") {
                 noArgs { _ ->
+                    val digest = currentDigest() ?: run {
+                        respondNeedGuild()
+                        return@noArgs
+                    }
+
                     respondWithFile(
                         fileName = "digest.txt",
-                        fileContent = digestFormat.format(currentDigest())
+                        fileContent = digestFormat.format(digest)
                     )
                 }
             }
@@ -90,7 +100,12 @@ class DigestCommand(
             if (sendStrategy != null) {
                 subcommand("send") {
                     args(StringArg("destination")) { (destination) ->
-                        sendStrategy.sendDigest(currentDigest(), destination)
+                        val digest = currentDigest() ?: run {
+                            respondNeedGuild()
+                            return@args
+                        }
+
+                        sendStrategy.sendDigest(digest, destination)
 
                         respond("Sent digest to $destination.")
                     }
@@ -100,15 +115,25 @@ class DigestCommand(
             subcommand("add") {
                 matchFirst {
                     args(StringArg("message_id")) { (messageId) ->
+                        val digest = currentDigest() ?: run {
+                            respondNeedGuild()
+                            return@args
+                        }
+
                         val message = getMessageOrError(messageId) ?: return@args
 
                         message.retrieveDigestMessage().queue { digestMessage ->
-                            currentDigest().add(digestMessage)
+                            digest.add(digestMessage)
                             respond("Added one message to digest.")
                         }
                     }
 
                     args(StringArg("range_begin"), StringArg("range_end")) { (rangeBeginId, rangeEndId) ->
+                        val digest = currentDigest() ?: run {
+                            respondNeedGuild()
+                            return@args
+                        }
+
                         val rangeBegin = getMessageOrError(rangeBeginId) ?: return@args
                         val rangeEnd = getMessageOrError(rangeEndId) ?: return@args
 
@@ -123,7 +148,7 @@ class DigestCommand(
                         retrieveMessagesBetween(rangeBegin, rangeEnd)
                             .mapToDigestMessages()
                             .queue { messages ->
-                                currentDigest().add(messages)
+                                digest.add(messages)
                                 respond("Added ${messages.size} messages to digest.")
                             }
                     }
@@ -132,5 +157,5 @@ class DigestCommand(
         }
     }
 
-    private fun ExecutionReceiverImpl.currentDigest() = digestMap.digestForGuild(currentGuildId())
+    private fun ExecutionReceiverImpl.currentDigest() = currentGuildInfo()?.let { digestMap.digestForGuild(it.guildId) }
 }

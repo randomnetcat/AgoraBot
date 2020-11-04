@@ -20,7 +20,12 @@ class PrefixCommand(
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs {
-                respond("The prefix is: ${prefixMap.prefixForGuild(currentGuildId())}")
+                val guildId = currentGuildInfo()?.guildId ?: run {
+                    respondNeedGuild()
+                    return@noArgs
+                }
+
+                respond("The prefix is: ${prefixMap.prefixForGuild(guildId)}")
             }
 
             args(
@@ -28,6 +33,11 @@ class PrefixCommand(
             ).permissions(
                 GuildScope.command("prefix").action("set"),
             ) { (newPrefix) ->
+                val guildId = currentGuildInfo()?.guildId ?: run {
+                    respondNeedGuild()
+                    return@permissions
+                }
+
                 if (newPrefix.isBlank()) {
                     respond("The prefix cannot be empty. Stop it.")
                     return@permissions
@@ -38,7 +48,7 @@ class PrefixCommand(
                     return@permissions
                 }
 
-                prefixMap.setPrefixForGuild(currentGuildId(), newPrefix)
+                prefixMap.setPrefixForGuild(guildId, newPrefix)
                 respond("The prefix has been updated.")
             }
         }

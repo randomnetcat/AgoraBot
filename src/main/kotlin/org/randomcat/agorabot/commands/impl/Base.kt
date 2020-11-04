@@ -76,9 +76,24 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         fun currentMessageEvent() = event
         fun currentJda() = event.jda
         fun currentChannel() = currentMessageEvent().channel
-        fun currentGuildId(): String = currentMessageEvent().guild.id
-        fun currentGuildState(): GuildState = strategy.guildStateFor(currentGuildId())
-        fun resolveRole(roleString: String): Role? = currentMessageEvent().guild.resolveRoleString(roleString)
+
+        inner class GuildInfo {
+            init {
+                require(event.isFromGuild)
+            }
+
+            val guild by lazy { event.guild }
+            val guildId by lazy { guild.id }
+            val guildState by lazy { strategy.guildStateFor(guildId = guildId) }
+            fun resolveRole(roleString: String): Role? = guild.resolveRoleString(roleString)
+        }
+
+        fun inGuild() = event.isFromGuild
+        fun currentGuildInfo(): GuildInfo? = if (inGuild()) GuildInfo() else null
+
+        fun respondNeedGuild() {
+            respond("This command can only be run in a Guild.")
+        }
 
         private val userPermissionContext by lazy { userPermissionContextForEvent(event) }
 

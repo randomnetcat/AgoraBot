@@ -15,6 +15,11 @@ class PermissionsCommand(
         stringPath: String,
         newState: BotPermissionState,
     ) {
+        val guildId = currentGuildInfo()?.guildId ?: run {
+            respondNeedGuild()
+            return
+        }
+
         check(senderHasPermission(MANAGE_GUILD_PERMISSIONS_PERMISSION))
 
         val permissionPath = PermissionPath.fromSplitting(stringPath)
@@ -26,7 +31,7 @@ class PermissionsCommand(
 
         if (senderHasPermission(GuildScope.byPath(permissionPath))) {
             guildMap
-                .mapForGuild(currentGuildId())
+                .mapForGuild(guildId)
                 .setStateForId(permissionPath, id = id, newState)
 
             respond("Done.")
@@ -85,7 +90,12 @@ class PermissionsCommand(
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
                 ) { (roleString, stringPath) ->
-                    val role = resolveRole(roleString)
+                    val guildInfo = currentGuildInfo() ?: run {
+                        respondNeedGuild()
+                        return@permissions
+                    }
+
+                    val role = guildInfo.resolveRole(roleString)
                     if (role == null) {
                         respond("Unable to locate single role with name/id \"$roleString\".")
                         return@permissions
