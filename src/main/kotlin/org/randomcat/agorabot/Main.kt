@@ -203,6 +203,14 @@ fun main(args: Array<String>) {
         PermissionsConfig(botAdminList = emptyList())
     }
 
+    val guildStateStorageDir = Path.of(".", "guild_storage")
+    val guildStateMap = JsonGuildStateMap(guildStateStorageDir, persistService)
+    val guildStateStrategy = object : BaseCommandGuildStateStrategy {
+        override fun guildStateFor(guildId: String): GuildState {
+            return guildStateMap.stateForGuild(guildId)
+        }
+    }
+
     val botPermissionMap = JsonPermissionMap(permissionsDir.resolve("bot.json"))
     botPermissionMap.schedulePersistenceOn(persistService)
 
@@ -232,7 +240,8 @@ fun main(args: Array<String>) {
                 permissionsConfig = permissionsConfig,
                 botMap = botPermissionMap,
                 guildMap = guildPermissionMap
-            ) {}
+            ),
+            BaseCommandGuildStateStrategy by guildStateStrategy {}
 
     jda.addEventListener(
         BotListener(

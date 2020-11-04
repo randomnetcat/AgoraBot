@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
+import org.randomcat.agorabot.config.GuildState
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.permissions.BotPermission
@@ -40,7 +41,15 @@ interface BaseCommandPermissionsStrategy {
     val permissionContext: BotPermissionContext
 }
 
-interface BaseCommandStrategy : BaseCommandArgumentStrategy, BaseCommandOutputSink, BaseCommandPermissionsStrategy
+interface BaseCommandGuildStateStrategy {
+    fun guildStateFor(guildId: String): GuildState
+}
+
+interface BaseCommandStrategy :
+    BaseCommandArgumentStrategy,
+    BaseCommandOutputSink,
+    BaseCommandPermissionsStrategy,
+    BaseCommandGuildStateStrategy
 
 private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
     event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
@@ -68,6 +77,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         fun currentJda() = event.jda
         fun currentChannel() = currentMessageEvent().channel
         fun currentGuildId(): String = currentMessageEvent().guild.id
+        fun currentGuildState(): GuildState = strategy.guildStateFor(currentGuildId())
         fun resolveRole(roleString: String): Role? = currentMessageEvent().guild.resolveRoleString(roleString)
 
         private val userPermissionContext by lazy { userPermissionContextForEvent(event) }
