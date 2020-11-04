@@ -5,11 +5,13 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.commands.impl.BaseCommand.ExecutionReceiverImpl.GuildInfo
 import org.randomcat.agorabot.config.get
 import org.randomcat.agorabot.config.update
-import org.randomcat.agorabot.permissions.DiscordScope
+import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
 
 private const val SELF_ASSIGNABLE_STATE_KEY = "self_assign.assignable"
 private typealias SelfAssignableStateType = List<String>
+
+private val MANAGE_SELFASSIGN_PERMISSION = GuildScope.command("selfassign").action("manage")
 
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     private inline fun ExecutionReceiverImpl.withGuildCheck(block: (GuildInfo) -> Unit) {
@@ -102,7 +104,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             }
 
             subcommand("enable") {
-                args(StringArg("role_name")).permissions(DiscordScope.admin()) { (roleName) ->
+                args(StringArg("role_name")).permissions(MANAGE_SELFASSIGN_PERMISSION) { (roleName) ->
                     withRoleResolved(roleName) { guildInfo, role ->
                         if (role.isPublicRole) {
                             respond("Refusing to make everyone role self-assignable.")
@@ -119,7 +121,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             }
 
             subcommand("disable") {
-                args(StringArg("role_name")).permissions(DiscordScope.admin()) { (roleName) ->
+                args(StringArg("role_name")).permissions(MANAGE_SELFASSIGN_PERMISSION) { (roleName) ->
                     withRoleResolved(roleName) { guildInfo, role ->
                         guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
                             // Use list subtraction in order to remove all instances of it (if it's duplicated).
