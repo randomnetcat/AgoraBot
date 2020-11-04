@@ -19,4 +19,6 @@ object DiscordScope {
             }
         }
     }
+
+    fun admin() = permission(DiscordPermission.ADMINISTRATOR)
 }
