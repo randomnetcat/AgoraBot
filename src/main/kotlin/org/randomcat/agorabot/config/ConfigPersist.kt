@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.config
 
+import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -20,6 +21,8 @@ interface ConfigPersistService {
 }
 
 object DefaultConfigPersistService : ConfigPersistService {
+    private val logger = LoggerFactory.getLogger("DefaultConfigPersistService")
+
     private val executor = Executors.newSingleThreadScheduledExecutor()
 
     // A flag that is set during JVM shutdown so that normal writing does not start during JVM shutdown.
@@ -36,17 +39,21 @@ object DefaultConfigPersistService : ConfigPersistService {
                 // handle the final write.
                 if (shutdownFlag.get()) return
 
-                lock.withLock {
-                    val newValue = readState()
-                    val testLastValue = lastValue.get()
+                try {
+                    lock.withLock {
+                        val newValue = readState()
+                        val testLastValue = lastValue.get()
 
-                    // Don't persist if nothing has changed. This doesn't need to be some super complicated atomic
-                    // operation thing because persist must be thread-safe and if we skip any changes, the next time can
-                    // just pick up the slack.
-                    if (testLastValue == newValue) return
+                        // Don't persist if nothing has changed. This doesn't need to be some super complicated atomic
+                        // operation thing because persist must be thread-safe and if we skip any changes, the next time
+                        // can just pick up the slack.
+                        if (testLastValue == newValue) return
 
-                    lastValue.set(newValue)
-                    persist(newValue)
+                        lastValue.set(newValue)
+                        persist(newValue)
+                    }
+                } catch (e: Exception) {
+                    logger.error("Error while persisting storage!", e)
                 }
             }
         }, 0, 5, TimeUnit.SECONDS)
