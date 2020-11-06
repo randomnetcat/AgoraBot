@@ -34,11 +34,18 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private inline fun ExecutionReceiverImpl.withInteractableRoleResolved(
+    private inline fun ExecutionReceiverImpl.withInteractableSelfAssignableRoleResolved(
         roleName: String,
         block: (GuildInfo, Role) -> Unit,
     ) {
         withRoleResolved(roleName) { guildInfo, role ->
+            val assignableRoleIds = guildInfo.assignableRoleIds()
+
+            if (!assignableRoleIds.contains(role.id)) {
+                respond("That role is not self-assignable.")
+                return@withRoleResolved
+            }
+
             if (role.isPublicRole) {
                 respond("Refusing to handle public role.")
                 return@withRoleResolved
@@ -52,22 +59,6 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             if (!guildInfo.guild.selfMember.canInteract(role)) {
                 respond("Cannot interact with that role! Contact a Guild admin.")
                 return
-            }
-
-            block(guildInfo, role)
-        }
-    }
-
-    private inline fun ExecutionReceiverImpl.withInteractableSelfAssignableRoleResolved(
-        roleName: String,
-        block: (GuildInfo, Role) -> Unit,
-    ) {
-        withInteractableRoleResolved(roleName) { guildInfo, role ->
-            val assignableRoleIds = guildInfo.assignableRoleIds()
-
-            if (!assignableRoleIds.contains(role.id)) {
-                respond("That role is not self-assignable.")
-                return@withInteractableRoleResolved
             }
 
             block(guildInfo, role)
