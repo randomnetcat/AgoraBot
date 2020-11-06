@@ -83,8 +83,8 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             } else {
                 val rolesPart = "The following roles can be self-assigned: " +
                         assignableRoles
-                            .sortedByDescending { it.position }.map { it.name }
-                            .joinToString(separator = ", ", postfix = ".")
+                            .sortedByDescending { it.position }
+                            .joinToString(separator = ", ", postfix = ".") { it.name }
 
                 val actionPart =
                     if (senderHasPermission(MANAGE_SELFASSIGN_PERMISSION))
