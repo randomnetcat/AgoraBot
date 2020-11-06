@@ -94,7 +94,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         fun currentGuildInfo(): GuildInfo? = if (inGuild()) GuildInfo() else null
 
         fun botHasPermission(permission: DiscordPermission): Boolean {
-            return event.guild.selfMember.hasPermission(permission)
+            return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
         }
 
         fun respondNeedGuild() {
