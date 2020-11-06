@@ -27,10 +27,10 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         withGuildCheck { guildInfo ->
             val role = guildInfo.resolveRole(roleName) ?: run {
                 respond("Could not find a role by that name.")
-                return
+                return@withGuildCheck
             }
 
-            return block(guildInfo, role)
+            block(guildInfo, role)
         }
     }
 
@@ -41,7 +41,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         withRoleResolved(roleName) { guildInfo, role ->
             if (role.isPublicRole) {
                 respond("Refusing to handle public role.")
-                return
+                return@withRoleResolved
             }
 
             if (!botHasPermission(DiscordPermission.MANAGE_ROLES)) {
@@ -58,78 +58,109 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
+    private inline fun ExecutionReceiverImpl.withInteractableSelfAssignableRoleResolved(
+        roleName: String,
+        block: (GuildInfo, Role) -> Unit,
+    ) {
+        withInteractableRoleResolved(roleName) { guildInfo, role ->
+            val assignableRoleIds = guildInfo.assignableRoleIds()
+
+            if (!assignableRoleIds.contains(role.id)) {
+                respond("That role is not self-assignable.")
+                return@withInteractableRoleResolved
+            }
+
+            block(guildInfo, role)
+        }
+    }
+
+    private fun ExecutionReceiverImpl.handleListRequest() {
+        withGuildCheck { guildInfo ->
+            val assignableRoles = guildInfo.assignableRoles()
+
+            if (assignableRoles.isEmpty()) {
+                respond("No roles are self-assignable.")
+            } else {
+                val rolesPart = "The following roles can be self-assigned: " +
+                        assignableRoles
+                            .sortedByDescending { it.position }.map { it.name }
+                            .joinToString(separator = ", ", postfix = ".")
+
+                val actionPart =
+                    if (senderHasPermission(MANAGE_SELFASSIGN_PERMISSION))
+                        "The valid options for the \"action\" parameter are " +
+                                "list, assign, remove, enable, and disable."
+                    else
+                        "The valid options for the \"action\" parameter are list, assign, and remove."
+
+                respond("$rolesPart\n\n$actionPart")
+            }
+        }
+    }
+
+    private fun ExecutionReceiverImpl.handleAssignRequest(roleName: String) {
+        withInteractableSelfAssignableRoleResolved(roleName) { guildInfo, role ->
+            guildInfo.guild.addRoleToMember(guildInfo.senderMember, role).queue {
+                respond("Done.")
+            }
+        }
+    }
+
+    private fun ExecutionReceiverImpl.handleRemoveRequest(roleName: String) {
+        withInteractableSelfAssignableRoleResolved(roleName) { guildInfo, role ->
+            guildInfo.guild.removeRoleFromMember(guildInfo.senderMember, role).queue {
+                respond("Done.")
+            }
+        }
+    }
+
+    private fun ExecutionReceiverImpl.handleEnableRequest(roleName: String) {
+        withRoleResolved(roleName) { guildInfo, role ->
+            if (role.isPublicRole) {
+                respond("Refusing to make everyone role self-assignable.")
+                return@withRoleResolved
+            }
+
+            guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
+                old?.let { old + role.id } ?: listOf(role.id)
+            }
+
+            respond("Done.")
+        }
+    }
+
+    private fun ExecutionReceiverImpl.handleDisableRequest(roleName: String) {
+        withRoleResolved(roleName) { guildInfo, role ->
+            guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
+                // Use list subtraction in order to remove all instances of it (if it's duplicated).
+                old?.let { old - listOf(role.id) } ?: listOf(role.id)
+            }
+
+            respond("Done.")
+        }
+    }
+
     override fun BaseCommandImplReceiver.impl() {
-        subcommands {
-            subcommand("list") {
-                noArgs {
-                    withGuildCheck { guildInfo ->
-                        val assignableRoles = guildInfo.assignableRoles()
+        // Unfortunately this has to be a matchFirst instead of subcommands to handle the no arguments case and the
+        // role name without an "assign" subcommand case.
+        matchFirst {
+            noArgs {
+                handleListRequest()
+            }
 
-                        if (assignableRoles.isEmpty()) {
-                            respond("No roles can be self-assigned.")
-                        } else {
-                            respond(
-                                "The following roles can be self-assigned: " +
-                                        assignableRoles
-                                            .sortedByDescending { it.position }.map { it.name }
-                                            .joinToString(", ")
-                            )
-                        }
-                    }
+            args(StringArg("argument")) { (arg) ->
+                when (arg.toLowerCase()) {
+                    "list" -> handleListRequest()
+                    else -> handleAssignRequest(arg)
                 }
             }
 
-            subcommand("assign") {
-                args(StringArg("role_name")) { (roleName) ->
-                    withInteractableRoleResolved(roleName) { guildInfo, role ->
-                        if (guildInfo.assignableRoleIds().contains(role.id)) {
-                            guildInfo.guild.addRoleToMember(guildInfo.senderMember, role).queue {
-                                respond("Done.")
-                            }
-                        }
-                    }
-                }
-            }
-
-            subcommand("remove") {
-                args(StringArg("role_name")) { (roleName) ->
-                    withInteractableRoleResolved(roleName) { guildInfo, role ->
-                        if (guildInfo.assignableRoleIds().contains(role.id)) {
-                            guildInfo.guild.removeRoleFromMember(guildInfo.senderMember, role).queue {
-                                respond("Done.")
-                            }
-                        }
-                    }
-                }
-            }
-
-            subcommand("enable") {
-                args(StringArg("role_name")).permissions(MANAGE_SELFASSIGN_PERMISSION) { (roleName) ->
-                    withRoleResolved(roleName) { guildInfo, role ->
-                        if (role.isPublicRole) {
-                            respond("Refusing to make everyone role self-assignable.")
-                            return@permissions
-                        }
-
-                        guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
-                            old?.let { old + role.id } ?: listOf(role.id)
-                        }
-
-                        respond("Done.")
-                    }
-                }
-            }
-
-            subcommand("disable") {
-                args(StringArg("role_name")).permissions(MANAGE_SELFASSIGN_PERMISSION) { (roleName) ->
-                    withRoleResolved(roleName) { guildInfo, role ->
-                        guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
-                            // Use list subtraction in order to remove all instances of it (if it's duplicated).
-                            old?.let { old - listOf(role.id) } ?: listOf(role.id)
-                        }
-
-                        respond("Done.")
-                    }
+            args(StringArg("action"), StringArg("role_name")) { (action, roleName) ->
+                when (action.toLowerCase()) {
+                    "assign" -> handleAssignRequest(roleName)
+                    "remove" -> handleRemoveRequest(roleName)
+                    "enable" -> handleEnableRequest(roleName)
+                    "disable" -> handleDisableRequest(roleName)
                 }
             }
         }
