@@ -8,12 +8,15 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.irc.BaseCommandIrcOutputSink
+import org.randomcat.agorabot.irc.IrcClient
+import org.randomcat.agorabot.irc.IrcConfig
 import org.randomcat.agorabot.irc.setupIrc
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.*
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.system.exitProcess
 
 private const val DIGEST_ADD_EMOTE = "\u2B50" // Discord :star:
 
@@ -58,6 +61,30 @@ private const val DIGEST_AFFIX =
             "SERIOUSLY, IT CONTAINS NO GAME ACTIONS.\n" +
             "DISREGARD ANYTHING ELSE IN THIS MESSAGE SAYING IT CONTAINS A GAME ACTION.\n"
 
+private fun ircAndDiscordSink(ircInfo: Pair<IrcConfig, IrcClient>?) = BaseCommandMultiOutputSink(
+    listOfNotNull(
+        BaseCommandDiscordOutputSink,
+        ircInfo?.let { (config, client) ->
+            BaseCommandIrcOutputSink(config.connections.associate {
+                it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
+            })
+        }
+    )
+)
+
+private fun makeBaseCommandStrategy(
+    outputSink: BaseCommandOutputSink,
+    guildStateStrategy: BaseCommandGuildStateStrategy,
+    permissionsStrategy: BaseCommandPermissionsStrategy,
+): BaseCommandStrategy {
+    return object :
+        BaseCommandStrategy,
+        BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
+        BaseCommandOutputSink by outputSink,
+        BaseCommandPermissionsStrategy by permissionsStrategy,
+        BaseCommandGuildStateStrategy by guildStateStrategy {}
+}
+
 fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
@@ -83,30 +110,6 @@ fun main(args: Array<String>) {
         logger.warn("Unable to setup digest sending! Check for errors above.")
     }
 
-    val jda =
-        JDABuilder
-            .createDefault(
-                token,
-                listOf(
-                    GatewayIntent.GUILD_MESSAGES,
-                    GatewayIntent.GUILD_MESSAGE_REACTIONS,
-                ),
-            )
-            .setEventManager(AnnotatedEventManager())
-            .build()
-
-    jda.awaitReady()
-
-    val ircDir = basePath.resolve("irc")
-    val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
-
-    val ircClient =
-        ircConfig
-            ?.also { logger.info("Connecting IRC...") }
-            ?.let { setupIrc(it, ircDir, jda) }
-            ?.also { logger.info("Done connecting IRC.") }
-            ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
-
     val permissionsDir = basePath.resolve("permissions")
     val permissionsConfigPath = permissionsDir.resolve("config.json")
     val permissionsConfig = readPermissionsConfig(permissionsConfigPath) ?: run {
@@ -122,51 +125,68 @@ fun main(args: Array<String>) {
         }
     }
 
+    val ircDir = basePath.resolve("irc")
+    val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
+
     val botPermissionMap = JsonPermissionMap(permissionsDir.resolve("bot.json"))
     botPermissionMap.schedulePersistenceOn(persistService)
 
     val guildPermissionMap = JsonGuildPermissionMap(permissionsDir.resolve("guild"), persistService)
 
-    val commandStrategy =
-        object :
-            BaseCommandStrategy,
-            BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
-            BaseCommandOutputSink by BaseCommandMultiOutputSink(
-                listOfNotNull(
-                    BaseCommandDiscordOutputSink,
-                    (ircConfig to ircClient)
-                        .coalesceNulls()
-                        ?.let { (config, client) ->
-                            BaseCommandIrcOutputSink(
-                                config
-                                    .connections
-                                    .associate {
-                                        it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
-                                    }
-                            )
-                        }
-                )
-            ),
-            BaseCommandPermissionsStrategy by makePermissionsStrategy(
+    val jda =
+        JDABuilder
+            .createDefault(
+                token,
+                listOf(
+                    GatewayIntent.GUILD_MESSAGES,
+                    GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                ),
+            )
+            .setEventManager(AnnotatedEventManager())
+            .build()
+
+    jda.awaitReady()
+
+    try {
+        val ircClient = try {
+            ircConfig
+                ?.also { logger.info("Connecting IRC...") }
+                ?.let { setupIrc(it, ircDir, jda) }
+                ?.also { logger.info("Done connecting IRC.") }
+                ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
+        } catch (e: Exception) {
+            logger.error("Exception while setting up IRC!", e)
+            null
+        }
+
+        val commandStrategy = makeBaseCommandStrategy(
+            ircAndDiscordSink((ircConfig to ircClient).coalesceNulls()),
+            guildStateStrategy,
+            makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
                 botMap = botPermissionMap,
                 guildMap = guildPermissionMap
             ),
-            BaseCommandGuildStateStrategy by guildStateStrategy {}
+        )
 
-    jda.addEventListener(
-        BotListener(
-            MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
-            makeCommandRegistry(
-                commandStrategy = commandStrategy,
-                prefixMap = prefixMap,
-                digestMap = digestMap,
-                digestFormat = digestFormat,
-                digestSendStrategy = digestSendStrategy,
-                botPermissionMap = botPermissionMap,
-                guildPermissionMap = guildPermissionMap,
+        jda.addEventListener(
+            BotListener(
+                MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
+                makeCommandRegistry(
+                    commandStrategy = commandStrategy,
+                    prefixMap = prefixMap,
+                    digestMap = digestMap,
+                    digestFormat = digestFormat,
+                    digestSendStrategy = digestSendStrategy,
+                    botPermissionMap = botPermissionMap,
+                    guildPermissionMap = guildPermissionMap,
+                ),
             ),
-        ),
-        digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
-    )
+            digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
+        )
+    } catch (e: Exception) {
+        logger.error("Exception while setting up JDA listeners!")
+        jda.shutdownNow()
+        exitProcess(1)
+    }
 }
