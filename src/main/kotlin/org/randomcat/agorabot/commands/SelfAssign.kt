@@ -14,20 +14,11 @@ private typealias SelfAssignableStateType = List<String>
 private val MANAGE_SELFASSIGN_PERMISSION = GuildScope.command("selfassign").action("manage")
 
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    private inline fun ExecutionReceiverImpl.withGuildCheck(block: (GuildInfo) -> Unit) {
-        val guildInfo = currentGuildInfo() ?: run {
-            respondNeedGuild()
-            return
-        }
-
-        return block(guildInfo)
-    }
-
     private inline fun ExecutionReceiverImpl.withRoleResolved(roleName: String, block: (GuildInfo, Role) -> Unit) {
-        withGuildCheck { guildInfo ->
+        requiresGuild { guildInfo ->
             val role = guildInfo.resolveRole(roleName) ?: run {
                 respond("Could not find a role by that name.")
-                return@withGuildCheck
+                return@requiresGuild
             }
 
             block(guildInfo, role)
@@ -66,7 +57,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     }
 
     private fun ExecutionReceiverImpl.handleListRequest() {
-        withGuildCheck { guildInfo ->
+        requiresGuild { guildInfo ->
             val assignableRoles = guildInfo.assignableRoles()
 
             if (assignableRoles.isEmpty()) {

@@ -101,6 +101,16 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             respond("This command can only be run in a Guild.")
         }
 
+        inline fun requiresGuild(block: (GuildInfo) -> Unit) {
+            val guildInfo = currentGuildInfo() ?: run {
+                respondNeedGuild()
+                return
+            }
+
+            return block(guildInfo)
+        }
+
+
         private val userPermissionContext by lazy { userPermissionContextForEvent(event) }
 
         fun senderHasPermission(permission: BotPermission): Boolean =
