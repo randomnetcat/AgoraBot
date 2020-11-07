@@ -64,10 +64,12 @@ fun main(args: Array<String>) {
     val token = args.single()
     val persistService: ConfigPersistService = DefaultConfigPersistService
 
-    val digestMap = JsonGuildDigestMap(Path.of(".", "digests"), persistService)
+    val basePath = Path.of(".").toAbsolutePath()
+
+    val digestMap = JsonGuildDigestMap(basePath.resolve("digests"), persistService)
 
     val prefixMap =
-        JsonPrefixMap(default = ".", Path.of(".", "prefixes"))
+        JsonPrefixMap(default = ".", basePath.resolve("prefixes"))
             .apply { schedulePersistenceOn(persistService) }
 
     val digestFormat = AffixDigestFormat(
@@ -76,7 +78,7 @@ fun main(args: Array<String>) {
         suffix = "\n\n" + DIGEST_AFFIX,
     )
 
-    val digestSendStrategy = readDigestSendStrategyConfig(Path.of(".", "mail.json"), digestFormat)
+    val digestSendStrategy = readDigestSendStrategyConfig(basePath.resolve("mail.json"), digestFormat)
     if (digestSendStrategy == null) {
         logger.warn("Unable to setup digest sending! Check for errors above.")
     }
@@ -95,7 +97,7 @@ fun main(args: Array<String>) {
 
     jda.awaitReady()
 
-    val ircDir = Path.of(".", "irc")
+    val ircDir = basePath.resolve("irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
 
     val ircClient =
@@ -105,14 +107,14 @@ fun main(args: Array<String>) {
             ?.also { logger.info("Done connecting IRC.") }
             ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
 
-    val permissionsDir = Path.of(".", "permissions")
+    val permissionsDir = basePath.resolve("permissions")
     val permissionsConfigPath = permissionsDir.resolve("config.json")
     val permissionsConfig = readPermissionsConfig(permissionsConfigPath) ?: run {
         logger.warn("Unable to setup permissions config! Check for errors above. Using default permissions config.")
         PermissionsConfig(botAdminList = emptyList())
     }
 
-    val guildStateStorageDir = Path.of(".", "guild_storage")
+    val guildStateStorageDir = basePath.resolve("guild_storage")
     val guildStateMap = JsonGuildStateMap(guildStateStorageDir, persistService)
     val guildStateStrategy = object : BaseCommandGuildStateStrategy {
         override fun guildStateFor(guildId: String): GuildState {
