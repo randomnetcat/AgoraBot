@@ -8,6 +8,8 @@ private const val DISCORD_WHITE_CHECK_MARK = "\u2705"
 fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String): BotEmoteListener {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
+            if (!event.isFromGuild) return
+
             val emote = event.reactionEmote
             if (!emote.isEmoji) return
 
