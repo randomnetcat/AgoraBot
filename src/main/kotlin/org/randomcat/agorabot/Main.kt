@@ -13,6 +13,9 @@ import org.randomcat.agorabot.irc.IrcConfig
 import org.randomcat.agorabot.irc.setupIrc
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.*
+import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
+import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
+import org.randomcat.agorabot.reactionroles.reactionRolesListener
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -30,6 +33,7 @@ private fun makeCommandRegistry(
     digestSendStrategy: DigestSendStrategy?,
     botPermissionMap: MutablePermissionMap,
     guildPermissionMap: MutableGuildPermissionMap,
+    reactionRolesMap: MutableReactionRolesMap,
 ): CommandRegistry {
     return MutableMapCommandRegistry(
         mapOf(
@@ -52,6 +56,7 @@ private fun makeCommandRegistry(
             ),
             "halt" to HaltCommand(commandStrategy),
             "selfassign" to SelfAssignCommand(commandStrategy),
+            "reactionroles" to ReactionRolesCommand(commandStrategy, reactionRolesMap),
         ),
     ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
 }
@@ -133,6 +138,8 @@ fun main(args: Array<String>) {
 
     val guildPermissionMap = JsonGuildPermissionMap(permissionsDir.resolve("guild"), persistService)
 
+    val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
+
     val jda =
         JDABuilder
             .createDefault(
@@ -180,9 +187,11 @@ fun main(args: Array<String>) {
                     digestSendStrategy = digestSendStrategy,
                     botPermissionMap = botPermissionMap,
                     guildPermissionMap = guildPermissionMap,
+                    reactionRolesMap = reactionRolesMap,
                 ),
             ),
             digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
+            reactionRolesListener(reactionRolesMap),
         )
     } catch (e: Exception) {
         logger.error("Exception while setting up JDA listeners!")
