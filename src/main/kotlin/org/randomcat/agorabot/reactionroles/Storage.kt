@@ -35,9 +35,9 @@ data class GuildStateReactionRolesMap(
 
     override fun addRoleMapping(guildId: String, messageId: String, reactionName: String, roleId: String) {
         guildStateFun(guildId).update<GuildStateValueType>(GUILD_STATE_KEY) { orig ->
-            orig?.deepToMutable()?.also {
+            (orig ?: emptyMap()).deepToMutable().also {
                 (it.getOrPut(messageId) { mutableMapOf() }).put(reactionName, roleId)
-            } ?: emptyMap()
+            }
         }
     }
 
