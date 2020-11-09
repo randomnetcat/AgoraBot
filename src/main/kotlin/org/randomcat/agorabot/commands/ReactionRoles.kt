@@ -83,8 +83,10 @@ class ReactionRolesCommand(
                 ).permissions(
                     REACTION_ROLES_MANAGE_PERMISSION,
                 ) { (messageId, emoteString, roleString) ->
-                    withRoleAndEmoteResolved(emoteString = emoteString,
-                        roleString = roleString) { guildInfo, role, reactionStorageName ->
+                    withRoleAndEmoteResolved(
+                        emoteString = emoteString,
+                        roleString = roleString,
+                    ) { guildInfo, role, reactionStorageName ->
                         map.addRoleMapping(
                             guildId = guildInfo.guildId,
                             messageId = messageId,
