@@ -19,22 +19,28 @@ class ReactionRolesCommand(
     strategy: BaseCommandStrategy,
     private val map: MutableReactionRolesMap,
 ) : BaseCommand(strategy) {
-    private fun Guild.resolveEmoteStorageName(string: String): RestAction<String?> {
-        val reactionEmote = if (string.startsWith("<a:") && string.endsWith(">")) {
-            retrieveEmoteById(
-                string.removePrefix("<a:").removeSuffix(">").split(":").last()
-            ).map { MessageReaction.ReactionEmote.fromCustom(it) }
-        } else if (string.startsWith("<:") && string.endsWith(">")) {
-            retrieveEmoteById(
-                string.removePrefix("<:").removeSuffix(">").split(":").last()
-            ).map { MessageReaction.ReactionEmote.fromCustom(it) }
-        } else if (string.all { it.isAsciiDigit() }) {
-            retrieveEmoteById(string).map { MessageReaction.ReactionEmote.fromCustom(it) }
-        } else {
-            CompletedRestAction.ofSuccess(jda, MessageReaction.ReactionEmote.fromUnicode(string, jda))
+    private fun Guild.retrieveEmoteStorageName(string: String): RestAction<String?> {
+        val reactionEmoteAction = when {
+            string.startsWith("<a:") && string.endsWith(">") -> {
+                retrieveEmoteById(string.removeSurrounding("<a:", ">").split(":").last())
+                    .map { MessageReaction.ReactionEmote.fromCustom(it) }
+            }
+
+            string.startsWith("<:") && string.endsWith(">") -> {
+                retrieveEmoteById(string.removeSurrounding("<:", ">").split(":").last())
+                    .map { MessageReaction.ReactionEmote.fromCustom(it) }
+            }
+
+            string.all { it.isAsciiDigit() } -> {
+                retrieveEmoteById(string).map { MessageReaction.ReactionEmote.fromCustom(it) }
+            }
+
+            else -> {
+                CompletedRestAction.ofSuccess(jda, MessageReaction.ReactionEmote.fromUnicode(string, jda))
+            }
         }
 
-        return reactionEmote.mapToResult().map { (if (it.isSuccess) it.get() else null)?.storageName }
+        return reactionEmoteAction.mapToResult().map { (if (it.isSuccess) it.get() else null)?.storageName }
     }
 
     private inline fun ExecutionReceiverImpl.withEmoteResolved(
@@ -42,7 +48,7 @@ class ReactionRolesCommand(
         crossinline block: (GuildInfo, reactionStorageName: String) -> Unit,
     ) {
         requiresGuild { guildInfo ->
-            guildInfo.guild.resolveEmoteStorageName(emoteString).queue { reactionStorageName ->
+            guildInfo.guild.retrieveEmoteStorageName(emoteString).queue { reactionStorageName ->
                 if (reactionStorageName != null) {
                     block(guildInfo, reactionStorageName)
                 } else {
