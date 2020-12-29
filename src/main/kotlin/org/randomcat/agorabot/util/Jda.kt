@@ -9,12 +9,16 @@ fun MessageAction.disallowMentions() = allowedMentions(emptyList())
 typealias DiscordMessage = net.dv8tion.jda.api.entities.Message
 typealias DiscordPermission = net.dv8tion.jda.api.Permission
 
+fun String.asSnowflakeOrNull(): Long? {
+    return toLongOrNull()
+}
+
 fun Guild.resolveRoleString(roleString: String): Role? {
     val cleanRoleString = roleString.removePrefix("@").toLowerCase()
 
     if (cleanRoleString == "everyone") return publicRole
 
-    val byId = cleanRoleString.toLongOrNull()?.let { getRoleById(it) }
+    val byId = cleanRoleString.asSnowflakeOrNull()?.let { getRoleById(it) }
     if (byId != null) return byId
 
     val byName = getRolesByName(cleanRoleString, /*ignoreCase=*/ true)
