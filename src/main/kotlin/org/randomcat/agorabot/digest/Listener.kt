@@ -3,9 +3,7 @@ package org.randomcat.agorabot.digest
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import org.randomcat.agorabot.listener.BotEmoteListener
 
-private const val DISCORD_WHITE_CHECK_MARK = "\u2705"
-
-fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String): BotEmoteListener {
+fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String, successEmoji: String): BotEmoteListener {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
             if (!event.isFromGuild) return
@@ -23,7 +21,7 @@ fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String): BotEmot
 
                         if (numAdded > 0) {
                             message
-                                .addReaction(DISCORD_WHITE_CHECK_MARK)
+                                .addReaction(successEmoji)
                                 .mapToResult() // Ignores failure if no permission to react
                                 .queue()
                         }

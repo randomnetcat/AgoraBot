@@ -57,6 +57,7 @@ class DigestCommand(
     private val digestMap: GuildDigestMap,
     private val sendStrategy: DigestSendStrategy?,
     private val digestFormat: DigestFormat,
+    private val digestAddedReaction: String?,
 ) : BaseCommand(strategy) {
     private fun ExecutionReceiverImpl.getMessageOrError(id: String): Message? {
         val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
@@ -125,6 +126,10 @@ class DigestCommand(
                         message.retrieveDigestMessage().queue { digestMessage ->
                             digest.add(digestMessage)
                             respond("Added one message to digest.")
+
+                            if (digestAddedReaction != null) {
+                                message.addReaction(digestAddedReaction).queue()
+                            }
                         }
                     }
 
@@ -146,10 +151,20 @@ class DigestCommand(
                         }
 
                         retrieveMessagesBetween(rangeBegin, rangeEnd)
-                            .mapToDigestMessages()
-                            .queue { messages ->
-                                digest.add(messages)
-                                respond("Added ${messages.size} messages to digest.")
+                            .map {
+                                it to it.retrieveDigestMessages()
+                            }
+                            .queue { (messages, digestMessagesAction) ->
+                                digestMessagesAction.queue { digestMessage ->
+                                    digest.add(digestMessage)
+                                    respond("Added ${messages.size} messages to digest.")
+
+                                    if (digestAddedReaction != null) {
+                                        messages.forEach { message ->
+                                            message.addReaction(digestAddedReaction).queue()
+                                        }
+                                    }
+                                }
                             }
                     }
                 }

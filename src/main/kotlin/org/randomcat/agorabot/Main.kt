@@ -22,6 +22,7 @@ import java.nio.file.Path
 import kotlin.system.exitProcess
 
 private const val DIGEST_ADD_EMOTE = "\u2B50" // Discord :star:
+private const val DIGEST_SUCCESS_EMOTE = "\u2705" // Discord :white_check_mark:
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
 
@@ -43,6 +44,7 @@ private fun makeCommandRegistry(
                 digestMap = digestMap,
                 sendStrategy = digestSendStrategy,
                 digestFormat = digestFormat,
+                digestAddedReaction = DIGEST_SUCCESS_EMOTE,
             ),
             "copyright" to CopyrightCommand(commandStrategy),
             "prefix" to PrefixCommand(commandStrategy, prefixMap),
@@ -190,7 +192,11 @@ fun main(args: Array<String>) {
                     reactionRolesMap = reactionRolesMap,
                 ),
             ),
-            digestEmoteListener(digestMap, DIGEST_ADD_EMOTE),
+            digestEmoteListener(
+                digestMap = digestMap,
+                targetEmoji = DIGEST_ADD_EMOTE,
+                successEmoji = DIGEST_SUCCESS_EMOTE,
+            ),
             reactionRolesListener(reactionRolesMap),
         )
     } catch (e: Exception) {
