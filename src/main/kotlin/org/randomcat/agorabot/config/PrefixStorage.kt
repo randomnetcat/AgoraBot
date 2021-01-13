@@ -20,16 +20,16 @@ class JsonPrefixMap(
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
 
-        fun readFromFile(path: Path): Map<String, String> {
+        fun readFromFile(path: Path): Map<String, List<String>> {
             if (Files.notExists(path)) return emptyMap()
 
             val content = Files.readString(path, FILE_CHARSET)
-            return Json.decodeFromString<Map<String, String>>(content)
+            return Json.decodeFromString<Map<String, List<String>>>(content)
         }
 
-        fun writeToFile(path: Path, data: Map<String, String>) {
+        fun writeToFile(path: Path, data: Map<String, List<String>>) {
             withTempFile { tempFile ->
-                val content = Json.encodeToString<Map<String, String>>(data)
+                val content = Json.encodeToString<Map<String, List<String>>>(data)
 
                 Files.writeString(
                     tempFile,
@@ -44,18 +44,30 @@ class JsonPrefixMap(
         }
     }
 
-    private val map: AtomicReference<PersistentMap<String, String>> =
+    private val map: AtomicReference<PersistentMap<String, List<String>>> =
         AtomicReference(readFromFile(storagePath).toPersistentMap())
 
     fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
         persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
     }
 
-    override fun setPrefixForGuild(guildId: String, prefix: String) {
-        map.updateAndGet { oldMap -> oldMap.put(guildId, prefix) }
+    override fun addPrefixForGuild(guildId: String, prefix: String) {
+        map.updateAndGet { oldMap ->
+            val old = oldMap.getOrDefault(guildId, listOf(default))
+            // Put the longest prefixes first, so if we have overlapping prefixes--say "please"
+            // and "please please", both "please cfj" and "please please cfj" work as expected
+            oldMap.put(guildId, (old + listOf(prefix)).sortedByDescending { it.length })
+        }
     }
 
-    override fun prefixForGuild(guildId: String): String {
-        return map.get().getOrDefault(guildId, default)
+    override fun removePrefixForGuild(guildId: String, prefix: String) {
+        map.updateAndGet { oldMap ->
+            val old = oldMap.getOrDefault(guildId, listOf(default))
+            oldMap.put(guildId, old.filter { it != prefix })
+        }
+    }
+
+    override fun prefixesForGuild(guildId: String): List<String> {
+        return map.get().getOrDefault(guildId, listOf(default))
     }
 }

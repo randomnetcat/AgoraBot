@@ -51,11 +51,12 @@ fun parsePrefixListCommand(prefixOptions: Iterable<String>, message: String): Co
 }
 
 interface GuildPrefixMap {
-    fun prefixForGuild(guildId: String): String
+    fun prefixesForGuild(guildId: String): Iterable<String>
 }
 
 interface MutableGuildPrefixMap : GuildPrefixMap {
-    fun setPrefixForGuild(guildId: String, prefix: String)
+    fun addPrefixForGuild(guildId: String, prefix: String)
+    fun removePrefixForGuild(guildId: String, prefix: String)
 }
 
 class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
@@ -66,8 +67,8 @@ class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
 }
 
 class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser {
-    override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixCommand(
-        prefix = map.prefixForGuild(event.guild.id),
+    override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixListCommand(
+        prefixOptions = map.prefixesForGuild(event.guild.id),
         message = event.message.contentRaw,
     )
 }
