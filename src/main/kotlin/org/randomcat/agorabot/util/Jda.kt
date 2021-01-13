@@ -1,7 +1,9 @@
 package org.randomcat.agorabot.util
 
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
 
 fun MessageAction.disallowMentions() = allowedMentions(emptyList())
@@ -25,4 +27,12 @@ fun Guild.resolveRoleString(roleString: String): Role? {
     if (byName.size == 1) return byName.single()
 
     return null
+}
+
+fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
+    return try {
+        addReaction(reaction).mapToResult().map { Unit }
+    } catch (e: Exception) {
+        CompletedRestAction.ofSuccess(jda, Unit)
+    }
 }

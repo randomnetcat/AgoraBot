@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.util.CompletedRestAction
+import org.randomcat.agorabot.util.tryAddReaction
 
 private const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
 
@@ -128,7 +129,7 @@ class DigestCommand(
                             respond("Added one message to digest.")
 
                             if (digestAddedReaction != null) {
-                                message.addReaction(digestAddedReaction).queue()
+                                message.tryAddReaction(digestAddedReaction).queue()
                             }
                         }
                     }
@@ -161,7 +162,7 @@ class DigestCommand(
 
                                     if (digestAddedReaction != null) {
                                         messages.forEach { message ->
-                                            message.addReaction(digestAddedReaction).queue()
+                                            message.tryAddReaction(digestAddedReaction).queue()
                                         }
                                     }
                                 }

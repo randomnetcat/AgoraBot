@@ -2,6 +2,7 @@ package org.randomcat.agorabot.digest
 
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import org.randomcat.agorabot.listener.BotEmoteListener
+import org.randomcat.agorabot.util.tryAddReaction
 
 fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String, successEmoji: String): BotEmoteListener {
     val functor = object {
@@ -20,10 +21,7 @@ fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String, successE
                         val numAdded = digest.addCounted(digestMessage)
 
                         if (numAdded > 0) {
-                            message
-                                .addReaction(successEmoji)
-                                .mapToResult() // Ignores failure if no permission to react
-                                .queue()
+                            message.tryAddReaction(successEmoji).queue()
                         }
                     }
                 }
