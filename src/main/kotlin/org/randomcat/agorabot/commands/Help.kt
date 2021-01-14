@@ -1,5 +1,7 @@
 package org.randomcat.agorabot.commands
 
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.listener.Command
@@ -19,14 +21,25 @@ private fun MessageBuilder.appendUsage(name: String, command: Command) {
 class HelpCommand(
     strategy: BaseCommandStrategy,
     private val registry: QueryableCommandRegistry,
+    private val suppressedCommands: ImmutableList<String>,
 ) : BaseCommand(strategy) {
+    constructor(
+        strategy: BaseCommandStrategy,
+        registry: QueryableCommandRegistry,
+        suppressedCommands: List<String>,
+    ) : this(
+        strategy = strategy,
+        registry = registry,
+        suppressedCommands = suppressedCommands.toImmutableList(),
+    )
+
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs {
                 val commands = registry.commands()
                 val builder = MessageBuilder()
 
-                for ((name, command) in commands) {
+                commands.filter { (name, _) -> !suppressedCommands.contains(name) }.forEach { (name, command) ->
                     builder.appendUsage(name = name, command = command)
                     builder.appendLine()
                 }

@@ -60,7 +60,12 @@ private fun makeCommandRegistry(
             "selfassign" to SelfAssignCommand(commandStrategy),
             "reactionroles" to ReactionRolesCommand(commandStrategy, reactionRolesMap),
         ),
-    ).also { it.addCommand("help", HelpCommand(commandStrategy, it)) }
+    ).also {
+        it.addCommand(
+            "help",
+            HelpCommand(commandStrategy, it, suppressedCommands = listOf("permissions"))
+        )
+    }
 }
 
 private const val DIGEST_AFFIX =
