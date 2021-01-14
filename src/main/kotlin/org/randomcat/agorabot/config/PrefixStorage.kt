@@ -1,7 +1,6 @@
 package org.randomcat.agorabot.config
 
-import kotlinx.collections.immutable.PersistentMap
-import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.collections.immutable.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -45,8 +44,9 @@ class JsonPrefixMap(
         }
     }
 
-    private val map: AtomicReference<PersistentMap<String, List<String>>> =
-        AtomicReference(readFromFile(storagePath).toPersistentMap())
+    private val map: AtomicReference<PersistentMap<String, PersistentList<String>>> = AtomicReference(
+        readFromFile(storagePath).mapValues { (_, v) -> v.toPersistentList() }.toPersistentMap()
+    )
 
     fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
         persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
@@ -54,17 +54,17 @@ class JsonPrefixMap(
 
     override fun addPrefixForGuild(guildId: String, prefix: String) {
         map.updateAndGet { oldMap ->
-            val old = oldMap.getOrDefault(guildId, listOf(default))
+            val old = oldMap.getOrDefault(guildId, persistentListOf(default))
             // Put the longest prefixes first, so if we have overlapping prefixes--say "please"
             // and "please please", both "please cfj" and "please please cfj" work as expected
-            oldMap.put(guildId, (old + listOf(prefix)).sortedByDescending { it.length })
+            oldMap.put(guildId, old.add(prefix).sortedByDescending { it.length }.toPersistentList())
         }
     }
 
     override fun removePrefixForGuild(guildId: String, prefix: String) {
         map.updateAndGet { oldMap ->
-            val old = oldMap.getOrDefault(guildId, listOf(default))
-            oldMap.put(guildId, old.filter { it != prefix })
+            val old = oldMap.getOrDefault(guildId, persistentListOf(default))
+            oldMap.put(guildId, old.removeAll { it == prefix })
         }
     }
 
