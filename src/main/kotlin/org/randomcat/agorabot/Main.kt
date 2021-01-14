@@ -92,6 +92,9 @@ private fun makeBaseCommandStrategy(
         BaseCommandGuildStateStrategy by guildStateStrategy {}
 }
 
+private val PREFIX_STORAGE_CURRENT_VERSION = PrefixStorageVersion.JSON_MANY_PREFIX
+private const val PREFIX_STORAGE_COMPONENT = "prefix_storage"
+
 fun main(args: Array<String>) {
     require(args.size == 1) { "Single command line argument of token required" }
 
@@ -100,11 +103,23 @@ fun main(args: Array<String>) {
 
     val basePath = Path.of(".").toAbsolutePath()
 
+    val versioningStorage = JsonVersioningStorage(basePath.resolve("storage_versions"))
+
     val digestMap = JsonGuildDigestMap(basePath.resolve("digests"), persistService)
 
-    val prefixMap =
-        JsonPrefixMap(default = ".", basePath.resolve("prefixes"))
-            .apply { schedulePersistenceOn(persistService) }
+    val prefixStoragePath = basePath.resolve("prefixes")
+
+    migratePrefixStorage(
+        storagePath = prefixStoragePath,
+        oldVersion = versioningStorage.versionFor(PREFIX_STORAGE_COMPONENT)
+            ?.let { PrefixStorageVersion.valueOf(it) }
+            ?: PrefixStorageVersion.JSON_SINGLE_PREFIX,
+        newVersion = PREFIX_STORAGE_CURRENT_VERSION,
+    )
+
+    versioningStorage.setVersion(PREFIX_STORAGE_COMPONENT, PREFIX_STORAGE_CURRENT_VERSION.name)
+
+    val prefixMap = JsonPrefixMap(default = ".", prefixStoragePath).apply { schedulePersistenceOn(persistService) }
 
     val digestFormat = AffixDigestFormat(
         prefix = DIGEST_AFFIX + "\n",
