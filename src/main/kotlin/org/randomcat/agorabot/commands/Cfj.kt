@@ -17,14 +17,17 @@ private val UNLIKELY_RESPONSES = listOf(
     "IT'S IN THE BEST INTEREST OF THE GAME FOR THIS TO BE TRUE",
 )
 
-private val LIKELY_RESPONSES = listOf(
-    "TRUE",
-    "FALSE",
+private val MODERATE_RESOPONSES = listOf(
     "DISMISS",
     "IRRELEVANT",
 )
 
-private val RESPONSES = LIKELY_RESPONSES.repeated(10) + UNLIKELY_RESPONSES
+private val LIKELY_RESPONSES = listOf(
+    "TRUE",
+    "FALSE",
+)
+
+private val RESPONSES = LIKELY_RESPONSES.repeated(10) + MODERATE_RESOPONSES.repeated(2) + UNLIKELY_RESPONSES
 
 class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
