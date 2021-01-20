@@ -49,6 +49,7 @@ private fun makeCommandRegistry(
             "copyright" to CopyrightCommand(commandStrategy),
             "prefix" to PrefixCommand(commandStrategy, prefixMap),
             "cfj" to CfjCommand(commandStrategy),
+            "choose" to ChooseCommand(commandStrategy),
             "duck" to DuckCommand(commandStrategy),
             "sudo" to SudoCommand(commandStrategy),
             "permissions" to PermissionsCommand(
