@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
 
+const val DISCORD_MAX_MESSAGE_LENGTH = 2000
+
 fun MessageAction.disallowMentions() = allowedMentions(emptyList())
 
 typealias DiscordMessage = net.dv8tion.jda.api.entities.Message
