@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.util.DISCORD_MAX_MESSAGE_LENGTH
 import java.math.BigInteger
 import kotlin.random.Random
 import kotlin.random.nextLong
@@ -89,7 +90,12 @@ class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                         roll.toString()
                     }
                 }
-                .let { respond(it) }
+                .let {
+                    if (it.length < DISCORD_MAX_MESSAGE_LENGTH)
+                        respond(it)
+                    else
+                        respondWithFile(fileName = "rng.txt", fileContent = it)
+                }
         }
     }
 }
