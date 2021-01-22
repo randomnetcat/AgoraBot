@@ -39,6 +39,7 @@ private fun makeCommandRegistry(
     return MutableMapCommandRegistry(
         mapOf(
             "rng" to RngCommand(commandStrategy),
+            "roll" to RollCommand(commandStrategy),
             "digest" to DigestCommand(
                 strategy = commandStrategy,
                 digestMap = digestMap,
