@@ -19,7 +19,7 @@ private sealed class DieSpecification {
         }
 
         override fun roll(random: Random): BigInteger {
-            return random.nextLong(0..maxValue).toBigInteger()
+            return random.nextLong(1..maxValue).toBigInteger()
         }
     }
 
