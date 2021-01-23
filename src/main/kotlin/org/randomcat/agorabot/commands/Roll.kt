@@ -85,16 +85,18 @@ class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 .let { rolls ->
                     rolls.joinToString(
                         separator = ", ",
-                        prefix = "[", postfix = "]. Sum: ${rolls.sumOf { it }}",
+                        prefix = "[", postfix = "]",
                     ) { roll ->
                         roll.toString()
-                    }
+                    } to "Sum: ${rolls.sumOf { it }}"
                 }
-                .let {
-                    if (it.length < DISCORD_MAX_MESSAGE_LENGTH)
-                        respond(it)
+                .let { (rollStr, sumStr) ->
+                    val fullStr = "$rollStr. $sumStr"
+
+                    if (fullStr.length < DISCORD_MAX_MESSAGE_LENGTH)
+                        respond(fullStr)
                     else
-                        respondWithFile(fileName = "rng.txt", fileContent = it)
+                        respondWithTextAndFile(text = sumStr, fileName = "rng.txt", fileContent = fullStr)
                 }
         }
     }
