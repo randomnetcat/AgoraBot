@@ -35,6 +35,14 @@ interface BaseCommandOutputSink {
         fileName: String,
         fileContent: String,
     )
+
+    fun sendResponseTextAndFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        textResponse: String,
+        fileName: String,
+        fileContent: String,
+    )
 }
 
 interface BaseCommandPermissionsStrategy {
@@ -72,6 +80,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
         fun respondWithFile(fileName: String, fileContent: String) {
             strategy.sendResponseAsFile(event, invocation, fileName, fileContent)
+        }
+
+        fun respondWithTextAndFile(text: String, fileName: String, fileContent: String) {
+            strategy.sendResponseTextAndFile(event, invocation, text, fileName, fileContent)
         }
 
         fun currentMessageEvent() = event
@@ -170,6 +182,17 @@ object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
         event.channel.sendFile(bytes, fileName).disallowMentions().queue()
     }
+
+    override fun sendResponseTextAndFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        textResponse: String,
+        fileName: String,
+        fileContent: String,
+    ) {
+        val bytes = fileContent.toByteArray(Charsets.UTF_8)
+        event.channel.sendMessage(textResponse).addFile(bytes, fileName).queue()
+    }
 }
 
 object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
@@ -218,6 +241,24 @@ data class BaseCommandMultiOutputSink(
             it.sendResponseAsFile(
                 event = event,
                 invocation = invocation,
+                fileName = fileName,
+                fileContent = fileContent,
+            )
+        }
+    }
+
+    override fun sendResponseTextAndFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        textResponse: String,
+        fileName: String,
+        fileContent: String,
+    ) {
+        outputs.forEach {
+            it.sendResponseTextAndFile(
+                event = event,
+                invocation = invocation,
+                textResponse = textResponse,
                 fileName = fileName,
                 fileContent = fileContent,
             )

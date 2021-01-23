@@ -41,6 +41,25 @@ data class BaseCommandIrcOutputSink(
         fileContent: String,
     ) {
         channelForEvent(event)?.run {
+            sendIllegalAttachmentMessage(fileName)
+        }
+    }
+
+    override fun sendResponseTextAndFile(
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+        textResponse: String,
+        fileName: String,
+        fileContent: String,
+    ) {
+        channelForEvent(event)?.run {
+            sendSplitMultiLineMessage(textResponse)
+            sendIllegalAttachmentMessage(fileName)
+        }
+    }
+
+    companion object {
+        private fun IrcChannel.sendIllegalAttachmentMessage(fileName: String) {
             val safeFileName = fileName.lineSequence().joinToString("") // Paranoia
 
             sendMultiLineMessage(
