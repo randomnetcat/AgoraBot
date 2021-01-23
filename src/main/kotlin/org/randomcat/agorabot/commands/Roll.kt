@@ -65,6 +65,11 @@ class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 return@args
             }
 
+            if (diceSpecs.singleOrNull() == "newspaper") {
+                respond("\uD83D\uDDDE️")
+                return@args
+            }
+
             run {
                 val firstInvalid = diceSpecs.firstOrNull { !it.isValidDiceSpec() }
 
