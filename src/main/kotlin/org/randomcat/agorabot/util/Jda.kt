@@ -33,8 +33,10 @@ fun Guild.resolveRoleString(roleString: String): Role? {
 
 fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
     return try {
-        addReaction(reaction).mapToResult().map { Unit }
+        addReaction(reaction).ignoreErrors()
     } catch (e: Exception) {
         CompletedRestAction.ofSuccess(jda, Unit)
     }
 }
+
+fun <T> RestAction<T>.ignoreErrors() = map { Unit }.onErrorMap { Unit }
