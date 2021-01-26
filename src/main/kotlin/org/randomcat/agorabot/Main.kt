@@ -7,10 +7,7 @@ import org.randomcat.agorabot.commands.*
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.digest.*
-import org.randomcat.agorabot.irc.BaseCommandIrcOutputSink
-import org.randomcat.agorabot.irc.IrcClient
-import org.randomcat.agorabot.irc.IrcConfig
-import org.randomcat.agorabot.irc.setupIrc
+import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.*
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
@@ -19,6 +16,8 @@ import org.randomcat.agorabot.reactionroles.reactionRolesListener
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
 private const val DIGEST_ADD_EMOTE = "\u2B50" // Discord :star:
@@ -35,6 +34,8 @@ private fun makeCommandRegistry(
     botPermissionMap: MutablePermissionMap,
     guildPermissionMap: MutableGuildPermissionMap,
     reactionRolesMap: MutableReactionRolesMap,
+    ircConfig: IrcConfig?,
+    ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
 ): CommandRegistry {
     return MutableMapCommandRegistry(
         mapOf(
@@ -61,6 +62,13 @@ private fun makeCommandRegistry(
             "halt" to HaltCommand(commandStrategy),
             "selfassign" to SelfAssignCommand(commandStrategy),
             "reactionroles" to ReactionRolesCommand(commandStrategy, reactionRolesMap),
+            "irc" to IrcCommand(
+                commandStrategy,
+                lookupConnectedIrcChannel = { _, channelId ->
+                    ircConfig?.connections?.firstOrNull { it.discordChannelId == channelId }?.ircChannelName
+                },
+                persistentWhoMessageMap = ircPersistentWhoMessageMap,
+            )
         ),
     ).also {
         it.addCommand(
@@ -178,6 +186,8 @@ fun main(args: Array<String>) {
 
     jda.awaitReady()
 
+    val executor = Executors.newSingleThreadScheduledExecutor()
+
     try {
         val ircClient = try {
             ircConfig
@@ -200,6 +210,8 @@ fun main(args: Array<String>) {
             ),
         )
 
+        val persistentWhoMessageMap = GuildStateIrcUserListMessageMap { guildStateMap.stateForGuild(it) }
+
         jda.addEventListener(
             BotListener(
                 MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
@@ -212,6 +224,8 @@ fun main(args: Array<String>) {
                     botPermissionMap = botPermissionMap,
                     guildPermissionMap = guildPermissionMap,
                     reactionRolesMap = reactionRolesMap,
+                    ircConfig = ircConfig,
+                    ircPersistentWhoMessageMap = persistentWhoMessageMap,
                 ),
             ),
             digestEmoteListener(
@@ -221,6 +235,17 @@ fun main(args: Array<String>) {
             ),
             reactionRolesListener(reactionRolesMap),
         )
+
+        if (ircClient != null) {
+            executor.scheduleAtFixedRate(
+                {
+                    updateIrcPersistentWho(jda, ircClient, persistentWhoMessageMap)
+                },
+                0,
+                1,
+                TimeUnit.MINUTES,
+            )
+        }
     } catch (e: Exception) {
         logger.error("Exception while setting up JDA listeners!")
         jda.shutdownNow()
