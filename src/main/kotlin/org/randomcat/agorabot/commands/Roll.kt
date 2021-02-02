@@ -79,8 +79,9 @@ class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 }
             }
 
+            // This cannot be a Sequence because the map call is non-deterministic and the rolls are iterated
+            // multiple times.
             diceSpecs
-                .asSequence()
                 .flatMap { stringSpec ->
                     parseMultiDiceSpec(stringSpec)
                 }
