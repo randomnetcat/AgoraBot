@@ -8,6 +8,7 @@ fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String, successE
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
             if (!event.isFromGuild) return
+            if (event.userId == event.jda.selfUser.id) return
 
             val emote = event.reactionEmote
             if (!emote.isEmoji) return
