@@ -33,7 +33,11 @@ fun parsePrefixCommand(prefix: String, message: String): CommandParseResult {
     // If the prefix was not there to remove (when payload == message), there is no prefix, so no command.
     if (payload == message) return CommandParseResult.Ignore
 
-    val parts = splitArguments(payload)
+    return parseNoPrefixCommand(payload)
+}
+
+private fun parseNoPrefixCommand(message: String): CommandParseResult {
+    val parts = splitArguments(message)
     if (parts.isEmpty()) return CommandParseResult.Ignore // Just a prefix, for some reason
 
     return CommandParseResult.Invocation(CommandInvocation(parts.first(), parts.drop(1)))
@@ -67,16 +71,21 @@ class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
 }
 
 class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser {
-    override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixListCommand(
-        prefixOptions = map.prefixesForGuild(event.guild.id),
-        message = event.message.contentRaw,
-    )
+    override fun parse(event: MessageReceivedEvent): CommandParseResult {
+        return if (event.isFromGuild)
+            parsePrefixListCommand(
+                prefixOptions = map.prefixesForGuild(event.guild.id),
+                message = event.message.contentRaw,
+            )
+        else
+            parseNoPrefixCommand(message = event.message.contentRaw)
+    }
 }
 
 class MentionPrefixCommandParser(private val fallback: CommandParser) : CommandParser {
     override fun parse(event: MessageReceivedEvent): CommandParseResult {
         val selfUserId = event.jda.selfUser.id
-        val selfRoleId = event.guild.selfMember.roles.singleOrNull { it.isManaged }?.id
+        val selfRoleId = event.takeIf { it.isFromGuild }?.guild?.selfMember?.roles?.singleOrNull { it.isManaged }?.id
 
         // These are the two options for raw mentions; see https://discord.com/developers/docs/reference
         val mentionOptions = listOfNotNull("<@$selfUserId>", "<@!$selfUserId>", selfRoleId?.let { "<@&$it>" })
