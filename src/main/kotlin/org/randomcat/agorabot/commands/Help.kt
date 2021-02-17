@@ -20,26 +20,27 @@ private fun MessageBuilder.appendUsage(name: String, command: Command) {
 
 class HelpCommand(
     strategy: BaseCommandStrategy,
-    private val registry: QueryableCommandRegistry,
+    private val registryFun: () -> QueryableCommandRegistry,
     private val suppressedCommands: ImmutableList<String>,
 ) : BaseCommand(strategy) {
     constructor(
         strategy: BaseCommandStrategy,
-        registry: QueryableCommandRegistry,
+        registryFun: () -> QueryableCommandRegistry,
         suppressedCommands: List<String>,
     ) : this(
         strategy = strategy,
-        registry = registry,
+        registryFun = registryFun,
         suppressedCommands = suppressedCommands.toImmutableList(),
     )
+
+    private fun commands() = registryFun().commands()
 
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs {
-                val commands = registry.commands()
                 val builder = MessageBuilder()
 
-                commands.filter { (name, _) -> !suppressedCommands.contains(name) }.forEach { (name, command) ->
+                commands().filter { (name, _) -> !suppressedCommands.contains(name) }.forEach { (name, command) ->
                     builder.appendUsage(name = name, command = command)
                     builder.appendLine()
                 }
@@ -50,7 +51,7 @@ class HelpCommand(
             }
 
             args(StringArg("command")) { (commandName) ->
-                val commands = registry.commands()
+                val commands = commands()
 
                 if (commands.containsKey(commandName)) {
                     val command = commands.getValue(commandName)

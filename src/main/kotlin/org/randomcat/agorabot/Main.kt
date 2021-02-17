@@ -37,7 +37,9 @@ private fun makeCommandRegistry(
     ircConfig: IrcConfig?,
     ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
 ): CommandRegistry {
-    return MutableMapCommandRegistry(
+    lateinit var registry: QueryableCommandRegistry
+
+    registry = MapCommandRegistry(
         mapOf(
             "rng" to RngCommand(commandStrategy),
             "roll" to RollCommand(commandStrategy),
@@ -68,14 +70,12 @@ private fun makeCommandRegistry(
                     ircConfig?.connections?.firstOrNull { it.discordChannelId == channelId }?.ircChannelName
                 },
                 persistentWhoMessageMap = ircPersistentWhoMessageMap,
-            )
+            ),
+            "help" to HelpCommand(commandStrategy, { registry }, suppressedCommands = listOf("permissions")),
         ),
-    ).also {
-        it.addCommand(
-            "help",
-            HelpCommand(commandStrategy, it, suppressedCommands = listOf("permissions"))
-        )
-    }
+    )
+
+    return registry
 }
 
 private const val DIGEST_AFFIX =
