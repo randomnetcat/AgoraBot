@@ -27,6 +27,27 @@ private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation
     event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").disallowMentions().queue()
 }
 
+data class MapCommandRegistry(
+    private val registry: ImmutableMap<String, Command>,
+    private val unknownCommandHook: UnknownCommandHook,
+) : QueryableCommandRegistry {
+    constructor(
+        registry: Map<String, Command>,
+        unknownCommandHook: UnknownCommandHook = ::defaultUnknownCommand,
+    ) : this(
+        registry.toImmutableMap(),
+        unknownCommandHook,
+    )
+
+    override fun commands(): ImmutableMap<String, Command> {
+        return registry
+    }
+
+    override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
+        registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
+    }
+}
+
 class MutableMapCommandRegistry(
     registry: Map<String, Command>,
     private val unknownCommandHook: UnknownCommandHook = ::defaultUnknownCommand,
