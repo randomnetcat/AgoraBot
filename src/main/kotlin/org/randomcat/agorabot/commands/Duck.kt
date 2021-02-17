@@ -11,6 +11,9 @@ import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
 import org.randomcat.agorabot.commands.impl.noArgs
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 private const val END_DUCK_SESSION_CMD = "I fixed it"
 
@@ -35,10 +38,17 @@ class DuckCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     object JdaEventListenerMarker
 
     private val listening = AtomicReference<PersistentSet<ListeningSpec>>(persistentSetOf())
-    private val jdaMap = Collections.synchronizedMap(WeakHashMap<JDA, JdaEventListenerMarker>())
+    private val jdaMap = WeakHashMap<JDA, JdaEventListenerMarker>()
+    private val jdaLock = ReentrantReadWriteLock()
 
     private fun registerJdaListener(jda: JDA) {
-        if (!jdaMap.containsKey(jda)) {
+        jdaLock.read {
+            if (jdaMap.containsKey(jda)) return
+        }
+
+        jdaLock.write {
+            if (jdaMap.containsKey(jda)) return
+
             jda.addEventListener(object {
                 @SubscribeEvent
                 fun onMessage(event: GuildMessageReceivedEvent) {
