@@ -22,6 +22,9 @@ interface GuildExtensionPendingExecutionReceiver<out ExecutionReceiver, out Next
     fun requiresGuild(): ExtendableArgumentPendingExecutionReceiver<NextExecutionReceiver, Arg, Ext>
 }
 
-fun <ExecutionReceiver, NextExecutionReceiver, Arg, Ext : GuildExtensionMarker<NextExecutionReceiver>>
-        ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Ext>.requiresGuild() =
+fun <ExecutionReceiver, NextExecutionReceiver, Arg, Ext : GuildExtensionMarker<NextExecutionReceiver>> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Ext>.requiresGuild() =
     (this as GuildExtensionPendingExecutionReceiver<ExecutionReceiver, NextExecutionReceiver, Arg, Ext>).requiresGuild()
+
+fun <ExecutionReceiver, NextExecutionReceiver, Arg, Ext : GuildExtensionMarker<NextExecutionReceiver>> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Ext>.requiresGuild(
+    block: NextExecutionReceiver.(Arg) -> Unit,
+) = (requiresGuild()).invoke(block)
