@@ -35,7 +35,7 @@ object NullPendingExecutionReceiver : ArgumentPendingExecutionReceiver<Nothing, 
  * @param ArgsExtend a type marker for extension functions
  */
 @CommandDslMarker
-interface ArgumentDescriptionReceiver<ExecutionReceiver, out ArgsExtend> {
+interface ArgumentDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> {
     /**
      * Specifies an argument set with arguments from [parsers] and that can optionally be executed by [exec].
      *
@@ -57,11 +57,11 @@ interface ArgumentDescriptionReceiver<ExecutionReceiver, out ArgsExtend> {
  * called multiple times.
  */
 @CommandDslMarker
-interface ArgumentMultiDescriptionReceiver<ExecutionReceiver, out ArgsExtend> :
+interface ArgumentMultiDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> :
     ArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>
 
 @CommandDslMarker
-interface SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, out ArgsExtend> :
+interface SubcommandsArgumentDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> :
     ArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
     fun subcommand(
         name: String,
@@ -70,7 +70,7 @@ interface SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, out ArgsExte
 }
 
 @CommandDslMarker
-interface TopLevelArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> :
+interface TopLevelArgumentDescriptionReceiver<out ExecutionReceiver, ArgsExtend> :
     ArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
     fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit)
 }
