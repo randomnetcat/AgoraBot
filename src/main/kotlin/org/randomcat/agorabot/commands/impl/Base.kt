@@ -64,7 +64,7 @@ interface BaseCommandStrategy :
 private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
     event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
 
-private val nullPermissionsExecutionReceiver = PermissionsPendingExecutionReceiver(
+private val nullPermissionsExecutionReceiver = PermissionsPendingExecutionReceiverImpl(
     baseReceiver = NullPendingExecutionReceiver,
     permissions = persistentListOf(),
     data = PermissionsReceiverData.NeverExecute,
@@ -152,7 +152,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                     results: List<ParseResult>,
                     mapParsed: (List<ParseResult>) -> Arg,
                 ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Arg, PermissionsExtensionMarker> {
-                    return PermissionsPendingExecutionReceiver(
+                    return PermissionsPendingExecutionReceiverImpl(
                         baseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
                             exec(ExecutionReceiverImpl(strategy, event, invocation), mapParsed(results))
                         },

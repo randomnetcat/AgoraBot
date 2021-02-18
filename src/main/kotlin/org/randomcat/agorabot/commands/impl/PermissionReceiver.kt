@@ -17,11 +17,16 @@ sealed class PermissionsReceiverData {
     object NeverExecute : PermissionsReceiverData()
 }
 
-class PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg>(
+interface PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> :
+    ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker> {
+    fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg>
+}
+
+class PermissionsPendingExecutionReceiverImpl<ExecutionReceiver, Arg>(
     private val baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
     private val permissions: PersistentList<BotPermission>,
     private val data: PermissionsReceiverData,
-) : ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker> {
+) : PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> {
     override fun invoke(block: ExecutionReceiver.(arg: Arg) -> Unit) {
         baseReceiver { arg ->
             @Suppress("UNUSED_VARIABLE")
@@ -44,7 +49,7 @@ class PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg>(
         }
     }
 
-    fun permissions(vararg newPermissions: BotPermission) = PermissionsPendingExecutionReceiver(
+    override fun permissions(vararg newPermissions: BotPermission) = PermissionsPendingExecutionReceiverImpl(
         baseReceiver = baseReceiver,
         permissions = permissions.addAll(newPermissions.asList()),
         data = data,
