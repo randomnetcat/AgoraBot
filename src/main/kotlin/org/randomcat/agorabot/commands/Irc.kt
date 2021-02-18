@@ -12,42 +12,40 @@ class IrcCommand(
     private val lookupConnectedIrcChannel: (guildId: String, channelId: String) -> String?,
     private val persistentWhoMessageMap: MutableIrcUserListMessageMap,
 ) : BaseCommand(strategy) {
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("user_list") {
                 subcommand("create") {
-                    noArgs().permissions(USER_LIST_PERMISSION) { _ ->
-                        requiresGuild { guildInfo ->
-                            val connectedIrcChannel = lookupConnectedIrcChannel(guildInfo.guildId, currentChannel().id)
+                    noArgs().requiresGuild().permissions(USER_LIST_PERMISSION) { _ ->
+                        val guildInfo = currentGuildInfo()
 
-                            if (connectedIrcChannel == null) {
-                                respond("There is no IRC channel connected to this Discord channel.")
-                                return@permissions
-                            }
+                        val connectedIrcChannel = lookupConnectedIrcChannel(guildInfo.guildId, currentChannel().id)
 
-                            currentChannel().sendMessage("**IRC USER LIST TO BE FILLED**").queue { message ->
-                                persistentWhoMessageMap.addConfigForGuild(
-                                    guildId = guildInfo.guildId,
-                                    config = IrcUserListConfig(
-                                        discordChannelId = currentChannel().id,
-                                        discordMessageId = message.id,
-                                        ircChannelName = connectedIrcChannel,
-                                    ),
-                                )
-                            }
+                        if (connectedIrcChannel == null) {
+                            respond("There is no IRC channel connected to this Discord channel.")
+                            return@permissions
+                        }
+
+                        currentChannel().sendMessage("**IRC USER LIST TO BE FILLED**").queue { message ->
+                            persistentWhoMessageMap.addConfigForGuild(
+                                guildId = guildInfo.guildId,
+                                config = IrcUserListConfig(
+                                    discordChannelId = currentChannel().id,
+                                    discordMessageId = message.id,
+                                    ircChannelName = connectedIrcChannel,
+                                ),
+                            )
                         }
                     }
                 }
 
                 subcommand("remove_all") {
-                    noArgs().permissions(USER_LIST_PERMISSION) { _ ->
-                        requiresGuild { guildInfo ->
-                            persistentWhoMessageMap.clearConfigsForGuild(guildInfo.guildId)
+                    noArgs().requiresGuild().permissions(USER_LIST_PERMISSION) { _ ->
+                        persistentWhoMessageMap.clearConfigsForGuild(currentGuildInfo().guildId)
 
-                            respond(
-                                "Persistent who messages will no longer update. You probably want to delete them now."
-                            )
-                        }
+                        respond(
+                            "Persistent who messages will no longer update. You probably want to delete them now."
+                        )
                     }
                 }
             }

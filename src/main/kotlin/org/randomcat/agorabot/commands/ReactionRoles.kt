@@ -5,7 +5,6 @@ import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.commands.impl.BaseCommand.ExecutionReceiverImpl.GuildInfo
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
 import org.randomcat.agorabot.reactionroles.storageName
@@ -43,7 +42,7 @@ class ReactionRolesCommand(
         return reactionEmoteAction.mapToResult().map { (if (it.isSuccess) it.get() else null)?.storageName }
     }
 
-    private inline fun ExecutionReceiverImpl.withEmoteResolved(
+    private inline fun BaseCommandExecutionReceiver.withEmoteResolved(
         emoteString: String,
         crossinline block: (GuildInfo, reactionStorageName: String) -> Unit,
     ) {
@@ -58,7 +57,7 @@ class ReactionRolesCommand(
         }
     }
 
-    private inline fun ExecutionReceiverImpl.withRoleAndEmoteResolved(
+    private inline fun BaseCommandExecutionReceiver.withRoleAndEmoteResolved(
         emoteString: String,
         roleString: String,
         crossinline block: (GuildInfo, Role, reactionStorageName: String) -> Unit,

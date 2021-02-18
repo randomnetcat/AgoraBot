@@ -60,7 +60,7 @@ class DigestCommand(
     private val digestFormat: DigestFormat,
     private val digestAddedReaction: String?,
 ) : BaseCommand(strategy) {
-    private fun ExecutionReceiverImpl.getMessageOrError(id: String): Message? {
+    private fun BaseCommandExecutionReceiver.getMessageOrError(id: String): Message? {
         val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
 
         if (msgResult.isFailure) {
@@ -173,5 +173,6 @@ class DigestCommand(
         }
     }
 
-    private fun ExecutionReceiverImpl.currentDigest() = currentGuildInfo()?.let { digestMap.digestForGuild(it.guildId) }
+    private fun BaseCommandExecutionReceiver.currentDigest() =
+        currentGuildInfo()?.let { digestMap.digestForGuild(it.guildId) }
 }

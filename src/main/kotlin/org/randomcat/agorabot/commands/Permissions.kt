@@ -10,7 +10,7 @@ class PermissionsCommand(
     private val botMap: MutablePermissionMap,
     private val guildMap: MutableGuildPermissionMap,
 ) : BaseCommand(strategy) {
-    private fun ExecutionReceiverImpl.handleGuildSetState(
+    private fun BaseCommandExecutionReceiver.handleGuildSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,
@@ -40,7 +40,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun ExecutionReceiverImpl.handleBotSetState(
+    private fun BaseCommandExecutionReceiver.handleBotSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,
@@ -63,7 +63,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun SubcommandsArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.guildSubcommand(
+    private fun SubcommandsArgumentDescriptionReceiver<BaseCommandExecutionReceiver, PermissionsExtensionMarker>.guildSubcommand(
         name: String,
         state: BotPermissionState,
     ) {
@@ -111,7 +111,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun SubcommandsArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.botSubcommand(
+    private fun SubcommandsArgumentDescriptionReceiver<BaseCommandExecutionReceiver, PermissionsExtensionMarker>.botSubcommand(
         name: String,
         state: BotPermissionState,
     ) {

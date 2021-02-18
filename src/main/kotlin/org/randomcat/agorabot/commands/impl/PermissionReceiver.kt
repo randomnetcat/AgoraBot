@@ -17,9 +17,9 @@ sealed class PermissionsReceiverData {
     object NeverExecute : PermissionsReceiverData()
 }
 
-interface PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> :
-    ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker> {
-    fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg>
+interface PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg, Ext> :
+    ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Ext> {
+    fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg, Ext>
 }
 
 data class PermissionsExecutionMixin(

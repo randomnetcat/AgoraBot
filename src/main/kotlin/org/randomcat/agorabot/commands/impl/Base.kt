@@ -4,7 +4,9 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
@@ -65,97 +67,149 @@ interface BaseCommandStrategy :
 private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
     event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
 
-private class PendingExecutionReceiverImpl<ExecutionReceiver, Arg> private constructor(
+interface BaseCommandExecutionReceiverMarker :
+    PermissionsExtensionMarker, GuildExtensionMarker<BaseCommandExecutionReceiverGuilded>
+
+private class PendingExecutionReceiverImpl<ExecutionReceiver, GuildedExecutionReceiver : ExecutionReceiver, Arg> private constructor(
     baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
+    private val guildedBaseReceiver: ArgumentPendingExecutionReceiver<GuildedExecutionReceiver, Arg>,
     private val state: State,
-) : MixinPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker>(baseReceiver),
-    PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> {
+) : MixinPendingExecutionReceiver<ExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker>(baseReceiver),
+    PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker>,
+    GuildExtensionPendingExecutionReceiver<ExecutionReceiver, GuildedExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker> {
 
     private data class State(
         val permissions: PersistentList<BotPermission>,
         val permissionsData: PermissionsReceiverData,
+        val guildRequired: Boolean,
+        val event: MessageReceivedEvent?,
     )
 
     constructor(
         baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
+        guildedBaseReceiver: ArgumentPendingExecutionReceiver<GuildedExecutionReceiver, Arg>,
         permissionsReceiverData: PermissionsReceiverData,
+        event: MessageReceivedEvent?,
     ) : this(
         baseReceiver,
+        guildedBaseReceiver,
         State(
             permissions = persistentListOf(),
             permissionsData = permissionsReceiverData,
+            guildRequired = false,
+            event = event,
         ),
     )
 
     override val mixins: Iterable<PendingExecutionReceiverMixin>
-        get() = listOf(
+        get() = listOfNotNull(
+            if (state.guildRequired) GuildExtensionExecutionMixin(state.event) else null,
             PermissionsExecutionMixin(permissions = state.permissions, data = state.permissionsData),
         )
 
-    override fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> {
+    override fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker> {
         return PendingExecutionReceiverImpl(
             baseReceiver = baseReceiver,
+            guildedBaseReceiver = guildedBaseReceiver,
             state = state.copy(permissions = state.permissions.addAll(newPermissions.asList())),
+        )
+    }
+
+    override fun requiresGuild(): ExtendableArgumentPendingExecutionReceiver<GuildedExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker> {
+        return PendingExecutionReceiverImpl(
+            baseReceiver = guildedBaseReceiver,
+            guildedBaseReceiver = guildedBaseReceiver,
+            state = state.copy(guildRequired = true),
         )
     }
 }
 
 private val nullPendingExecutionReceiverImpl = PendingExecutionReceiverImpl(
     baseReceiver = NullPendingExecutionReceiver,
+    guildedBaseReceiver = NullPendingExecutionReceiver,
     permissionsReceiverData = PermissionsReceiverData.NeverExecute,
+    event = null,
 )
+
+class GuildInfo(
+    private val event: MessageReceivedEvent,
+    private val guildStateStrategy: BaseCommandGuildStateStrategy,
+) {
+    init {
+        require(event.isFromGuild)
+    }
+
+    val guild by lazy { event.guild }
+    val guildId by lazy { guild.id }
+    val guildState by lazy { guildStateStrategy.guildStateFor(guildId = guildId) }
+    val senderMember by lazy { event.member ?: error("Expected event to have a Member") }
+
+    fun resolveRole(roleString: String): Role? = guild.resolveRoleString(roleString)
+}
+
+@CommandDslMarker
+interface BaseCommandExecutionReceiver {
+    val userPermissionContext: UserPermissionContext
+    fun respond(message: String)
+    fun respond(message: Message)
+    fun respondWithFile(fileName: String, fileContent: String)
+    fun respondWithTextAndFile(text: String, fileName: String, fileContent: String)
+    fun currentMessageEvent(): MessageReceivedEvent
+    fun currentJda(): JDA
+    fun currentChannel(): MessageChannel
+    fun inGuild(): Boolean
+    fun currentGuildInfo(): GuildInfo?
+    fun botHasPermission(permission: DiscordPermission): Boolean
+    fun respondNeedGuild()
+    fun senderHasPermission(permission: BotPermission): Boolean
+    fun requiresGuild(block: (GuildInfo) -> Unit)
+}
+
+interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiver {
+    override fun currentGuildInfo(): GuildInfo
+}
+
+const val NEED_GUILD_ERROR_MSG = "This command can only be run in a Guild."
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     @CommandDslMarker
-    class ExecutionReceiverImpl(
+    private open class ExecutionReceiverImpl(
         private val strategy: BaseCommandStrategy,
         private val event: MessageReceivedEvent,
         private val invocation: CommandInvocation,
-    ) {
-        fun respond(message: String) {
+    ) : BaseCommandExecutionReceiver {
+        override fun respond(message: String) {
             strategy.sendResponse(event, invocation, message)
         }
 
-        fun respond(message: Message) {
+        override fun respond(message: Message) {
             strategy.sendResponseMessage(event, invocation, message)
         }
 
-        fun respondWithFile(fileName: String, fileContent: String) {
+        override fun respondWithFile(fileName: String, fileContent: String) {
             strategy.sendResponseAsFile(event, invocation, fileName, fileContent)
         }
 
-        fun respondWithTextAndFile(text: String, fileName: String, fileContent: String) {
+        override fun respondWithTextAndFile(text: String, fileName: String, fileContent: String) {
             strategy.sendResponseTextAndFile(event, invocation, text, fileName, fileContent)
         }
 
-        fun currentMessageEvent() = event
-        fun currentJda() = event.jda
-        fun currentChannel() = currentMessageEvent().channel
+        override fun currentMessageEvent() = event
+        override fun currentJda() = event.jda
+        override fun currentChannel() = currentMessageEvent().channel
 
-        inner class GuildInfo {
-            init {
-                require(event.isFromGuild)
-            }
+        override fun inGuild() = event.isFromGuild
+        override fun currentGuildInfo(): GuildInfo? = if (inGuild()) GuildInfo(event, strategy) else null
 
-            val guild by lazy { event.guild }
-            val guildId by lazy { guild.id }
-            val guildState by lazy { strategy.guildStateFor(guildId = guildId) }
-            val senderMember by lazy { event.member ?: error("Expected event to have a Member") }
-            fun resolveRole(roleString: String): Role? = guild.resolveRoleString(roleString)
-        }
-
-        fun inGuild() = event.isFromGuild
-        fun currentGuildInfo(): GuildInfo? = if (inGuild()) GuildInfo() else null
-
-        fun botHasPermission(permission: DiscordPermission): Boolean {
+        override fun botHasPermission(permission: DiscordPermission): Boolean {
             return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
         }
 
-        fun respondNeedGuild() {
-            respond("This command can only be run in a Guild.")
+        override fun respondNeedGuild() {
+            respond(NEED_GUILD_ERROR_MSG)
         }
 
-        inline fun requiresGuild(block: (GuildInfo) -> Unit) {
+        override fun requiresGuild(block: (GuildInfo) -> Unit) {
             val guildInfo = currentGuildInfo() ?: run {
                 respondNeedGuild()
                 return
@@ -164,11 +218,20 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             return block(guildInfo)
         }
 
+        override val userPermissionContext by lazy { userPermissionContextForEvent(event) }
 
-        private val userPermissionContext by lazy { userPermissionContextForEvent(event) }
-
-        fun senderHasPermission(permission: BotPermission): Boolean =
+        override fun senderHasPermission(permission: BotPermission): Boolean =
             permission.isSatisfied(strategy.permissionContext, userPermissionContext)
+    }
+
+    private class ExecutionReceiverGuildedImpl(
+        strategy: BaseCommandStrategy,
+        event: MessageReceivedEvent,
+        invocation: CommandInvocation,
+    ) : ExecutionReceiverImpl(strategy, event, invocation), BaseCommandExecutionReceiverGuilded {
+        override fun currentGuildInfo(): GuildInfo {
+            return super.currentGuildInfo() ?: error("Being in a guild should have already been enforced")
+        }
     }
 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
@@ -182,31 +245,36 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                     usage = usage()
                 )
             },
-            object : ExecutingExecutionReceiverProperties<ExecutionReceiverImpl, PermissionsExtensionMarker> {
+            object :
+                ExecutingExecutionReceiverProperties<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker> {
                 override fun <ParseResult, Arg> receiverOnSuccess(
                     results: List<ParseResult>,
                     mapParsed: (List<ParseResult>) -> Arg,
-                ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Arg, PermissionsExtensionMarker> {
+                ): ExtendableArgumentPendingExecutionReceiver<BaseCommandExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker> {
                     return PendingExecutionReceiverImpl(
                         baseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
                             exec(ExecutionReceiverImpl(strategy, event, invocation), mapParsed(results))
+                        },
+                        guildedBaseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
+                            exec(ExecutionReceiverGuildedImpl(strategy, event, invocation), mapParsed(results))
                         },
                         permissionsReceiverData = PermissionsReceiverData.AllowExecution(
                             userContext = userPermissionContextForEvent(event),
                             permissionsContext = strategy.permissionContext,
                             onError = { strategy.onPermissionsError(event, invocation, it) }
                         ),
+                        event = event,
                     )
                 }
 
-                override fun receiverOnError(): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Nothing, PermissionsExtensionMarker> {
+                override fun receiverOnError(): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Nothing, BaseCommandExecutionReceiverMarker> {
                     return nullPendingExecutionReceiverImpl
                 }
             },
         ).impl()
     }
 
-    protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.impl()
+    protected abstract fun TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>.impl()
 
     fun usage(): String {
         return UsageTopLevelArgumentDescriptionReceiver(nullPendingExecutionReceiverImpl).apply { impl() }.usage()
@@ -214,7 +282,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 }
 
 typealias BaseCommandImplReceiver =
-        TopLevelArgumentDescriptionReceiver<BaseCommand.ExecutionReceiverImpl, PermissionsExtensionMarker>
+        TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>
 
 object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
     override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {

@@ -2,7 +2,6 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Role
 import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.commands.impl.BaseCommand.ExecutionReceiverImpl.GuildInfo
 import org.randomcat.agorabot.config.get
 import org.randomcat.agorabot.config.update
 import org.randomcat.agorabot.permissions.GuildScope
@@ -14,7 +13,10 @@ private typealias SelfAssignableStateType = List<String>
 private val MANAGE_SELFASSIGN_PERMISSION = GuildScope.command("selfassign").action("manage")
 
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    private inline fun ExecutionReceiverImpl.withRoleResolved(roleName: String, block: (GuildInfo, Role) -> Unit) {
+    private inline fun BaseCommandExecutionReceiver.withRoleResolved(
+        roleName: String,
+        crossinline block: (GuildInfo, Role) -> Unit,
+    ) {
         requiresGuild { guildInfo ->
             val role = guildInfo.resolveRole(roleName) ?: run {
                 respond("Could not find a role by that name.")
@@ -25,9 +27,9 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private inline fun ExecutionReceiverImpl.withInteractableSelfAssignableRoleResolved(
+    private inline fun BaseCommandExecutionReceiver.withInteractableSelfAssignableRoleResolved(
         roleName: String,
-        block: (GuildInfo, Role) -> Unit,
+        crossinline block: (GuildInfo, Role) -> Unit,
     ) {
         withRoleResolved(roleName) { guildInfo, role ->
             val assignableRoleIds = guildInfo.assignableRoleIds()
@@ -44,19 +46,19 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
 
             if (!botHasPermission(DiscordPermission.MANAGE_ROLES)) {
                 respond("Cannot handle roles without MANAGE_ROLES permission! Contact a Guild admin.")
-                return
+                return@withRoleResolved
             }
 
             if (!guildInfo.guild.selfMember.canInteract(role)) {
                 respond("Cannot interact with that role! Contact a Guild admin.")
-                return
+                return@withRoleResolved
             }
 
             block(guildInfo, role)
         }
     }
 
-    private fun ExecutionReceiverImpl.handleListRequest() {
+    private fun BaseCommandExecutionReceiver.handleListRequest() {
         requiresGuild { guildInfo ->
             val assignableRoles = guildInfo.assignableRoles()
 
@@ -80,7 +82,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun ExecutionReceiverImpl.handleAssignRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiver.handleAssignRequest(roleName: String) {
         withInteractableSelfAssignableRoleResolved(roleName) { guildInfo, role ->
             guildInfo.guild.addRoleToMember(guildInfo.senderMember, role).queue {
                 respond("Done.")
@@ -88,7 +90,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun ExecutionReceiverImpl.handleRemoveRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiver.handleRemoveRequest(roleName: String) {
         withInteractableSelfAssignableRoleResolved(roleName) { guildInfo, role ->
             guildInfo.guild.removeRoleFromMember(guildInfo.senderMember, role).queue {
                 respond("Done.")
@@ -96,7 +98,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun ExecutionReceiverImpl.handleEnableRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiver.handleEnableRequest(roleName: String) {
         withRoleResolved(roleName) { guildInfo, role ->
             if (role.isPublicRole) {
                 respond("Refusing to make everyone role self-assignable.")
@@ -111,7 +113,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun ExecutionReceiverImpl.handleDisableRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiver.handleDisableRequest(roleName: String) {
         withRoleResolved(roleName) { guildInfo, role ->
             guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
                 // Use list subtraction in order to remove all instances of it (if it's duplicated).

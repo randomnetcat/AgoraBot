@@ -58,7 +58,7 @@ private val DICE_REGEX = Regex("(?:\\d+)?(?:(?:d[1-9][0-9]*)|(?:[+-]\\d+))")
 private fun String.isValidDiceSpec() = matches(DICE_REGEX)
 
 class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    override fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.impl() {
+    override fun BaseCommandImplReceiver.impl() {
         args(RemainingStringArgs("dice_specs")) { (diceSpecs) ->
             if (diceSpecs.isEmpty()) {
                 respond("What do you want me to roll?")
