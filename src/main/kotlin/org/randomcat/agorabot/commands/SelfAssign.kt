@@ -128,24 +128,32 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         // Unfortunately this has to be a matchFirst instead of subcommands to handle the no arguments case and the
         // role name without an "assign" subcommand case.
         matchFirst {
-            noArgs {
+            noArgs().requiresGuild() {
                 handleListRequest()
             }
 
-            args(StringArg("argument")) { (arg) ->
-                when (arg.toLowerCase()) {
-                    "list" -> handleListRequest()
-                    else -> handleAssignRequest(arg)
-                }
+            args(LiteralArg("list")) { (_) ->
+                handleListRequest()
             }
 
-            args(StringArg("action"), StringArg("role_name")) { (action, roleName) ->
-                when (action.toLowerCase()) {
-                    "assign" -> handleAssignRequest(roleName)
-                    "remove" -> handleRemoveRequest(roleName)
-                    "enable" -> handleEnableRequest(roleName)
-                    "disable" -> handleDisableRequest(roleName)
-                }
+            args(StringArg("role_name")) { (roleName) ->
+                handleAssignRequest(roleName)
+            }
+
+            args(LiteralArg("assign"), StringArg("role_name")) { (_, roleName) ->
+                handleAssignRequest(roleName)
+            }
+
+            args(LiteralArg("remove"), StringArg("role_name")) { (_, roleName) ->
+                handleRemoveRequest(roleName)
+            }
+
+            args(LiteralArg("enable"), StringArg("role_name")) { (_, roleName) ->
+                handleEnableRequest(roleName)
+            }
+
+            args(LiteralArg("disable"), StringArg("role_name")) { (_, roleName) ->
+                handleDisableRequest(roleName)
             }
         }
     }

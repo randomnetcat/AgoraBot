@@ -47,6 +47,24 @@ fun IntArg(name: String) = object : BaseCommandArgument<BigInteger>(name) {
     }
 }
 
+fun LiteralArg(name: String) = object : BaseCommandArgument<Unit>(name) {
+    override val type: String
+        get() = "literal"
+
+    override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<Unit, ReadableCommandArgumentParseError> {
+        val args = arguments.args
+        if (args.isEmpty()) return noArgumentError
+
+        if (args.first() != name) {
+            return CommandArgumentParseResult.Failure(
+                ReadableCommandArgumentParseError("no match for literal $name"),
+            )
+        }
+
+        return CommandArgumentParseSuccess(Unit, arguments.tail())
+    }
+}
+
 fun StringArg(name: String) = object : BaseCommandArgument<String>(name) {
     override val type: String
         get() = "string"
