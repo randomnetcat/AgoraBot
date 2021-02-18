@@ -21,30 +21,28 @@ private class CallOnceFlag(private val onCall: () -> Unit) {
     }
 }
 
-private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>(
     private val arguments: UnparsedCommandArgs,
     onMatch: () -> Unit,
     private val endNoMatch: () -> Unit,
-    private val receiver: ExecutionReceiver,
-) : ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?> {
+    private val properties: ExecutingExecutionReceiverProperties<ExecutionReceiver, ArgsExtend>,
+) : ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
     private val parseFlag = ParseOnceFlag()
     private val callFlag = CallOnceFlag(onCall = onMatch)
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
-        if (callFlag.hasCalled()) return NullPendingExecutionReceiver
+    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend> {
+        if (callFlag.hasCalled()) return properties.receiverOnError()
 
-        val parseResult = filterParseResult(parseCommandArgs(parsers, arguments)) ?: return NullPendingExecutionReceiver
+        val parseResult = filterParseResult(parseCommandArgs(parsers, arguments)) ?: return properties.receiverOnError()
         callFlag.markCalled()
 
-        return simpleInvokingPendingExecutionReceiver { exec ->
-            exec(receiver, mapParsed(parseResult.value))
-        }
+        return properties.receiverOnSuccess(parseResult.value, mapParsed)
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
         if (callFlag.hasCalled()) return
 
         // This will correctly handle everything. It will mark as called on the first match, it will not call
@@ -52,19 +50,19 @@ private class MatchFirstExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
         block()
     }
 
-    fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
+    fun executeWholeBlock(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
         parseFlag.beginParsing()
         block()
         if (!callFlag.hasCalled()) endNoMatch()
     }
 }
 
-private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>(
     private val arguments: UnparsedCommandArgs,
     onMatch: () -> Unit,
     private val endNoMatch: () -> Unit,
-    private val receiver: ExecutionReceiver,
-) : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?> {
+    private val properties: ExecutingExecutionReceiverProperties<ExecutionReceiver, ArgsExtend>,
+) : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
     private val checker = SubcommandsReceiverChecker()
     private val parseFlag = ParseOnceFlag()
     private val callFlag = CallOnceFlag(onCall = onMatch)
@@ -72,31 +70,29 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
+    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend> {
         checker.checkArgsRaw()
 
-        val parseResult = filterParseResult(parseCommandArgs(parsers, arguments)) ?: return NullPendingExecutionReceiver
+        val parseResult = filterParseResult(parseCommandArgs(parsers, arguments)) ?: return properties.receiverOnError()
         callFlag.markCalled()
 
-        return simpleInvokingPendingExecutionReceiver { exec ->
-            exec(receiver, mapParsed(parseResult.value))
-        }
+        return properties.receiverOnSuccess(parseResult.value, mapParsed)
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
         checker.checkMatchFirst()
 
         MatchFirstExecutingArgumentDescriptionReceiver(
             arguments = arguments,
             onMatch = { callFlag.markCalled() },
             endNoMatch = {},
-            receiver = receiver,
+            properties = properties,
         ).executeWholeBlock(block)
     }
 
     override fun subcommand(
         name: String,
-        block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit,
+        block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit,
     ) {
         checker.checkSubcommand(subcommand = name)
         if (callFlag.hasCalled()) return
@@ -111,12 +107,12 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
                 arguments = arguments.tail(),
                 onMatch = { callFlag.markCalled() },
                 endNoMatch = { },
-                receiver = receiver
+                properties = properties,
             ).executeWholeBlock(block)
         }
     }
 
-    fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
+    fun executeWholeBlock(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
         checker.reset()
         parseFlag.beginParsing()
         block()
@@ -124,17 +120,26 @@ private class SubcommandsExecutingArgumentDescriptionReceiver<ExecutionReceiver>
     }
 }
 
-class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
+interface ExecutingExecutionReceiverProperties<ExecutionReceiver, ArgsExtend> {
+    fun <ParseResult, Arg> receiverOnSuccess(
+        results: List<ParseResult>,
+        mapParsed: (List<ParseResult>) -> Arg,
+    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, ArgsExtend>
+
+    fun receiverOnError(): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Nothing, ArgsExtend>
+}
+
+class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>(
     private val arguments: UnparsedCommandArgs,
     private val onError: (message: String) -> Unit,
-    private val receiver: ExecutionReceiver,
-) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver, Any?> {
+    private val properties: ExecutingExecutionReceiverProperties<ExecutionReceiver, ArgsExtend>,
+) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
     private val flag = ParseOnceFlag()
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ArgumentPendingExecutionReceiver<ExecutionReceiver, R> {
+    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend> {
         flag.beginParsing()
 
         when (val result = parseCommandArgs(parsers, arguments)) {
@@ -144,7 +149,7 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
                 // Only execute if there are no remaining arguments - users can opt-in to accepting remaining arguments
                 // with special argument.
                 if (result.isFullMatch()) {
-                    return simpleInvokingPendingExecutionReceiver { exec -> exec(receiver, mapParsed(result.value)) }
+                    return properties.receiverOnSuccess(result.value, mapParsed)
                 } else {
                     reportError(
                         index = result.value.size + 1,
@@ -158,28 +163,28 @@ class TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiver>(
             }
         }
 
-        return NullPendingExecutionReceiver
+        return properties.receiverOnError()
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
         flag.beginParsing()
 
         MatchFirstExecutingArgumentDescriptionReceiver(
             arguments = arguments,
             onMatch = {},
             endNoMatch = { onError("No match for command set") },
-            receiver = receiver,
+            properties = properties,
         ).executeWholeBlock(block)
     }
 
-    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Any?>.() -> Unit) {
+    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
         flag.beginParsing()
 
         SubcommandsExecutingArgumentDescriptionReceiver(
             arguments = arguments,
             onMatch = {},
             endNoMatch = { onError("No matching subcommand") },
-            receiver = receiver,
+            properties = properties,
         ).executeWholeBlock(block)
     }
 

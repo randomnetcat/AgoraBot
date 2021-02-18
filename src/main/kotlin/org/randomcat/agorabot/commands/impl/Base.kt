@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands.impl
 
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.Role
@@ -62,6 +63,12 @@ interface BaseCommandStrategy :
 
 private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
     event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
+
+private val nullPermissionsExecutionReceiver = PermissionsPendingExecutionReceiver(
+    baseReceiver = NullPendingExecutionReceiver,
+    permissions = persistentListOf(),
+    data = PermissionsReceiverData.NeverExecute,
+)
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     @CommandDslMarker
@@ -130,34 +137,47 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     }
 
     override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
-        TopLevelPermissionsArgumentDescriptionReceiver(
-            baseReceiver = TopLevelExecutingArgumentDescriptionReceiver<ExecutionReceiverImpl>(
-                UnparsedCommandArgs(invocation.args),
-                onError = { msg ->
-                    strategy.sendArgumentErrorResponse(
-                        event = event,
-                        invocation = invocation,
-                        errorMessage = msg,
-                        usage = usage()
+        TopLevelExecutingArgumentDescriptionReceiver(
+            UnparsedCommandArgs(invocation.args),
+            onError = { msg ->
+                strategy.sendArgumentErrorResponse(
+                    event = event,
+                    invocation = invocation,
+                    errorMessage = msg,
+                    usage = usage()
+                )
+            },
+            object : ExecutingExecutionReceiverProperties<ExecutionReceiverImpl, PermissionsExtensionMarker> {
+                override fun <ParseResult, Arg> receiverOnSuccess(
+                    results: List<ParseResult>,
+                    mapParsed: (List<ParseResult>) -> Arg,
+                ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Arg, PermissionsExtensionMarker> {
+                    return PermissionsPendingExecutionReceiver(
+                        baseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
+                            exec(ExecutionReceiverImpl(strategy, event, invocation), mapParsed(results))
+                        },
+                        permissions = persistentListOf(),
+                        data = PermissionsReceiverData.AllowExecution(
+                            userContext = userPermissionContextForEvent(event),
+                            permissionsContext = strategy.permissionContext,
+                            onError = { strategy.onPermissionsError(event, invocation, it) }
+                        ),
                     )
-                },
-                ExecutionReceiverImpl(strategy, event, invocation),
-            ),
-            data = PermissionsReceiverData.AllowExecution(
-                userContext = userPermissionContextForEvent(event),
-                permissionsContext = strategy.permissionContext,
-                onError = { strategy.onPermissionsError(event, invocation, it) }
-            )
+                }
+
+                override fun receiverOnError(): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Nothing, PermissionsExtensionMarker> {
+                    return nullPermissionsExecutionReceiver
+                }
+            },
         ).impl()
     }
 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.impl()
 
     fun usage(): String {
-        return TopLevelPermissionsArgumentDescriptionReceiver(
-            baseReceiver = UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl>(),
-            data = PermissionsReceiverData.NeverExecute,
-        ).apply { impl() }.base().usage()
+        val usageTopLevelArgumentDescriptionReceiver =
+            UsageTopLevelArgumentDescriptionReceiver(nullPermissionsExecutionReceiver)
+        return usageTopLevelArgumentDescriptionReceiver.apply { impl() }.usage()
     }
 }
 
