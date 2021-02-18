@@ -22,38 +22,30 @@ interface PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> :
     fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg>
 }
 
-class PermissionsPendingExecutionReceiverImpl<ExecutionReceiver, Arg>(
-    private val baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
+data class PermissionsExecutionMixin(
     private val permissions: PersistentList<BotPermission>,
     private val data: PermissionsReceiverData,
-) : PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> {
-    override fun invoke(block: ExecutionReceiver.(arg: Arg) -> Unit) {
-        baseReceiver { arg ->
-            @Suppress("UNUSED_VARIABLE")
-            val ensureExhaustive = when (data) {
-                is PermissionsReceiverData.AllowExecution -> {
-                    for (permission in permissions) {
-                        if (!permission.isSatisfied(data.permissionsContext, data.userContext)) {
-                            data.onError(permission)
-                            return@baseReceiver
-                        }
+) : PendingExecutionReceiverMixin {
+    @Suppress("UNREACHABLE_CODE")
+    override fun executeMixin(): PendingExecutionReceiverMixinResult {
+        @Suppress("UNUSED_VARIABLE")
+        val ensureExhaustive = when (data) {
+            is PermissionsReceiverData.AllowExecution -> {
+                for (permission in permissions) {
+                    if (!permission.isSatisfied(data.permissionsContext, data.userContext)) {
+                        data.onError(permission)
+                        return PendingExecutionReceiverMixinResult.StopExecution
                     }
-
-                    block(arg)
                 }
 
-                is PermissionsReceiverData.NeverExecute -> {
-                    error("Violation of promise to never execute permissions checking")
-                }
+                return PendingExecutionReceiverMixinResult.ContinueExecution
+            }
+
+            is PermissionsReceiverData.NeverExecute -> {
+                error("Violation of promise to never execute permissions checking")
             }
         }
     }
-
-    override fun permissions(vararg newPermissions: BotPermission) = PermissionsPendingExecutionReceiverImpl(
-        baseReceiver = baseReceiver,
-        permissions = permissions.addAll(newPermissions.asList()),
-        data = data,
-    )
 }
 
 fun <ExecutionReceiver, Arg> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker>.permissions(

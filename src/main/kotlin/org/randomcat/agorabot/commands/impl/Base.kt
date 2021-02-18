@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands.impl
 
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.entities.Message
@@ -64,10 +65,44 @@ interface BaseCommandStrategy :
 private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
     event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
 
-private val nullPermissionsExecutionReceiver = PermissionsPendingExecutionReceiverImpl(
+private class PendingExecutionReceiverImpl<ExecutionReceiver, Arg> private constructor(
+    baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
+    private val state: State,
+) : MixinPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker>(baseReceiver),
+    PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> {
+
+    private data class State(
+        val permissions: PersistentList<BotPermission>,
+        val permissionsData: PermissionsReceiverData,
+    )
+
+    constructor(
+        baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
+        permissionsReceiverData: PermissionsReceiverData,
+    ) : this(
+        baseReceiver,
+        State(
+            permissions = persistentListOf(),
+            permissionsData = permissionsReceiverData,
+        ),
+    )
+
+    override val mixins: Iterable<PendingExecutionReceiverMixin>
+        get() = listOf(
+            PermissionsExecutionMixin(permissions = state.permissions, data = state.permissionsData),
+        )
+
+    override fun permissions(vararg newPermissions: BotPermission): PermissionsPendingExecutionReceiver<ExecutionReceiver, Arg> {
+        return PendingExecutionReceiverImpl(
+            baseReceiver = baseReceiver,
+            state = state.copy(permissions = state.permissions.addAll(newPermissions.asList())),
+        )
+    }
+}
+
+private val nullPendingExecutionReceiverImpl = PendingExecutionReceiverImpl(
     baseReceiver = NullPendingExecutionReceiver,
-    permissions = persistentListOf(),
-    data = PermissionsReceiverData.NeverExecute,
+    permissionsReceiverData = PermissionsReceiverData.NeverExecute,
 )
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
@@ -152,12 +187,11 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                     results: List<ParseResult>,
                     mapParsed: (List<ParseResult>) -> Arg,
                 ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Arg, PermissionsExtensionMarker> {
-                    return PermissionsPendingExecutionReceiverImpl(
+                    return PendingExecutionReceiverImpl(
                         baseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
                             exec(ExecutionReceiverImpl(strategy, event, invocation), mapParsed(results))
                         },
-                        permissions = persistentListOf(),
-                        data = PermissionsReceiverData.AllowExecution(
+                        permissionsReceiverData = PermissionsReceiverData.AllowExecution(
                             userContext = userPermissionContextForEvent(event),
                             permissionsContext = strategy.permissionContext,
                             onError = { strategy.onPermissionsError(event, invocation, it) }
@@ -166,7 +200,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                 }
 
                 override fun receiverOnError(): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiverImpl, Nothing, PermissionsExtensionMarker> {
-                    return nullPermissionsExecutionReceiver
+                    return nullPendingExecutionReceiverImpl
                 }
             },
         ).impl()
@@ -175,9 +209,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ExecutionReceiverImpl, PermissionsExtensionMarker>.impl()
 
     fun usage(): String {
-        val usageTopLevelArgumentDescriptionReceiver =
-            UsageTopLevelArgumentDescriptionReceiver(nullPermissionsExecutionReceiver)
-        return usageTopLevelArgumentDescriptionReceiver.apply { impl() }.usage()
+        return UsageTopLevelArgumentDescriptionReceiver(nullPendingExecutionReceiverImpl).apply { impl() }.usage()
     }
 }
 
