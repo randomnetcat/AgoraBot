@@ -12,6 +12,19 @@ private typealias SelfAssignableStateType = List<String>
 
 private val MANAGE_SELFASSIGN_PERMISSION = GuildScope.command("selfassign").action("manage")
 
+fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.selfAssignAction() = requiresGuild()
+
+fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.selfAssignAction(
+    block: BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
+) = selfAssignAction().invoke(block)
+
+fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.selfAssignAdminAction() =
+    selfAssignAction().permissions(MANAGE_SELFASSIGN_PERMISSION)
+
+fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.selfAssignAdminAction(
+    block: BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
+) = selfAssignAdminAction().invoke(block)
+
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     private inline fun BaseCommandExecutionReceiver.withRoleResolved(
         roleName: String,
@@ -65,19 +78,12 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             if (assignableRoles.isEmpty()) {
                 respond("No roles are self-assignable.")
             } else {
-                val rolesPart = "The following roles can be self-assigned: " +
+                val rolesMessage = "The following roles can be self-assigned: " +
                         assignableRoles
                             .sortedByDescending { it.position }
                             .joinToString(separator = ", ", postfix = ".") { it.name }
 
-                val actionPart =
-                    if (senderHasPermission(MANAGE_SELFASSIGN_PERMISSION))
-                        "The valid options for the \"action\" parameter are " +
-                                "list, assign, remove, enable, and disable."
-                    else
-                        "The valid options for the \"action\" parameter are list, assign, and remove."
-
-                respond("$rolesPart\n\n$actionPart")
+                respond(rolesMessage)
             }
         }
     }
@@ -128,31 +134,31 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         // Unfortunately this has to be a matchFirst instead of subcommands to handle the no arguments case and the
         // role name without an "assign" subcommand case.
         matchFirst {
-            noArgs().requiresGuild() {
+            noArgs().selfAssignAction() {
                 handleListRequest()
             }
 
-            args(LiteralArg("list")) { (_) ->
+            args(LiteralArg("list")).selfAssignAction() { (_) ->
                 handleListRequest()
             }
 
-            args(StringArg("role_name")) { (roleName) ->
+            args(StringArg("role_name")).selfAssignAction() { (roleName) ->
                 handleAssignRequest(roleName)
             }
 
-            args(LiteralArg("assign"), StringArg("role_name")) { (_, roleName) ->
+            args(LiteralArg("assign"), StringArg("role_name")).selfAssignAction() { (_, roleName) ->
                 handleAssignRequest(roleName)
             }
 
-            args(LiteralArg("remove"), StringArg("role_name")) { (_, roleName) ->
+            args(LiteralArg("remove"), StringArg("role_name")).selfAssignAction() { (_, roleName) ->
                 handleRemoveRequest(roleName)
             }
 
-            args(LiteralArg("enable"), StringArg("role_name")) { (_, roleName) ->
+            args(LiteralArg("enable"), StringArg("role_name")).selfAssignAdminAction() { (_, roleName) ->
                 handleEnableRequest(roleName)
             }
 
-            args(LiteralArg("disable"), StringArg("role_name")) { (_, roleName) ->
+            args(LiteralArg("disable"), StringArg("role_name")).selfAssignAdminAction() { (_, roleName) ->
                 handleDisableRequest(roleName)
             }
         }
