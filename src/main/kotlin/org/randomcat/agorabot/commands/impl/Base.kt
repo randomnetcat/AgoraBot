@@ -169,6 +169,10 @@ interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiver {
     override fun currentGuildInfo(): GuildInfo
 }
 
+
+typealias BaseCommandPendingExecutionReceiver<Arg> =
+        ExtendableArgumentPendingExecutionReceiver<BaseCommandExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker>
+
 const val NEED_GUILD_ERROR_MSG = "This command can only be run in a Guild."
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
