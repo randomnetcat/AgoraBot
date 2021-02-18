@@ -5,7 +5,7 @@ import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
 import org.randomcat.agorabot.permissions.UserPermissionContext
 
-class PermissionsExtensionMarker
+interface PermissionsExtensionMarker
 
 sealed class PermissionsReceiverData {
     data class AllowExecution(
