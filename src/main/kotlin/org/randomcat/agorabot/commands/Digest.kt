@@ -5,9 +5,8 @@ import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.util.CompletedRestAction
+import org.randomcat.agorabot.util.JDA_HISTORY_MAX_RETRIEVE_LIMIT
 import org.randomcat.agorabot.util.tryAddReaction
-
-private const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
 
 private fun retrieveMessagesExclusiveRange(beginExclusive: Message, endExclusive: Message): RestAction<List<Message>> {
     require(beginExclusive.jda == endExclusive.jda)
