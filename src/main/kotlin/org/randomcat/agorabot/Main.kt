@@ -247,7 +247,7 @@ fun main(args: Array<String>) {
             )
         }
     } catch (e: Exception) {
-        logger.error("Exception while setting up JDA listeners!")
+        logger.error("Exception while setting up JDA listeners!", e)
         jda.shutdownNow()
         exitProcess(1)
     }
