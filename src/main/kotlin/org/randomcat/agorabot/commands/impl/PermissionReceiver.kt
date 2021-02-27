@@ -48,11 +48,11 @@ data class PermissionsExecutionMixin(
     }
 }
 
-fun <ExecutionReceiver, Arg> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker>.permissions(
+fun <ExecutionReceiver, Arg, Ext : PermissionsExtensionMarker> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Ext>.permissions(
     vararg newPermissions: BotPermission,
 ) = (this as PermissionsPendingExecutionReceiver).permissions(*newPermissions)
 
-fun <ExecutionReceiver, Arg> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, PermissionsExtensionMarker>.permissions(
+fun <ExecutionReceiver, Arg, Ext : PermissionsExtensionMarker> ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Ext>.permissions(
     vararg newPermissions: BotPermission,
     block: ExecutionReceiver.(Arg) -> Unit,
 ) = permissions(*newPermissions).invoke(block)
