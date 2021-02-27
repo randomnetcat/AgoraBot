@@ -5,10 +5,7 @@ import kotlinx.collections.immutable.persistentSetOf
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
-import org.randomcat.agorabot.commands.impl.BaseCommand
-import org.randomcat.agorabot.commands.impl.BaseCommandImplReceiver
-import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
-import org.randomcat.agorabot.commands.impl.noArgs
+import org.randomcat.agorabot.commands.impl.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock

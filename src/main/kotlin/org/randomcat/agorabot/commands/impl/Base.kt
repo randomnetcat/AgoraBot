@@ -150,19 +150,35 @@ class GuildInfo(
 @CommandDslMarker
 interface BaseCommandExecutionReceiver {
     val userPermissionContext: UserPermissionContext
+
     fun respond(message: String)
     fun respond(message: Message)
     fun respondWithFile(fileName: String, fileContent: String)
     fun respondWithTextAndFile(text: String, fileName: String, fileContent: String)
-    fun currentMessageEvent(): MessageReceivedEvent
-    fun currentJda(): JDA
-    fun currentChannel(): MessageChannel
-    fun inGuild(): Boolean
-    fun currentGuildInfo(): GuildInfo?
-    fun botHasPermission(permission: DiscordPermission): Boolean
     fun respondNeedGuild()
+
+    fun currentMessageEvent(): MessageReceivedEvent
+
+    fun currentGuildInfo(): GuildInfo?
+
     fun senderHasPermission(permission: BotPermission): Boolean
-    fun requiresGuild(block: (GuildInfo) -> Unit)
+}
+
+fun BaseCommandExecutionReceiver.currentJda(): JDA = currentMessageEvent().jda
+
+fun BaseCommandExecutionReceiver.currentChannel(): MessageChannel = currentMessageEvent().channel
+
+fun BaseCommandExecutionReceiver.botHasPermission(permission: DiscordPermission): Boolean {
+    return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
+}
+
+inline fun BaseCommandExecutionReceiver.requiresGuild(block: (GuildInfo) -> Unit) {
+    val guildInfo = currentGuildInfo() ?: run {
+        respondNeedGuild()
+        return
+    }
+
+    return block(guildInfo)
 }
 
 interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiver {
@@ -199,27 +215,11 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         }
 
         override fun currentMessageEvent() = event
-        override fun currentJda() = event.jda
-        override fun currentChannel() = currentMessageEvent().channel
 
-        override fun inGuild() = event.isFromGuild
-        override fun currentGuildInfo(): GuildInfo? = if (inGuild()) GuildInfo(event, strategy) else null
-
-        override fun botHasPermission(permission: DiscordPermission): Boolean {
-            return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
-        }
+        override fun currentGuildInfo(): GuildInfo? = if (event.isFromGuild) GuildInfo(event, strategy) else null
 
         override fun respondNeedGuild() {
             respond(NEED_GUILD_ERROR_MSG)
-        }
-
-        override fun requiresGuild(block: (GuildInfo) -> Unit) {
-            val guildInfo = currentGuildInfo() ?: run {
-                respondNeedGuild()
-                return
-            }
-
-            return block(guildInfo)
         }
 
         override val userPermissionContext by lazy { userPermissionContextForEvent(event) }
