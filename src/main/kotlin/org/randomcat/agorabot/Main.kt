@@ -13,9 +13,11 @@ import org.randomcat.agorabot.permissions.*
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
 import org.randomcat.agorabot.reactionroles.reactionRolesListener
+import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
@@ -36,6 +38,8 @@ private fun makeCommandRegistry(
     reactionRolesMap: MutableReactionRolesMap,
     ircConfig: IrcConfig?,
     ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
+    discordArchiver: DiscordArchiver,
+    archiveExecutorFun: () -> ExecutorService,
 ): CommandRegistry {
     lateinit var registry: QueryableCommandRegistry
 
@@ -72,6 +76,7 @@ private fun makeCommandRegistry(
                 persistentWhoMessageMap = ircPersistentWhoMessageMap,
             ),
             "help" to HelpCommand(commandStrategy, { registry }, suppressedCommands = listOf("permissions")),
+            "archive" to ArchiveCommand(commandStrategy, archiver = discordArchiver, executorFun = archiveExecutorFun),
         ),
     )
 
@@ -212,6 +217,8 @@ fun main(args: Array<String>) {
 
         val persistentWhoMessageMap = GuildStateIrcUserListMessageMap { guildStateMap.stateForGuild(it) }
 
+        val archiveExecutor = Executors.newSingleThreadExecutor()
+
         jda.addEventListener(
             BotListener(
                 MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
@@ -226,6 +233,8 @@ fun main(args: Array<String>) {
                     reactionRolesMap = reactionRolesMap,
                     ircConfig = ircConfig,
                     ircPersistentWhoMessageMap = persistentWhoMessageMap,
+                    discordArchiver = DefaultDiscordArchiver(storageDir = basePath.resolve("tmp").resolve("archive")),
+                    archiveExecutorFun = { archiveExecutor },
                 ),
             ),
             digestEmoteListener(

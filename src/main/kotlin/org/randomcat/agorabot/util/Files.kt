@@ -1,7 +1,11 @@
 package org.randomcat.agorabot.util
 
+import java.io.IOException
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * Creates a temp file, invokes [block] with it, then deletes it (even if [block] throws).
@@ -16,4 +20,20 @@ inline fun <R> withTempFile(comment: String? = null, block: (Path) -> R): R {
     } finally {
         Files.deleteIfExists(tempFile)
     }
+}
+
+fun deleteRecursively(path: Path) {
+    Files.walkFileTree(path, object : SimpleFileVisitor<Path>() {
+        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+            Files.deleteIfExists(file)
+            return FileVisitResult.CONTINUE
+        }
+
+        override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
+            Files.deleteIfExists(dir)
+            return FileVisitResult.CONTINUE
+        }
+    })
+
+    Files.deleteIfExists(path)
 }
