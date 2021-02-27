@@ -15,6 +15,10 @@ data class DigestMessage(
 
 interface Digest {
     fun messages(): ImmutableList<DigestMessage>
+    val size: Int get() = messages().size
+}
+
+interface MutableDigest : Digest {
     fun add(messages: Iterable<DigestMessage>)
     fun add(message: DigestMessage) = add(listOf(message))
     fun clear()
@@ -28,10 +32,12 @@ interface Digest {
      * Adds the provided message to the digest. Returns 1 if it was added, and 0 otherwise.
      */
     fun addCounted(message: DigestMessage): Int = addCounted(listOf(message))
-
-    val size: Int get() = messages().size
 }
 
 interface GuildDigestMap {
     fun digestForGuild(guildId: String): Digest
+}
+
+interface GuildMutableDigestMap : GuildDigestMap {
+    override fun digestForGuild(guildId: String): MutableDigest
 }

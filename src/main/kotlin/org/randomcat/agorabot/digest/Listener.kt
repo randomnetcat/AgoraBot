@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import org.randomcat.agorabot.listener.BotEmoteListener
 import org.randomcat.agorabot.util.tryAddReaction
 
-fun digestEmoteListener(digestMap: GuildDigestMap, targetEmoji: String, successEmoji: String): BotEmoteListener {
+fun digestEmoteListener(digestMap: GuildMutableDigestMap, targetEmoji: String, successEmoji: String): BotEmoteListener {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
             if (!event.isFromGuild) return

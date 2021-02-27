@@ -55,7 +55,7 @@ private fun retrieveMessagesBetween(beginInclusive: Message, endInclusive: Messa
 
 class DigestCommand(
     strategy: BaseCommandStrategy,
-    private val digestMap: GuildDigestMap,
+    private val digestMap: GuildMutableDigestMap,
     private val sendStrategy: DigestSendStrategy?,
     private val digestFormat: DigestFormat,
     private val digestAddedReaction: String?,

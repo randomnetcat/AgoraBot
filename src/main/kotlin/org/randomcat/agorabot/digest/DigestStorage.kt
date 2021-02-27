@@ -76,7 +76,7 @@ private data class DigestMessageDto(
 private class JsonDigest(
     private val storagePath: Path,
     private val backupDir: Path,
-) : Digest {
+) : MutableDigest {
     companion object {
         private val FILE_CHARSET = Charsets.UTF_8
 
@@ -158,7 +158,7 @@ private class JsonDigest(
 class JsonGuildDigestMap(
     private val storageDirectory: Path,
     private val persistenceService: ConfigPersistService,
-) : GuildDigestMap {
+) : GuildMutableDigestMap {
     init {
         Files.createDirectories(storageDirectory)
     }
@@ -166,14 +166,9 @@ class JsonGuildDigestMap(
     private val backupDirectory
         get() = storageDirectory.resolve("cleared")
 
-    private class LoadOnceDigest(init: () -> Digest) {
-        // lazy will ensure that only a single JsonDigest is created
-        val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED, init)
-    }
-
     private val map = AtomicLoadOnceMap<String /* GuildId */, JsonDigest>()
 
-    override fun digestForGuild(guildId: String): Digest {
+    override fun digestForGuild(guildId: String): MutableDigest {
         return map.getOrPut(guildId) {
             JsonDigest(
                 storagePath = storageDirectory.resolve(guildId),

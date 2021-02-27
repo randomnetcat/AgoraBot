@@ -28,7 +28,7 @@ private val logger = LoggerFactory.getLogger("AgoraBot")
 private fun makeCommandRegistry(
     commandStrategy: BaseCommandStrategy,
     prefixMap: MutableGuildPrefixMap,
-    digestMap: GuildDigestMap,
+    digestMap: GuildMutableDigestMap,
     digestFormat: DigestFormat,
     digestSendStrategy: DigestSendStrategy?,
     botPermissionMap: MutablePermissionMap,
