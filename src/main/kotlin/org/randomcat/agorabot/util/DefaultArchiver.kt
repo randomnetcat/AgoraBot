@@ -42,12 +42,14 @@ private fun writeMessageTextTo(
                     ""
     }
 
+    val adjustedTimeCreated = message.timeCreated.utcLocalDateTime()
+
     out.write(
         "MESSAGE ${message.id}\n" +
                 "FROM ${message.author.name} " +
                 "IN #${message.channel.name} " +
-                "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(message.timeCreated)} " +
-                "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(message.timeCreated)}:" +
+                "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(adjustedTimeCreated)} " +
+                "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(adjustedTimeCreated)}:" +
                 "\n" +
                 contentPart +
                 "\n\n"
