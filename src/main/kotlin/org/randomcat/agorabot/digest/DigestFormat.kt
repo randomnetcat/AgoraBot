@@ -9,7 +9,7 @@ interface DigestFormat {
 
 class SimpleDigestFormat : DigestFormat {
     override fun format(digest: Digest): String {
-        return digest.messages().sortedBy { it.date }.joinToString("\n\n") { message ->
+        return digest.messages().sortedBy { it.messageDate }.joinToString("\n\n") { message ->
             val nickname = message.senderNickname
             val includeNickname = (nickname != null) && (nickname != message.senderUsername)
 
@@ -29,7 +29,7 @@ class SimpleDigestFormat : DigestFormat {
                             ""
             }
 
-            val adjustedDate = message.date.utcLocalDateTime()
+            val adjustedDate = message.messageDate.utcLocalDateTime()
 
             "MESSAGE ${message.id}\n" +
                     "FROM ${message.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +

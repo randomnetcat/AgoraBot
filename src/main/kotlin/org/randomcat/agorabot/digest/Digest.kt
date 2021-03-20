@@ -9,7 +9,7 @@ data class DigestMessage(
     val id: String,
     val channelName: String?,
     val content: String,
-    val date: OffsetDateTime,
+    val messageDate: OffsetDateTime,
     val attachmentUrls: ImmutableList<String>,
 )
 
