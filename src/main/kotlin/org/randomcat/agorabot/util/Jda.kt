@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.util
 
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.Role
@@ -32,12 +33,18 @@ fun Guild.resolveRoleString(roleString: String): Role? {
     return null
 }
 
-fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
+fun emptyRestActionOn(jda: JDA): RestAction<Unit> = CompletedRestAction.ofSuccess(jda, Unit)
+
+inline fun <T> ignoringRestActionOn(jda: JDA, actionFun: () -> RestAction<T>?): RestAction<Unit> {
     return try {
-        addReaction(reaction).ignoreErrors()
+        actionFun()?.also { check(it.jda === jda) }?.ignoreErrors() ?: emptyRestActionOn(jda)
     } catch (e: Exception) {
-        CompletedRestAction.ofSuccess(jda, Unit)
+        emptyRestActionOn(jda)
     }
+}
+
+fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
+    return ignoringRestActionOn(jda) { addReaction(reaction) }
 }
 
 fun <T> RestAction<T>.ignoreErrors() = map { Unit }.onErrorMap { Unit }
