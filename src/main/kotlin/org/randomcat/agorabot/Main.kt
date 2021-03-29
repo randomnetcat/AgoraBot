@@ -40,6 +40,7 @@ private fun makeCommandRegistry(
     ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
     discordArchiver: DiscordArchiver,
     archiveExecutorFun: () -> ExecutorService,
+    writeHammertimeChannelFun: (channelId: String) -> Unit,
 ): CommandRegistry {
     lateinit var registry: QueryableCommandRegistry
 
@@ -77,6 +78,7 @@ private fun makeCommandRegistry(
             ),
             "help" to HelpCommand(commandStrategy, { registry }, suppressedCommands = listOf("permissions")),
             "archive" to ArchiveCommand(commandStrategy, archiver = discordArchiver, executorFun = archiveExecutorFun),
+            "stop" to StopCommand(commandStrategy, writeChannelFun = writeHammertimeChannelFun)
         ),
     )
 
@@ -235,6 +237,7 @@ fun main(args: Array<String>) {
                     ircPersistentWhoMessageMap = persistentWhoMessageMap,
                     discordArchiver = DefaultDiscordArchiver(storageDir = basePath.resolve("tmp").resolve("archive")),
                     archiveExecutorFun = { archiveExecutor },
+                    writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) }
                 ),
             ),
             digestEmoteListener(
@@ -254,6 +257,13 @@ fun main(args: Array<String>) {
                 1,
                 TimeUnit.MINUTES,
             )
+        }
+
+        try {
+            handleStartupMessage(basePath = basePath, jda = jda)
+        } catch (e: Exception) {
+            // Log and ignore. This failing should not bring down the whole bot
+            logger.error("Exception while handling startup message.", e)
         }
     } catch (e: Exception) {
         logger.error("Exception while setting up JDA listeners!", e)
