@@ -8,7 +8,7 @@ import org.randomcat.agorabot.util.JDA_HISTORY_MAX_RETRIEVE_LIMIT
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.time.Instant
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.ExecutorService
@@ -45,12 +45,6 @@ class ArchiveCommand(
                 respond("You do not have permission to read within that channel.")
                 return@permissions
             }
-
-            val date =
-                DateTimeFormatter
-                    .ofPattern("YYYY-MM-dd-HH-mm-ss")
-                    .withZone(ZoneId.systemDefault())
-                    .format(Instant.now())
 
             val forwardHistory = sequence {
                 val oldestMessageList = targetChannel.getHistoryFromBeginning(1).complete()
@@ -91,6 +85,12 @@ class ArchiveCommand(
                     archiver
                         .createArchiveFromAsync(executorFun(), forwardHistory.asIterable())
                         .thenApply {
+                            val date =
+                                DateTimeFormatter
+                                    .ISO_LOCAL_DATE_TIME
+                                    .withZone(ZoneOffset.UTC)
+                                    .format(Instant.now())
+
                             currentChannel()
                                 .sendMessage("Archive for channel $channelId")
                                 .addFile(

@@ -20,7 +20,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -143,8 +143,8 @@ private class JsonDigest(
         // second. A Long will suffice here.
         val backupPath = backupDir.resolve(
             DateTimeFormatter
-                .ofPattern("YYYY-MM-dd-HH-mm-ss")
-                .withZone(ZoneId.systemDefault())
+                .ISO_LOCAL_DATE_TIME
+                .withZone(ZoneOffset.UTC)
                 .format(Instant.now())
                     + "-" +
                     "%020d".format(backupCounter.getAndUpdate { old ->
