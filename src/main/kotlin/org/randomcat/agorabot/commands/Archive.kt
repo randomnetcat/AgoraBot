@@ -29,87 +29,98 @@ class ArchiveCommand(
 ) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
         args(StringArg("channel_id")).requiresGuild().permissions(ARCHIVE_PERMISSION) { (channelId) ->
-            val targetChannel = currentGuildInfo().guild.getTextChannelById(channelId)
+            doArchive(channelId = channelId, storeArchiveResult = { path ->
+                val date =
+                    DateTimeFormatter
+                        .ISO_LOCAL_DATE_TIME
+                        .withZone(ZoneOffset.UTC)
+                        .format(Instant.now())
 
-            if (targetChannel == null) {
-                respond("No channel with that ID exists.")
-                return@permissions
-            }
+                currentChannel()
+                    .sendMessage("Archive for channel $channelId")
+                    .addFile(
+                        path.toFile(),
+                        "archive_${channelId}_${date}.${archiver.archiveExtension}",
+                    )
+                    .queue()
+            })
+        }
+    }
 
-            val member = currentMessageEvent().member ?: error("Member should exist because this is in a Guild")
+    private fun BaseCommandExecutionReceiverGuilded.doArchive(
+        channelId: String,
+        storeArchiveResult: BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
+    ) {
+        val targetChannel = currentGuildInfo().guild.getTextChannelById(channelId)
 
-            if (
-                !member.hasPermission(targetChannel, DiscordPermission.MESSAGE_READ) ||
-                !member.hasPermission(targetChannel, DiscordPermission.MESSAGE_HISTORY)
-            ) {
-                respond("You do not have permission to read within that channel.")
-                return@permissions
-            }
+        if (targetChannel == null) {
+            respond("No channel with that ID exists.")
+            return
+        }
 
-            val forwardHistory = sequence {
-                val oldestMessageList = targetChannel.getHistoryFromBeginning(1).complete()
+        val member = currentMessageEvent().member ?: error("Member should exist because this is in a Guild")
 
-                check(oldestMessageList.size() <= 1)
-                if (oldestMessageList.isEmpty) return@sequence
+        if (
+            !member.hasPermission(targetChannel, DiscordPermission.MESSAGE_READ) ||
+            !member.hasPermission(targetChannel, DiscordPermission.MESSAGE_HISTORY)
+        ) {
+            respond("You do not have permission to read within that channel.")
+            return
+        }
 
-                var lastRetrievedMessage = oldestMessageList.retrievedHistory.single()
-                yield(lastRetrievedMessage)
+        val forwardHistory = sequence {
+            val oldestMessageList = targetChannel.getHistoryFromBeginning(1).complete()
 
-                while (true) {
-                    val nextHistory =
-                        targetChannel.getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).complete()
+            check(oldestMessageList.size() <= 1)
+            if (oldestMessageList.isEmpty) return@sequence
 
-                    if (nextHistory.isEmpty) {
-                        return@sequence
-                    }
+            var lastRetrievedMessage = oldestMessageList.retrievedHistory.single()
+            yield(lastRetrievedMessage)
 
-                    // retrievedHistory is always newest -> oldest, we want oldest -> newest
-                    val nextMessages = nextHistory.retrievedHistory.asReversed()
+            while (true) {
+                val nextHistory =
+                    targetChannel.getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).complete()
 
-                    yieldAll(nextMessages)
-                    lastRetrievedMessage = nextMessages.last()
+                if (nextHistory.isEmpty) {
+                    return@sequence
                 }
-            }
 
-            currentChannel().sendMessage("Running archive job on channel ${channelId}...").queue { statusMessage ->
-                fun markFailed() {
-                    statusMessage.editMessage("Archive job failed for channel ${channelId}!").queue()
-                }
+                // retrievedHistory is always newest -> oldest, we want oldest -> newest
+                val nextMessages = nextHistory.retrievedHistory.asReversed()
 
-                fun markFailedWith(e: Throwable) {
-                    markFailed()
-                    LOGGER.error("Error while archiving channel $channelId", e)
-                }
-
-                try {
-                    archiver
-                        .createArchiveFromAsync(executorFun(), forwardHistory.asIterable())
-                        .thenApply {
-                            val date =
-                                DateTimeFormatter
-                                    .ISO_LOCAL_DATE_TIME
-                                    .withZone(ZoneOffset.UTC)
-                                    .format(Instant.now())
-
-                            currentChannel()
-                                .sendMessage("Archive for channel $channelId")
-                                .addFile(
-                                    it.getOrThrow().toFile(),
-                                    "archive_${channelId}_${date}.${archiver.archiveExtension}",
-                                )
-                                .queue()
-
-                            statusMessage
-                                .editMessage("Archive done for channel ${channelId}.")
-                                .queue()
-                        }
-                        .exceptionally {
-                            markFailedWith(it)
-                        }
-                } catch (e: Exception) {
-                    markFailedWith(e)
-                }
+                yieldAll(nextMessages)
+                lastRetrievedMessage = nextMessages.last()
             }
         }
+
+        currentChannel().sendMessage("Running archive job on channel ${channelId}...").queue { statusMessage ->
+            fun markFailed() {
+                statusMessage.editMessage("Archive job failed for channel ${channelId}!").queue()
+            }
+
+            fun markFailedWith(e: Throwable) {
+                markFailed()
+                LOGGER.error("Error while archiving channel $channelId", e)
+            }
+
+            try {
+                archiver
+                    .createArchiveFromAsync(executorFun(), forwardHistory.asIterable())
+                    .thenApply { path ->
+                        storeArchiveResult(path.getOrThrow())
+
+                        statusMessage
+                            .editMessage("Archive done for channel ${channelId}.")
+                            .queue()
+                    }
+                    .exceptionally {
+                        markFailedWith(it)
+                    }
+            } catch (e: Exception) {
+                markFailedWith(e)
+            }
+        }
+
+        return
     }
 }
