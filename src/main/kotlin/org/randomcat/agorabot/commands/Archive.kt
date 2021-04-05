@@ -1,11 +1,10 @@
 package org.randomcat.agorabot.commands
 
-import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageChannel
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
-import org.randomcat.agorabot.util.forwardHistorySequence
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -20,7 +19,7 @@ private val ARCHIVE_PERMISSION = GuildScope.command("archive")
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
 interface DiscordArchiver {
-    fun createArchiveFromAsync(executor: ExecutorService, messages: Iterable<Message>): CompletionStage<Result<Path>>
+    fun createArchiveFromAsync(executor: ExecutorService, channel: MessageChannel): CompletionStage<Result<Path>>
     val archiveExtension: String
 }
 
@@ -89,8 +88,6 @@ class ArchiveCommand(
             return
         }
 
-        val forwardHistory = targetChannel.forwardHistorySequence()
-
         currentChannel().sendMessage("Running archive job on channel ${channelId}...").queue { statusMessage ->
             fun markFailed() {
                 statusMessage.editMessage("Archive job failed for channel ${channelId}!").queue()
@@ -103,7 +100,7 @@ class ArchiveCommand(
 
             try {
                 archiver
-                    .createArchiveFromAsync(executorFun(), forwardHistory.asIterable())
+                    .createArchiveFromAsync(executorFun(), targetChannel)
                     .thenApply { path ->
                         storeArchiveResult(path.getOrThrow())
 

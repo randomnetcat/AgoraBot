@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.util
 
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.MessageType
 import org.randomcat.agorabot.commands.DiscordArchiver
 import java.io.BufferedWriter
@@ -200,9 +201,9 @@ class DefaultDiscordArchiver(private val storageDir: Path) : DiscordArchiver {
 
     override fun createArchiveFromAsync(
         executor: ExecutorService,
-        messages: Iterable<Message>,
+        channel: MessageChannel,
     ): CompletionStage<Result<Path>> {
-        return doCreateArchive(executor, messages.iterator())
+        return doCreateArchive(executor, channel.forwardHistorySequence().iterator())
     }
 
     private fun doCreateArchive(
