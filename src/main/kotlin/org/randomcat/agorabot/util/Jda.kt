@@ -1,5 +1,12 @@
 package org.randomcat.agorabot.util
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
@@ -72,5 +79,19 @@ fun MessageChannel.forwardHistorySequence() = sequence {
 
         yieldAll(nextMessages)
         lastRetrievedMessage = nextMessages.last()
+    }
+}
+
+fun CoroutineScope.forwardHistoryChannelOf(
+    discordChannel: MessageChannel,
+    bufferCapacity: Int = 0,
+): ReceiveChannel<Message> {
+    require(bufferCapacity != Channel.CONFLATED) // CONFLATED makes no sense here
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    return produce(capacity = bufferCapacity) {
+        launch(Dispatchers.IO) {
+            discordChannel.forwardHistorySequence().forEach { channel.send(it) }
+        }
     }
 }
