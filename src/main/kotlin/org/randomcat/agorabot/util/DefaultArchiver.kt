@@ -57,7 +57,10 @@ private fun writeMessageTextTo(
     )
 }
 
-class DefaultDiscordArchiver(private val storageDir: Path) : DiscordArchiver {
+class DefaultDiscordArchiver(
+    private val storageDir: Path,
+    private val executorFun: () -> ExecutorService,
+) : DiscordArchiver {
     private class ArchiveJobState(workDir: Path, private val outFile: Path) {
         init {
             Files.createDirectories(workDir)
@@ -200,10 +203,9 @@ class DefaultDiscordArchiver(private val storageDir: Path) : DiscordArchiver {
     private val archiveCount = AtomicReference(BigInteger.ZERO)
 
     override fun createArchiveFromAsync(
-        executor: ExecutorService,
         channel: MessageChannel,
     ): CompletionStage<Result<Path>> {
-        return doCreateArchive(executor, channel.forwardHistorySequence().iterator())
+        return doCreateArchive(executorFun(), channel.forwardHistorySequence().iterator())
     }
 
     private fun doCreateArchive(

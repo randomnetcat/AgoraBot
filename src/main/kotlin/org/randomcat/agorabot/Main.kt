@@ -17,7 +17,6 @@ import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
@@ -39,7 +38,6 @@ private fun makeCommandRegistry(
     ircConfig: IrcConfig?,
     ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
     discordArchiver: DiscordArchiver,
-    archiveExecutorFun: () -> ExecutorService,
     archiveLocalStorageDir: Path,
     writeHammertimeChannelFun: (channelId: String) -> Unit,
 ): CommandRegistry {
@@ -81,7 +79,6 @@ private fun makeCommandRegistry(
             "archive" to ArchiveCommand(
                 commandStrategy,
                 archiver = discordArchiver,
-                executorFun = archiveExecutorFun,
                 localStorageDir = archiveLocalStorageDir,
             ),
             "stop" to StopCommand(commandStrategy, writeChannelFun = writeHammertimeChannelFun)
@@ -241,8 +238,10 @@ fun main(args: Array<String>) {
                     reactionRolesMap = reactionRolesMap,
                     ircConfig = ircConfig,
                     ircPersistentWhoMessageMap = persistentWhoMessageMap,
-                    discordArchiver = DefaultDiscordArchiver(storageDir = basePath.resolve("tmp").resolve("archive")),
-                    archiveExecutorFun = { archiveExecutor },
+                    discordArchiver = DefaultDiscordArchiver(
+                        storageDir = basePath.resolve("tmp").resolve("archive"),
+                        executorFun = { archiveExecutor },
+                    ),
                     archiveLocalStorageDir = basePath.resolve("stored_archives"),
                     writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) }
                 ),

@@ -12,14 +12,13 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.ExecutorService
 
 private val ARCHIVE_PERMISSION = GuildScope.command("archive")
 
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
 interface DiscordArchiver {
-    fun createArchiveFromAsync(executor: ExecutorService, channel: MessageChannel): CompletionStage<Result<Path>>
+    fun createArchiveFromAsync(channel: MessageChannel): CompletionStage<Result<Path>>
     val archiveExtension: String
 }
 
@@ -30,7 +29,6 @@ private fun formatCurrentDate(): String {
 class ArchiveCommand(
     strategy: BaseCommandStrategy,
     private val archiver: DiscordArchiver,
-    private val executorFun: () -> ExecutorService,
     private val localStorageDir: Path,
 ) : BaseCommand(strategy) {
     init {
@@ -100,7 +98,7 @@ class ArchiveCommand(
 
             try {
                 archiver
-                    .createArchiveFromAsync(executorFun(), targetChannel)
+                    .createArchiveFromAsync(targetChannel)
                     .thenApply { path ->
                         storeArchiveResult(path.getOrThrow())
 
