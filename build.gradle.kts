@@ -17,7 +17,6 @@ dependencies {
     implementation("net.dv8tion:JDA:4.2.0_198")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
     implementation("org.kitteh.irc:client-lib:7.3.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.2")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
