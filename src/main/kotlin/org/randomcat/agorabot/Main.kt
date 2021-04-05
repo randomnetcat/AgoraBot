@@ -222,8 +222,6 @@ fun main(args: Array<String>) {
 
         val persistentWhoMessageMap = GuildStateIrcUserListMessageMap { guildStateMap.stateForGuild(it) }
 
-        val archiveExecutor = Executors.newSingleThreadExecutor()
-
         jda.addEventListener(
             BotListener(
                 MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
