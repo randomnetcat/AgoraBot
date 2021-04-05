@@ -6,7 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
@@ -57,13 +57,20 @@ fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
 
 fun <T> RestAction<T>.ignoreErrors() = map { Unit }.onErrorMap { Unit }
 
+suspend fun <T> RestAction<T>.await() = submit().await()
+
+private fun MessageChannel.retrieveEarliestMessage(): RestAction<Message?> {
+    return getHistoryFromBeginning(1).map {
+        when (it.size()) {
+            0 -> null
+            1 -> it.retrievedHistory.single()
+            else -> error("Expected at most 1 element")
+        }
+    }
+}
+
 fun MessageChannel.forwardHistorySequence() = sequence {
-    val oldestMessageList = getHistoryFromBeginning(1).complete()
-
-    check(oldestMessageList.size() <= 1)
-    if (oldestMessageList.isEmpty) return@sequence
-
-    var lastRetrievedMessage = oldestMessageList.retrievedHistory.single()
+    var lastRetrievedMessage = retrieveEarliestMessage().complete() ?: return@sequence
     yield(lastRetrievedMessage)
 
     while (true) {
@@ -89,9 +96,23 @@ fun CoroutineScope.forwardHistoryChannelOf(
     require(bufferCapacity != Channel.CONFLATED) // CONFLATED makes no sense here
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    return produce(capacity = bufferCapacity) {
-        launch(Dispatchers.IO) {
-            discordChannel.forwardHistorySequence().forEach { channel.send(it) }
+    return produce(Dispatchers.IO, capacity = bufferCapacity) {
+        var lastRetrievedMessage = discordChannel.retrieveEarliestMessage().await() ?: return@produce
+        send(lastRetrievedMessage)
+
+        while (true) {
+            val nextHistory =
+                discordChannel.getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).await()
+
+            if (nextHistory.isEmpty) {
+                return@produce
+            }
+
+            // retrievedHistory is always newest -> oldest, we want oldest -> newest
+            val nextMessages = nextHistory.retrievedHistory.asReversed()
+
+            nextMessages.forEach { send(it) }
+            lastRetrievedMessage = nextMessages.last()
         }
     }
 }
