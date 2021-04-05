@@ -3,6 +3,7 @@ package org.randomcat.agorabot.util
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
@@ -48,3 +49,28 @@ fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
 }
 
 fun <T> RestAction<T>.ignoreErrors() = map { Unit }.onErrorMap { Unit }
+
+fun MessageChannel.forwardHistorySequence() = sequence {
+    val oldestMessageList = getHistoryFromBeginning(1).complete()
+
+    check(oldestMessageList.size() <= 1)
+    if (oldestMessageList.isEmpty) return@sequence
+
+    var lastRetrievedMessage = oldestMessageList.retrievedHistory.single()
+    yield(lastRetrievedMessage)
+
+    while (true) {
+        val nextHistory =
+            getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).complete()
+
+        if (nextHistory.isEmpty) {
+            return@sequence
+        }
+
+        // retrievedHistory is always newest -> oldest, we want oldest -> newest
+        val nextMessages = nextHistory.retrievedHistory.asReversed()
+
+        yieldAll(nextMessages)
+        lastRetrievedMessage = nextMessages.last()
+    }
+}

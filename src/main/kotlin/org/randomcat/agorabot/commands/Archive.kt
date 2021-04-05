@@ -5,7 +5,7 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
-import org.randomcat.agorabot.util.JDA_HISTORY_MAX_RETRIEVE_LIMIT
+import org.randomcat.agorabot.util.forwardHistorySequence
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -89,30 +89,7 @@ class ArchiveCommand(
             return
         }
 
-        val forwardHistory = sequence {
-            val oldestMessageList = targetChannel.getHistoryFromBeginning(1).complete()
-
-            check(oldestMessageList.size() <= 1)
-            if (oldestMessageList.isEmpty) return@sequence
-
-            var lastRetrievedMessage = oldestMessageList.retrievedHistory.single()
-            yield(lastRetrievedMessage)
-
-            while (true) {
-                val nextHistory =
-                    targetChannel.getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).complete()
-
-                if (nextHistory.isEmpty) {
-                    return@sequence
-                }
-
-                // retrievedHistory is always newest -> oldest, we want oldest -> newest
-                val nextMessages = nextHistory.retrievedHistory.asReversed()
-
-                yieldAll(nextMessages)
-                lastRetrievedMessage = nextMessages.last()
-            }
-        }
+        val forwardHistory = targetChannel.forwardHistorySequence()
 
         currentChannel().sendMessage("Running archive job on channel ${channelId}...").queue { statusMessage ->
             fun markFailed() {
