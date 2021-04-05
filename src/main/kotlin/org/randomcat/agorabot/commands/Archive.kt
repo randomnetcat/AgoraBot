@@ -2,10 +2,12 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
 import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
 import org.randomcat.agorabot.util.JDA_HISTORY_MAX_RETRIEVE_LIMIT
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneOffset
@@ -22,28 +24,47 @@ interface DiscordArchiver {
     val archiveExtension: String
 }
 
+private fun formatCurrentDate(): String {
+    return DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC).format(Instant.now())
+}
+
 class ArchiveCommand(
     strategy: BaseCommandStrategy,
     private val archiver: DiscordArchiver,
     private val executorFun: () -> ExecutorService,
+    private val localStorageDir: Path,
 ) : BaseCommand(strategy) {
-    override fun BaseCommandImplReceiver.impl() {
-        args(StringArg("channel_id")).requiresGuild().permissions(ARCHIVE_PERMISSION) { (channelId) ->
-            doArchive(channelId = channelId, storeArchiveResult = { path ->
-                val date =
-                    DateTimeFormatter
-                        .ISO_LOCAL_DATE_TIME
-                        .withZone(ZoneOffset.UTC)
-                        .format(Instant.now())
+    init {
+        Files.createDirectories(localStorageDir)
+    }
 
-                currentChannel()
-                    .sendMessage("Archive for channel $channelId")
-                    .addFile(
-                        path.toFile(),
-                        "archive_${channelId}_${date}.${archiver.archiveExtension}",
-                    )
-                    .queue()
-            })
+    override fun BaseCommandImplReceiver.impl() {
+        matchFirst {
+            args(StringArg("channel_id"))
+                .requiresGuild()
+                .permissions(ARCHIVE_PERMISSION) { (channelId) ->
+                    doArchive(channelId = channelId, storeArchiveResult = { path ->
+                        currentChannel()
+                            .sendMessage("Archive for channel $channelId")
+                            .addFile(
+                                path.toFile(),
+                                "archive_${channelId}_${formatCurrentDate()}.${archiver.archiveExtension}",
+                            )
+                            .queue()
+                    })
+                }
+
+            args(StringArg("channel_id"), LiteralArg("store_locally"))
+                .requiresGuild()
+                .permissions(ARCHIVE_PERMISSION, BotScope.admin()) { (channelId) ->
+                    doArchive(channelId = channelId, storeArchiveResult = { path ->
+                        val fileName = "archive_${channelId}_${formatCurrentDate()}.${archiver.archiveExtension}"
+
+                        Files.copy(path, localStorageDir.resolve(fileName))
+
+                        respond("Stored file locally at $fileName")
+                    })
+                }
         }
     }
 

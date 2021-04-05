@@ -40,6 +40,7 @@ private fun makeCommandRegistry(
     ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
     discordArchiver: DiscordArchiver,
     archiveExecutorFun: () -> ExecutorService,
+    archiveLocalStorageDir: Path,
     writeHammertimeChannelFun: (channelId: String) -> Unit,
 ): CommandRegistry {
     lateinit var registry: QueryableCommandRegistry
@@ -77,7 +78,12 @@ private fun makeCommandRegistry(
                 persistentWhoMessageMap = ircPersistentWhoMessageMap,
             ),
             "help" to HelpCommand(commandStrategy, { registry }, suppressedCommands = listOf("permissions")),
-            "archive" to ArchiveCommand(commandStrategy, archiver = discordArchiver, executorFun = archiveExecutorFun),
+            "archive" to ArchiveCommand(
+                commandStrategy,
+                archiver = discordArchiver,
+                executorFun = archiveExecutorFun,
+                localStorageDir = archiveLocalStorageDir,
+            ),
             "stop" to StopCommand(commandStrategy, writeChannelFun = writeHammertimeChannelFun)
         ),
     )
@@ -237,6 +243,7 @@ fun main(args: Array<String>) {
                     ircPersistentWhoMessageMap = persistentWhoMessageMap,
                     discordArchiver = DefaultDiscordArchiver(storageDir = basePath.resolve("tmp").resolve("archive")),
                     archiveExecutorFun = { archiveExecutor },
+                    archiveLocalStorageDir = basePath.resolve("stored_archives"),
                     writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) }
                 ),
             ),
