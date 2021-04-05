@@ -1,13 +1,11 @@
 package org.randomcat.agorabot.util
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.MessageType
@@ -19,7 +17,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.ZipEntry
@@ -135,49 +132,46 @@ class DefaultDiscordArchiver(
     override fun createArchiveFromAsync(
         channel: MessageChannel,
     ): CompletionStage<Result<Path>> {
-        val future = CompletableFuture<Result<Path>>()
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
         // Okay to block because running on IO dispatcher
         @Suppress("BlockingMethodInNonBlockingContext")
-        CoroutineScope(Dispatchers.IO).launch {
-            val workDir = storageDir.resolve("archive-$archiveNumber")
-            Files.createDirectory(workDir)
-            val textPath = workDir.resolve("messages.txt")
+        return CoroutineScope(Dispatchers.IO)
+            .async {
+                val workDir = storageDir.resolve("archive-$archiveNumber")
+                Files.createDirectory(workDir)
+                val textPath = workDir.resolve("messages.txt")
 
-            val outPath = storageDir.resolve("archive-output-$archiveNumber")
+                val outPath = storageDir.resolve("archive-output-$archiveNumber")
 
-            ZipOutputStream(Files.newOutputStream(outPath)).use { zipOut ->
-                val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 100)
+                ZipOutputStream(Files.newOutputStream(outPath)).use { zipOut ->
+                    val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 100)
 
-                coroutineScope {
-                    launch {
-                        receivePendingDownloads(attachmentChannel, zipOut)
+                    coroutineScope {
+                        launch {
+                            receivePendingDownloads(attachmentChannel, zipOut)
+                        }
+
+                        launch {
+                            openTextWriter(textPath).use { textOut ->
+                                val messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 500)
+                                receiveMessages(messageChannel, attachmentChannel, textOut)
+                            }
+                        }.also {
+                            it.invokeOnCompletion { cause ->
+                                attachmentChannel.close(cause = cause)
+                            }
+                        }
                     }
 
-                    launch {
-                        openTextWriter(textPath).use { textOut ->
-                            val messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 500)
-                            receiveMessages(messageChannel, attachmentChannel, textOut)
-                        }
-                    }.also {
-                        it.invokeOnCompletion { cause ->
-                            attachmentChannel.close(cause = cause)
-                        }
-                    }
+                    completeZipFile(zipOut, textPath)
                 }
 
-                completeZipFile(zipOut, textPath)
+                outPath
             }
-
-            future.complete(Result.success(outPath))
-        }.also {
-            it.invokeOnCompletion { cause ->
-                if (cause != null) future.complete(Result.failure(cause))
-            }
-        }
-
-        return future
+            .asCompletableFuture()
+            .thenApply { Result.success(it) }
+            .exceptionally { Result.failure(it) }
     }
 
     override val archiveExtension: String
