@@ -240,7 +240,6 @@ fun main(args: Array<String>) {
                     ircPersistentWhoMessageMap = persistentWhoMessageMap,
                     discordArchiver = DefaultDiscordArchiver(
                         storageDir = basePath.resolve("tmp").resolve("archive"),
-                        executorFun = { archiveExecutor },
                     ),
                     archiveLocalStorageDir = basePath.resolve("stored_archives"),
                     writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) }

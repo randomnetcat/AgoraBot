@@ -1,5 +1,13 @@
 package org.randomcat.agorabot.util
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.MessageType
@@ -13,7 +21,6 @@ import java.nio.file.StandardOpenOption
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -57,143 +64,66 @@ private fun writeMessageTextTo(
     )
 }
 
+private data class PendingAttachmentDownload(
+    val attachment: Message.Attachment,
+    val attachmentNumber: BigInteger,
+)
+
+private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out: OutputStream) {
+    attachment.retrieveInputStream().await().use { downloadStream ->
+        downloadStream.copyTo(out)
+    }
+}
+
+private fun openTextWriter(textPath: Path): BufferedWriter {
+    return Files.newOutputStream(textPath, StandardOpenOption.CREATE_NEW).bufferedWriter(charset = Charsets.UTF_8)
+}
+
+private suspend fun receivePendingDownloads(
+    attachmentChannel: Channel<PendingAttachmentDownload>,
+    zipOut: ZipOutputStream,
+) {
+    for (pendingDownload in attachmentChannel) {
+        val number = pendingDownload.attachmentNumber
+        val fileName = pendingDownload.attachment.fileName
+
+        zipOut.putNextEntry(ZipEntry("attachments/attachment-${number}/${fileName}"))
+        writeAttachmentContentTo(pendingDownload.attachment, zipOut)
+    }
+}
+
+private fun completeZipFile(zipOut: ZipOutputStream, textPath: Path) {
+    zipOut.putNextEntry(ZipEntry("messages.txt"))
+
+    Files.newInputStream(textPath).use { textIn ->
+        textIn.copyTo(zipOut)
+    }
+}
+
+private suspend fun receiveMessages(
+    messageChannel: ReceiveChannel<Message>,
+    attachmentChannel: SendChannel<PendingAttachmentDownload>,
+    textOut: BufferedWriter,
+) {
+    var currentAttachmentNumber = BigInteger.ZERO
+
+    for (message in messageChannel) {
+        if (message.type != MessageType.DEFAULT) continue
+
+        val attachmentNumbers = message.attachments.map {
+            val number = ++currentAttachmentNumber
+            attachmentChannel.send(PendingAttachmentDownload(it, number))
+
+            number
+        }
+
+        writeMessageTextTo(message, attachmentNumbers, textOut)
+    }
+}
+
 class DefaultDiscordArchiver(
     private val storageDir: Path,
-    private val executorFun: () -> ExecutorService,
 ) : DiscordArchiver {
-    private class ArchiveJobState(workDir: Path, private val outFile: Path) {
-        init {
-            Files.createDirectories(workDir)
-        }
-
-        private var currentAttachmentNumber = BigInteger.ZERO
-
-        private val attachmentsDir = workDir.resolve("attachments")
-
-        init {
-            Files.createDirectory(attachmentsDir)
-        }
-
-        private val textPath = workDir.resolve("messages.txt")
-
-        private fun nextAttachmentNumber() = ++currentAttachmentNumber
-
-        private fun writeAttachmentContentTo(attachment: Message.Attachment, out: OutputStream) {
-            attachment.retrieveInputStream().get().use { downloadStream ->
-                downloadStream.copyTo(out)
-            }
-        }
-
-        private fun writeBatch(messages: List<Message>, textOut: BufferedWriter, attachmentOut: ZipOutputStream) {
-            for (message in messages) {
-                if (message.type != MessageType.DEFAULT) continue
-
-                val attachmentNumbers = message.attachments.map {
-                    val number = nextAttachmentNumber()
-                    attachmentOut.putNextEntry(ZipEntry("attachments/attachment-${number}/${it.fileName}"))
-                    writeAttachmentContentTo(it, attachmentOut)
-
-                    number
-                }
-
-                writeMessageTextTo(message, attachmentNumbers, textOut)
-            }
-        }
-
-        fun createArchiveOn(
-            executor: ExecutorService,
-            messageIterator: Iterator<Message>,
-        ): CompletionStage<Result<Path>> {
-            val textOut =
-                Files.newOutputStream(textPath, StandardOpenOption.CREATE_NEW).bufferedWriter(charset = Charsets.UTF_8)
-
-            val zipOut = ZipOutputStream(Files.newOutputStream(outFile))
-
-            val result = CompletableFuture<Unit>()
-            writeBatchAndScheduleNext(
-                executor = executor,
-                messageIterator = messageIterator,
-                textOut = textOut,
-                attachmentOut = zipOut,
-                result = result,
-            )
-
-            return result
-                .thenApplyAsync(
-                    {
-                        textOut.close()
-
-                        try {
-                            completeZipFile(zipOut)
-                            Result.success(outFile)
-                        } finally {
-                            zipOut.close()
-                        }
-                    },
-                    executor,
-                )
-                .exceptionallyAsync(
-                    {
-                        // If these were already closed, it's fine to close them again (and will have no effect under
-                        // the Closeable interface).
-                        textOut.close()
-                        zipOut.close()
-
-                        Result.failure(it)
-                    },
-                    executor,
-                )
-        }
-
-        private fun writeBatchAndScheduleNext(
-            executor: ExecutorService,
-            messageIterator: Iterator<Message>,
-            textOut: BufferedWriter,
-            attachmentOut: ZipOutputStream,
-            result: CompletableFuture<Unit>,
-        ) {
-            try {
-                executor.submit {
-                    try {
-                        val (currentBatch, nextIterator) = messageIterator.consumeFirst(ARCHIVE_BATCH_SIZE)
-
-                        writeBatch(
-                            messages = currentBatch,
-                            textOut = textOut,
-                            attachmentOut = attachmentOut,
-                        )
-
-                        if (nextIterator != null) {
-                            executor.submit {
-                                writeBatchAndScheduleNext(
-                                    executor = executor,
-                                    messageIterator = messageIterator,
-                                    textOut = textOut,
-                                    attachmentOut = attachmentOut,
-                                    result = result,
-                                )
-                            }
-                        } else {
-                            result.complete(Unit)
-                        }
-                    } catch (e: Exception) {
-                        result.completeExceptionally(e)
-                    }
-                }
-            } catch (e: Exception) {
-                result.completeExceptionally(e)
-            }
-        }
-
-        private fun completeZipFile(zipOut: ZipOutputStream) {
-            zipOut.putNextEntry(ZipEntry("messages.txt"))
-
-            Files.newInputStream(textPath).use { textIn ->
-                textIn.copyTo(zipOut)
-            }
-        }
-    }
-
     init {
         // Clean out any old archives
         deleteRecursively(storageDir)
@@ -205,19 +135,49 @@ class DefaultDiscordArchiver(
     override fun createArchiveFromAsync(
         channel: MessageChannel,
     ): CompletionStage<Result<Path>> {
-        return doCreateArchive(executorFun(), channel.forwardHistorySequence().iterator())
-    }
-
-    private fun doCreateArchive(
-        executor: ExecutorService,
-        messageIterator: Iterator<Message>,
-    ): CompletionStage<Result<Path>> {
+        val future = CompletableFuture<Result<Path>>()
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
-        val workDir = storageDir.resolve("archive-$archiveNumber")
-        val outPath = storageDir.resolve("archive-output-$archiveNumber")
+        // Okay to block because running on IO dispatcher
+        @Suppress("BlockingMethodInNonBlockingContext")
+        CoroutineScope(Dispatchers.IO).launch {
+            val workDir = storageDir.resolve("archive-$archiveNumber")
+            Files.createDirectory(workDir)
+            val textPath = workDir.resolve("messages.txt")
 
-        return ArchiveJobState(workDir = workDir, outFile = outPath).createArchiveOn(executor, messageIterator)
+            val outPath = storageDir.resolve("archive-output-$archiveNumber")
+
+            ZipOutputStream(Files.newOutputStream(outPath)).use { zipOut ->
+                val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 100)
+
+                coroutineScope {
+                    launch {
+                        receivePendingDownloads(attachmentChannel, zipOut)
+                    }
+
+                    launch {
+                        openTextWriter(textPath).use { textOut ->
+                            val messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 500)
+                            receiveMessages(messageChannel, attachmentChannel, textOut)
+                        }
+                    }.also {
+                        it.invokeOnCompletion { cause ->
+                            attachmentChannel.close(cause = cause)
+                        }
+                    }
+                }
+
+                completeZipFile(zipOut, textPath)
+            }
+
+            future.complete(Result.success(outPath))
+        }.also {
+            it.invokeOnCompletion { cause ->
+                if (cause != null) future.complete(Result.failure(cause))
+            }
+        }
+
+        return future
     }
 
     override val archiveExtension: String
