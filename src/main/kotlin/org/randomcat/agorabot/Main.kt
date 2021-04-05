@@ -199,15 +199,25 @@ fun main(args: Array<String>) {
     val executor = Executors.newSingleThreadScheduledExecutor()
 
     try {
-        val ircClient = try {
-            ircConfig
-                ?.also { logger.info("Connecting IRC...") }
-                ?.let { setupIrc(it, ircDir, jda) }
-                ?.also { logger.info("Done connecting IRC.") }
-                ?: null.also { logger.warn("Unable to setup IRC! Check for errors above.") }
-        } catch (e: Exception) {
-            logger.error("Exception while setting up IRC!", e)
-            null
+        val ircClient = when {
+            ircConfig == null -> {
+                logger.warn("Unable to setup IRC! Check for errors above.")
+                null
+            }
+
+            ircConfig.connections.isEmpty() -> {
+                logger.info("No IRC connections requested.")
+                null
+            }
+
+            else -> {
+                try {
+                    setupIrc(ircConfig, ircDir, jda)
+                } catch (e: Exception) {
+                    logger.error("Exception while setting up IRC!", e)
+                    null
+                }
+            }
         }
 
         val commandStrategy = makeBaseCommandStrategy(
