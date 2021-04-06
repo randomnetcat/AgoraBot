@@ -33,7 +33,7 @@ private fun writeMessageTextTo(
         "Attachment $it"
     }
 
-    val contentPart = if (message.contentRaw.isBlank()) {
+    val contentPart = if (message.contentDisplay.isBlank()) {
         if (attachmentLines.isNotEmpty()) {
             "This message consists only of attachments:\n$attachmentLines"
         } else {
