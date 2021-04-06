@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-private const val ARCHIVE_BATCH_SIZE = 100
-
 private fun writeMessageTextTo(
     message: Message,
     attachmentNumbers: List<BigInteger>,
