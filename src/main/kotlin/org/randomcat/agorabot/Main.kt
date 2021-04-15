@@ -174,32 +174,32 @@ fun main(args: Array<String>) {
         val registryIsAvailableFlag = AtomicBoolean()
 
         val features = listOfNotNull(
-            adminCommandsFeature(
+            "bot_admin_commands" to adminCommandsFeature(
                 writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) },
             ),
-            archiveCommandsFeature(
+            "archive" to archiveCommandsFeature(
                 discordArchiver = DefaultDiscordArchiver(
                     storageDir = basePath.resolve("tmp").resolve("archive"),
                 ),
                 localStorageDir = basePath.resolve("stored_archives"),
             ),
-            copyrightCommandsFeature(),
-            digestFeature(
+            "copyright_commands" to copyrightCommandsFeature(),
+            "digest" to digestFeature(
                 digestMap = digestMap,
                 sendStrategy = digestSendStrategy,
                 format = digestFormat
             ),
-            duckFeature(),
-            helpCommandsFeature(suppressedCommands = listOf("permissions")),
-            if (ircConfig != null) ircCommandsFeature(ircConfig, persistentWhoMessageMap) else null,
-            permissionsCommandsFeature(
+            "duck" to duckFeature(),
+            "help" to helpCommandsFeature(suppressedCommands = listOf("permissions")),
+            "irc_commands" to (if (ircConfig != null) ircCommandsFeature(ircConfig, persistentWhoMessageMap) else null),
+            "permissions_commands" to permissionsCommandsFeature(
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
             ),
-            prefixCommandsFeature(prefixMap),
-            randomCommandsFeature(),
-            reactionRolesFeature(reactionRolesMap),
-            selfAssignCommandsFeature(),
+            "prefix_commands" to prefixCommandsFeature(prefixMap),
+            "random_commands" to randomCommandsFeature(),
+            "reaction_roles" to reactionRolesFeature(reactionRolesMap),
+            "self_assign_roles" to selfAssignCommandsFeature(),
         )
 
         val featureContext = object : FeatureContext {
@@ -212,9 +212,15 @@ fun main(args: Array<String>) {
             }
         }
 
-        for (feature in features) {
-            commandRegistry.addCommands(feature.commandsInContext(featureContext))
-            feature.registerListenersTo(jda)
+        for ((name, feature) in features) {
+            if (feature != null) {
+                logger.info("Registering feature $name")
+
+                commandRegistry.addCommands(feature.commandsInContext(featureContext))
+                feature.registerListenersTo(jda)
+            } else {
+                logger.info("Not registering feature $name because it is not available.")
+            }
         }
 
         registryIsAvailableFlag.set(true)
