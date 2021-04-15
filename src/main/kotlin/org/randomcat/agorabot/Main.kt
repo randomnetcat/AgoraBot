@@ -3,90 +3,28 @@ package org.randomcat.agorabot
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
-import org.randomcat.agorabot.commands.*
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
-import org.randomcat.agorabot.digest.*
+import org.randomcat.agorabot.digest.AffixDigestFormat
+import org.randomcat.agorabot.digest.JsonGuildDigestMap
+import org.randomcat.agorabot.digest.SimpleDigestFormat
+import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
-import org.randomcat.agorabot.permissions.*
+import org.randomcat.agorabot.permissions.JsonGuildPermissionMap
+import org.randomcat.agorabot.permissions.JsonPermissionMap
+import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
-import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
-import org.randomcat.agorabot.reactionroles.reactionRolesListener
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.system.exitProcess
 
-private const val DIGEST_ADD_EMOTE = "\u2B50" // Discord :star:
-private const val DIGEST_SUCCESS_EMOTE = "\u2705" // Discord :white_check_mark:
-
 private val logger = LoggerFactory.getLogger("AgoraBot")
-
-private fun makeCommandRegistry(
-    commandStrategy: BaseCommandStrategy,
-    prefixMap: MutableGuildPrefixMap,
-    digestMap: GuildMutableDigestMap,
-    digestFormat: DigestFormat,
-    digestSendStrategy: DigestSendStrategy?,
-    botPermissionMap: MutablePermissionMap,
-    guildPermissionMap: MutableGuildPermissionMap,
-    reactionRolesMap: MutableReactionRolesMap,
-    ircConfig: IrcConfig?,
-    ircPersistentWhoMessageMap: MutableIrcUserListMessageMap,
-    discordArchiver: DiscordArchiver,
-    archiveLocalStorageDir: Path,
-    writeHammertimeChannelFun: (channelId: String) -> Unit,
-): CommandRegistry {
-    lateinit var registry: QueryableCommandRegistry
-
-    registry = MapCommandRegistry(
-        mapOf(
-            "rng" to RngCommand(commandStrategy),
-            "roll" to RollCommand(commandStrategy),
-            "digest" to DigestCommand(
-                strategy = commandStrategy,
-                digestMap = digestMap,
-                sendStrategy = digestSendStrategy,
-                digestFormat = digestFormat,
-                digestAddedReaction = DIGEST_SUCCESS_EMOTE,
-            ),
-            "copyright" to CopyrightCommand(commandStrategy),
-            "prefix" to PrefixCommand(commandStrategy, prefixMap),
-            "cfj" to CfjCommand(commandStrategy),
-            "choose" to ChooseCommand(commandStrategy),
-            "duck" to DuckCommand(commandStrategy),
-            "sudo" to SudoCommand(commandStrategy),
-            "permissions" to PermissionsCommand(
-                commandStrategy,
-                botMap = botPermissionMap,
-                guildMap = guildPermissionMap,
-            ),
-            "halt" to HaltCommand(commandStrategy),
-            "selfassign" to SelfAssignCommand(commandStrategy),
-            "reactionroles" to ReactionRolesCommand(commandStrategy, reactionRolesMap),
-            "irc" to IrcCommand(
-                commandStrategy,
-                lookupConnectedIrcChannel = { _, channelId ->
-                    ircConfig?.connections?.firstOrNull { it.discordChannelId == channelId }?.ircChannelName
-                },
-                persistentWhoMessageMap = ircPersistentWhoMessageMap,
-            ),
-            "help" to HelpCommand(commandStrategy, { registry }, suppressedCommands = listOf("permissions")),
-            "archive" to ArchiveCommand(
-                commandStrategy,
-                archiver = discordArchiver,
-                localStorageDir = archiveLocalStorageDir,
-            ),
-            "stop" to StopCommand(commandStrategy, writeChannelFun = writeHammertimeChannelFun)
-        ),
-    )
-
-    return registry
-}
 
 private const val DIGEST_AFFIX =
     "THIS MESSAGE CONTAINS NO GAME ACTIONS.\n" +
@@ -232,33 +170,60 @@ fun main(args: Array<String>) {
 
         val persistentWhoMessageMap = GuildStateIrcUserListMessageMap { guildStateMap.stateForGuild(it) }
 
+        val commandRegistry = MutableMapCommandRegistry(emptyMap())
+        val registryIsAvailableFlag = AtomicBoolean()
+
+        val features = listOfNotNull(
+            adminCommandsFeature(
+                writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) },
+            ),
+            archiveCommandsFeature(
+                discordArchiver = DefaultDiscordArchiver(
+                    storageDir = basePath.resolve("tmp").resolve("archive"),
+                ),
+                localStorageDir = basePath.resolve("stored_archives"),
+            ),
+            copyrightCommandsFeature(),
+            digestFeature(
+                digestMap = digestMap,
+                sendStrategy = digestSendStrategy,
+                format = digestFormat
+            ),
+            duckFeature(),
+            helpCommandsFeature(suppressedCommands = listOf("permissions")),
+            if (ircConfig != null) ircCommandsFeature(ircConfig, persistentWhoMessageMap) else null,
+            permissionsCommandsFeature(
+                botPermissionMap = botPermissionMap,
+                guildPermissionMap = guildPermissionMap,
+            ),
+            prefixCommandsFeature(prefixMap),
+            randomCommandsFeature(),
+            reactionRolesFeature(reactionRolesMap),
+            selfAssignCommandsFeature(),
+        )
+
+        val featureContext = object : FeatureContext {
+            override val defaultCommandStrategy: BaseCommandStrategy
+                get() = commandStrategy
+
+            override fun commandRegistry(): QueryableCommandRegistry {
+                check(registryIsAvailableFlag.get())
+                return commandRegistry
+            }
+        }
+
+        for (feature in features) {
+            commandRegistry.addCommands(feature.commandsInContext(featureContext))
+            feature.registerListenersTo(jda)
+        }
+
+        registryIsAvailableFlag.set(true)
+
         jda.addEventListener(
             BotListener(
                 MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
-                makeCommandRegistry(
-                    commandStrategy = commandStrategy,
-                    prefixMap = prefixMap,
-                    digestMap = digestMap,
-                    digestFormat = digestFormat,
-                    digestSendStrategy = digestSendStrategy,
-                    botPermissionMap = botPermissionMap,
-                    guildPermissionMap = guildPermissionMap,
-                    reactionRolesMap = reactionRolesMap,
-                    ircConfig = ircConfig,
-                    ircPersistentWhoMessageMap = persistentWhoMessageMap,
-                    discordArchiver = DefaultDiscordArchiver(
-                        storageDir = basePath.resolve("tmp").resolve("archive"),
-                    ),
-                    archiveLocalStorageDir = basePath.resolve("stored_archives"),
-                    writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) }
-                ),
+                commandRegistry,
             ),
-            digestEmoteListener(
-                digestMap = digestMap,
-                targetEmoji = DIGEST_ADD_EMOTE,
-                successEmoji = DIGEST_SUCCESS_EMOTE,
-            ),
-            reactionRolesListener(reactionRolesMap),
         )
 
         if (ircClient != null) {
