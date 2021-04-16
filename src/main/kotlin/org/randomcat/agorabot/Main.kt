@@ -120,6 +120,15 @@ fun main(args: Array<String>) {
 
     val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
 
+    val featuresConfigDir = basePath.resolve("features")
+
+    val citationsConfig = try {
+        readCitationsConfig(featuresConfigDir.resolve("citations.json"))
+    } catch (e: Exception) {
+        logger.error("Error parsing citations config", e)
+        null
+    }
+
     val jda =
         JDABuilder
             .createDefault(
@@ -200,6 +209,7 @@ fun main(args: Array<String>) {
             "random_commands" to randomCommandsFeature(),
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
             "self_assign_roles" to selfAssignCommandsFeature(),
+            "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
         )
 
         val featureContext = object : FeatureContext {
