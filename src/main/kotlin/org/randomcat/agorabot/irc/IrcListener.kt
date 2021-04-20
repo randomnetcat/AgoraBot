@@ -1,14 +1,12 @@
 package org.randomcat.agorabot.irc
 
 import net.engio.mbassy.listener.Handler
-import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent
-import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.client.library.event.channel.ChannelPartEvent
-import org.kitteh.irc.client.library.event.channel.UnexpectedChannelLeaveViaPartEvent
+import org.kitteh.irc.client.library.event.channel.*
 import org.kitteh.irc.client.library.event.user.UserQuitEvent
 
 interface IrcMessageHandler {
     fun onMessage(event: ChannelMessageEvent)
+    fun onCtcpMessage(event: ChannelCtcpEvent)
     fun onJoin(event: ChannelJoinEvent)
     fun onPart(event: ChannelPartEvent)
     fun onUnexpectedPart(event: UnexpectedChannelLeaveViaPartEvent)
@@ -20,6 +18,12 @@ class IrcListener(private val messageHandler: IrcMessageHandler) {
     fun onMessageReceived(event: ChannelMessageEvent) {
         if (event.isSelfEvent()) return
         messageHandler.onMessage(event)
+    }
+
+    @Handler
+    fun onCtcpMessageReceiver(event: ChannelCtcpEvent) {
+        if (event.isSelfEvent()) return
+        messageHandler.onCtcpMessage(event)
     }
 
     @Handler

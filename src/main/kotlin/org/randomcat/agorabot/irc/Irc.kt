@@ -10,10 +10,7 @@ import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType
 import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.User
-import org.kitteh.irc.client.library.event.channel.ChannelJoinEvent
-import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.client.library.event.channel.ChannelPartEvent
-import org.kitteh.irc.client.library.event.channel.UnexpectedChannelLeaveViaPartEvent
+import org.kitteh.irc.client.library.event.channel.*
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.kitteh.irc.client.library.event.user.UserQuitEvent
@@ -150,6 +147,15 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
             relayToDiscord(event.actor.nick + " says: " + event.message)
+        }
+
+        override fun onCtcpMessage(event: ChannelCtcpEvent) {
+            if (isDisarmed()) return
+            if (!event.isInRelevantChannel()) return
+
+            val message = event.message
+            if (!message.startsWith("ACTION ")) return // ACTION means a /me command
+            relayToDiscord(event.actor.nick + " " + message.removePrefix("ACTION "))
         }
 
         private fun handleAnyLeaveEvent(event: ActorEvent<IrcUser>) {
