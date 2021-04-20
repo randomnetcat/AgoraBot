@@ -103,14 +103,20 @@ private class DisarmState {
     fun disarm(): Boolean = !_isDisarmed.compareAndExchange(false, true)
 }
 
+private fun formatIrcNameForDiscord(name: String): String {
+    return "**$name**"
+}
+
 private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
     val discordChannelId = connection.discordChannelId
     val ircChannelName = connection.ircChannelName
 
     // Don't hold on to the channel because JDA doesn't allow keeping objects for indefinite time periods.
     if (jda.getTextChannelById(connection.discordChannelId) == null) {
-        logger.error("Could not find Discord channel ${connection.discordChannelId} " +
-                "when connecting to IRC channel ${connection.ircChannelName}!")
+        logger.error(
+            "Could not find Discord channel ${connection.discordChannelId} " +
+                    "when connecting to IRC channel ${connection.ircChannelName}!"
+        )
         return
     }
 
@@ -146,7 +152,7 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
         override fun onMessage(event: ChannelMessageEvent) {
             if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
-            relayToDiscord(event.actor.nick + " says: " + event.message)
+            relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " says: " + event.message)
         }
 
         override fun onCtcpMessage(event: ChannelCtcpEvent) {
@@ -155,18 +161,18 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
 
             val message = event.message
             if (!message.startsWith("ACTION ")) return // ACTION means a /me command
-            relayToDiscord(event.actor.nick + " " + message.removePrefix("ACTION "))
+            relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " " + message.removePrefix("ACTION "))
         }
 
         private fun handleAnyLeaveEvent(event: ActorEvent<IrcUser>) {
-            relayToDiscord("${event.actor.nick} left IRC.")
+            relayToDiscord("${formatIrcNameForDiscord(event.actor.nick)} left IRC.")
         }
 
         override fun onJoin(event: ChannelJoinEvent) {
             if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
             if (!connection.relayJoinLeaveMessages) return
-            relayToDiscord("${event.actor.nick} joined IRC.")
+            relayToDiscord("${formatIrcNameForDiscord(event.actor.nick)} joined IRC.")
         }
 
         override fun onPart(event: ChannelPartEvent) {
