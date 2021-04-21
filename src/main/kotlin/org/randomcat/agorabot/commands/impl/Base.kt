@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.CommandOutputMapping
 import org.randomcat.agorabot.config.GuildState
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandEventSource
@@ -360,18 +361,21 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 typealias BaseCommandImplReceiver =
         TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>
 
-/**
- * An output sink that responds to the originating Discord channel for commands sent in Discord.
- */
-object BaseCommandDiscordToDiscordOutputSink : BaseCommandOutputSink {
+data class BaseCommandDiscordOutputSink(private val mapping: CommandOutputMapping) : BaseCommandOutputSink {
+    private fun channelForSource(source: CommandEventSource): MessageChannel? {
+        return mapping.discordResponseChannnelFor(source)
+    }
+
     override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
-        if (source !is CommandEventSource.Discord) return
-        source.event.channel.sendMessage(message).disallowMentions().queue()
+        channelForSource(source)?.run {
+            sendMessage(message).disallowMentions().queue()
+        }
     }
 
     override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
-        if (source !is CommandEventSource.Discord) return
-        source.event.channel.sendMessage(message).disallowMentions().queue()
+        channelForSource(source)?.run {
+            sendMessage(message).disallowMentions().queue()
+        }
     }
 
     override fun sendResponseAsFile(
@@ -380,10 +384,11 @@ object BaseCommandDiscordToDiscordOutputSink : BaseCommandOutputSink {
         fileName: String,
         fileContent: String,
     ) {
-        if (source !is CommandEventSource.Discord) return
-
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
-        source.event.channel.sendFile(bytes, fileName).disallowMentions().queue()
+
+        channelForSource(source)?.run {
+            sendFile(bytes, fileName).disallowMentions().queue()
+        }
     }
 
     override fun sendResponseTextAndFile(
@@ -393,10 +398,11 @@ object BaseCommandDiscordToDiscordOutputSink : BaseCommandOutputSink {
         fileName: String,
         fileContent: String,
     ) {
-        if (source !is CommandEventSource.Discord) return
-
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
-        source.event.channel.sendMessage(textResponse).addFile(bytes, fileName).queue()
+
+        channelForSource(source)?.run {
+            sendMessage(textResponse).addFile(bytes, fileName).queue()
+        }
     }
 }
 

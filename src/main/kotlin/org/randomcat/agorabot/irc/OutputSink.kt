@@ -1,8 +1,7 @@
 package org.randomcat.agorabot.irc
 
-import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.collections.immutable.toImmutableMap
 import net.dv8tion.jda.api.entities.Message
+import org.randomcat.agorabot.CommandOutputMapping
 import org.randomcat.agorabot.commands.impl.BaseCommandOutputSink
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
@@ -14,25 +13,20 @@ import org.randomcat.agorabot.listener.CommandInvocation
  * @param channelMap a map of Discord channel ids to irc channels.
  */
 data class BaseCommandIrcOutputSink(
-    private val channelMap: ImmutableMap<String, () -> IrcChannel?>,
+    private val outputMapping: CommandOutputMapping,
 ) : BaseCommandOutputSink {
-    constructor(channelMap: Map<String, () -> IrcChannel?>) : this(channelMap.toImmutableMap())
-
-    private fun channelForEvent(source: CommandEventSource): IrcChannel? {
-        return when (source) {
-            is CommandEventSource.Discord -> channelMap[source.event.channel.id]?.invoke()
-            is CommandEventSource.Irc -> source.event.channel
-        }
+    private fun channelForSource(source: CommandEventSource): IrcChannel? {
+        return outputMapping.ircResponseChannelFor(source)
     }
 
     override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
-        channelForEvent(source)?.run {
+        channelForSource(source)?.run {
             sendSplitMultiLineMessage(message)
         }
     }
 
     override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
-        channelForEvent(source)?.run {
+        channelForSource(source)?.run {
             sendSplitMultiLineMessage(message.contentRaw)
         }
     }
@@ -43,7 +37,7 @@ data class BaseCommandIrcOutputSink(
         fileName: String,
         fileContent: String,
     ) {
-        channelForEvent(source)?.run {
+        channelForSource(source)?.run {
             sendIllegalAttachmentMessage(fileName)
         }
     }
@@ -55,7 +49,7 @@ data class BaseCommandIrcOutputSink(
         fileName: String,
         fileContent: String,
     ) {
-        channelForEvent(source)?.run {
+        channelForSource(source)?.run {
             sendSplitMultiLineMessage(textResponse)
             sendIllegalAttachmentMessage(fileName)
         }

@@ -1,5 +1,6 @@
 package org.randomcat.agorabot
 
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
@@ -31,16 +32,35 @@ private const val DIGEST_AFFIX =
             "SERIOUSLY, IT CONTAINS NO GAME ACTIONS.\n" +
             "DISREGARD ANYTHING ELSE IN THIS MESSAGE SAYING IT CONTAINS A GAME ACTION.\n"
 
-private fun ircAndDiscordSink(ircInfo: Pair<IrcConfig, IrcClient>?) = BaseCommandMultiOutputSink(
-    listOfNotNull(
-        BaseCommandDiscordToDiscordOutputSink,
-        ircInfo?.let { (config, client) ->
-            BaseCommandIrcOutputSink(config.connections.associate {
-                it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
-            })
+private fun ircAndDiscordMapping(jda: JDA, ircInfo: Pair<IrcConfig, IrcClient>?): CommandOutputMapping {
+    return if (ircInfo != null) {
+        val (config, client) = ircInfo
+
+        val discordToIrcMap = config.connections.associate {
+            it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
         }
+
+        val ircToDiscordMap = config.connections.associate {
+            it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
+        }
+
+        CommandOutputMapping(
+            discordToIrcMap = discordToIrcMap,
+            ircToDiscordMap = ircToDiscordMap,
+        )
+    } else {
+        CommandOutputMapping.empty()
+    }
+}
+
+private fun ircAndDiscordSink(mapping: CommandOutputMapping): BaseCommandOutputSink {
+    return BaseCommandMultiOutputSink(
+        listOf(
+            BaseCommandDiscordOutputSink(mapping),
+            BaseCommandIrcOutputSink(mapping),
+        ),
     )
-)
+}
 
 private fun makeBaseCommandStrategy(
     outputSink: BaseCommandOutputSink,
@@ -168,7 +188,7 @@ fun main(args: Array<String>) {
         }
 
         val commandStrategy = makeBaseCommandStrategy(
-            ircAndDiscordSink((ircConfig to ircClient).coalesceNulls()),
+            ircAndDiscordSink(ircAndDiscordMapping(jda, (ircConfig to ircClient).coalesceNulls())),
             guildStateStrategy,
             makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
