@@ -14,8 +14,8 @@ object DiscordScope {
 
         override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
             return when (userContext) {
-                is UserPermissionContext.InGuild -> userContext.member.hasPermission(permission)
-                is UserPermissionContext.Guildless -> false
+                is UserPermissionContext.Authenticated.InGuild -> userContext.member.hasPermission(permission)
+                is UserPermissionContext.Unauthenticated, is UserPermissionContext.Authenticated.Guildless -> false
             }
         }
     }

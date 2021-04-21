@@ -33,17 +33,21 @@ interface BotPermissionContext {
 }
 
 sealed class UserPermissionContext {
-    abstract val user: User
+    sealed class Authenticated : UserPermissionContext() {
+        abstract val user: User
 
-    data class Guildless(override val user: User) : UserPermissionContext()
+        data class Guildless(override val user: User) : UserPermissionContext.Authenticated()
 
-    data class InGuild(val member: Member) : UserPermissionContext() {
-        override val user
-            get() = member.user
+        data class InGuild(val member: Member) : UserPermissionContext.Authenticated() {
+            override val user
+                get() = member.user
 
-        val guild
-            get() = member.guild
+            val guild
+                get() = member.guild
+        }
     }
+
+    object Unauthenticated : UserPermissionContext()
 }
 
 const val PERMISSION_PATH_SEPARATOR = "."

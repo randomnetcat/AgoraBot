@@ -10,9 +10,9 @@ private fun checkGuildPermission(
     vararg paths: PermissionPath,
 ): Boolean {
     return when (userContext) {
-        is UserPermissionContext.Guildless -> false
+        is UserPermissionContext.Unauthenticated, is UserPermissionContext.Authenticated.Guildless -> false
 
-        is UserPermissionContext.InGuild -> {
+        is UserPermissionContext.Authenticated.InGuild -> {
             fun stateToBool(state: BotPermissionState): Boolean? {
                 return when (state) {
                     BotPermissionState.ALLOW -> true

@@ -69,7 +69,9 @@ private fun userPermissionContextForSource(source: CommandEventSource): UserPerm
     return when (source) {
         is CommandEventSource.Discord -> {
             val event = source.event
-            event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
+
+            event.member?.let { UserPermissionContext.Authenticated.InGuild(it) }
+                ?: UserPermissionContext.Authenticated.Guildless(event.author)
         }
     }
 }
