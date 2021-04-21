@@ -205,7 +205,6 @@ interface BaseCommandExecutionReceiver {
 
 @CommandDslMarker
 interface BaseCommandExecutionReceiverDiscord : BaseCommandExecutionReceiver {
-    fun respondNeedGuild()
     fun currentGuildInfo(): GuildInfo?
 
     fun currentMessageEvent(): MessageReceivedEvent
@@ -219,15 +218,6 @@ fun BaseCommandExecutionReceiverDiscord.botHasPermission(permission: DiscordPerm
     return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
 }
 
-inline fun BaseCommandExecutionReceiverDiscord.requiresGuild(block: (GuildInfo) -> Unit) {
-    val guildInfo = currentGuildInfo() ?: run {
-        respondNeedGuild()
-        return
-    }
-
-    return block(guildInfo)
-}
-
 interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiverDiscord {
     override fun currentGuildInfo(): GuildInfo
 }
@@ -235,8 +225,6 @@ interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiverDisc
 
 typealias BaseCommandPendingExecutionReceiver<Arg> =
         ExtendableArgumentPendingExecutionReceiver<BaseCommandExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker>
-
-const val NEED_GUILD_ERROR_MSG = "This command can only be run in a Guild."
 
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     @CommandDslMarker
@@ -279,9 +267,6 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             return if (event.isFromGuild) GuildInfo(event, strategy) else null
         }
 
-        override fun respondNeedGuild() {
-            respond(NEED_GUILD_ERROR_MSG)
-        }
     }
 
     private class ExecutionReceiverGuildedImpl(

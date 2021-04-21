@@ -4,6 +4,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 interface GuildExtensionMarker<NextExecutionReceiver>
 
+private const val NEED_GUILD_ERROR_MSG = "This command can only be run in a Guild."
+
 class GuildExtensionExecutionMixin(private val event: MessageReceivedEvent?) : PendingExecutionReceiverMixin {
     override fun executeMixin(): PendingExecutionReceiverMixinResult {
         if (event == null) error("Violation of promise to never execute")
