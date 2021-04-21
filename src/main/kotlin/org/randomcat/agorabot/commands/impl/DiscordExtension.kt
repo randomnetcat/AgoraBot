@@ -1,14 +1,19 @@
 package org.randomcat.agorabot.commands.impl
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.listener.CommandEventSource
+import org.randomcat.agorabot.listener.tryRespondWithText
 
 interface DiscordExtensionMarker<NextExecutionReceiver>
 
-class DiscordExtensionExecutionMixin(private val event: MessageReceivedEvent?) : PendingExecutionReceiverMixin {
+class DiscordExtensionExecutionMixin(private val source: CommandEventSource?) : PendingExecutionReceiverMixin {
     override fun executeMixin(): PendingExecutionReceiverMixinResult {
-        if (event == null) error("Violation of promise to never execute")
+        if (source == null) error("Violation of promise to never execute")
 
-        // TODO: check in Discord when IRC commands become possible
+        if (source !is CommandEventSource.Discord) {
+            source.tryRespondWithText("This command can only be run on Discord.")
+            return PendingExecutionReceiverMixinResult.StopExecution
+        }
+
         return PendingExecutionReceiverMixinResult.ContinueExecution
     }
 }

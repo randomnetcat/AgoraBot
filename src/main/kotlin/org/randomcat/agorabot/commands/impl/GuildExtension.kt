@@ -1,21 +1,29 @@
 package org.randomcat.agorabot.commands.impl
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.listener.CommandEventSource
+import org.randomcat.agorabot.listener.tryRespondWithText
 
 interface GuildExtensionMarker<NextExecutionReceiver>
 
 private const val NEED_GUILD_ERROR_MSG = "This command can only be run in a Guild."
 
-class GuildExtensionExecutionMixin(private val event: MessageReceivedEvent?) : PendingExecutionReceiverMixin {
+class GuildExtensionExecutionMixin(private val source: CommandEventSource?) : PendingExecutionReceiverMixin {
     override fun executeMixin(): PendingExecutionReceiverMixinResult {
-        if (event == null) error("Violation of promise to never execute")
+        if (source == null) error("Violation of promise to never execute")
 
-        if (event.isFromGuild) {
-            return PendingExecutionReceiverMixinResult.ContinueExecution
+        if (source !is CommandEventSource.Discord) {
+            source.tryRespondWithText(NEED_GUILD_ERROR_MSG)
+            return PendingExecutionReceiverMixinResult.StopExecution
         }
 
-        event.channel.sendMessage(NEED_GUILD_ERROR_MSG).queue()
-        return PendingExecutionReceiverMixinResult.StopExecution
+        val event = source.event
+
+        if (!event.isFromGuild) {
+            event.channel.sendMessage(NEED_GUILD_ERROR_MSG).queue()
+            return PendingExecutionReceiverMixinResult.StopExecution
+        }
+
+        return PendingExecutionReceiverMixinResult.ContinueExecution
     }
 }
 

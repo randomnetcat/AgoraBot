@@ -1,9 +1,10 @@
 package org.randomcat.agorabot.permissions
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.impl.BaseCommandPermissionsStrategy
 import org.randomcat.agorabot.config.PermissionsConfig
+import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
+import org.randomcat.agorabot.listener.tryRespondWithText
 
 fun makePermissionsStrategy(
     permissionsConfig: PermissionsConfig,
@@ -36,14 +37,14 @@ fun makePermissionsStrategy(
 
     return object : BaseCommandPermissionsStrategy {
         override fun onPermissionsError(
-            event: MessageReceivedEvent,
+            source: CommandEventSource,
             invocation: CommandInvocation,
             permission: BotPermission,
         ) {
-            event.channel.sendMessage(
+            source.tryRespondWithText(
                 "Could not execute due to lack of `${permission.path.scope}` " +
                         "permission `${permission.path.basePath.joinToString()}`"
-            ).queue()
+            )
         }
 
         override val permissionContext: BotPermissionContext

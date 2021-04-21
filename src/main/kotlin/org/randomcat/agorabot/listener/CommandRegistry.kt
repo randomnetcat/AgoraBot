@@ -4,27 +4,42 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.util.disallowMentions
+import org.randomcat.agorabot.util.ignoringRestActionOn
 
 
 interface CommandRegistry {
     /**
      * Invokes the specified command
      */
-    fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation)
+    fun invokeCommand(source: CommandEventSource, invocation: CommandInvocation)
 }
 
 interface QueryableCommandRegistry : CommandRegistry {
     fun commands(): ImmutableMap<String, Command>
 }
 
-interface Command {
-    fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation)
+sealed class CommandEventSource {
+    data class Discord(val event: MessageReceivedEvent) : CommandEventSource()
 }
 
-typealias UnknownCommandHook = (MessageReceivedEvent, CommandInvocation) -> Unit
+fun CommandEventSource.tryRespondWithText(message: String) {
+    return when (this) {
+        is CommandEventSource.Discord -> {
+            ignoringRestActionOn(event.jda) {
+                event.channel.sendMessage(message).disallowMentions()
+            }.queue()
+        }
+    }
+}
 
-private fun defaultUnknownCommand(event: MessageReceivedEvent, commandInvocation: CommandInvocation) {
-    event.channel.sendMessage("Unknown command \"${commandInvocation.command}\".").disallowMentions().queue()
+interface Command {
+    fun invoke(source: CommandEventSource, invocation: CommandInvocation)
+}
+
+typealias UnknownCommandHook = (CommandEventSource, CommandInvocation) -> Unit
+
+private fun defaultUnknownCommand(source: CommandEventSource, commandInvocation: CommandInvocation) {
+    source.tryRespondWithText("Unknown command \"${commandInvocation.command}\".")
 }
 
 data class MapCommandRegistry(
@@ -43,8 +58,8 @@ data class MapCommandRegistry(
         return registry
     }
 
-    override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
-        registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
+    override fun invokeCommand(source: CommandEventSource, invocation: CommandInvocation) {
+        registry[invocation.command]?.invoke(source, invocation) ?: unknownCommandHook(source, invocation)
     }
 }
 
@@ -67,7 +82,7 @@ class MutableMapCommandRegistry(
         return registry.toImmutableMap()
     }
 
-    override fun invokeCommand(event: MessageReceivedEvent, invocation: CommandInvocation) {
-        registry[invocation.command]?.invoke(event, invocation) ?: unknownCommandHook(event, invocation)
+    override fun invokeCommand(source: CommandEventSource, invocation: CommandInvocation) {
+        registry[invocation.command]?.invoke(source, invocation) ?: unknownCommandHook(source, invocation)
     }
 }

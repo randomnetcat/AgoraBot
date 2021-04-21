@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
 import org.randomcat.agorabot.config.GuildState
 import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
@@ -22,7 +23,7 @@ import org.randomcat.agorabot.util.resolveRoleString
 
 interface BaseCommandArgumentStrategy {
     fun sendArgumentErrorResponse(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         errorMessage: String,
         usage: String,
@@ -30,18 +31,18 @@ interface BaseCommandArgumentStrategy {
 }
 
 interface BaseCommandOutputSink {
-    fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String)
-    fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message)
+    fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String)
+    fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message)
 
     fun sendResponseAsFile(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         fileName: String,
         fileContent: String,
     )
 
     fun sendResponseTextAndFile(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         textResponse: String,
         fileName: String,
@@ -50,7 +51,7 @@ interface BaseCommandOutputSink {
 }
 
 interface BaseCommandPermissionsStrategy {
-    fun onPermissionsError(event: MessageReceivedEvent, invocation: CommandInvocation, permission: BotPermission)
+    fun onPermissionsError(source: CommandEventSource, invocation: CommandInvocation, permission: BotPermission)
     val permissionContext: BotPermissionContext
 }
 
@@ -64,8 +65,14 @@ interface BaseCommandStrategy :
     BaseCommandPermissionsStrategy,
     BaseCommandGuildStateStrategy
 
-private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
-    event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
+private fun userPermissionContextForSource(source: CommandEventSource): UserPermissionContext {
+    return when (source) {
+        is CommandEventSource.Discord -> {
+            val event = source.event
+            event.member?.let { UserPermissionContext.InGuild(it) } ?: UserPermissionContext.Guildless(event.author)
+        }
+    }
+}
 
 interface BaseCommandExecutionReceiverMarker :
     PermissionsExtensionMarker,
@@ -98,7 +105,7 @@ private constructor(
         val permissions: PersistentList<BotPermission>,
         val permissionsData: PermissionsReceiverData,
         val discordRequirement: DiscordRequirement,
-        val event: MessageReceivedEvent?,
+        val source: CommandEventSource?,
     )
 
     sealed class ExecutionData {
@@ -109,7 +116,7 @@ private constructor(
 
         data class AllowExecution(
             override val permissionsData: PermissionsReceiverData.AllowExecution,
-            val event: MessageReceivedEvent,
+            val source: CommandEventSource,
         ) : ExecutionData()
 
         abstract val permissionsData: PermissionsReceiverData
@@ -128,16 +135,17 @@ private constructor(
             permissions = persistentListOf(),
             permissionsData = executionData.permissionsData,
             discordRequirement = DiscordRequirement.NONE,
-            event = when (executionData) {
+            source = when (executionData) {
                 is ExecutionData.NoExecution -> null
-                is ExecutionData.AllowExecution -> executionData.event
+                is ExecutionData.AllowExecution -> executionData.source
             },
         ),
     )
 
     override val mixins: Iterable<PendingExecutionReceiverMixin>
         get() = listOfNotNull(
-            if (state.discordRequirement == DiscordRequirement.GUILD) GuildExtensionExecutionMixin(state.event) else null,
+            if (state.discordRequirement != DiscordRequirement.NONE) DiscordExtensionExecutionMixin(state.source) else null,
+            if (state.discordRequirement == DiscordRequirement.GUILD) GuildExtensionExecutionMixin(state.source) else null,
             PermissionsExecutionMixin(permissions = state.permissions, data = state.permissionsData),
         )
 
@@ -230,26 +238,26 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     @CommandDslMarker
     private open class ExecutionReceiverImpl(
         protected val strategy: BaseCommandStrategy,
-        protected val event: MessageReceivedEvent,
+        protected val source: CommandEventSource,
         private val invocation: CommandInvocation,
     ) : BaseCommandExecutionReceiver {
         override fun respond(message: String) {
-            strategy.sendResponse(event, invocation, message)
+            strategy.sendResponse(source, invocation, message)
         }
 
         override fun respond(message: Message) {
-            strategy.sendResponseMessage(event, invocation, message)
+            strategy.sendResponseMessage(source, invocation, message)
         }
 
         override fun respondWithFile(fileName: String, fileContent: String) {
-            strategy.sendResponseAsFile(event, invocation, fileName, fileContent)
+            strategy.sendResponseAsFile(source, invocation, fileName, fileContent)
         }
 
         override fun respondWithTextAndFile(text: String, fileName: String, fileContent: String) {
-            strategy.sendResponseTextAndFile(event, invocation, text, fileName, fileContent)
+            strategy.sendResponseTextAndFile(source, invocation, text, fileName, fileContent)
         }
 
-        override val userPermissionContext by lazy { userPermissionContextForEvent(event) }
+        override val userPermissionContext by lazy { userPermissionContextForSource(source) }
 
         override fun senderHasPermission(permission: BotPermission): Boolean =
             permission.isSatisfied(strategy.permissionContext, userPermissionContext)
@@ -257,10 +265,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     private open class ExecutionReceiverDiscordImpl(
         strategy: BaseCommandStrategy,
-        event: MessageReceivedEvent,
+        source: CommandEventSource.Discord,
         invocation: CommandInvocation,
-    ) : ExecutionReceiverImpl(strategy, event, invocation), BaseCommandExecutionReceiverDiscord {
-        override fun currentMessageEvent() = event
+    ) : ExecutionReceiverImpl(strategy, source, invocation), BaseCommandExecutionReceiverDiscord {
+        override fun currentMessageEvent() = (source as CommandEventSource.Discord).event
 
         override fun currentGuildInfo(): GuildInfo? {
             val event = currentMessageEvent()
@@ -271,20 +279,20 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     private class ExecutionReceiverGuildedImpl(
         strategy: BaseCommandStrategy,
-        event: MessageReceivedEvent,
+        source: CommandEventSource.Discord,
         invocation: CommandInvocation,
-    ) : ExecutionReceiverDiscordImpl(strategy, event, invocation), BaseCommandExecutionReceiverGuilded {
+    ) : ExecutionReceiverDiscordImpl(strategy, source, invocation), BaseCommandExecutionReceiverGuilded {
         override fun currentGuildInfo(): GuildInfo {
             return super.currentGuildInfo() ?: error("Being in a guild should have already been enforced")
         }
     }
 
-    override fun invoke(event: MessageReceivedEvent, invocation: CommandInvocation) {
+    override fun invoke(source: CommandEventSource, invocation: CommandInvocation) {
         TopLevelExecutingArgumentDescriptionReceiver(
             UnparsedCommandArgs(invocation.args),
             onError = { msg ->
                 strategy.sendArgumentErrorResponse(
-                    event = event,
+                    source = source,
                     invocation = invocation,
                     errorMessage = msg,
                     usage = usage()
@@ -298,21 +306,35 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                 ): ExtendableArgumentPendingExecutionReceiver<BaseCommandExecutionReceiver, Arg, BaseCommandExecutionReceiverMarker> {
                     return PendingExecutionReceiverImpl(
                         baseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
-                            exec(ExecutionReceiverImpl(strategy, event, invocation), mapParsed(results))
+                            exec(ExecutionReceiverImpl(strategy, source, invocation), mapParsed(results))
                         },
                         discordBaseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
-                            exec(ExecutionReceiverGuildedImpl(strategy, event, invocation), mapParsed(results))
+                            exec(
+                                ExecutionReceiverGuildedImpl(
+                                    strategy = strategy,
+                                    source = source as CommandEventSource.Discord,
+                                    invocation = invocation,
+                                ),
+                                mapParsed(results),
+                            )
                         },
                         guildedBaseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
-                            exec(ExecutionReceiverGuildedImpl(strategy, event, invocation), mapParsed(results))
+                            exec(
+                                ExecutionReceiverGuildedImpl(
+                                    strategy = strategy,
+                                    source = source as CommandEventSource.Discord,
+                                    invocation = invocation,
+                                ),
+                                mapParsed(results),
+                            )
                         },
                         executionData = PendingExecutionReceiverImpl.ExecutionData.AllowExecution(
                             permissionsData = PermissionsReceiverData.AllowExecution(
-                                userContext = userPermissionContextForEvent(event),
+                                userContext = userPermissionContextForSource(source),
                                 permissionsContext = strategy.permissionContext,
-                                onError = { strategy.onPermissionsError(event, invocation, it) }
+                                onError = { strategy.onPermissionsError(source, invocation, it) }
                             ),
-                            event = event,
+                            source = source,
                         )
                     )
                 }
@@ -335,44 +357,50 @@ typealias BaseCommandImplReceiver =
         TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>
 
 object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
-    override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
-        event.channel.sendMessage(message).disallowMentions().queue()
+    override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
+        if (source !is CommandEventSource.Discord) return
+        source.event.channel.sendMessage(message).disallowMentions().queue()
     }
 
-    override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
-        event.channel.sendMessage(message).disallowMentions().queue()
+    override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
+        if (source !is CommandEventSource.Discord) return
+        source.event.channel.sendMessage(message).disallowMentions().queue()
     }
 
     override fun sendResponseAsFile(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         fileName: String,
         fileContent: String,
     ) {
+        if (source !is CommandEventSource.Discord) return
+
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
-        event.channel.sendFile(bytes, fileName).disallowMentions().queue()
+        source.event.channel.sendFile(bytes, fileName).disallowMentions().queue()
     }
 
     override fun sendResponseTextAndFile(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         textResponse: String,
         fileName: String,
         fileContent: String,
     ) {
+        if (source !is CommandEventSource.Discord) return
+
         val bytes = fileContent.toByteArray(Charsets.UTF_8)
-        event.channel.sendMessage(textResponse).addFile(bytes, fileName).queue()
+        source.event.channel.sendMessage(textResponse).addFile(bytes, fileName).queue()
     }
 }
 
 object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
     override fun sendArgumentErrorResponse(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         errorMessage: String,
         usage: String,
     ) {
-        sendResponse(event, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
+        sendResponse(source, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
     }
 }
 
@@ -381,20 +409,20 @@ data class BaseCommandMultiOutputSink(
 ) : BaseCommandOutputSink {
     constructor(outputs: List<BaseCommandOutputSink>) : this(outputs.toImmutableList())
 
-    override fun sendResponse(event: MessageReceivedEvent, invocation: CommandInvocation, message: String) {
+    override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
         outputs.forEach {
             it.sendResponse(
-                event = event,
+                source = source,
                 invocation = invocation,
                 message = message,
             )
         }
     }
 
-    override fun sendResponseMessage(event: MessageReceivedEvent, invocation: CommandInvocation, message: Message) {
+    override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
         outputs.forEach {
             it.sendResponseMessage(
-                event = event,
+                source = source,
                 invocation = invocation,
                 message = message,
             )
@@ -402,14 +430,14 @@ data class BaseCommandMultiOutputSink(
     }
 
     override fun sendResponseAsFile(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         fileName: String,
         fileContent: String,
     ) {
         outputs.forEach {
             it.sendResponseAsFile(
-                event = event,
+                source = source,
                 invocation = invocation,
                 fileName = fileName,
                 fileContent = fileContent,
@@ -418,7 +446,7 @@ data class BaseCommandMultiOutputSink(
     }
 
     override fun sendResponseTextAndFile(
-        event: MessageReceivedEvent,
+        source: CommandEventSource,
         invocation: CommandInvocation,
         textResponse: String,
         fileName: String,
@@ -426,7 +454,7 @@ data class BaseCommandMultiOutputSink(
     ) {
         outputs.forEach {
             it.sendResponseTextAndFile(
-                event = event,
+                source = source,
                 invocation = invocation,
                 textResponse = textResponse,
                 fileName = fileName,
