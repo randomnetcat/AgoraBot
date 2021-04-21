@@ -70,7 +70,7 @@ private fun userPermissionContextForEvent(event: MessageReceivedEvent) =
 interface BaseCommandExecutionReceiverMarker :
     PermissionsExtensionMarker, GuildExtensionMarker<BaseCommandExecutionReceiverGuilded>
 
-private class PendingExecutionReceiverImpl<ExecutionReceiver, GuildedExecutionReceiver : ExecutionReceiver, Arg> private constructor(
+private class PendingExecutionReceiverImpl<ExecutionReceiver : BaseCommandExecutionReceiver, GuildedExecutionReceiver : BaseCommandExecutionReceiverGuilded, Arg> private constructor(
     baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
     private val guildedBaseReceiver: ArgumentPendingExecutionReceiver<GuildedExecutionReceiver, Arg>,
     private val state: State,
