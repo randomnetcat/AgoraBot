@@ -358,7 +358,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 typealias BaseCommandImplReceiver =
         TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>
 
-object BaseCommandDiscordOutputSink : BaseCommandOutputSink {
+/**
+ * An output sink that responds to the originating Discord channel for commands sent in Discord.
+ */
+object BaseCommandDiscordToDiscordOutputSink : BaseCommandOutputSink {
     override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
         if (source !is CommandEventSource.Discord) return
         source.event.channel.sendMessage(message).disallowMentions().queue()

@@ -33,7 +33,7 @@ private const val DIGEST_AFFIX =
 
 private fun ircAndDiscordSink(ircInfo: Pair<IrcConfig, IrcClient>?) = BaseCommandMultiOutputSink(
     listOfNotNull(
-        BaseCommandDiscordOutputSink,
+        BaseCommandDiscordToDiscordOutputSink,
         ircInfo?.let { (config, client) ->
             BaseCommandIrcOutputSink(config.connections.associate {
                 it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
