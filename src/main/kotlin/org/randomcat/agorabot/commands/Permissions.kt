@@ -10,15 +10,12 @@ class PermissionsCommand(
     private val botMap: MutablePermissionMap,
     private val guildMap: MutableGuildPermissionMap,
 ) : BaseCommand(strategy) {
-    private fun BaseCommandExecutionReceiver.handleGuildSetState(
+    private fun BaseCommandExecutionReceiverGuilded.handleGuildSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,
     ) {
-        val guildId = currentGuildInfo()?.guildId ?: run {
-            respondNeedGuild()
-            return
-        }
+        val guildId = currentGuildInfo().guildId
 
         check(senderHasPermission(MANAGE_GUILD_PERMISSIONS_PERMISSION))
 
@@ -63,7 +60,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun SubcommandsArgumentDescriptionReceiver<BaseCommandExecutionReceiver, PermissionsExtensionMarker>.guildSubcommand(
+    private fun SubcommandsArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>.guildSubcommand(
         name: String,
         state: BotPermissionState,
     ) {
@@ -72,6 +69,7 @@ class PermissionsCommand(
                 args(
                     StringArg("user_id"),
                     StringArg("permission_path")
+                ).requiresGuild(
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
                 ) { (userId, stringPath) ->
@@ -87,13 +85,11 @@ class PermissionsCommand(
                 args(
                     StringArg("role_descriptor"),
                     StringArg("permission_path")
+                ).requiresGuild(
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
                 ) { (roleString, stringPath) ->
-                    val guildInfo = currentGuildInfo() ?: run {
-                        respondNeedGuild()
-                        return@permissions
-                    }
+                    val guildInfo = currentGuildInfo()
 
                     val role = guildInfo.resolveRole(roleString)
                     if (role == null) {
