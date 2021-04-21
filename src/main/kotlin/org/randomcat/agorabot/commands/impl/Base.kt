@@ -9,11 +9,11 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import org.randomcat.agorabot.commands.impl.BaseCommandDiscordOutputSink.sendResponse
 import org.randomcat.agorabot.config.GuildState
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
+import org.randomcat.agorabot.listener.tryRespondWithText
 import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
 import org.randomcat.agorabot.permissions.UserPermissionContext
@@ -400,7 +400,7 @@ object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
         errorMessage: String,
         usage: String,
     ) {
-        sendResponse(source, invocation, "$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
+        source.tryRespondWithText("$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
     }
 }
 
