@@ -42,22 +42,22 @@ class ReactionRolesCommand(
         return reactionEmoteAction.mapToResult().map { (if (it.isSuccess) it.get() else null)?.storageName }
     }
 
-    private inline fun BaseCommandExecutionReceiver.withEmoteResolved(
+    private inline fun BaseCommandExecutionReceiverGuilded.withEmoteResolved(
         emoteString: String,
         crossinline block: (GuildInfo, reactionStorageName: String) -> Unit,
     ) {
-        requiresGuild { guildInfo ->
-            guildInfo.guild.retrieveEmoteStorageName(emoteString).queue { reactionStorageName ->
-                if (reactionStorageName != null) {
-                    block(guildInfo, reactionStorageName)
-                } else {
-                    respond("Invalid emote.")
-                }
+        val guildInfo = currentGuildInfo()
+
+        guildInfo.guild.retrieveEmoteStorageName(emoteString).queue { reactionStorageName ->
+            if (reactionStorageName != null) {
+                block(guildInfo, reactionStorageName)
+            } else {
+                respond("Invalid emote.")
             }
         }
     }
 
-    private inline fun BaseCommandExecutionReceiver.withRoleAndEmoteResolved(
+    private inline fun BaseCommandExecutionReceiverGuilded.withRoleAndEmoteResolved(
         emoteString: String,
         roleString: String,
         crossinline block: (GuildInfo, Role, reactionStorageName: String) -> Unit,
@@ -79,6 +79,7 @@ class ReactionRolesCommand(
                     StringArg("message"),
                     StringArg("emote"),
                     StringArg("role"),
+                ).requiresGuild(
                 ).permissions(
                     REACTION_ROLES_MANAGE_PERMISSION,
                 ) { (messageId, emoteString, roleString) ->
@@ -102,6 +103,7 @@ class ReactionRolesCommand(
                 args(
                     StringArg("message"),
                     StringArg("emote"),
+                ).requiresGuild(
                 ).permissions(
                     REACTION_ROLES_MANAGE_PERMISSION,
                 ) { (messageId, emoteString) ->
