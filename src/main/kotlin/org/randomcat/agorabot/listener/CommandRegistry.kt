@@ -3,6 +3,8 @@ package org.randomcat.agorabot.listener
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
+import org.randomcat.agorabot.irc.sendSplitMultiLineMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.randomcat.agorabot.util.ignoringRestActionOn
 
@@ -20,6 +22,7 @@ interface QueryableCommandRegistry : CommandRegistry {
 
 sealed class CommandEventSource {
     data class Discord(val event: MessageReceivedEvent) : CommandEventSource()
+    data class Irc(val event: ChannelMessageEvent) : CommandEventSource()
 }
 
 fun CommandEventSource.tryRespondWithText(message: String) {
@@ -28,6 +31,10 @@ fun CommandEventSource.tryRespondWithText(message: String) {
             ignoringRestActionOn(event.jda) {
                 event.channel.sendMessage(message).disallowMentions()
             }.queue()
+        }
+
+        is CommandEventSource.Irc -> {
+            event.channel.sendSplitMultiLineMessage(message)
         }
     }
 }

@@ -21,6 +21,7 @@ data class BaseCommandIrcOutputSink(
     private fun channelForEvent(source: CommandEventSource): IrcChannel? {
         return when (source) {
             is CommandEventSource.Discord -> channelMap[source.event.channel.id]?.invoke()
+            is CommandEventSource.Irc -> source.event.channel
         }
     }
 

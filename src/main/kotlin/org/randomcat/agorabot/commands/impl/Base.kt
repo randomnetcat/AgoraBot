@@ -73,6 +73,8 @@ private fun userPermissionContextForSource(source: CommandEventSource): UserPerm
             event.member?.let { UserPermissionContext.Authenticated.InGuild(it) }
                 ?: UserPermissionContext.Authenticated.Guildless(event.author)
         }
+
+        is CommandEventSource.Irc -> UserPermissionContext.Unauthenticated
     }
 }
 
