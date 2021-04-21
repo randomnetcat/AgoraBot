@@ -10,7 +10,6 @@ data class CommandInvocation(val command: String, val args: ImmutableList<String
 
 sealed class CommandParseResult {
     data class Invocation(val invocation: CommandInvocation) : CommandParseResult()
-    data class Message(val message: String) : CommandParseResult()
     object Ignore : CommandParseResult()
 }
 

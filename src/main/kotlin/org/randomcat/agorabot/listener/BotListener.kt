@@ -22,10 +22,6 @@ class BotListener(private val parser: CommandParser, private val registry: Comma
                 registry.invokeCommand(source, parseResult.invocation)
             }
 
-            is CommandParseResult.Message -> {
-                respond(event, parseResult.message)
-            }
-
             is CommandParseResult.Ignore -> {
             }
         }
