@@ -9,7 +9,7 @@ class StopCommand(
     private val writeChannelFun: (channelId: String) -> Unit,
 ) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
-        noArgs().permissions(BotScope.admin()) {
+        noArgs().requiresDiscord().permissions(BotScope.admin()) {
             try {
                 writeChannelFun(currentChannel().id)
             } finally {
