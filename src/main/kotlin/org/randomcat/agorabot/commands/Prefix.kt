@@ -20,11 +20,8 @@ class PrefixCommand(
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("list") {
-                noArgs {
-                    val guildId = currentGuildInfo()?.guildId ?: run {
-                        respondNeedGuild()
-                        return@noArgs
-                    }
+                noArgs().requiresGuild() {
+                    val guildId = currentGuildInfo().guildId
 
                     val prefixes = prefixMap.prefixesForGuild(guildId).joinToString { "`${it}`" }
                     respond("The following prefixes can be used: ${prefixes}")
@@ -34,13 +31,11 @@ class PrefixCommand(
             subcommand("add") {
                 args(
                     StringArg("new_prefix"),
+                ).requiresGuild(
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
                 ) { (newPrefix) ->
-                    val guildId = currentGuildInfo()?.guildId ?: run {
-                        respondNeedGuild()
-                        return@permissions
-                    }
+                    val guildId = currentGuildInfo().guildId
 
                     if (newPrefix.isBlank()) {
                         respond("The prefix cannot be empty. Stop it.")
@@ -52,7 +47,7 @@ class PrefixCommand(
                         return@permissions
                     }
 
-                    if(prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
+                    if (prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
                         respond("That's already a prefix.")
                         return@permissions
                     }
@@ -65,15 +60,13 @@ class PrefixCommand(
             subcommand("remove") {
                 args(
                     StringArg("prefix"),
+                ).requiresGuild(
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
                 ) { (newPrefix) ->
-                    val guildId = currentGuildInfo()?.guildId ?: run {
-                        respondNeedGuild()
-                        return@permissions
-                    }
+                    val guildId = currentGuildInfo().guildId
 
-                    if(!prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
+                    if (!prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
                         respond("That's not a prefix.")
                         return@permissions
                     }
