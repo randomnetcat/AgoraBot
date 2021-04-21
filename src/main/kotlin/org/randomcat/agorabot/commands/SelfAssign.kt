@@ -26,21 +26,21 @@ fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.selfAssignAdminAction(
 ) = selfAssignAdminAction().invoke(block)
 
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    private inline fun BaseCommandExecutionReceiver.withRoleResolved(
+    private inline fun BaseCommandExecutionReceiverGuilded.withRoleResolved(
         roleName: String,
         crossinline block: (GuildInfo, Role) -> Unit,
     ) {
-        requiresGuild { guildInfo ->
-            val role = guildInfo.resolveRole(roleName) ?: run {
-                respond("Could not find a role by that name.")
-                return@requiresGuild
-            }
+        val guildInfo = currentGuildInfo()
 
-            block(guildInfo, role)
+        val role = guildInfo.resolveRole(roleName) ?: run {
+            respond("Could not find a role by that name.")
+            return
         }
+
+        block(guildInfo, role)
     }
 
-    private inline fun BaseCommandExecutionReceiver.withInteractableSelfAssignableRoleResolved(
+    private inline fun BaseCommandExecutionReceiverGuilded.withInteractableSelfAssignableRoleResolved(
         roleName: String,
         crossinline block: (GuildInfo, Role) -> Unit,
     ) {
@@ -71,24 +71,22 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiver.handleListRequest() {
-        requiresGuild { guildInfo ->
-            val assignableRoles = guildInfo.assignableRoles()
+    private fun BaseCommandExecutionReceiverGuilded.handleListRequest() {
+        val assignableRoles = currentGuildInfo().assignableRoles()
 
-            if (assignableRoles.isEmpty()) {
-                respond("No roles are self-assignable.")
-            } else {
-                val rolesMessage = "The following roles can be self-assigned: " +
-                        assignableRoles
-                            .sortedByDescending { it.position }
-                            .joinToString(separator = ", ", postfix = ".") { it.name }
+        if (assignableRoles.isEmpty()) {
+            respond("No roles are self-assignable.")
+        } else {
+            val rolesMessage = "The following roles can be self-assigned: " +
+                    assignableRoles
+                        .sortedByDescending { it.position }
+                        .joinToString(separator = ", ", postfix = ".") { it.name }
 
-                respond(rolesMessage)
-            }
+            respond(rolesMessage)
         }
     }
 
-    private fun BaseCommandExecutionReceiver.handleAssignRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiverGuilded.handleAssignRequest(roleName: String) {
         withInteractableSelfAssignableRoleResolved(roleName) { guildInfo, role ->
             guildInfo.guild.addRoleToMember(guildInfo.senderMember, role).queue {
                 respond("Done.")
@@ -96,7 +94,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiver.handleRemoveRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiverGuilded.handleRemoveRequest(roleName: String) {
         withInteractableSelfAssignableRoleResolved(roleName) { guildInfo, role ->
             guildInfo.guild.removeRoleFromMember(guildInfo.senderMember, role).queue {
                 respond("Done.")
@@ -104,7 +102,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiver.handleEnableRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiverGuilded.handleEnableRequest(roleName: String) {
         withRoleResolved(roleName) { guildInfo, role ->
             if (role.isPublicRole) {
                 respond("Refusing to make everyone role self-assignable.")
@@ -119,7 +117,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiver.handleDisableRequest(roleName: String) {
+    private fun BaseCommandExecutionReceiverGuilded.handleDisableRequest(roleName: String) {
         withRoleResolved(roleName) { guildInfo, role ->
             guildInfo.guildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
                 // Use list subtraction in order to remove all instances of it (if it's duplicated).
