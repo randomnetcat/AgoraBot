@@ -85,19 +85,35 @@ private class PendingExecutionReceiverImpl<ExecutionReceiver : BaseCommandExecut
         val event: MessageReceivedEvent?,
     )
 
+    sealed class ExecutionData {
+        object NoExecution : ExecutionData() {
+            override val permissionsData: PermissionsReceiverData
+                get() = PermissionsReceiverData.NeverExecute
+        }
+
+        data class AllowExecution(
+            override val permissionsData: PermissionsReceiverData.AllowExecution,
+            val event: MessageReceivedEvent,
+        ) : ExecutionData()
+
+        abstract val permissionsData: PermissionsReceiverData
+    }
+
     constructor(
         baseReceiver: ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg>,
         guildedBaseReceiver: ArgumentPendingExecutionReceiver<GuildedExecutionReceiver, Arg>,
-        permissionsReceiverData: PermissionsReceiverData,
-        event: MessageReceivedEvent?,
+        executionData: ExecutionData,
     ) : this(
         baseReceiver,
         guildedBaseReceiver,
         State(
             permissions = persistentListOf(),
-            permissionsData = permissionsReceiverData,
+            permissionsData = executionData.permissionsData,
             guildRequired = false,
-            event = event,
+            event = when (executionData) {
+                is ExecutionData.NoExecution -> null
+                is ExecutionData.AllowExecution -> executionData.event
+            },
         ),
     )
 
@@ -127,8 +143,7 @@ private class PendingExecutionReceiverImpl<ExecutionReceiver : BaseCommandExecut
 private val nullPendingExecutionReceiverImpl = PendingExecutionReceiverImpl(
     baseReceiver = NullPendingExecutionReceiver,
     guildedBaseReceiver = NullPendingExecutionReceiver,
-    permissionsReceiverData = PermissionsReceiverData.NeverExecute,
-    event = null,
+    executionData = PendingExecutionReceiverImpl.ExecutionData.NoExecution,
 )
 
 class GuildInfo(
@@ -262,12 +277,14 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                         guildedBaseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
                             exec(ExecutionReceiverGuildedImpl(strategy, event, invocation), mapParsed(results))
                         },
-                        permissionsReceiverData = PermissionsReceiverData.AllowExecution(
-                            userContext = userPermissionContextForEvent(event),
-                            permissionsContext = strategy.permissionContext,
-                            onError = { strategy.onPermissionsError(event, invocation, it) }
-                        ),
-                        event = event,
+                        executionData = PendingExecutionReceiverImpl.ExecutionData.AllowExecution(
+                            permissionsData = PermissionsReceiverData.AllowExecution(
+                                userContext = userPermissionContextForEvent(event),
+                                permissionsContext = strategy.permissionContext,
+                                onError = { strategy.onPermissionsError(event, invocation, it) }
+                            ),
+                            event = event,
+                        )
                     )
                 }
 
