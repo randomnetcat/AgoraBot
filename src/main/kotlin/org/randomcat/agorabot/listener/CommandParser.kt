@@ -2,7 +2,6 @@ package org.randomcat.agorabot.listener
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.util.splitArguments
 
 data class CommandInvocation(val command: String, val args: ImmutableList<String>) {
@@ -16,7 +15,7 @@ sealed class CommandParseResult {
 }
 
 interface CommandParser {
-    fun parse(event: MessageReceivedEvent): CommandParseResult
+    fun parse(source: CommandEventSource): CommandParseResult
 }
 
 /**
@@ -64,14 +63,18 @@ interface MutableGuildPrefixMap : GuildPrefixMap {
 }
 
 class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {
-    override fun parse(event: MessageReceivedEvent): CommandParseResult = parsePrefixCommand(
+    override fun parse(source: CommandEventSource): CommandParseResult = parsePrefixCommand(
         prefix = prefix,
-        message = event.message.contentRaw
+        message = source.messageText
     )
 }
 
 class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser {
-    override fun parse(event: MessageReceivedEvent): CommandParseResult {
+    override fun parse(source: CommandEventSource): CommandParseResult {
+        if (source !is CommandEventSource.Discord) return CommandParseResult.Ignore
+
+        val event = source.event
+
         return if (event.isFromGuild)
             parsePrefixListCommand(
                 prefixOptions = map.prefixesForGuild(event.guild.id),
@@ -83,16 +86,21 @@ class GuildPrefixCommandParser(private val map: GuildPrefixMap) : CommandParser 
 }
 
 class MentionPrefixCommandParser(private val fallback: CommandParser) : CommandParser {
-    override fun parse(event: MessageReceivedEvent): CommandParseResult {
-        val selfUserId = event.jda.selfUser.id
-        val selfRoleId = event.takeIf { it.isFromGuild }?.guild?.selfMember?.roles?.singleOrNull { it.isManaged }?.id
+    override fun parse(source: CommandEventSource): CommandParseResult {
+        if (source is CommandEventSource.Discord) {
+            val event = source.event
 
-        // These are the two options for raw mentions; see https://discord.com/developers/docs/reference
-        val mentionOptions = listOfNotNull("<@$selfUserId>", "<@!$selfUserId>", selfRoleId?.let { "<@&$it>" })
+            val selfUserId = event.jda.selfUser.id
+            val selfRoleId =
+                event.takeIf { it.isFromGuild }?.guild?.selfMember?.roles?.singleOrNull { it.isManaged }?.id
 
-        val parseResult = parsePrefixListCommand(prefixOptions = mentionOptions, message = event.message.contentRaw)
-        if (parseResult !is CommandParseResult.Ignore) return parseResult
+            // These are the two options for raw mentions; see https://discord.com/developers/docs/reference
+            val mentionOptions = listOfNotNull("<@$selfUserId>", "<@!$selfUserId>", selfRoleId?.let { "<@&$it>" })
 
-        return fallback.parse(event)
+            val parseResult = parsePrefixListCommand(prefixOptions = mentionOptions, message = event.message.contentRaw)
+            if (parseResult !is CommandParseResult.Ignore) return parseResult
+        }
+
+        return fallback.parse(source)
     }
 }

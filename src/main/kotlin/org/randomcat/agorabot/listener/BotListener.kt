@@ -15,9 +15,11 @@ class BotListener(private val parser: CommandParser, private val registry: Comma
         // Member object if the message is from a webhook.
         if (event.message.isWebhookMessage) return
 
-        return when (val parseResult = parser.parse(event)) {
+        val source = CommandEventSource.Discord(event)
+
+        return when (val parseResult = parser.parse(source)) {
             is CommandParseResult.Invocation -> {
-                registry.invokeCommand(CommandEventSource.Discord(event), parseResult.invocation)
+                registry.invokeCommand(source, parseResult.invocation)
             }
 
             is CommandParseResult.Message -> {

@@ -39,6 +39,12 @@ fun CommandEventSource.tryRespondWithText(message: String) {
     }
 }
 
+val CommandEventSource.messageText: String
+    get() = when (this) {
+        is CommandEventSource.Discord -> event.message.contentRaw
+        is CommandEventSource.Irc -> event.message
+    }
+
 interface Command {
     fun invoke(source: CommandEventSource, invocation: CommandInvocation)
 }
