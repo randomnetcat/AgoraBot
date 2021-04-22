@@ -173,7 +173,7 @@ private fun connectIrcAndDiscordChannels(
                 if (registry != null) {
                     val source = CommandEventSource.Irc(event)
 
-                    @Suppress("Unused")
+                    @Suppress("UNUSED_VARIABLE")
                     val ensureExhaustive = when (val parseRegistry = commandParser.parse(source)) {
                         is CommandParseResult.Ignore -> {
                         }
