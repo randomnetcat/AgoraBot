@@ -1,9 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.0"
-    kotlin("plugin.serialization") version "1.4.0"
+    kotlin("jvm") version "1.4.30"
+    kotlin("plugin.serialization") version "1.4.30"
 }
+
 group = "org.randomcat"
 version = "1.0-SNAPSHOT"
 
@@ -13,11 +14,11 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.4")
     implementation("net.dv8tion:JDA:4.2.0_198")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.kitteh.irc:client-lib:7.3.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.3")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
     testImplementation(kotlin("test"))
