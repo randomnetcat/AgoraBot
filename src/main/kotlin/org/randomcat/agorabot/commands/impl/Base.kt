@@ -270,7 +270,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     private open class ExecutionReceiverDiscordImpl(
         strategy: BaseCommandStrategy,
-        source: CommandEventSource.Discord,
+        source: CommandEventSource,
         invocation: CommandInvocation,
     ) : ExecutionReceiverImpl(strategy, source, invocation), BaseCommandExecutionReceiverDiscord {
         override fun currentMessageEvent() = (source as CommandEventSource.Discord).event
@@ -284,7 +284,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     private class ExecutionReceiverGuildedImpl(
         strategy: BaseCommandStrategy,
-        source: CommandEventSource.Discord,
+        source: CommandEventSource,
         invocation: CommandInvocation,
     ) : ExecutionReceiverDiscordImpl(strategy, source, invocation), BaseCommandExecutionReceiverGuilded {
         override fun currentGuildInfo(): GuildInfo {
@@ -317,7 +317,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                             exec(
                                 ExecutionReceiverGuildedImpl(
                                     strategy = strategy,
-                                    source = source as CommandEventSource.Discord,
+                                    source = source,
                                     invocation = invocation,
                                 ),
                                 mapParsed(results),
@@ -327,7 +327,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                             exec(
                                 ExecutionReceiverGuildedImpl(
                                     strategy = strategy,
-                                    source = source as CommandEventSource.Discord,
+                                    source = source,
                                     invocation = invocation,
                                 ),
                                 mapParsed(results),
