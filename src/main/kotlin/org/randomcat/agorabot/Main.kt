@@ -23,6 +23,7 @@ import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
@@ -166,6 +167,8 @@ fun main(args: Array<String>) {
     val executor = Executors.newSingleThreadScheduledExecutor()
 
     try {
+        val ircRegistryReference = AtomicReference<CommandRegistry>(null)
+
         val ircClient = when {
             ircConfig == null -> {
                 logger.warn("Unable to setup IRC! Check for errors above.")
@@ -179,7 +182,12 @@ fun main(args: Array<String>) {
 
             else -> {
                 try {
-                    setupIrc(ircConfig, ircDir, jda)
+                    setupIrc(
+                        ircConfig = ircConfig,
+                        ircDir = ircDir,
+                        jda = jda,
+                        commandRegistryFun = { ircRegistryReference.get() },
+                    )
                 } catch (e: Exception) {
                     logger.error("Exception while setting up IRC!", e)
                     null
@@ -254,6 +262,7 @@ fun main(args: Array<String>) {
         }
 
         registryIsAvailableFlag.set(true)
+        ircRegistryReference.set(commandRegistry)
 
         jda.addEventListener(
             BotListener(

@@ -15,6 +15,7 @@ import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.kitteh.irc.client.library.event.user.UserQuitEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
+import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
@@ -107,7 +108,17 @@ private fun formatIrcNameForDiscord(name: String): String {
     return "**$name**"
 }
 
-private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connection: IrcConnectionConfig) {
+private fun ircCommandParser(connection: IrcConnectionConfig): CommandParser? {
+    val prefix = connection.ircCommandPrefix ?: return null
+    return GlobalPrefixCommandParser(prefix)
+}
+
+private fun connectIrcAndDiscordChannels(
+    ircClient: IrcClient,
+    jda: JDA,
+    connection: IrcConnectionConfig,
+    commandRegistryFun: () -> CommandRegistry?,
+) {
     val discordChannelId = connection.discordChannelId
     val ircChannelName = connection.ircChannelName
 
@@ -122,6 +133,8 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
 
     ircClient.addChannel(connection.ircChannelName)
     ircClient.eventManager.registerEventListener(IrcListener(object : IrcMessageHandler {
+        private val commandParser = ircCommandParser(connection)
+
         private val disarmState = DisarmState()
         private fun isDisarmed() = disarmState.isDisarmed()
 
@@ -153,6 +166,24 @@ private fun connectIrcAndDiscordChannels(ircClient: IrcClient, jda: JDA, connect
             if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
             relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " says: " + event.message)
+
+            if (commandParser != null) {
+                val registry = commandRegistryFun()
+
+                if (registry != null) {
+                    val source = CommandEventSource.Irc(event)
+
+                    @Suppress("Unused")
+                    val ensureExhaustive = when (val parseRegistry = commandParser.parse(source)) {
+                        is CommandParseResult.Ignore -> {
+                        }
+
+                        is CommandParseResult.Invocation -> {
+                            registry.invokeCommand(source, parseRegistry.invocation)
+                        }
+                    }
+                }
+            }
         }
 
         override fun onCtcpMessage(event: ChannelCtcpEvent) {
@@ -242,6 +273,7 @@ fun setupIrc(
     ircConfig: IrcConfig,
     ircDir: Path,
     jda: JDA,
+    commandRegistryFun: () -> CommandRegistry?,
 ): IrcClient {
     val ircClient = setupIrcClient(
         serverConfig = ircConfig.server,
@@ -258,7 +290,12 @@ fun setupIrc(
                         "to Discord channel ${ircConnection.discordChannelId}."
             )
 
-            connectIrcAndDiscordChannels(ircClient, jda, ircConnection)
+            connectIrcAndDiscordChannels(
+                ircClient = ircClient,
+                jda = jda,
+                connection = ircConnection,
+                commandRegistryFun = commandRegistryFun,
+            )
         }
     } catch (e: Exception) {
         ircClient.shutdown("Exception during connection setup")
