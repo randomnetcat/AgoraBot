@@ -125,11 +125,6 @@ fun main(args: Array<String>) {
 
     val guildStateStorageDir = basePath.resolve("guild_storage")
     val guildStateMap = JsonGuildStateMap(guildStateStorageDir, persistService)
-    val guildStateStrategy = object : BaseCommandGuildStateStrategy {
-        override fun guildStateFor(guildId: String): GuildState {
-            return guildStateMap.stateForGuild(guildId)
-        }
-    }
 
     val ircDir = basePath.resolve("irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
@@ -197,7 +192,7 @@ fun main(args: Array<String>) {
 
         val commandStrategy = makeBaseCommandStrategy(
             ircAndDiscordSink(ircAndDiscordMapping(jda, (ircConfig to ircClient).coalesceNulls())),
-            guildStateStrategy,
+            BaseCommandGuildStateStrategy.fromMap(guildStateMap),
             makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
                 botMap = botPermissionMap,

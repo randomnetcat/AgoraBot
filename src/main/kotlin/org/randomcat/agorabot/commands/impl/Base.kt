@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.CommandOutputMapping
 import org.randomcat.agorabot.config.GuildState
+import org.randomcat.agorabot.config.GuildStateMap
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
@@ -58,6 +59,16 @@ interface BaseCommandPermissionsStrategy {
 
 interface BaseCommandGuildStateStrategy {
     fun guildStateFor(guildId: String): GuildState
+
+    companion object {
+        fun fromMap(guildStateMap: GuildStateMap): BaseCommandGuildStateStrategy {
+            return object : BaseCommandGuildStateStrategy {
+                override fun guildStateFor(guildId: String): GuildState {
+                    return guildStateMap.stateForGuild(guildId)
+                }
+            }
+        }
+    }
 }
 
 interface BaseCommandStrategy :
