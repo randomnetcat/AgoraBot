@@ -105,8 +105,8 @@ fun updateIrcPersistentWho(jda: JDA, ircClient: IrcClient, userListMap: IrcUserL
                                 message.editMessage(usersText).ignoreErrors().queue()
                             }
                         },
-                        { error ->
-                            /* ignore */
+                        { _ ->
+                            /* ignore error */
                         },
                     )
             }

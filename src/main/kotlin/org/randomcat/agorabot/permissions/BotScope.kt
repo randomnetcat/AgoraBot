@@ -13,16 +13,16 @@ data class BotScopeActionPermission(
 
     private val commandPath = PermissionPath(listOf(commandName))
 
-    override fun isSatisfied(context: BotPermissionContext, userContext: UserPermissionContext): Boolean {
+    override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
         return when (userContext) {
             is UserPermissionContext.Unauthenticated -> false
 
             is UserPermissionContext.Authenticated -> {
                 val user = userContext.user
 
-                return context.isBotAdmin(userId = user.id) ||
-                        context.checkGlobalPath(userId = user.id, path.basePath)
-                            .mapDeferred { context.checkGlobalPath(userId = user.id, commandPath) }
+                return botContext.isBotAdmin(userId = user.id) ||
+                        botContext.checkGlobalPath(userId = user.id, path.basePath)
+                            .mapDeferred { botContext.checkGlobalPath(userId = user.id, commandPath) }
                             .isAllowed()
             }
         }
