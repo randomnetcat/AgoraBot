@@ -21,7 +21,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.4")
     implementation("net.dv8tion:JDA:4.2.1_253")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
-    implementation("org.kitteh.irc:client-lib:7.3.0")
+    implementation("org.kitteh.irc:client-lib:8.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.3")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
