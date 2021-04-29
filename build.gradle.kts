@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.4.30"
     kotlin("plugin.serialization") version "1.4.30"
+    application
 }
 
 group = "org.randomcat"
@@ -34,6 +35,11 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "13"
 
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
+
+application {
+    applicationName = "AgoraBot"
+    mainClassName = "org.randomcat.agorabot.MainKt"
 }
 
 tasks.create<Jar>("fatJar") {
