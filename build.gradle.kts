@@ -34,7 +34,7 @@ dependencies {
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "13"
 
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xinline-classes")
 }
 
 application {
@@ -71,9 +71,4 @@ tasks.test {
     testLogging {
         events("passed", "skipped", "failed")
     }
-}
-val compileKotlin: KotlinCompile by tasks
-
-compileKotlin.kotlinOptions {
-    freeCompilerArgs = listOf("-Xinline-classes")
 }
