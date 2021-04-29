@@ -39,7 +39,7 @@ tasks.withType<KotlinCompile> {
 
 application {
     applicationName = "AgoraBot"
-    mainClassName = "org.randomcat.agorabot.MainKt"
+    mainClass.set("org.randomcat.agorabot.MainKt")
 }
 
 tasks.create<Jar>("fatJar") {
