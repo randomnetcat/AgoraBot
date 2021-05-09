@@ -42,29 +42,6 @@ application {
     mainClass.set("org.randomcat.agorabot.MainKt")
 }
 
-tasks.create<Jar>("fatJar") {
-    manifest {
-        attributes["Implementation-Title"] = "Agora Discord Bot"
-        attributes["Implementation-Version"] = project.version
-        attributes["Main-Class"] = "org.randomcat.agorabot.MainKt"
-    }
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    archiveFileName.set("agorabot.jar")
-
-    from(
-        configurations
-            .runtimeClasspath
-            .get()
-            .files
-            .filter { !it.path.endsWith(".pom") } // Apparently the task breaks horribly on pom files /shrug
-            .map { if (it.isDirectory) it else zipTree(it) }
-    )
-
-    with(tasks["jar"] as CopySpec)
-}
-
 tasks.test {
     useJUnitPlatform()
 
