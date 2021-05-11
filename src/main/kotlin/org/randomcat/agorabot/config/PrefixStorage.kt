@@ -12,6 +12,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.atomic.AtomicReference
+import java.nio.file.NoSuchFileException as NioNoSuchFileException
 
 private val PREFIX_FILE_CHARSET = Charsets.UTF_8
 
@@ -80,42 +81,60 @@ enum class PrefixStorageVersion {
     JSON_MANY_PREFIX,
 }
 
-private fun migrateSinglePrefixToManyPrefix(storagePath: Path) {
-    val oldValue = Json.decodeFromString<Map<String, String>>(Files.readString(storagePath, PREFIX_FILE_CHARSET))
-    val newValue = Json.encodeToString<Map<String, List<String>>>(oldValue.mapValues { (_, v) -> listOf(v) })
-
-    Files.writeString(storagePath, newValue, PREFIX_FILE_CHARSET)
+private fun convertSinglePrefixToManyPrefix(prefixDataText: String): String {
+    val oldValue = Json.decodeFromString<Map<String, String>>(prefixDataText)
+    return Json.encodeToString<Map<String, List<String>>>(oldValue.mapValues { (_, v) -> listOf(v) })
 }
 
-tailrec fun migratePrefixStorage(
-    storagePath: Path,
+private tailrec fun convertPrefixData(
+    prefixDataText: String,
     oldVersion: PrefixStorageVersion,
     newVersion: PrefixStorageVersion,
-) {
+): String {
     require(oldVersion.ordinal <= newVersion.ordinal)
 
-    if (oldVersion == newVersion) return
-    if (!Files.exists(storagePath)) return
+    if (oldVersion == newVersion) return prefixDataText
 
     check(oldVersion.ordinal < newVersion.ordinal) // This should be guaranteed at this point
 
-    logger.info("Migrating prefix storage from $oldVersion to $newVersion.")
-
-    @Suppress("UNUSED_VARIABLE")
-    val ensureUsed = when (oldVersion) {
+    val oneStepConverted = when (oldVersion) {
         PrefixStorageVersion.JSON_SINGLE_PREFIX -> {
-            migrateSinglePrefixToManyPrefix(storagePath)
+            convertSinglePrefixToManyPrefix(prefixDataText)
         }
 
-        PrefixStorageVersion.JSON_MANY_PREFIX -> check(false) {
-            "This should be unreachable, as it is the newest version"
+        PrefixStorageVersion.JSON_MANY_PREFIX -> {
+            error("This should be unreachable, as it is the newest version")
         }
     }
 
-    return migratePrefixStorage(
-        storagePath = storagePath,
+    return convertPrefixData(
+        prefixDataText = oneStepConverted,
         // This is guaranteed to exist because oldVersion.ordinal < newVersion.ordinal
         oldVersion = PrefixStorageVersion.values()[oldVersion.ordinal + 1],
         newVersion = newVersion,
     )
+}
+
+fun migratePrefixStorage(
+    storagePath: Path,
+    oldVersion: PrefixStorageVersion,
+    newVersion: PrefixStorageVersion,
+) {
+    if (oldVersion == newVersion) return // Fast path to avoid opening the file when unnecessary
+
+    val prefixDataText = try {
+        Files.readString(storagePath, PREFIX_FILE_CHARSET)
+    } catch (e: NioNoSuchFileException) {
+        return
+    }
+
+    logger.info("Migrating prefix storage from $oldVersion to $newVersion.")
+
+    val newData = convertPrefixData(
+        prefixDataText = prefixDataText,
+        oldVersion = oldVersion,
+        newVersion = newVersion,
+    )
+
+    Files.writeString(storagePath, newData, PREFIX_FILE_CHARSET)
 }
