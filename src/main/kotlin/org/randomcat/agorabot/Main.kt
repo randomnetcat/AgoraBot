@@ -1,5 +1,8 @@
 package org.randomcat.agorabot
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
@@ -16,6 +19,7 @@ import org.randomcat.agorabot.permissions.JsonGuildPermissionMap
 import org.randomcat.agorabot.permissions.JsonPermissionMap
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
+import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
@@ -80,13 +84,13 @@ private fun makeBaseCommandStrategy(
 private val PREFIX_STORAGE_CURRENT_VERSION = PrefixStorageVersion.JSON_MANY_PREFIX
 private const val PREFIX_STORAGE_COMPONENT = "prefix_storage"
 
-fun main(args: Array<String>) {
-    require(args.size == 1) { "Single command line argument of token required" }
-
-    val token = args.single()
+private fun runBot(config: BotRunConfig) {
+    val token = config.token
     val persistService: ConfigPersistService = DefaultConfigPersistService
 
-    val basePath = Path.of(".").toAbsolutePath()
+    val basePath = when (val paths = config.paths) {
+        is BotDataPaths.Version0 -> paths.basePath
+    }
 
     val versioningStorage = JsonVersioningStorage(basePath.resolve("storage_versions"))
 
@@ -292,5 +296,30 @@ fun main(args: Array<String>) {
         logger.error("Exception while setting up JDA listeners!", e)
         jda.shutdownNow()
         exitProcess(1)
+    }
+}
+
+private data class BotRunConfig(
+    val paths: BotDataPaths,
+    val token: String,
+)
+
+private class AgoraBotCommand : CliktCommand() {
+    private val token by option("--token").required()
+
+    override fun run() {
+        val config = BotRunConfig(
+            paths = BotDataPaths.Version0(basePath = Path.of(".").toAbsolutePath()),
+            token = token,
+        )
+
+        runBot(config)
+    }
+}
+
+fun main(args: Array<String>) {
+    return when (args.size) {
+        1 -> AgoraBotCommand().main(listOf("--token", args.single()))
+        else -> AgoraBotCommand().main(args)
     }
 }
