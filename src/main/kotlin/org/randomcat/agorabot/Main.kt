@@ -15,11 +15,10 @@ import org.randomcat.agorabot.digest.SimpleDigestFormat
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
-import org.randomcat.agorabot.permissions.JsonGuildPermissionMap
-import org.randomcat.agorabot.permissions.JsonPermissionMap
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.BotDataPaths
+import org.randomcat.agorabot.setup.setupPermissions
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
@@ -121,23 +120,17 @@ private fun runBot(config: BotRunConfig) {
         logger.warn("Unable to setup digest sending! Check for errors above.")
     }
 
-    val permissionsDir = basePath.resolve("permissions")
-    val permissionsConfigPath = permissionsDir.resolve("config.json")
-    val permissionsConfig = readPermissionsConfig(permissionsConfigPath) ?: run {
-        logger.warn("Unable to setup permissions config! Check for errors above. Using default permissions config.")
-        PermissionsConfig(botAdminList = emptyList())
-    }
+    val permissionsSetupResult = setupPermissions(paths = config.paths, persistService = persistService)
+
+    val permissionsConfig = permissionsSetupResult.config
+    val botPermissionMap = permissionsSetupResult.botMap
+    val guildPermissionMap = permissionsSetupResult.guildMap
 
     val guildStateStorageDir = basePath.resolve("guild_storage")
     val guildStateMap = JsonGuildStateMap(guildStateStorageDir, persistService)
 
     val ircDir = basePath.resolve("irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
-
-    val botPermissionMap = JsonPermissionMap(permissionsDir.resolve("bot.json"))
-    botPermissionMap.schedulePersistenceOn(persistService)
-
-    val guildPermissionMap = JsonGuildPermissionMap(permissionsDir.resolve("guild"), persistService)
 
     val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
 
