@@ -19,6 +19,7 @@ import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.setup.setupPermissions
+import org.randomcat.agorabot.setup.setupStorageVersioning
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
@@ -91,7 +92,7 @@ private fun runBot(config: BotRunConfig) {
         is BotDataPaths.Version0 -> paths.basePath
     }
 
-    val versioningStorage = JsonVersioningStorage(basePath.resolve("storage_versions"))
+    val versioningStorage = setupStorageVersioning(paths = config.paths)
 
     val digestMap = JsonGuildDigestMap(basePath.resolve("digests"), persistService)
 
