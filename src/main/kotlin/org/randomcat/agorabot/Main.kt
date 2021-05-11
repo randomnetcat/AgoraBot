@@ -19,6 +19,7 @@ import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.setup.setupPermissions
+import org.randomcat.agorabot.setup.setupPrefixStorage
 import org.randomcat.agorabot.setup.setupStorageVersioning
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
@@ -81,9 +82,6 @@ private fun makeBaseCommandStrategy(
         BaseCommandGuildStateStrategy by guildStateStrategy {}
 }
 
-private val PREFIX_STORAGE_CURRENT_VERSION = PrefixStorageVersion.JSON_MANY_PREFIX
-private const val PREFIX_STORAGE_COMPONENT = "prefix_storage"
-
 private fun runBot(config: BotRunConfig) {
     val token = config.token
     val persistService: ConfigPersistService = DefaultConfigPersistService
@@ -94,21 +92,13 @@ private fun runBot(config: BotRunConfig) {
 
     val versioningStorage = setupStorageVersioning(paths = config.paths)
 
-    val digestMap = JsonGuildDigestMap(basePath.resolve("digests"), persistService)
-
-    val prefixStoragePath = basePath.resolve("prefixes")
-
-    migratePrefixStorage(
-        storagePath = prefixStoragePath,
-        oldVersion = versioningStorage.versionFor(PREFIX_STORAGE_COMPONENT)
-            ?.let { PrefixStorageVersion.valueOf(it) }
-            ?: PrefixStorageVersion.JSON_SINGLE_PREFIX,
-        newVersion = PREFIX_STORAGE_CURRENT_VERSION,
+    val prefixMap = setupPrefixStorage(
+        paths = config.paths,
+        versioningStorage = versioningStorage,
+        persistService = persistService,
     )
 
-    versioningStorage.setVersion(PREFIX_STORAGE_COMPONENT, PREFIX_STORAGE_CURRENT_VERSION.name)
-
-    val prefixMap = JsonPrefixMap(default = ".", prefixStoragePath).apply { schedulePersistenceOn(persistService) }
+    val digestMap = JsonGuildDigestMap(basePath.resolve("digests"), persistService)
 
     val digestFormat = AffixDigestFormat(
         prefix = DIGEST_AFFIX + "\n",
