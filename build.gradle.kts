@@ -24,6 +24,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.kitteh.irc:client-lib:8.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.3")
+    implementation("com.github.ajalt.clikt:clikt:3.1.0")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
 
     testImplementation(kotlin("test"))
