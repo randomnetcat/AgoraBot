@@ -9,18 +9,12 @@ import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
-import org.randomcat.agorabot.digest.AffixDigestFormat
-import org.randomcat.agorabot.digest.JsonGuildDigestMap
-import org.randomcat.agorabot.digest.SimpleDigestFormat
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
-import org.randomcat.agorabot.setup.BotDataPaths
-import org.randomcat.agorabot.setup.setupPermissions
-import org.randomcat.agorabot.setup.setupPrefixStorage
-import org.randomcat.agorabot.setup.setupStorageVersioning
+import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
@@ -31,11 +25,6 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
-
-private const val DIGEST_AFFIX =
-    "THIS MESSAGE CONTAINS NO GAME ACTIONS.\n" +
-            "SERIOUSLY, IT CONTAINS NO GAME ACTIONS.\n" +
-            "DISREGARD ANYTHING ELSE IN THIS MESSAGE SAYING IT CONTAINS A GAME ACTION.\n"
 
 private fun ircAndDiscordMapping(jda: JDA, ircInfo: Pair<IrcConfig, IrcClient>?): CommandOutputMapping {
     return if (ircInfo != null) {
@@ -98,24 +87,20 @@ private fun runBot(config: BotRunConfig) {
         persistService = persistService,
     )
 
-    val digestMap = JsonGuildDigestMap(basePath.resolve("digests"), persistService)
-
-    val digestFormat = AffixDigestFormat(
-        prefix = DIGEST_AFFIX + "\n",
-        baseFormat = SimpleDigestFormat(),
-        suffix = "\n\n" + DIGEST_AFFIX,
-    )
-
-    val digestSendStrategy = readDigestSendStrategyConfig(basePath.resolve("mail.json"), digestFormat)
-    if (digestSendStrategy == null) {
-        logger.warn("Unable to setup digest sending! Check for errors above.")
-    }
-
     val permissionsSetupResult = setupPermissions(paths = config.paths, persistService = persistService)
 
     val permissionsConfig = permissionsSetupResult.config
     val botPermissionMap = permissionsSetupResult.botMap
     val guildPermissionMap = permissionsSetupResult.guildMap
+
+    val digestSetupResult = setupDigest(
+        paths = config.paths,
+        persistService = persistService,
+    )
+
+    if (digestSetupResult.digestSendStrategy == null) {
+        logger.warn("Unable to setup digest sending! Check for errors above.")
+    }
 
     val guildStateStorageDir = basePath.resolve("guild_storage")
     val guildStateMap = JsonGuildStateMap(guildStateStorageDir, persistService)
@@ -203,9 +188,9 @@ private fun runBot(config: BotRunConfig) {
             ),
             "copyright_commands" to copyrightCommandsFeature(),
             "digest" to digestFeature(
-                digestMap = digestMap,
-                sendStrategy = digestSendStrategy,
-                format = digestFormat
+                digestMap = digestSetupResult.digestMap,
+                sendStrategy = digestSetupResult.digestSendStrategy,
+                format = digestSetupResult.digestFormat,
             ),
             "duck" to duckFeature(),
             "help" to helpCommandsFeature(suppressedCommands = listOf("permissions")),
