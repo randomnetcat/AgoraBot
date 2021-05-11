@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.exitProcess
 
@@ -162,7 +161,7 @@ fun main(args: Array<String>) {
     val executor = Executors.newSingleThreadScheduledExecutor()
 
     try {
-        val ircRegistryReference = AtomicReference<CommandRegistry>(null)
+        val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
         val ircClient = when {
             ircConfig == null -> {
@@ -181,7 +180,7 @@ fun main(args: Array<String>) {
                         ircConfig = ircConfig,
                         ircDir = ircDir,
                         jda = jda,
-                        commandRegistryFun = { ircRegistryReference.get() },
+                        commandRegistryFun = { delayedRegistryReference.get() },
                     )
                 } catch (e: Exception) {
                     logger.error("Exception while setting up IRC!", e)
@@ -203,7 +202,6 @@ fun main(args: Array<String>) {
         val persistentWhoMessageMap = GuildStateIrcUserListMessageMap { guildStateMap.stateForGuild(it) }
 
         val commandRegistry = MutableMapCommandRegistry(emptyMap())
-        val registryIsAvailableFlag = AtomicBoolean()
 
         val features = listOfNotNull(
             "bot_admin_commands" to adminCommandsFeature(
@@ -240,8 +238,9 @@ fun main(args: Array<String>) {
                 get() = commandStrategy
 
             override fun commandRegistry(): QueryableCommandRegistry {
-                check(registryIsAvailableFlag.get())
-                return commandRegistry
+                return checkNotNull(delayedRegistryReference.get()) {
+                    "Attempt to access command registry that is not yet ready"
+                }
             }
         }
 
@@ -256,8 +255,7 @@ fun main(args: Array<String>) {
             }
         }
 
-        registryIsAvailableFlag.set(true)
-        ircRegistryReference.set(commandRegistry)
+        delayedRegistryReference.set(commandRegistry)
 
         jda.addEventListener(
             BotListener(
