@@ -47,11 +47,11 @@ private fun IrcClientBuilder.user(config: IrcUserConfig): IrcClientBuilder =
 private fun IrcClientBuilder.ircDir(ircDir: Path): IrcClientBuilder =
     this.management().stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))).then()
 
-private fun setupIrcClient(serverConfig: IrcServerConfig, userConfig: IrcUserConfig, ircDir: Path): IrcClient {
+private fun setupIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
     return Client
         .builder()
-        .server(serverConfig)
-        .user(userConfig)
+        .server(ircSetupConfig.server)
+        .user(ircSetupConfig.user)
         .ircDir(ircDir)
         .buildAndConnect()
 }
@@ -276,8 +276,7 @@ fun setupIrc(
     commandRegistryFun: () -> CommandRegistry?,
 ): IrcClient {
     val ircClient = setupIrcClient(
-        serverConfig = ircConfig.server,
-        userConfig = ircConfig.user,
+        ircSetupConfig = ircConfig.setupConfig,
         ircDir = ircDir,
     )
 

@@ -153,13 +153,15 @@ private fun readIrcConfigJson(jsonObject: JsonObject): IrcConfig? {
     val serverIsSecure = jsonObject.readIrcJsonBoolean("server_is_secure") ?: return null
 
     return IrcConfig(
-        IrcServerConfig(
-            server = server,
-            port = port,
-            serverIsSecure = serverIsSecure,
-        ),
-        IrcUserConfig(
-            nickname = nickname,
+        IrcSetupConfig(
+            IrcServerConfig(
+                server = server,
+                port = port,
+                serverIsSecure = serverIsSecure,
+            ),
+            IrcUserConfig(
+                nickname = nickname,
+            )
         ),
         IrcRelayConfig(
             entries = jsonObject.readIrcConnections() ?: return null

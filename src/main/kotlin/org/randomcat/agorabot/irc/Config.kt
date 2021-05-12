@@ -36,8 +36,12 @@ data class IrcRelayConfig(val entries: ImmutableList<IrcRelayEntry>) {
     constructor(entries: List<IrcRelayEntry>) : this(entries.toImmutableList())
 }
 
-data class IrcConfig(
+data class IrcSetupConfig(
     val server: IrcServerConfig,
     val user: IrcUserConfig,
+)
+
+data class IrcConfig(
+    val setupConfig: IrcSetupConfig,
     val relayConfig: IrcRelayConfig,
 )
