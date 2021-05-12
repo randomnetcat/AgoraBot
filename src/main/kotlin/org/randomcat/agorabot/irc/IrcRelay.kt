@@ -6,70 +6,20 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
-import org.kitteh.irc.client.library.Client
-import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType
-import org.kitteh.irc.client.library.element.Channel
-import org.kitteh.irc.client.library.element.User
 import org.kitteh.irc.client.library.event.channel.*
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.kitteh.irc.client.library.event.user.UserQuitEvent
-import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 import kotlin.time.minutes
 
 private val logger = LoggerFactory.getLogger("AgoraBotIRC")
-
-/**
- * In order to provide more information in the name than just "Client".
- */
-typealias IrcClient = Client
-
-private typealias IrcClientBuilder = Client.Builder
-
-private fun IrcClientBuilder.server(config: IrcServerConfig): IrcClientBuilder =
-    this
-        .server()
-        .host(config.server)
-        .port(config.port, if (config.serverIsSecure) SecurityType.SECURE else SecurityType.INSECURE)
-        .then()
-
-private fun IrcClientBuilder.user(config: IrcUserConfig): IrcClientBuilder =
-    this.nick(config.nickname)
-
-private fun IrcClientBuilder.ircDir(ircDir: Path): IrcClientBuilder =
-    this.management().stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))).then()
-
-fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
-    return Client
-        .builder()
-        .server(ircSetupConfig.server)
-        .user(ircSetupConfig.user)
-        .ircDir(ircDir)
-        .buildAndConnect()
-}
-
-typealias IrcChannel = Channel
-private typealias IrcUser = User
-
-fun ActorEvent<User>.isSelfEvent() = actor.nick == client.nick
-
-/**
- * Sends [message], which may contain multiple lines, splitting at both the length limit and every line in message.
- *
- * This differs from [org.kitteh.irc.client.library.element.Channel.sendMultiLineMessage] by allowing newlines
- * in the message.
- */
-fun IrcChannel.sendSplitMultiLineMessage(message: String) {
-    message.lineSequence().forEach { sendMultiLineMessage(it) }
-}
 
 private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
     val senderName = message.member?.nickname ?: message.author.name
