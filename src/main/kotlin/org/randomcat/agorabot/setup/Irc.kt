@@ -13,9 +13,7 @@ private fun BotDataPaths.ircConfigPath(): Path {
 }
 
 private fun BotDataPaths.ircStorageDir(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("irc")
-    }
+    return storageDir().resolve("irc")
 }
 
 sealed class IrcSetupResult {

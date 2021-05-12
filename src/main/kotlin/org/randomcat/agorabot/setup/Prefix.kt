@@ -5,9 +5,7 @@ import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 import java.nio.file.Path
 
 private fun BotDataPaths.prefixStoragePath(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("prefixes")
-    }
+    return storageDir().resolve("prefixes")
 }
 
 private val PREFIX_STORAGE_CURRENT_VERSION = PrefixStorageVersion.JSON_MANY_PREFIX

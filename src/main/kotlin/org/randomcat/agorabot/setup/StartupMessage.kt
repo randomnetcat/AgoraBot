@@ -5,9 +5,7 @@ import org.randomcat.agorabot.StartupMessageStrategy
 import java.nio.file.Path
 
 private fun BotDataPaths.startupMessageStoragePath(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("hammertime_channel")
-    }
+    return storageDir().resolve("hammertime_channel")
 }
 
 fun setupStartupMessageStrategy(paths: BotDataPaths): StartupMessageStrategy {

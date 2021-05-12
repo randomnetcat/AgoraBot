@@ -11,3 +11,9 @@ fun BotDataPaths.tempDir(): Path {
         is BotDataPaths.Version0 -> basePath.resolve("tmp")
     }
 }
+
+fun BotDataPaths.storageDir(): Path {
+    return when (this) {
+        is BotDataPaths.Version0 -> basePath
+    }
+}

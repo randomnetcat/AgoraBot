@@ -6,9 +6,7 @@ import org.randomcat.agorabot.digest.*
 import java.nio.file.Path
 
 private fun BotDataPaths.digestStorageDir(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("digests")
-    }
+    return storageDir().resolve("digests")
 }
 
 private fun setupDigestStorage(paths: BotDataPaths, persistService: ConfigPersistService): GuildMutableDigestMap {

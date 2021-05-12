@@ -17,9 +17,7 @@ class PermissionsSetupResult(
 )
 
 private fun BotDataPaths.permissionsStorageDir(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("permissions")
-    }
+    return storageDir().resolve("permissions")
 }
 
 private fun BotDataPaths.botPermissionStoragePath(): Path = permissionsStorageDir().resolve("bot.json")

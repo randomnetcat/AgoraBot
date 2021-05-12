@@ -19,9 +19,7 @@ fun setupCitationsConfig(paths: BotDataPaths): CitationsConfig? {
 }
 
 private fun BotDataPaths.archiveStorageDir(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("stored_archives")
-    }
+    return storageDir().resolve("stored_archives")
 }
 
 private fun setupArchiver(paths: BotDataPaths): DiscordArchiver {
