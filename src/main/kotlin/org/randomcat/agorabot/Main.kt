@@ -11,15 +11,16 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.config.readCitationsConfig
-import org.randomcat.agorabot.config.readIrcConfig
 import org.randomcat.agorabot.features.*
-import org.randomcat.agorabot.irc.*
+import org.randomcat.agorabot.irc.BaseCommandIrcOutputSink
+import org.randomcat.agorabot.irc.GuildStateIrcUserListMessageMap
+import org.randomcat.agorabot.irc.initializeIrcRelay
+import org.randomcat.agorabot.irc.updateIrcPersistentWho
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
-import org.randomcat.agorabot.util.coalesceNulls
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
@@ -29,26 +30,29 @@ import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
 
-private fun ircAndDiscordMapping(jda: JDA, ircInfo: Pair<IrcConfig, IrcClient>?): CommandOutputMapping {
-    return if (ircInfo != null) {
-        val (config, client) = ircInfo
+private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): CommandOutputMapping {
+    return when (ircSetupResult) {
+        is IrcSetupResult.Connected -> {
+            val config = ircSetupResult.config
+            val client = ircSetupResult.client
 
-        val relayEntries = config.relayConfig.entries
+            val relayEntries = config.relayConfig.entries
 
-        val discordToIrcMap = relayEntries.associate {
-            it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
+            val discordToIrcMap = relayEntries.associate {
+                it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
+            }
+
+            val ircToDiscordMap = relayEntries.associate {
+                it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
+            }
+
+            CommandOutputMapping(
+                discordToIrcMap = discordToIrcMap,
+                ircToDiscordMap = ircToDiscordMap,
+            )
         }
 
-        val ircToDiscordMap = relayEntries.associate {
-            it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
-        }
-
-        CommandOutputMapping(
-            discordToIrcMap = discordToIrcMap,
-            ircToDiscordMap = ircToDiscordMap,
-        )
-    } else {
-        CommandOutputMapping.empty()
+        else -> CommandOutputMapping.empty()
     }
 }
 
@@ -107,8 +111,28 @@ private fun runBot(config: BotRunConfig) {
 
     val guildStateMap = setupGuildStateMap(config.paths, persistService)
 
-    val ircDir = basePath.resolve("irc")
-    val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
+    val ircSetupResult = setupIrcClient(config.paths)
+
+    run {
+        @Suppress("UNUSED_VARIABLE")
+        val ensureExhaustive = when (ircSetupResult) {
+            is IrcSetupResult.Connected -> {
+
+            }
+
+            is IrcSetupResult.ConfigUnavailable -> {
+                logger.warn("Unable to setup IRC! Check for errors above.")
+            }
+
+            is IrcSetupResult.NoRelayRequested -> {
+                logger.info("No IRC connections requested.")
+            }
+
+            is IrcSetupResult.ErrorWhileConnecting -> {
+                logger.error("Exception while setting up IRC!", ircSetupResult.error)
+            }
+        }
+    }
 
     val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
 
@@ -140,32 +164,8 @@ private fun runBot(config: BotRunConfig) {
     try {
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
-        val ircClient = when {
-            ircConfig == null -> {
-                logger.warn("Unable to setup IRC! Check for errors above.")
-                null
-            }
-
-            ircConfig.relayConfig.entries.isEmpty() -> {
-                logger.info("No IRC connections requested.")
-                null
-            }
-
-            else -> {
-                try {
-                    createIrcClient(
-                        ircSetupConfig = ircConfig.setupConfig,
-                        ircDir = ircDir,
-                    )
-                } catch (e: Exception) {
-                    logger.error("Exception while setting up IRC!", e)
-                    null
-                }
-            }
-        }
-
         val commandStrategy = makeBaseCommandStrategy(
-            ircAndDiscordSink(ircAndDiscordMapping(jda, (ircConfig to ircClient).coalesceNulls())),
+            ircAndDiscordSink(ircAndDiscordMapping(jda, ircSetupResult)),
             BaseCommandGuildStateStrategy.fromMap(guildStateMap),
             makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
@@ -196,7 +196,9 @@ private fun runBot(config: BotRunConfig) {
             ),
             "duck" to duckFeature(),
             "help" to helpCommandsFeature(suppressedCommands = listOf("permissions")),
-            "irc_commands" to (if (ircConfig != null) ircCommandsFeature(ircConfig, persistentWhoMessageMap) else null),
+            "irc_commands" to (ircSetupResult as? IrcSetupResult.Connected)?.let {
+                ircCommandsFeature(it.config, persistentWhoMessageMap)
+            },
             "permissions_commands" to permissionsCommandsFeature(
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
@@ -239,17 +241,17 @@ private fun runBot(config: BotRunConfig) {
             ),
         )
 
-        if (ircClient != null) {
+        if (ircSetupResult is IrcSetupResult.Connected) {
             initializeIrcRelay(
-                ircClient = ircClient,
-                ircRelayConfig = checkNotNull(ircConfig).relayConfig,
+                ircClient = ircSetupResult.client,
+                ircRelayConfig = ircSetupResult.config.relayConfig,
                 jda = jda,
                 commandRegistry = commandRegistry,
             )
 
             executor.scheduleAtFixedRate(
                 {
-                    updateIrcPersistentWho(jda, ircClient, persistentWhoMessageMap)
+                    updateIrcPersistentWho(jda, ircSetupResult.client, persistentWhoMessageMap)
                 },
                 0,
                 1,
