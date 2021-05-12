@@ -80,10 +80,6 @@ private fun runBot(config: BotRunConfig) {
     val token = config.token
     val persistService: ConfigPersistService = DefaultConfigPersistService
 
-    val basePath = when (val paths = config.paths) {
-        is BotDataPaths.Version0 -> paths.basePath
-    }
-
     val versioningStorage = setupStorageVersioning(paths = config.paths)
 
     val prefixMap = setupPrefixStorage(
