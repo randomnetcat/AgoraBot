@@ -9,39 +9,47 @@ import java.nio.file.StandardOpenOption
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private fun Path.resolveHammertime() = resolve("hammertime_channel")
-
 private val HAMMERTIME_FILE_CHARSET = Charsets.UTF_8
 
-private val lock = ReentrantLock()
+private val GLOBAL_HAMMERTIME_LOCK = ReentrantLock()
 
-fun handleStartupMessage(basePath: Path, jda: JDA) {
-    val hammertimePath = basePath.resolveHammertime()
+interface StartupMessageStrategy {
+    fun writeChannel(channelId: String)
+    fun sendMessageAndClearChannel(jda: JDA)
+}
 
-    val hammertimeChannelId = lock.withLock {
-        try {
-            Files.readString(hammertimePath, HAMMERTIME_FILE_CHARSET)
-        } catch (e: IOException) {
-            // Who cares, this is a joke
-            return
-        } finally {
-            Files.deleteIfExists(hammertimePath)
+class DefaultStartupMessageStrategy(private val storagePath: Path) : StartupMessageStrategy {
+    override fun writeChannel(channelId: String) {
+        GLOBAL_HAMMERTIME_LOCK.withLock {
+            try {
+                Files.writeString(
+                    storagePath,
+                    channelId,
+                    HAMMERTIME_FILE_CHARSET,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.CREATE,
+                )
+            } catch (e: IOException) {
+                // Who cares.
+                return
+            }
         }
     }
 
-    ignoringRestActionOn(jda) {
-        jda.getTextChannelById(hammertimeChannelId)?.sendMessage("hammertime")
-    }.queue()
-}
+    override fun sendMessageAndClearChannel(jda: JDA) {
+        val hammertimeChannelId = GLOBAL_HAMMERTIME_LOCK.withLock {
+            try {
+                Files.readString(storagePath, HAMMERTIME_FILE_CHARSET)
+            } catch (e: IOException) {
+                // Who cares, this is a joke
+                return
+            } finally {
+                Files.deleteIfExists(storagePath)
+            }
+        }
 
-fun writeStartupMessageChannel(basePath: Path, channelId: String) {
-    lock.withLock {
-        Files.writeString(
-            basePath.resolveHammertime(),
-            channelId,
-            HAMMERTIME_FILE_CHARSET,
-            StandardOpenOption.TRUNCATE_EXISTING,
-            StandardOpenOption.CREATE,
-        )
+        ignoringRestActionOn(jda) {
+            jda.getTextChannelById(hammertimeChannelId)?.sendMessage("hammertime")
+        }.queue()
     }
 }

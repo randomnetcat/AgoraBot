@@ -137,6 +137,8 @@ private fun runBot(config: BotRunConfig) {
 
     val citationsConfig = setupCitationsConfig(config.paths)
 
+    val startupMessageStrategy = setupStartupMessageStrategy(config.paths)
+
     val jda =
         JDABuilder
             .createDefault(
@@ -172,7 +174,7 @@ private fun runBot(config: BotRunConfig) {
 
         val features = listOfNotNull(
             "bot_admin_commands" to adminCommandsFeature(
-                writeHammertimeChannelFun = { writeStartupMessageChannel(basePath = basePath, channelId = it) },
+                writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
             ),
             "archive" to archiveCommandsFeature(
                 discordArchiver = DefaultDiscordArchiver(
@@ -252,7 +254,7 @@ private fun runBot(config: BotRunConfig) {
         }
 
         try {
-            handleStartupMessage(basePath = basePath, jda = jda)
+            startupMessageStrategy.sendMessageAndClearChannel(jda = jda)
         } catch (e: Exception) {
             // Log and ignore. This failing should not bring down the whole bot
             logger.error("Exception while handling startup message.", e)
