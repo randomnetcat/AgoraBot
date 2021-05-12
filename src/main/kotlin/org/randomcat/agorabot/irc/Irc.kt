@@ -56,8 +56,6 @@ fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
         .buildAndConnect()
 }
 
-private const val MAX_IRC_LENGTH = 500
-
 typealias IrcChannel = Channel
 private typealias IrcUser = User
 
@@ -82,7 +80,6 @@ private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
                 message.contentDisplay +
                 (message.attachments
                     .map { it.url }
-                    .filter { it.length <= MAX_IRC_LENGTH }
                     .takeIf { it.isNotEmpty() }
                     ?.joinToString(separator = "\n", prefix = "\n")
                     ?: "")
