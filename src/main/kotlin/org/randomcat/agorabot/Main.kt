@@ -8,7 +8,10 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.config.*
+import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.config.DefaultConfigPersistService
+import org.randomcat.agorabot.config.readCitationsConfig
+import org.randomcat.agorabot.config.readIrcConfig
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
@@ -102,8 +105,7 @@ private fun runBot(config: BotRunConfig) {
         logger.warn("Unable to setup digest sending! Check for errors above.")
     }
 
-    val guildStateStorageDir = basePath.resolve("guild_storage")
-    val guildStateMap = JsonGuildStateMap(guildStateStorageDir, persistService)
+    val guildStateMap = setupGuildStateMap(config.paths, persistService)
 
     val ircDir = basePath.resolve("irc")
     val ircConfig = readIrcConfig(ircDir.resolve("config.json"))
