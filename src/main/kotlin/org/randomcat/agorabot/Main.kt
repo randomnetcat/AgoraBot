@@ -178,11 +178,9 @@ fun main(args: Array<String>) {
 
             else -> {
                 try {
-                    setupIrc(
-                        ircConfig = ircConfig,
+                    createIrcClient(
+                        ircSetupConfig = ircConfig.setupConfig,
                         ircDir = ircDir,
-                        jda = jda,
-                        commandRegistryFun = { delayedRegistryReference.get() },
                     )
                 } catch (e: Exception) {
                     logger.error("Exception while setting up IRC!", e)
@@ -267,6 +265,13 @@ fun main(args: Array<String>) {
         )
 
         if (ircClient != null) {
+            initializeIrcRelay(
+                ircClient = ircClient,
+                ircRelayConfig = checkNotNull(ircConfig).relayConfig,
+                jda = jda,
+                commandRegistryFun = { delayedRegistryReference.get() },
+            )
+
             executor.scheduleAtFixedRate(
                 {
                     updateIrcPersistentWho(jda, ircClient, persistentWhoMessageMap)

@@ -47,7 +47,7 @@ private fun IrcClientBuilder.user(config: IrcUserConfig): IrcClientBuilder =
 private fun IrcClientBuilder.ircDir(ircDir: Path): IrcClientBuilder =
     this.management().stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))).then()
 
-private fun setupIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
+fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
     return Client
         .builder()
         .server(ircSetupConfig.server)
@@ -269,18 +269,13 @@ private fun connectIrcAndDiscordChannels(
     })
 }
 
-fun setupIrc(
-    ircConfig: IrcConfig,
-    ircDir: Path,
+fun initializeIrcRelay(
+    ircClient: IrcClient,
+    ircRelayConfig: IrcRelayConfig,
     jda: JDA,
-    commandRegistryFun: () -> CommandRegistry?,
-): IrcClient {
-    val ircClient = setupIrcClient(
-        ircSetupConfig = ircConfig.setupConfig,
-        ircDir = ircDir,
-    )
-
-    val ircConnections = ircConfig.relayConfig.entries
+    commandRegistryFun: () -> CommandRegistry?
+) {
+    val ircConnections = ircRelayConfig.entries
 
     try {
         for (ircConnection in ircConnections) {
@@ -300,6 +295,4 @@ fun setupIrc(
         ircClient.shutdown("Exception during connection setup")
         throw e
     }
-
-    return ircClient
 }
