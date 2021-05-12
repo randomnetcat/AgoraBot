@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
-import org.randomcat.agorabot.config.readCitationsConfig
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.BaseCommandIrcOutputSink
 import org.randomcat.agorabot.irc.GuildStateIrcUserListMessageMap
@@ -136,14 +135,7 @@ private fun runBot(config: BotRunConfig) {
 
     val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
 
-    val featuresConfigDir = basePath.resolve("features")
-
-    val citationsConfig = try {
-        readCitationsConfig(featuresConfigDir.resolve("citations.json"))
-    } catch (e: Exception) {
-        logger.error("Error parsing citations config", e)
-        null
-    }
+    val citationsConfig = setupCitationsConfig(config.paths)
 
     val jda =
         JDABuilder
