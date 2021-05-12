@@ -108,7 +108,7 @@ private fun formatIrcNameForDiscord(name: String): String {
     return "**$name**"
 }
 
-private fun ircCommandParser(connection: IrcConnectionConfig): CommandParser? {
+private fun ircCommandParser(connection: IrcRelayEntry): CommandParser? {
     val prefix = connection.ircCommandPrefix ?: return null
     return GlobalPrefixCommandParser(prefix)
 }
@@ -116,7 +116,7 @@ private fun ircCommandParser(connection: IrcConnectionConfig): CommandParser? {
 private fun connectIrcAndDiscordChannels(
     ircClient: IrcClient,
     jda: JDA,
-    connection: IrcConnectionConfig,
+    connection: IrcRelayEntry,
     commandRegistryFun: () -> CommandRegistry?,
 ) {
     val discordChannelId = connection.discordChannelId
@@ -281,7 +281,7 @@ fun setupIrc(
         ircDir = ircDir,
     )
 
-    val ircConnections = ircConfig.connections
+    val ircConnections = ircConfig.relayConfig.entries
 
     try {
         for (ircConnection in ircConnections) {

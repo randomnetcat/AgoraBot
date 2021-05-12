@@ -36,11 +36,13 @@ private fun ircAndDiscordMapping(jda: JDA, ircInfo: Pair<IrcConfig, IrcClient>?)
     return if (ircInfo != null) {
         val (config, client) = ircInfo
 
-        val discordToIrcMap = config.connections.associate {
+        val relayEntries = config.relayConfig.entries
+
+        val discordToIrcMap = relayEntries.associate {
             it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
         }
 
-        val ircToDiscordMap = config.connections.associate {
+        val ircToDiscordMap = relayEntries.associate {
             it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
         }
 
@@ -169,7 +171,7 @@ fun main(args: Array<String>) {
                 null
             }
 
-            ircConfig.connections.isEmpty() -> {
+            ircConfig.relayConfig.entries.isEmpty() -> {
                 logger.info("No IRC connections requested.")
                 null
             }

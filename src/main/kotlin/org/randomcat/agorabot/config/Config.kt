@@ -8,10 +8,7 @@ import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.SsmtpDigestSendStrategy
 import org.randomcat.agorabot.features.CFJ_URL_NUMBER_REPLACEMENT
 import org.randomcat.agorabot.features.RULE_URL_NUMBER_REPLACMENT
-import org.randomcat.agorabot.irc.IrcConfig
-import org.randomcat.agorabot.irc.IrcConnectionConfig
-import org.randomcat.agorabot.irc.IrcServerConfig
-import org.randomcat.agorabot.irc.IrcUserConfig
+import org.randomcat.agorabot.irc.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -111,7 +108,7 @@ private fun JsonObject.readIrcJsonBoolean(name: String): Boolean? {
     return value
 }
 
-private fun JsonObject.readIrcConnections(): List<IrcConnectionConfig>? {
+private fun JsonObject.readIrcConnections(): List<IrcRelayEntry>? {
     val jsonConnections = (this["connections"] as? JsonArray)
     if (jsonConnections == null) {
         logger.error("IRC connections should exist and be an array!")
@@ -140,7 +137,7 @@ private fun JsonObject.readIrcConnections(): List<IrcConnectionConfig>? {
 
         val ircCommandPrefix = (it["irc_command_prefix"] as? JsonPrimitive)?.takeIf { it.isString }?.content
 
-        IrcConnectionConfig(
+        IrcRelayEntry(
             ircChannelName = ircChannel,
             discordChannelId = discordChannel,
             relayJoinLeaveMessages = relayJoinLeave,
@@ -164,7 +161,9 @@ private fun readIrcConfigJson(jsonObject: JsonObject): IrcConfig? {
         IrcUserConfig(
             nickname = nickname,
         ),
-        jsonObject.readIrcConnections()?.toImmutableList() ?: return null,
+        IrcRelayConfig(
+            entries = jsonObject.readIrcConnections() ?: return null
+        ),
     )
 }
 

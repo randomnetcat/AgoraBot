@@ -13,7 +13,7 @@ fun ircCommandsFeature(
         "irc" to IrcCommand(
             strategy = context.defaultCommandStrategy,
             lookupConnectedIrcChannel = { _, channelId ->
-                ircConfig.connections.firstOrNull { it.discordChannelId == channelId }?.ircChannelName
+                ircConfig.relayConfig.entries.firstOrNull { it.discordChannelId == channelId }?.ircChannelName
             },
             persistentWhoMessageMap = ircPersistentWhoMessageMap,
         ),
