@@ -19,7 +19,6 @@ import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
-import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.Executors
@@ -176,12 +175,7 @@ private fun runBot(config: BotRunConfig) {
             "bot_admin_commands" to adminCommandsFeature(
                 writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
             ),
-            "archive" to archiveCommandsFeature(
-                discordArchiver = DefaultDiscordArchiver(
-                    storageDir = basePath.resolve("tmp").resolve("archive"),
-                ),
-                localStorageDir = basePath.resolve("stored_archives"),
-            ),
+            "archive" to setupArchiveFeature(config.paths),
             "copyright_commands" to copyrightCommandsFeature(),
             "digest" to digestFeature(
                 digestMap = digestSetupResult.digestMap,
