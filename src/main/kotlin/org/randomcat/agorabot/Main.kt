@@ -269,7 +269,7 @@ fun main(args: Array<String>) {
                 ircClient = ircClient,
                 ircRelayConfig = checkNotNull(ircConfig).relayConfig,
                 jda = jda,
-                commandRegistryFun = { delayedRegistryReference.get() },
+                commandRegistry = commandRegistry,
             )
 
             executor.scheduleAtFixedRate(

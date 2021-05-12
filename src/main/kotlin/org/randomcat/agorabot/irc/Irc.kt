@@ -117,7 +117,7 @@ private fun connectIrcAndDiscordChannels(
     ircClient: IrcClient,
     jda: JDA,
     connection: IrcRelayEntry,
-    commandRegistryFun: () -> CommandRegistry?,
+    commandRegistry: CommandRegistry,
 ) {
     val discordChannelId = connection.discordChannelId
     val ircChannelName = connection.ircChannelName
@@ -168,19 +168,15 @@ private fun connectIrcAndDiscordChannels(
             relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " says: " + event.message)
 
             if (commandParser != null) {
-                val registry = commandRegistryFun()
+                val source = CommandEventSource.Irc(event)
 
-                if (registry != null) {
-                    val source = CommandEventSource.Irc(event)
+                @Suppress("UNUSED_VARIABLE")
+                val ensureExhaustive = when (val parseRegistry = commandParser.parse(source)) {
+                    is CommandParseResult.Ignore -> {
+                    }
 
-                    @Suppress("UNUSED_VARIABLE")
-                    val ensureExhaustive = when (val parseRegistry = commandParser.parse(source)) {
-                        is CommandParseResult.Ignore -> {
-                        }
-
-                        is CommandParseResult.Invocation -> {
-                            registry.invokeCommand(source, parseRegistry.invocation)
-                        }
+                    is CommandParseResult.Invocation -> {
+                        commandRegistry.invokeCommand(source, parseRegistry.invocation)
                     }
                 }
             }
@@ -273,7 +269,7 @@ fun initializeIrcRelay(
     ircClient: IrcClient,
     ircRelayConfig: IrcRelayConfig,
     jda: JDA,
-    commandRegistryFun: () -> CommandRegistry?
+    commandRegistry: CommandRegistry,
 ) {
     val ircConnections = ircRelayConfig.entries
 
@@ -288,7 +284,7 @@ fun initializeIrcRelay(
                 ircClient = ircClient,
                 jda = jda,
                 connection = ircConnection,
-                commandRegistryFun = commandRegistryFun,
+                commandRegistry = commandRegistry,
             )
         }
     } catch (e: Exception) {
