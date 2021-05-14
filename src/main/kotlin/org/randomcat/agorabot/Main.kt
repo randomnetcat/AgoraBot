@@ -1,8 +1,11 @@
 package org.randomcat.agorabot
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.PrintMessage
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.int
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
@@ -264,13 +267,38 @@ private data class BotRunConfig(
 private class AgoraBotCommand : CliktCommand() {
     private val token by option("--token").required()
 
+    private val dataVersion by option("--data-version").int().default(0)
+    private val configPath by option("--config-path")
+    private val storagePath by option("--storage-path")
+    private val tempPath by option("--temp-path")
+
     override fun run() {
         val config = BotRunConfig(
-            paths = BotDataPaths.Version0(basePath = Path.of(".").toAbsolutePath()),
+            paths = readBotDataPaths(),
             token = token,
         )
 
         runBot(config)
+    }
+
+    private fun parseRequiredDataPath(name: String, value: String?): Path {
+        if (value == null) {
+            throw PrintMessage("Data version $dataVersion requires $name path, but none was provided", error = true)
+        }
+
+        return Path.of(value).toAbsolutePath()
+    }
+
+    private fun readBotDataPaths(): BotDataPaths {
+        return when (dataVersion) {
+            0 -> BotDataPaths.Version0(basePath = Path.of(".").toAbsolutePath())
+            1 -> BotDataPaths.Version1(
+                configPath = parseRequiredDataPath(name = "config", value = configPath),
+                storagePath = parseRequiredDataPath(name = "storage", value = storagePath),
+                tempPath = parseRequiredDataPath(name = "temp", value = tempPath),
+            )
+            else -> throw PrintMessage("Invalid data version $dataVersion", error = true)
+        }
     }
 }
 
