@@ -11,6 +11,7 @@ import java.nio.file.Path
 private fun BotDataPaths.featureConfigDir(): Path {
     return when (this) {
         is BotDataPaths.Version0 -> basePath.resolve("features")
+        is BotDataPaths.Version1 -> configPath.resolve("features")
     }
 }
 

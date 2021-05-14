@@ -15,21 +15,10 @@ import java.nio.file.Path
 
 private val logger = LoggerFactory.getLogger("AgoraBotConfig")
 
-private fun readDigestSendStrategyJson(mailConfig: JsonObject, digestFormat: DigestFormat): DigestSendStrategy? {
-    val digestObject = mailConfig["digest"]
-    if (digestObject == null) {
-        logger.warn(
-            "Mail config does not contain digest section! Digest sending will be disabled. " +
-                    "Set digest.strategy = \"none\" to silence this warning."
-        )
-        return null
-    }
-
-    if (digestObject !is JsonObject) {
-        logger.error("Mail config digest section should be a JSON object!")
-        return null
-    }
-
+private fun readSendStrategyDigestObjectJson(
+    digestObject: JsonObject,
+    digestFormat: DigestFormat
+): DigestSendStrategy? {
     val sendStrategyName = (digestObject["send_strategy"] as? JsonPrimitive)?.content
     if (sendStrategyName == null) {
         logger.error("Digest object should contain send_strategy and be a JSON primitive!")
@@ -66,7 +55,25 @@ private fun readDigestSendStrategyJson(mailConfig: JsonObject, digestFormat: Dig
     }
 }
 
-fun readDigestSendStrategyConfig(mailConfigPath: Path, digestFormat: DigestFormat): DigestSendStrategy? {
+private fun readDigestSendStrategyJson(mailConfig: JsonObject, digestFormat: DigestFormat): DigestSendStrategy? {
+    val digestObject = mailConfig["digest"]
+    if (digestObject == null) {
+        logger.warn(
+            "Mail config does not contain digest section! Digest sending will be disabled. " +
+                    "Set digest.strategy = \"none\" to silence this warning."
+        )
+        return null
+    }
+
+    if (digestObject !is JsonObject) {
+        logger.error("Mail config digest section should be a JSON object!")
+        return null
+    }
+
+    return readSendStrategyDigestObjectJson(digestObject, digestFormat)
+}
+
+fun readGlobalMailDotJsonConfig(mailConfigPath: Path, digestFormat: DigestFormat): DigestSendStrategy? {
     if (Files.notExists(mailConfigPath)) {
         logger.warn("Unable to find mail.json!")
         return null
@@ -77,6 +84,20 @@ fun readDigestSendStrategyConfig(mailConfigPath: Path, digestFormat: DigestForma
     return readDigestSendStrategyJson(
         mailConfig = mailConfig,
         digestFormat = digestFormat
+    )
+}
+
+fun readDigestMailConfig(digestMailConfigPath: Path, digestFormat: DigestFormat): DigestSendStrategy? {
+    if (Files.notExists(digestMailConfigPath)) {
+        logger.warn("Unable to open digest mail config path \"$digestMailConfigPath\"!")
+        return null
+    }
+
+    val digestMailConfig = Json.parseToJsonElement(Files.readString(digestMailConfigPath, Charsets.UTF_8)).jsonObject
+
+    return readSendStrategyDigestObjectJson(
+        digestObject = digestMailConfig,
+        digestFormat = digestFormat,
     )
 }
 

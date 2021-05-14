@@ -26,6 +26,7 @@ private fun BotDataPaths.guildPermissionsStorageDir(): Path = permissionsStorage
 private fun BotDataPaths.permissionsConfigPath(): Path {
     return when (this) {
         is BotDataPaths.Version0 -> basePath.resolve("permissions").resolve("config.json")
+        is BotDataPaths.Version1 -> configPath.resolve("permissions.json")
     }
 }
 
