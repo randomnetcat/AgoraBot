@@ -36,13 +36,15 @@ class JsonPrefixMap(
 
     private val storage = AtomicCachedStorage(storagePath, StrategyImpl)
 
+    private val defaultList = persistentListOf(default)
+
     fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
         storage.schedulePersistenceOn(persistenceService)
     }
 
     override fun addPrefixForGuild(guildId: String, prefix: String) {
         storage.updateValue { oldMap ->
-            val old = oldMap.getOrDefault(guildId, persistentListOf(default))
+            val old = oldMap.getOrDefault(guildId, defaultList)
             // Put the longest prefixes first, so if we have overlapping prefixes--say "please"
             // and "please please", both "please cfj" and "please please cfj" work as expected
             oldMap.put(guildId, old.add(prefix).sortedByDescending { it.length }.toPersistentList())
@@ -51,13 +53,13 @@ class JsonPrefixMap(
 
     override fun removePrefixForGuild(guildId: String, prefix: String) {
         storage.updateValue { oldMap ->
-            val old = oldMap.getOrDefault(guildId, persistentListOf(default))
+            val old = oldMap.getOrDefault(guildId, defaultList)
             oldMap.put(guildId, old.removeAll { it == prefix })
         }
     }
 
     override fun prefixesForGuild(guildId: String): List<String> {
-        return storage.getValue().getOrDefault(guildId, listOf(default))
+        return storage.getValue().getOrDefault(guildId, defaultList)
     }
 }
 
