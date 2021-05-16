@@ -4,12 +4,18 @@ import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.*
 import java.util.concurrent.atomic.AtomicReference
 
+interface StorageStrategy<T> {
+    fun defaultValue(): T
+    fun encodeToString(value: T): String
+    fun decodeFromString(text: String): T
+}
+
 class AtomicCachedStorage<T>(
     private val storagePath: Path,
-    private val strategy: Strategy<T>,
+    private val strategy: StorageStrategy<T>,
 ) {
     companion object {
-        private fun <T> writeToFile(storagePath: Path, strategy: Strategy<T>, value: T) {
+        private fun <T> writeToFile(storagePath: Path, strategy: StorageStrategy<T>, value: T) {
             withTempFile { tempFile ->
                 val content = strategy.encodeToString(value)
 
@@ -24,7 +30,7 @@ class AtomicCachedStorage<T>(
             }
         }
 
-        private fun <T> readFromFile(storagePath: Path, strategy: Strategy<T>): T {
+        private fun <T> readFromFile(storagePath: Path, strategy: StorageStrategy<T>): T {
             return strategy.decodeFromString(
                 try {
                     Files.readString(storagePath)
@@ -33,12 +39,6 @@ class AtomicCachedStorage<T>(
                 }
             )
         }
-    }
-
-    interface Strategy<T> {
-        fun defaultValue(): T
-        fun encodeToString(value: T): String
-        fun decodeFromString(text: String): T
     }
 
     private val valueReference: AtomicReference<T> = AtomicReference<T>(readFromFile(storagePath, strategy))

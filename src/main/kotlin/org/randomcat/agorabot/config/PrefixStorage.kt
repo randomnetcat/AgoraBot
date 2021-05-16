@@ -16,7 +16,7 @@ class JsonPrefixMap(
     private val default: String,
     storagePath: Path,
 ) : MutableGuildPrefixMap {
-    private object StrategyImpl : AtomicCachedStorage.Strategy<PersistentMap<String, PersistentList<String>>> {
+    private object StrategyImpl : StorageStrategy<PersistentMap<String, PersistentList<String>>> {
         override fun defaultValue(): PersistentMap<String, PersistentList<String>> {
             return persistentMapOf()
         }
