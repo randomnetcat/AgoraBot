@@ -8,12 +8,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
-import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
-import java.nio.file.StandardOpenOption
-import java.util.concurrent.atomic.AtomicReference
 
 interface GuildState {
     fun getStrings(keys: List<String>): List<String?>
@@ -68,59 +64,51 @@ interface GuildStateMap {
 }
 
 class JsonGuildState(private val storagePath: Path) : GuildState {
-    companion object {
-        private val FILE_CHARSET = Charsets.UTF_8
-
-        private fun readFromFile(path: Path): PersistentMap<String, String> {
-            if (Files.notExists(path)) return persistentMapOf()
-
-            val content = Files.readString(path, FILE_CHARSET)
-            return Json.decodeFromString<Map<String, String>>(content).toPersistentMap()
+    private object StrategyImpl : StorageStrategy<PersistentMap<String, String>> {
+        override fun defaultValue(): PersistentMap<String, String> {
+            return persistentMapOf()
         }
 
-        private fun writeToFile(path: Path, data: Map<String, String>) {
-            withTempFile { tempFile ->
-                Files.writeString(
-                    tempFile,
-                    Json.encodeToString<Map<String, String>>(data),
-                    FILE_CHARSET,
-                    StandardOpenOption.TRUNCATE_EXISTING,
-                    StandardOpenOption.CREATE,
-                )
+        override fun encodeToString(value: PersistentMap<String, String>): String {
+            return Json.encodeToString<Map<String, String>>(value)
+        }
 
-                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING)
-            }
+        override fun decodeFromString(text: String): PersistentMap<String, String> {
+            return Json.decodeFromString<Map<String, String>>(text).toPersistentMap()
         }
     }
 
-    private val data: AtomicReference<PersistentMap<String, String>> = AtomicReference(readFromFile(storagePath))
+    private val storage = AtomicCachedStorage(
+        storagePath = storagePath,
+        strategy = StrategyImpl,
+    )
 
     override fun getStrings(keys: List<String>): List<String?> {
-        val currentData = data.get()
+        val currentData = storage.getValue()
         return keys.map { currentData[it] }
     }
 
     override fun getString(key: String): String? {
-        return data.get()[key]
+        return storage.getValue()[key]
     }
 
     override fun setStrings(keys: List<String>, values: List<String>) {
         require(keys.size == values.size)
         val pairs = keys.zip(values)
 
-        data.updateAndGet {
+        storage.updateValue {
             it.putAll(pairs)
         }
     }
 
     override fun setString(key: String, value: String) {
-        data.updateAndGet {
+        storage.updateValue {
             it.put(key, value)
         }
     }
 
     override fun updateStrings(keys: List<String>, mapper: (old: List<String?>) -> List<String>) {
-        data.updateAndGet { currentData ->
+        storage.updateValue { currentData ->
             keys
                 .map { currentData[it] }
                 .let(mapper)
@@ -131,13 +119,13 @@ class JsonGuildState(private val storagePath: Path) : GuildState {
     }
 
     override fun updateString(key: String, mapper: (old: String?) -> String) {
-        data.updateAndGet {
+        storage.updateValue {
             it.put(key, mapper(it[key]))
         }
     }
 
     fun schedulePersistenceOn(service: ConfigPersistService) {
-        service.schedulePersistence({ data.get() }, { writeToFile(storagePath, it) })
+        storage.schedulePersistenceOn(service)
     }
 }
 
