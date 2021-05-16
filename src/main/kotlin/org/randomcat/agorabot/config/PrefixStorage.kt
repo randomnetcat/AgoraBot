@@ -5,56 +5,43 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
-import org.randomcat.agorabot.util.withTempFile
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
-import java.nio.file.StandardOpenOption
-import java.util.concurrent.atomic.AtomicReference
 import java.nio.file.NoSuchFileException as NioNoSuchFileException
 
 private val PREFIX_FILE_CHARSET = Charsets.UTF_8
 
 class JsonPrefixMap(
     private val default: String,
-    private val storagePath: Path,
+    storagePath: Path,
 ) : MutableGuildPrefixMap {
-    companion object {
-        fun readFromFile(path: Path): Map<String, List<String>> {
-            if (Files.notExists(path)) return emptyMap()
-
-            val content = Files.readString(path, PREFIX_FILE_CHARSET)
-            return Json.decodeFromString<Map<String, List<String>>>(content)
+    private object StrategyImpl : AtomicCachedStorage.Strategy<PersistentMap<String, PersistentList<String>>> {
+        override fun defaultValue(): PersistentMap<String, PersistentList<String>> {
+            return persistentMapOf()
         }
 
-        fun writeToFile(path: Path, data: Map<String, List<String>>) {
-            withTempFile { tempFile ->
-                val content = Json.encodeToString<Map<String, List<String>>>(data)
+        override fun encodeToString(value: PersistentMap<String, PersistentList<String>>): String {
+            return Json.encodeToString<Map<String, List<String>>>(value)
+        }
 
-                Files.writeString(
-                    tempFile,
-                    content,
-                    PREFIX_FILE_CHARSET,
-                    StandardOpenOption.TRUNCATE_EXISTING,
-                    StandardOpenOption.CREATE,
-                )
-
-                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING)
-            }
+        override fun decodeFromString(text: String): PersistentMap<String, PersistentList<String>> {
+            return Json
+                .decodeFromString<Map<String, List<String>>>(text)
+                .mapValues { (_, v) -> v.toPersistentList() }
+                .toPersistentMap()
         }
     }
 
-    private val map: AtomicReference<PersistentMap<String, PersistentList<String>>> = AtomicReference(
-        readFromFile(storagePath).mapValues { (_, v) -> v.toPersistentList() }.toPersistentMap()
-    )
+
+    private val storage = AtomicCachedStorage(storagePath, StrategyImpl)
 
     fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
-        persistenceService.schedulePersistence({ map.get() }, { writeToFile(storagePath, it) })
+        storage.schedulePersistenceOn(persistenceService)
     }
 
     override fun addPrefixForGuild(guildId: String, prefix: String) {
-        map.updateAndGet { oldMap ->
+        storage.updateValue { oldMap ->
             val old = oldMap.getOrDefault(guildId, persistentListOf(default))
             // Put the longest prefixes first, so if we have overlapping prefixes--say "please"
             // and "please please", both "please cfj" and "please please cfj" work as expected
@@ -63,14 +50,14 @@ class JsonPrefixMap(
     }
 
     override fun removePrefixForGuild(guildId: String, prefix: String) {
-        map.updateAndGet { oldMap ->
+        storage.updateValue { oldMap ->
             val old = oldMap.getOrDefault(guildId, persistentListOf(default))
             oldMap.put(guildId, old.removeAll { it == prefix })
         }
     }
 
     override fun prefixesForGuild(guildId: String): List<String> {
-        return map.get().getOrDefault(guildId, listOf(default))
+        return storage.getValue().getOrDefault(guildId, listOf(default))
     }
 }
 
