@@ -75,7 +75,7 @@ class PermissionsCommand(
                 ) { (userId, stringPath) ->
                     handleGuildSetState(
                         id = PermissionMap.idForUser(userId),
-                        stringPath = stringPath.toLowerCase(),
+                        stringPath = stringPath.lowercase(),
                         newState = state,
                     )
                 }
@@ -99,7 +99,7 @@ class PermissionsCommand(
 
                     handleGuildSetState(
                         id = PermissionMap.idForRole(role),
-                        stringPath = stringPath.toLowerCase(),
+                        stringPath = stringPath.lowercase(),
                         newState = state,
                     )
                 }
@@ -120,7 +120,7 @@ class PermissionsCommand(
             ) { (userId, stringPath) ->
                 handleBotSetState(
                     id = PermissionMap.idForUser(userId = userId),
-                    stringPath = stringPath.toLowerCase(),
+                    stringPath = stringPath.lowercase(),
                     newState = state,
                 )
             }

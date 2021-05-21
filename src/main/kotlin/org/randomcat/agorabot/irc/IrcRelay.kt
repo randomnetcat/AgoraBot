@@ -15,9 +15,9 @@ import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
-import kotlin.time.minutes
 
 private val logger = LoggerFactory.getLogger("AgoraBotIRC")
 
@@ -175,7 +175,7 @@ private fun connectIrcAndDiscordChannels(
 
     // The IRC client takes some time to connect, so we won't disarm the IRC side until one minute has passed since it
     // *should* have connected. 1 minute should (hopefully) be plenty of time.
-    val ircGraceEnd = startTime + 1.minutes
+    val ircGraceEnd = startTime + Duration.minutes(1)
 
     jda.addEventListener(object {
         private val disarmState = DisarmState()

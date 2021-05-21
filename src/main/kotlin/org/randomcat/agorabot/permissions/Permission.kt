@@ -85,7 +85,8 @@ interface BotPermission {
     fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean
 }
 
-inline class PermissionMapId(val raw: String)
+@JvmInline
+value class PermissionMapId(val raw: String)
 
 interface PermissionMap {
     companion object {

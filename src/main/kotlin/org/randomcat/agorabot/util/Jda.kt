@@ -28,7 +28,7 @@ fun String.asSnowflakeOrNull(): Long? {
 }
 
 fun Guild.resolveRoleString(roleString: String): Role? {
-    val cleanRoleString = roleString.removePrefix("@").toLowerCase()
+    val cleanRoleString = roleString.removePrefix("@").lowercase()
 
     if (cleanRoleString == "everyone") return publicRole
 
