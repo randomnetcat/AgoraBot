@@ -14,7 +14,7 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
-import org.randomcat.agorabot.irc.BaseCommandIrcOutputSink
+import org.randomcat.agorabot.irc.BaseCommandIrcOutputStrategy
 import org.randomcat.agorabot.irc.GuildStateIrcUserListMessageMap
 import org.randomcat.agorabot.irc.initializeIrcRelay
 import org.randomcat.agorabot.irc.updateIrcPersistentWho
@@ -57,24 +57,24 @@ private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): Comm
     }
 }
 
-private fun ircAndDiscordSink(mapping: CommandOutputMapping): BaseCommandOutputSink {
-    return BaseCommandMultiOutputSink(
+private fun ircAndDiscordOutputStrategy(mapping: CommandOutputMapping): BaseCommandOutputStrategy {
+    return BaseCommandMultiOutputStrategy(
         listOf(
-            BaseCommandDiscordOutputSink(mapping),
-            BaseCommandIrcOutputSink(mapping),
+            BaseCommandDiscordOutputStrategy(mapping),
+            BaseCommandIrcOutputStrategy(mapping),
         ),
     )
 }
 
 private fun makeBaseCommandStrategy(
-    outputSink: BaseCommandOutputSink,
+    outputStrategy: BaseCommandOutputStrategy,
     guildStateStrategy: BaseCommandGuildStateStrategy,
     permissionsStrategy: BaseCommandPermissionsStrategy,
 ): BaseCommandStrategy {
     return object :
         BaseCommandStrategy,
         BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
-        BaseCommandOutputSink by outputSink,
+        BaseCommandOutputStrategy by outputStrategy,
         BaseCommandPermissionsStrategy by permissionsStrategy,
         BaseCommandGuildStateStrategy by guildStateStrategy {}
 }
@@ -157,7 +157,7 @@ private fun runBot(config: BotRunConfig) {
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
         val commandStrategy = makeBaseCommandStrategy(
-            ircAndDiscordSink(ircAndDiscordMapping(jda, ircSetupResult)),
+            ircAndDiscordOutputStrategy(ircAndDiscordMapping(jda, ircSetupResult)),
             BaseCommandGuildStateStrategy.fromMap(guildStateMap),
             makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,

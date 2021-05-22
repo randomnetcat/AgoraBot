@@ -2,19 +2,19 @@ package org.randomcat.agorabot.irc
 
 import net.dv8tion.jda.api.entities.Message
 import org.randomcat.agorabot.CommandOutputMapping
-import org.randomcat.agorabot.commands.impl.BaseCommandOutputSink
+import org.randomcat.agorabot.commands.impl.BaseCommandOutputStrategy
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 
 
 /**
- * An output sink that sends command output to IRC.
+ * An output strategy that sends command output to IRC.
  *
  * @param channelMap a map of Discord channel ids to irc channels.
  */
-data class BaseCommandIrcOutputSink(
+data class BaseCommandIrcOutputStrategy(
     private val outputMapping: CommandOutputMapping,
-) : BaseCommandOutputSink {
+) : BaseCommandOutputStrategy {
     private fun channelForSource(source: CommandEventSource): IrcChannel? {
         return outputMapping.ircResponseChannelFor(source)
     }

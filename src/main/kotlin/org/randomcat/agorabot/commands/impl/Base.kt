@@ -32,7 +32,7 @@ interface BaseCommandArgumentStrategy {
     )
 }
 
-interface BaseCommandOutputSink {
+interface BaseCommandOutputStrategy {
     fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String)
     fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message)
 
@@ -73,7 +73,7 @@ interface BaseCommandGuildStateStrategy {
 
 interface BaseCommandStrategy :
     BaseCommandArgumentStrategy,
-    BaseCommandOutputSink,
+    BaseCommandOutputStrategy,
     BaseCommandPermissionsStrategy,
     BaseCommandGuildStateStrategy
 
@@ -372,7 +372,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 typealias BaseCommandImplReceiver =
         TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>
 
-data class BaseCommandDiscordOutputSink(private val mapping: CommandOutputMapping) : BaseCommandOutputSink {
+data class BaseCommandDiscordOutputStrategy(private val mapping: CommandOutputMapping) : BaseCommandOutputStrategy {
     private fun channelForSource(source: CommandEventSource): MessageChannel? {
         return mapping.discordResponseChannnelFor(source)
     }
@@ -428,10 +428,10 @@ object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
     }
 }
 
-data class BaseCommandMultiOutputSink(
-    private val outputs: ImmutableList<BaseCommandOutputSink>,
-) : BaseCommandOutputSink {
-    constructor(outputs: List<BaseCommandOutputSink>) : this(outputs.toImmutableList())
+data class BaseCommandMultiOutputStrategy(
+    private val outputs: ImmutableList<BaseCommandOutputStrategy>,
+) : BaseCommandOutputStrategy {
+    constructor(outputs: List<BaseCommandOutputStrategy>) : this(outputs.toImmutableList())
 
     override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
         outputs.forEach {
