@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.impl.*
@@ -15,6 +16,7 @@ import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.GuildStateIrcUserListMessageMap
+import org.randomcat.agorabot.irc.IrcChannel
 import org.randomcat.agorabot.irc.initializeIrcRelay
 import org.randomcat.agorabot.irc.updateIrcPersistentWho
 import org.randomcat.agorabot.listener.*
@@ -38,11 +40,11 @@ private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): Comm
 
             val relayEntries = config.relayConfig.entries
 
-            val discordToIrcMap = relayEntries.associate {
+            val discordToIrcMap: Map<String, () -> IrcChannel?> = relayEntries.associate {
                 it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
             }
 
-            val ircToDiscordMap = relayEntries.associate {
+            val ircToDiscordMap: Map<String, () -> MessageChannel?> = relayEntries.associate {
                 it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
             }
 
