@@ -25,7 +25,7 @@ private fun setupDigestSendStrategy(paths: BotDataPaths, format: DigestFormat): 
             readGlobalMailDotJsonConfig(paths.basePath.resolve("mail.json"), format)
         }
 
-        is BotDataPaths.Version1 -> {
+        is BotDataPaths.WithStandardPaths -> {
             readDigestMailConfig(paths.configPath.resolve("digest").resolve("mail.json"), format)
         }
     }

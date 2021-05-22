@@ -9,7 +9,7 @@ import java.nio.file.Path
 private fun BotDataPaths.ircConfigPath(): Path {
     return when (this) {
         is BotDataPaths.Version0 -> basePath.resolve("irc").resolve("config.json")
-        is BotDataPaths.Version1 -> configPath.resolve("irc.json")
+        is BotDataPaths.WithStandardPaths -> configPath.resolve("irc.json")
     }
 }
 

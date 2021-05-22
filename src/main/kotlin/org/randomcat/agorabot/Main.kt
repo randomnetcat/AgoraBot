@@ -289,14 +289,18 @@ private class AgoraBotCommand : CliktCommand() {
         return Path.of(value).toAbsolutePath()
     }
 
+    private fun readBotDataStandardPaths(): BotDataStandardPaths {
+        return BotDataStandardPaths(
+            configPath = parseRequiredDataPath(name = "config", value = configPath),
+            storagePath = parseRequiredDataPath(name = "storage", value = storagePath),
+            tempPath = parseRequiredDataPath(name = "temp", value = tempPath),
+        )
+    }
+
     private fun readBotDataPaths(): BotDataPaths {
         return when (dataVersion) {
             0 -> BotDataPaths.Version0(basePath = Path.of(".").toAbsolutePath())
-            1 -> BotDataPaths.Version1(
-                configPath = parseRequiredDataPath(name = "config", value = configPath),
-                storagePath = parseRequiredDataPath(name = "storage", value = storagePath),
-                tempPath = parseRequiredDataPath(name = "temp", value = tempPath),
-            )
+            1 -> BotDataPaths.Version1(readBotDataStandardPaths())
             else -> throw PrintMessage("Invalid data version $dataVersion", error = true)
         }
     }
