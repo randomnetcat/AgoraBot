@@ -45,14 +45,12 @@ fun decodeIrcConfig(configText: String): IrcConfig? {
 
         IrcConfig(
             setupConfig = IrcSetupConfig(
-                server = IrcServerConfig(
-                    server = dto.server,
+                serverConfig = IrcServerConfig(
+                    host = dto.server,
                     port = dto.port.toInt(),
                     serverIsSecure = dto.serverIsSecure,
+                    userNickname = dto.nickname,
                 ),
-                user = IrcUserConfig(
-                    nickname = dto.nickname,
-                )
             ),
             relayConfig = IrcRelayConfig(dto.connections.map { it.toRelayEntry() }),
         )
