@@ -47,8 +47,16 @@ private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): Comm
             }
 
             CommandOutputMapping(
-                discordToIrcMap = discordToIrcMap,
-                ircToDiscordMap = ircToDiscordMap,
+                sinksForDiscordFun = { source ->
+                    listOfNotNull(
+                        discordToIrcMap[source.event.channel.id]?.invoke()?.let { CommandOutputSink.Irc(it) },
+                    )
+                },
+                sinksForIrcFun = { source ->
+                    listOfNotNull(
+                        ircToDiscordMap[source.event.channel.name]?.invoke()?.let { CommandOutputSink.Discord(it) },
+                    )
+                },
             )
         }
 
