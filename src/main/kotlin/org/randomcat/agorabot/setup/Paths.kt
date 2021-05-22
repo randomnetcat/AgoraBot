@@ -25,6 +25,7 @@ sealed class BotDataPaths {
     }
 
     data class Version1(override val paths: BotDataStandardPaths) : WithStandardPaths()
+    data class Version2(override val paths: BotDataStandardPaths) : WithStandardPaths()
 }
 
 fun BotDataPaths.tempDir(): Path {
