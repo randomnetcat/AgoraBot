@@ -1,15 +1,12 @@
 package org.randomcat.agorabot.commands.impl
 
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import org.randomcat.agorabot.CommandOutputMapping
 import org.randomcat.agorabot.config.GuildState
 import org.randomcat.agorabot.config.GuildStateMap
 import org.randomcat.agorabot.listener.Command
@@ -20,7 +17,6 @@ import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
 import org.randomcat.agorabot.permissions.UserPermissionContext
 import org.randomcat.agorabot.util.DiscordPermission
-import org.randomcat.agorabot.util.disallowMentions
 import org.randomcat.agorabot.util.resolveRoleString
 
 interface BaseCommandArgumentStrategy {
@@ -372,51 +368,6 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 typealias BaseCommandImplReceiver =
         TopLevelArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>
 
-data class BaseCommandDiscordOutputStrategy(private val mapping: CommandOutputMapping) : BaseCommandOutputStrategy {
-    private fun channelForSource(source: CommandEventSource): MessageChannel? {
-        return mapping.discordResponseChannnelFor(source)
-    }
-
-    override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
-        channelForSource(source)?.run {
-            sendMessage(message).disallowMentions().queue()
-        }
-    }
-
-    override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
-        channelForSource(source)?.run {
-            sendMessage(message).disallowMentions().queue()
-        }
-    }
-
-    override fun sendResponseAsFile(
-        source: CommandEventSource,
-        invocation: CommandInvocation,
-        fileName: String,
-        fileContent: String,
-    ) {
-        val bytes = fileContent.toByteArray(Charsets.UTF_8)
-
-        channelForSource(source)?.run {
-            sendFile(bytes, fileName).disallowMentions().queue()
-        }
-    }
-
-    override fun sendResponseTextAndFile(
-        source: CommandEventSource,
-        invocation: CommandInvocation,
-        textResponse: String,
-        fileName: String,
-        fileContent: String,
-    ) {
-        val bytes = fileContent.toByteArray(Charsets.UTF_8)
-
-        channelForSource(source)?.run {
-            sendMessage(textResponse).addFile(bytes, fileName).queue()
-        }
-    }
-}
-
 object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
     override fun sendArgumentErrorResponse(
         source: CommandEventSource,
@@ -425,65 +376,5 @@ object BaseCommandDefaultArgumentStrategy : BaseCommandArgumentStrategy {
         usage: String,
     ) {
         source.tryRespondWithText("$errorMessage. Usage: ${usage.ifBlank { NO_ARGUMENTS }}")
-    }
-}
-
-data class BaseCommandMultiOutputStrategy(
-    private val outputs: ImmutableList<BaseCommandOutputStrategy>,
-) : BaseCommandOutputStrategy {
-    constructor(outputs: List<BaseCommandOutputStrategy>) : this(outputs.toImmutableList())
-
-    override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
-        outputs.forEach {
-            it.sendResponse(
-                source = source,
-                invocation = invocation,
-                message = message,
-            )
-        }
-    }
-
-    override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
-        outputs.forEach {
-            it.sendResponseMessage(
-                source = source,
-                invocation = invocation,
-                message = message,
-            )
-        }
-    }
-
-    override fun sendResponseAsFile(
-        source: CommandEventSource,
-        invocation: CommandInvocation,
-        fileName: String,
-        fileContent: String,
-    ) {
-        outputs.forEach {
-            it.sendResponseAsFile(
-                source = source,
-                invocation = invocation,
-                fileName = fileName,
-                fileContent = fileContent,
-            )
-        }
-    }
-
-    override fun sendResponseTextAndFile(
-        source: CommandEventSource,
-        invocation: CommandInvocation,
-        textResponse: String,
-        fileName: String,
-        fileContent: String,
-    ) {
-        outputs.forEach {
-            it.sendResponseTextAndFile(
-                source = source,
-                invocation = invocation,
-                textResponse = textResponse,
-                fileName = fileName,
-                fileContent = fileContent,
-            )
-        }
     }
 }

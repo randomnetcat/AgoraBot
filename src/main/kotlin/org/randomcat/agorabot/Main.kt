@@ -14,7 +14,6 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
-import org.randomcat.agorabot.irc.BaseCommandIrcOutputStrategy
 import org.randomcat.agorabot.irc.GuildStateIrcUserListMessageMap
 import org.randomcat.agorabot.irc.initializeIrcRelay
 import org.randomcat.agorabot.irc.updateIrcPersistentWho
@@ -55,15 +54,6 @@ private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): Comm
 
         else -> CommandOutputMapping.empty()
     }
-}
-
-private fun ircAndDiscordOutputStrategy(mapping: CommandOutputMapping): BaseCommandOutputStrategy {
-    return BaseCommandMultiOutputStrategy(
-        listOf(
-            BaseCommandDiscordOutputStrategy(mapping),
-            BaseCommandIrcOutputStrategy(mapping),
-        ),
-    )
 }
 
 private fun makeBaseCommandStrategy(
@@ -157,7 +147,7 @@ private fun runBot(config: BotRunConfig) {
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
         val commandStrategy = makeBaseCommandStrategy(
-            ircAndDiscordOutputStrategy(ircAndDiscordMapping(jda, ircSetupResult)),
+            BaseCommandOutputStrategyByOutputMapping(ircAndDiscordMapping(jda, ircSetupResult)),
             BaseCommandGuildStateStrategy.fromMap(guildStateMap),
             makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
