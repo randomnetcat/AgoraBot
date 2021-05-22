@@ -15,18 +15,14 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
-import org.randomcat.agorabot.irc.GuildStateIrcUserListMessageMap
 import org.randomcat.agorabot.irc.IrcChannel
 import org.randomcat.agorabot.irc.initializeIrcRelay
-import org.randomcat.agorabot.irc.updateIrcPersistentWho
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.exitProcess
 
@@ -151,8 +147,6 @@ private fun runBot(config: BotRunConfig) {
 
     jda.awaitReady()
 
-    val executor = Executors.newSingleThreadScheduledExecutor()
-
     try {
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
@@ -165,8 +159,6 @@ private fun runBot(config: BotRunConfig) {
                 guildMap = guildPermissionMap
             ),
         )
-
-        val persistentWhoMessageMap = GuildStateIrcUserListMessageMap { guildStateMap.stateForGuild(it) }
 
         val commandRegistry = MutableMapCommandRegistry(emptyMap())
 
@@ -183,9 +175,6 @@ private fun runBot(config: BotRunConfig) {
             ),
             "duck" to duckFeature(),
             "help" to helpCommandsFeature(suppressedCommands = listOf("permissions")),
-            "irc_commands" to (ircSetupResult as? IrcSetupResult.Connected)?.let {
-                ircCommandsFeature(it.config, persistentWhoMessageMap)
-            },
             "permissions_commands" to permissionsCommandsFeature(
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
@@ -234,15 +223,6 @@ private fun runBot(config: BotRunConfig) {
                 ircRelayConfig = ircSetupResult.config.relayConfig,
                 jda = jda,
                 commandRegistry = commandRegistry,
-            )
-
-            executor.scheduleAtFixedRate(
-                {
-                    updateIrcPersistentWho(jda, ircSetupResult.client, persistentWhoMessageMap)
-                },
-                0,
-                1,
-                TimeUnit.MINUTES,
             )
         }
 
