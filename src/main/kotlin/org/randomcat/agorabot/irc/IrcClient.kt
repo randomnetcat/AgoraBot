@@ -5,6 +5,7 @@ import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.User
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
+import org.kitteh.irc.client.library.feature.sts.StsStorageManager
 import java.nio.file.Path
 
 
@@ -13,12 +14,7 @@ import java.nio.file.Path
  */
 typealias IrcClient = Client
 
-private typealias IrcClientBuilder = Client.Builder
-
-private fun IrcClientBuilder.ircDir(ircDir: Path): IrcClientBuilder =
-    this.management().stsStorageManager(StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))).then()
-
-fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
+private fun doCreateIrcClient(ircSetupConfig: IrcSetupConfig, stsStorageManager: StsStorageManager): IrcClient {
     return Client
         .builder()
         .server()
@@ -29,8 +25,14 @@ fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
         )
         .then()
         .nick(ircSetupConfig.serverConfig.userNickname)
-        .ircDir(ircDir)
+        .management()
+        .stsStorageManager(stsStorageManager)
+        .then()
         .buildAndConnect()
+}
+
+fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
+    return doCreateIrcClient(ircSetupConfig, StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage")))
 }
 
 typealias IrcChannel = Channel
