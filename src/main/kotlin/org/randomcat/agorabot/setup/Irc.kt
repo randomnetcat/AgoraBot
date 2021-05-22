@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.setup
 
-import org.randomcat.agorabot.config.readIrcConfig
+import org.randomcat.agorabot.config.parsing.readIrcConfig
 import org.randomcat.agorabot.irc.IrcClient
 import org.randomcat.agorabot.irc.IrcConfig
 import org.randomcat.agorabot.irc.createIrcClient
