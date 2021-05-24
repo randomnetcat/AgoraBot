@@ -37,7 +37,6 @@ private fun IrcConnectionConfigDto.toRelayEntry(): IrcRelayEntry {
         ircServerName = DEFAULT_IRC_SERVER_NAME,
         ircChannelName = ircChannelName,
         discordChannelId = discordChannelId,
-        relayJoinLeaveMessages = relayJoinLeave,
         ircCommandPrefix = ircCommandPrefix,
     )
 }
@@ -45,6 +44,12 @@ private fun IrcConnectionConfigDto.toRelayEntry(): IrcRelayEntry {
 fun decodeIrcConfig(configText: String): IrcConfig? {
     return try {
         val dto = Json.decodeFromString<IrcConfigDto>(configText)
+
+        for (connection in dto.connections) {
+            if (connection.relayJoinLeave) {
+                logger.warn("A relay configuration requested relaying of join/leave messages, but that is no longer supported.")
+            }
+        }
 
         IrcConfig(
             setupConfig = IrcSetupConfig(

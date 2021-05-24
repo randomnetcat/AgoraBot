@@ -6,10 +6,10 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
-import org.kitteh.irc.client.library.event.channel.*
+import org.kitteh.irc.client.library.event.channel.ChannelCtcpEvent
+import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
-import org.kitteh.irc.client.library.event.user.UserQuitEvent
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
@@ -136,38 +136,6 @@ private fun connectIrcAndDiscordChannels(
             val message = event.message
             if (!message.startsWith("ACTION ")) return // ACTION means a /me command
             relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " " + message.removePrefix("ACTION "))
-        }
-
-        private fun handleAnyLeaveEvent(event: ActorEvent<IrcUser>) {
-            relayToDiscord("${formatIrcNameForDiscord(event.actor.nick)} left IRC.")
-        }
-
-        override fun onJoin(event: ChannelJoinEvent) {
-            if (isDisarmed()) return
-            if (!event.isInRelevantChannel()) return
-            if (!connection.relayJoinLeaveMessages) return
-            relayToDiscord("${formatIrcNameForDiscord(event.actor.nick)} joined IRC.")
-        }
-
-        override fun onPart(event: ChannelPartEvent) {
-            if (isDisarmed()) return
-            if (!event.isInRelevantChannel()) return
-            if (!connection.relayJoinLeaveMessages) return
-            handleAnyLeaveEvent(event)
-        }
-
-        override fun onUnexpectedPart(event: UnexpectedChannelLeaveViaPartEvent) {
-            if (isDisarmed()) return
-            if (!event.isInRelevantChannel()) return
-            if (!connection.relayJoinLeaveMessages) return
-            handleAnyLeaveEvent(event)
-        }
-
-        override fun onQuit(event: UserQuitEvent) {
-            if (isDisarmed()) return
-            if (!event.user.channels.contains(ircChannelName)) return
-            if (!connection.relayJoinLeaveMessages) return
-            handleAnyLeaveEvent(event)
         }
     }))
 

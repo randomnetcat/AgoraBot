@@ -31,7 +31,6 @@ data class IrcRelayEntry(
     val ircServerName: IrcServerName,
     val ircChannelName: String,
     val discordChannelId: String,
-    val relayJoinLeaveMessages: Boolean,
     val ircCommandPrefix: String?,
 )
 
