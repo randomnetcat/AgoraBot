@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.setup
 
 import org.randomcat.agorabot.config.parsing.readIrcConfig
-import org.randomcat.agorabot.irc.IrcClient
+import org.randomcat.agorabot.irc.IrcClientMap
 import org.randomcat.agorabot.irc.IrcConfig
-import org.randomcat.agorabot.irc.createIrcClient
+import org.randomcat.agorabot.irc.createIrcClients
 import java.nio.file.Path
 
 private fun BotDataPaths.ircConfigPath(): Path {
@@ -21,7 +21,7 @@ sealed class IrcSetupResult {
     object ConfigUnavailable : IrcSetupResult()
     object NoRelayRequested : IrcSetupResult()
     class ErrorWhileConnecting(val error: Exception) : IrcSetupResult()
-    class Connected(val client: IrcClient, val config: IrcConfig) : IrcSetupResult()
+    class Connected(val clients: IrcClientMap, val config: IrcConfig) : IrcSetupResult()
 }
 
 fun setupIrcClient(paths: BotDataPaths): IrcSetupResult {
@@ -38,13 +38,12 @@ fun setupIrcClient(paths: BotDataPaths): IrcSetupResult {
 
         else -> {
             try {
-                val client = createIrcClient(
+                val clients = createIrcClients(
                     ircSetupConfig = ircConfig.setupConfig,
                     ircDir = paths.ircStorageDir(),
                 )
 
-
-                IrcSetupResult.Connected(client, ircConfig)
+                IrcSetupResult.Connected(clients, ircConfig)
             } catch (e: Exception) {
                 IrcSetupResult.ErrorWhileConnecting(e)
             }

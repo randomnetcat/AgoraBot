@@ -1,5 +1,7 @@
 package org.randomcat.agorabot.irc
 
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.toImmutableMap
 import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.User
@@ -14,25 +16,44 @@ import java.nio.file.Path
  */
 typealias IrcClient = Client
 
-private fun doCreateIrcClient(ircSetupConfig: IrcSetupConfig, stsStorageManager: StsStorageManager): IrcClient {
+private fun doCreateIrcClient(serverConfig: IrcServerConfig, stsStorageManager: StsStorageManager): IrcClient {
     return Client
         .builder()
         .server()
-        .host(ircSetupConfig.serverConfig.host)
+        .host(serverConfig.host)
         .port(
-            ircSetupConfig.serverConfig.port,
-            if (ircSetupConfig.serverConfig.serverIsSecure) Client.Builder.Server.SecurityType.SECURE else Client.Builder.Server.SecurityType.INSECURE
+            serverConfig.port,
+            if (serverConfig.serverIsSecure) Client.Builder.Server.SecurityType.SECURE else Client.Builder.Server.SecurityType.INSECURE
         )
         .then()
-        .nick(ircSetupConfig.serverConfig.userNickname)
+        .nick(serverConfig.userNickname)
         .management()
         .stsStorageManager(stsStorageManager)
         .then()
         .buildAndConnect()
 }
 
-fun createIrcClient(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClient {
-    return doCreateIrcClient(ircSetupConfig, StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage")))
+data class IrcClientMap(private val clientsByName: ImmutableMap<String, IrcClient>) {
+    constructor(clientsByName: Map<String, IrcClient>) : this(clientsByName.toImmutableMap())
+
+    val clients: Iterable<IrcClient>
+        get() = clientsByName.values
+
+    fun getByName(name: String): IrcClient {
+        return clientsByName.getValue(name)
+    }
+}
+
+fun createIrcClients(ircSetupConfig: IrcSetupConfig, ircDir: Path): IrcClientMap {
+    val serverListConfig = ircSetupConfig.serverListConfig
+
+    val storageManager = StsPropertiesStorageManager(ircDir.resolve("kicl_sts_storage"))
+
+    return IrcClientMap(
+        serverListConfig.names.associateWith { name ->
+            doCreateIrcClient(serverListConfig.getByName(name), storageManager)
+        },
+    )
 }
 
 typealias IrcChannel = Channel

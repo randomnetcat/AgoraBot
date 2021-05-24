@@ -213,7 +213,7 @@ private fun connectIrcAndDiscordChannels(
 }
 
 fun initializeIrcRelay(
-    ircClient: IrcClient,
+    ircClientMap: IrcClientMap,
     ircRelayConfig: IrcRelayConfig,
     jda: JDA,
     commandRegistry: CommandRegistry,
@@ -227,7 +227,7 @@ fun initializeIrcRelay(
         )
 
         connectIrcAndDiscordChannels(
-            ircClient = ircClient,
+            ircClient = ircClientMap.getByName(ircConnection.ircServerName),
             jda = jda,
             connection = ircConnection,
             commandRegistry = commandRegistry,

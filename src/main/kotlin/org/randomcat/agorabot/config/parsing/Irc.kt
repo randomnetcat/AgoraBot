@@ -30,8 +30,11 @@ private data class IrcConfigDto(
     @SerialName("connections") val connections: List<IrcConnectionConfigDto>,
 )
 
+private const val DEFAULT_IRC_SERVER_NAME = "lone-server"
+
 private fun IrcConnectionConfigDto.toRelayEntry(): IrcRelayEntry {
     return IrcRelayEntry(
+        ircServerName = DEFAULT_IRC_SERVER_NAME,
         ircChannelName = ircChannelName,
         discordChannelId = discordChannelId,
         relayJoinLeaveMessages = relayJoinLeave,
@@ -45,11 +48,15 @@ fun decodeIrcConfig(configText: String): IrcConfig? {
 
         IrcConfig(
             setupConfig = IrcSetupConfig(
-                serverConfig = IrcServerConfig(
-                    host = dto.server,
-                    port = dto.port.toInt(),
-                    serverIsSecure = dto.serverIsSecure,
-                    userNickname = dto.nickname,
+                serverListConfig = IrcServerListConfig(
+                    mapOf(
+                        DEFAULT_IRC_SERVER_NAME to IrcServerConfig(
+                            host = dto.server,
+                            port = dto.port.toInt(),
+                            serverIsSecure = dto.serverIsSecure,
+                            userNickname = dto.nickname,
+                        ),
+                    ),
                 ),
             ),
             relayConfig = IrcRelayConfig(dto.connections.map { it.toRelayEntry() }),

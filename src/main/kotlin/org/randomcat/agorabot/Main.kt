@@ -16,6 +16,7 @@ import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.IrcChannel
+import org.randomcat.agorabot.irc.IrcClient
 import org.randomcat.agorabot.irc.initializeIrcRelay
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
@@ -32,16 +33,25 @@ private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): Comm
     return when (ircSetupResult) {
         is IrcSetupResult.Connected -> {
             val config = ircSetupResult.config
-            val client = ircSetupResult.client
+            val clients = ircSetupResult.clients
 
             val relayEntries = config.relayConfig.entries
 
             val discordToIrcMap: Map<String, () -> IrcChannel?> = relayEntries.associate {
-                it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
+                val client = clients.getByName(it.ircServerName)
+
+                it.discordChannelId to {
+                    client.getChannel(it.ircChannelName).orElse(null)
+                }
             }
 
-            val ircToDiscordMap: Map<String, () -> MessageChannel?> = relayEntries.associate {
-                it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
+            data class IrcChannelLookupKey(val client: IrcClient, val channelName: String)
+
+            val ircToDiscordMap: Map<IrcChannelLookupKey, () -> MessageChannel?> = relayEntries.associate {
+                IrcChannelLookupKey(
+                    client = clients.getByName(it.ircServerName),
+                    channelName = it.ircChannelName,
+                ) to { jda.getTextChannelById(it.discordChannelId) }
             }
 
             CommandOutputMapping(
@@ -51,8 +61,10 @@ private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): Comm
                     )
                 },
                 sinksForIrcFun = { source ->
+                    val key = IrcChannelLookupKey(client = source.event.client, channelName = source.event.channel.name)
+
                     listOfNotNull(
-                        ircToDiscordMap[source.event.channel.name]?.invoke()?.let { CommandOutputSink.Discord(it) },
+                        ircToDiscordMap[key]?.invoke()?.let { CommandOutputSink.Discord(it) },
                     )
                 },
             )
@@ -218,17 +230,20 @@ private fun runBot(config: BotRunConfig) {
         )
 
         if (ircSetupResult is IrcSetupResult.Connected) {
-            val client = ircSetupResult.client
+            val clientMap = ircSetupResult.clients
 
             try {
                 initializeIrcRelay(
-                    ircClient = client,
+                    ircClientMap = clientMap,
                     ircRelayConfig = ircSetupResult.config.relayConfig,
                     jda = jda,
                     commandRegistry = commandRegistry,
                 )
             } catch (e: Exception) {
-                client.shutdown("Exception during connection setup")
+                for (client in clientMap.clients) {
+                    client.shutdown("Exception during connection setup")
+                }
+
                 logger.error("Exception during IRC relay setup", e)
             }
         }
