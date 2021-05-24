@@ -30,7 +30,7 @@ private data class IrcConfigDto(
     @SerialName("connections") val connections: List<IrcConnectionConfigDto>,
 )
 
-private const val DEFAULT_IRC_SERVER_NAME = "lone-server"
+private val DEFAULT_IRC_SERVER_NAME = IrcServerName("lone-server")
 
 private fun IrcConnectionConfigDto.toRelayEntry(): IrcRelayEntry {
     return IrcRelayEntry(

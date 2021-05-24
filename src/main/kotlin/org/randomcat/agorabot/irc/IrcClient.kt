@@ -33,13 +33,16 @@ private fun doCreateIrcClient(serverConfig: IrcServerConfig, stsStorageManager: 
         .buildAndConnect()
 }
 
-data class IrcClientMap(private val clientsByName: ImmutableMap<String, IrcClient>) {
-    constructor(clientsByName: Map<String, IrcClient>) : this(clientsByName.toImmutableMap())
+@JvmInline
+value class IrcServerName(val raw: String)
+
+data class IrcClientMap(private val clientsByName: ImmutableMap<IrcServerName, IrcClient>) {
+    constructor(clientsByName: Map<IrcServerName, IrcClient>) : this(clientsByName.toImmutableMap())
 
     val clients: Iterable<IrcClient>
         get() = clientsByName.values
 
-    fun getByName(name: String): IrcClient {
+    fun getByName(name: IrcServerName): IrcClient {
         return clientsByName.getValue(name)
     }
 }

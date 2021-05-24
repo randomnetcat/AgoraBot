@@ -12,13 +12,13 @@ data class IrcServerConfig(
     val userNickname: String,
 )
 
-data class IrcServerListConfig(private val serversByName: ImmutableMap<String, IrcServerConfig>) {
-    constructor(serversByName: Map<String, IrcServerConfig>) : this(serversByName.toImmutableMap())
+data class IrcServerListConfig(private val serversByName: ImmutableMap<IrcServerName, IrcServerConfig>) {
+    constructor(serversByName: Map<IrcServerName, IrcServerConfig>) : this(serversByName.toImmutableMap())
 
-    val names: Set<String>
+    val names: Set<IrcServerName>
         get() = serversByName.keys
 
-    fun getByName(name: String): IrcServerConfig {
+    fun getByName(name: IrcServerName): IrcServerConfig {
         return serversByName.getValue(name)
     }
 }
@@ -28,7 +28,7 @@ data class IrcServerListConfig(private val serversByName: ImmutableMap<String, I
  * between them.
  */
 data class IrcRelayEntry(
-    val ircServerName: String,
+    val ircServerName: IrcServerName,
     val ircChannelName: String,
     val discordChannelId: String,
     val relayJoinLeaveMessages: Boolean,
