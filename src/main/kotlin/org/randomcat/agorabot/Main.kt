@@ -218,12 +218,19 @@ private fun runBot(config: BotRunConfig) {
         )
 
         if (ircSetupResult is IrcSetupResult.Connected) {
-            initializeIrcRelay(
-                ircClient = ircSetupResult.client,
-                ircRelayConfig = ircSetupResult.config.relayConfig,
-                jda = jda,
-                commandRegistry = commandRegistry,
-            )
+            val client = ircSetupResult.client
+
+            try {
+                initializeIrcRelay(
+                    ircClient = client,
+                    ircRelayConfig = ircSetupResult.config.relayConfig,
+                    jda = jda,
+                    commandRegistry = commandRegistry,
+                )
+            } catch (e: Exception) {
+                client.shutdown("Exception during connection setup")
+                logger.error("Exception during IRC relay setup", e)
+            }
         }
 
         try {

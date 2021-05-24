@@ -220,22 +220,17 @@ fun initializeIrcRelay(
 ) {
     val ircConnections = ircRelayConfig.entries
 
-    try {
-        for (ircConnection in ircConnections) {
-            logger.info(
-                "Connecting IRC channel ${ircConnection.ircChannelName} " +
-                        "to Discord channel ${ircConnection.discordChannelId}."
-            )
+    for (ircConnection in ircConnections) {
+        logger.info(
+            "Connecting IRC channel ${ircConnection.ircChannelName} " +
+                    "to Discord channel ${ircConnection.discordChannelId}."
+        )
 
-            connectIrcAndDiscordChannels(
-                ircClient = ircClient,
-                jda = jda,
-                connection = ircConnection,
-                commandRegistry = commandRegistry,
-            )
-        }
-    } catch (e: Exception) {
-        ircClient.shutdown("Exception during connection setup")
-        throw e
+        connectIrcAndDiscordChannels(
+            ircClient = ircClient,
+            jda = jda,
+            connection = ircConnection,
+            commandRegistry = commandRegistry,
+        )
     }
 }
