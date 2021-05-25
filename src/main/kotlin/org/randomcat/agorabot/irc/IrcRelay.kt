@@ -213,11 +213,15 @@ private fun connectIrcAndDiscordChannels(
     )
 }
 
+data class RelayConnectionContext(
+    val ircClientMap: IrcClientMap,
+    val jda: JDA,
+    val commandRegistry: CommandRegistry,
+)
+
 fun initializeIrcRelay(
-    ircClientMap: IrcClientMap,
     ircRelayConfig: IrcRelayConfig,
-    jda: JDA,
-    commandRegistry: CommandRegistry,
+    connectionContext: RelayConnectionContext,
 ) {
     val ircConnections = ircRelayConfig.entries
 
@@ -228,10 +232,10 @@ fun initializeIrcRelay(
         )
 
         connectIrcAndDiscordChannels(
-            ircClient = ircClientMap.getByName(ircConnection.ircServerName),
-            jda = jda,
+            ircClient = connectionContext.ircClientMap.getByName(ircConnection.ircServerName),
+            jda = connectionContext.jda,
             connection = ircConnection,
-            commandRegistry = commandRegistry,
+            commandRegistry = connectionContext.commandRegistry,
         )
     }
 }

@@ -17,6 +17,7 @@ import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.IrcChannel
 import org.randomcat.agorabot.irc.IrcClient
+import org.randomcat.agorabot.irc.RelayConnectionContext
 import org.randomcat.agorabot.irc.initializeIrcRelay
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
@@ -234,10 +235,12 @@ private fun runBot(config: BotRunConfig) {
 
             try {
                 initializeIrcRelay(
-                    ircClientMap = clientMap,
                     ircRelayConfig = ircSetupResult.config.relayConfig,
-                    jda = jda,
-                    commandRegistry = commandRegistry,
+                    connectionContext = RelayConnectionContext(
+                        ircClientMap = clientMap,
+                        jda = jda,
+                        commandRegistry = commandRegistry,
+                    ),
                 )
             } catch (e: Exception) {
                 for (client in clientMap.clients) {
