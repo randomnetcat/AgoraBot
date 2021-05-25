@@ -2,6 +2,7 @@
 
 package org.randomcat.agorabot.irc
 
+import kotlinx.collections.immutable.persistentListOf
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
@@ -73,9 +74,24 @@ private sealed class RelayConnectedEndpoint {
                 channel.sendMessage(message)
             }
         }
+
+        override fun registerSourceEventHandler(
+            context: RelayConnectionContext,
+            otherEndpoints: List<RelayConnectedEndpoint>,
+        ) {
+            addDiscordRelay(
+                jda = jda,
+                channelId = channelId,
+                endpoints = otherEndpoints,
+            )
+        }
     }
 
-    data class Irc(private val client: IrcClient, private val channelName: String) : RelayConnectedEndpoint() {
+    data class Irc(
+        private val client: IrcClient,
+        private val channelName: String,
+        private val config: IrcRelaySourceConfig,
+    ) : RelayConnectedEndpoint() {
         private inline fun tryWithChannel(block: (IrcChannel) -> Unit) {
             client.getChannel(channelName).orElse(null)?.let(block)
         }
@@ -97,11 +113,31 @@ private sealed class RelayConnectedEndpoint {
                 channel.sendDiscordMessage(message)
             }
         }
+
+        override fun registerSourceEventHandler(
+            context: RelayConnectionContext,
+            otherEndpoints: List<RelayConnectedEndpoint>,
+        ) {
+            client.addChannel(channelName)
+
+            addIrcRelay(
+                ircClient = client,
+                ircChannelName = channelName,
+                config = config,
+                commandRegistry = context.commandRegistry,
+                endpoints = otherEndpoints,
+            )
+        }
     }
 
     abstract fun sendTextMessage(sender: String, content: String)
     abstract fun sendSlashMeTextMessage(sender: String, action: String)
     abstract fun sendDiscordMessage(message: DiscordMessage)
+
+    abstract fun registerSourceEventHandler(
+        context: RelayConnectionContext,
+        otherEndpoints: List<RelayConnectedEndpoint>,
+    )
 }
 
 private data class IrcRelaySourceConfig(
@@ -187,32 +223,6 @@ private fun addDiscordRelay(
     })
 }
 
-private fun connectIrcAndDiscordChannels(
-    ircClient: IrcClient,
-    jda: JDA,
-    connection: IrcRelayEntry,
-    commandRegistry: CommandRegistry,
-) {
-    val ircChannelName = connection.ircChannelName
-    val discordChannelId = connection.discordChannelId
-
-    ircClient.addChannel(ircChannelName)
-
-    addIrcRelay(
-        ircClient = ircClient,
-        ircChannelName = ircChannelName,
-        config = IrcRelaySourceConfig(commandPrefix = connection.ircCommandPrefix),
-        commandRegistry = commandRegistry,
-        endpoints = listOf(RelayConnectedEndpoint.Discord(jda = jda, channelId = discordChannelId)),
-    )
-
-    addDiscordRelay(
-        jda = jda,
-        channelId = discordChannelId,
-        endpoints = listOf(RelayConnectedEndpoint.Irc(client = ircClient, channelName = ircChannelName)),
-    )
-}
-
 data class RelayConnectionContext(
     val ircClientMap: IrcClientMap,
     val jda: JDA,
@@ -231,11 +241,22 @@ fun initializeIrcRelay(
                     "to Discord channel ${ircConnection.discordChannelId}."
         )
 
-        connectIrcAndDiscordChannels(
-            ircClient = connectionContext.ircClientMap.getByName(ircConnection.ircServerName),
-            jda = connectionContext.jda,
-            connection = ircConnection,
-            commandRegistry = connectionContext.commandRegistry,
+        val endpoints = persistentListOf(
+            RelayConnectedEndpoint.Discord(
+                jda = connectionContext.jda,
+                channelId = ircConnection.discordChannelId,
+            ),
+            RelayConnectedEndpoint.Irc(
+                client = connectionContext.ircClientMap.getByName(ircConnection.ircServerName),
+                channelName = ircConnection.ircChannelName,
+                config = IrcRelaySourceConfig(
+                    commandPrefix = ircConnection.ircCommandPrefix,
+                )
+            )
         )
+
+        endpoints.forEachIndexed { index, endpoint ->
+            endpoint.registerSourceEventHandler(connectionContext, otherEndpoints = endpoints.removeAt(index))
+        }
     }
 }
