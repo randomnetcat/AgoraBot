@@ -4,6 +4,7 @@ package org.randomcat.agorabot.irc
 
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.kitteh.irc.client.library.event.channel.ChannelCtcpEvent
@@ -14,10 +15,7 @@ import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.slf4j.LoggerFactory
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.TimeSource
 
 private val logger = LoggerFactory.getLogger("AgoraBotIRC")
 
@@ -37,82 +35,107 @@ private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
     sendSplitMultiLineMessage(fullMessage)
 }
 
-private class DisarmState {
-    private val _isDisarmed = AtomicBoolean(false)
-
-    fun isDisarmed(): Boolean = _isDisarmed.get()
-
-    /**
-     * Disarms this connection. Returns true if this changed the diarmed state from false to true, and false
-     * otherwise.
-     */
-    // compareAndExchange returns the old value; if that old value is false, then we changed the value, otherwise
-    // it is true and nothing changed.
-    fun disarm(): Boolean = !_isDisarmed.compareAndExchange(false, true)
-}
-
 private fun formatIrcNameForDiscord(name: String): String {
     return "**$name**"
 }
 
-private fun ircCommandParser(connection: IrcRelayEntry): CommandParser? {
-    val prefix = connection.ircCommandPrefix ?: return null
+private sealed class RelayConnectedEndpoint {
+    data class Discord(private val jda: JDA, private val channelId: String) : RelayConnectedEndpoint() {
+        companion object {
+            private fun relayToChannel(channel: MessageChannel, text: String) {
+                (MessageBuilder(text).buildAll(MessageBuilder.SplitPolicy.NEWLINE)).forEach {
+                    channel
+                        .sendMessage(it)
+                        .disallowMentions()
+                        .queue()
+                }
+            }
+        }
+
+        private inline fun tryWithChannel(block: (MessageChannel) -> Unit) {
+            jda.getTextChannelById(channelId)?.let(block)
+        }
+
+        override fun sendTextMessage(sender: String, content: String) {
+            tryWithChannel { channel ->
+                relayToChannel(channel, formatIrcNameForDiscord(sender) + " says: " + content)
+            }
+        }
+
+        override fun sendSlashMeTextMessage(sender: String, action: String) {
+            tryWithChannel { channel ->
+                relayToChannel(channel, formatIrcNameForDiscord(sender) + " " + action)
+            }
+        }
+
+        override fun sendDiscordMessage(message: DiscordMessage) {
+            tryWithChannel { channel ->
+                channel.sendMessage(message)
+            }
+        }
+    }
+
+    data class Irc(private val client: IrcClient, private val channelName: String) : RelayConnectedEndpoint() {
+        private inline fun tryWithChannel(block: (IrcChannel) -> Unit) {
+            client.getChannel(channelName).orElse(null)?.let(block)
+        }
+
+        override fun sendTextMessage(sender: String, content: String) {
+            tryWithChannel { channel ->
+                channel.sendSplitMultiLineMessage("$sender says: $content")
+            }
+        }
+
+        override fun sendSlashMeTextMessage(sender: String, action: String) {
+            tryWithChannel { channel ->
+                channel.sendSplitMultiLineMessage("$sender $action")
+            }
+        }
+
+        override fun sendDiscordMessage(message: DiscordMessage) {
+            tryWithChannel { channel ->
+                channel.sendDiscordMessage(message)
+            }
+        }
+    }
+
+    abstract fun sendTextMessage(sender: String, content: String)
+    abstract fun sendSlashMeTextMessage(sender: String, action: String)
+    abstract fun sendDiscordMessage(message: DiscordMessage)
+}
+
+private data class IrcRelaySourceConfig(
+    val commandPrefix: String?,
+)
+
+private fun ircCommandParser(config: IrcRelaySourceConfig): CommandParser? {
+    val prefix = config.commandPrefix ?: return null
     return GlobalPrefixCommandParser(prefix)
 }
 
-private fun connectIrcAndDiscordChannels(
+private fun addIrcRelay(
     ircClient: IrcClient,
-    jda: JDA,
-    connection: IrcRelayEntry,
+    ircChannelName: String,
+    config: IrcRelaySourceConfig,
     commandRegistry: CommandRegistry,
+    endpoints: List<RelayConnectedEndpoint>,
 ) {
-    val discordChannelId = connection.discordChannelId
-    val ircChannelName = connection.ircChannelName
-
-    // Don't hold on to the channel because JDA doesn't allow keeping objects for indefinite time periods.
-    if (jda.getTextChannelById(connection.discordChannelId) == null) {
-        logger.error(
-            "Could not find Discord channel ${connection.discordChannelId} " +
-                    "when connecting to IRC channel ${connection.ircChannelName}!"
-        )
-        return
-    }
-
-    ircClient.addChannel(connection.ircChannelName)
     ircClient.eventManager.registerEventListener(IrcListener(object : IrcMessageHandler {
-        private val commandParser = ircCommandParser(connection)
-
-        private val disarmState = DisarmState()
-        private fun isDisarmed() = disarmState.isDisarmed()
+        private val commandParser = ircCommandParser(config)
 
         private fun <E> E.isInRelevantChannel() where E : ActorEvent<IrcUser>, E : ChannelEvent =
             channel.name == ircChannelName
 
-        private fun tryDiscordChannel() = jda.getTextChannelById(discordChannelId)
-
-        private fun requireDiscordChannel() = tryDiscordChannel() ?: null.also {
-            if (disarmState.disarm()) {
-                logger.error(
-                    "Discord channel $discordChannelId could not be found in order to send a message! " +
-                            "Disarming this connection."
-                )
-            }
-        }
-
-        private fun relayToDiscord(text: String) {
-            val channel = requireDiscordChannel() ?: return
-
-            (MessageBuilder(text).buildAll(MessageBuilder.SplitPolicy.NEWLINE)).forEach {
-                channel.sendMessage(it)
-                    .disallowMentions()
-                    .queue()
-            }
+        private inline fun forEachEndpoint(block: (RelayConnectedEndpoint) -> Unit) {
+            endpoints.forEach(block)
         }
 
         override fun onMessage(event: ChannelMessageEvent) {
-            if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
-            relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " says: " + event.message)
+
+            forEachEndpoint {
+                it.sendTextMessage(sender = event.actor.nick, content = event.message)
+            }
 
             if (commandParser != null) {
                 val source = CommandEventSource.Irc(event)
@@ -130,54 +153,64 @@ private fun connectIrcAndDiscordChannels(
         }
 
         override fun onCtcpMessage(event: ChannelCtcpEvent) {
-            if (isDisarmed()) return
             if (!event.isInRelevantChannel()) return
 
             val message = event.message
             if (!message.startsWith("ACTION ")) return // ACTION means a /me command
-            relayToDiscord(formatIrcNameForDiscord(event.actor.nick) + " " + message.removePrefix("ACTION "))
+
+            forEachEndpoint {
+                it.sendSlashMeTextMessage(sender = event.actor.nick, action = message.removePrefix("ACTION "))
+            }
         }
     }))
+}
 
-    val startTime = TimeSource.Monotonic.markNow()
-
-    // The IRC client takes some time to connect, so we won't disarm the IRC side until one minute has passed since it
-    // *should* have connected. 1 minute should (hopefully) be plenty of time.
-    val ircGraceEnd = startTime + Duration.minutes(1)
-
+private fun addDiscordRelay(
+    jda: JDA,
+    channelId: String,
+    endpoints: List<RelayConnectedEndpoint>,
+) {
     jda.addEventListener(object {
-        private val disarmState = DisarmState()
-        private fun isDisarmed() = disarmState.isDisarmed()
+        private inline fun forEachEndpoint(block: (RelayConnectedEndpoint) -> Unit) {
+            endpoints.forEach(block)
+        }
 
         @SubscribeEvent
         fun onMessage(event: GuildMessageReceivedEvent) {
-            if (isDisarmed()) return
-            if (event.channel.id != discordChannelId) return
+            if (event.channel.id != channelId) return
             if (event.author.id == event.jda.selfUser.id) return
 
-            val optChannel = ircClient.getChannel(ircChannelName)
-
-            optChannel.ifPresentOrElse({ channel ->
-                val message = event.message
-
-                channel.sendDiscordMessage(message)
-            }, {
-                if (ircGraceEnd.hasPassedNow()) {
-                    logger.error(
-                        "IRC channel $ircChannelName could not be found in order to send a message! " +
-                                "Disarming this connection."
-                    )
-
-                    disarmState.disarm()
-                } else {
-                    logger.warn(
-                        "IRC channel $ircChannelName could not be found in order to send a message! " +
-                                "Not disarming because of grace period."
-                    )
-                }
-            })
+            forEachEndpoint {
+                it.sendDiscordMessage(event.message)
+            }
         }
     })
+}
+
+private fun connectIrcAndDiscordChannels(
+    ircClient: IrcClient,
+    jda: JDA,
+    connection: IrcRelayEntry,
+    commandRegistry: CommandRegistry,
+) {
+    val ircChannelName = connection.ircChannelName
+    val discordChannelId = connection.discordChannelId
+
+    ircClient.addChannel(ircChannelName)
+
+    addIrcRelay(
+        ircClient = ircClient,
+        ircChannelName = ircChannelName,
+        config = IrcRelaySourceConfig(commandPrefix = connection.ircCommandPrefix),
+        commandRegistry = commandRegistry,
+        endpoints = listOf(RelayConnectedEndpoint.Discord(jda = jda, channelId = discordChannelId)),
+    )
+
+    addDiscordRelay(
+        jda = jda,
+        channelId = discordChannelId,
+        endpoints = listOf(RelayConnectedEndpoint.Irc(client = ircClient, channelName = ircChannelName)),
+    )
 }
 
 fun initializeIrcRelay(
