@@ -76,7 +76,7 @@ private sealed class RelayConnectedEndpoint {
         }
 
         override fun registerSourceEventHandler(
-            context: RelayConnectionContext,
+            context: RelayEventHandlerContext,
             otherEndpoints: List<RelayConnectedEndpoint>,
         ) {
             addDiscordRelay(
@@ -115,7 +115,7 @@ private sealed class RelayConnectedEndpoint {
         }
 
         override fun registerSourceEventHandler(
-            context: RelayConnectionContext,
+            context: RelayEventHandlerContext,
             otherEndpoints: List<RelayConnectedEndpoint>,
         ) {
             client.addChannel(channelName)
@@ -135,7 +135,7 @@ private sealed class RelayConnectedEndpoint {
     abstract fun sendDiscordMessage(message: DiscordMessage)
 
     abstract fun registerSourceEventHandler(
-        context: RelayConnectionContext,
+        context: RelayEventHandlerContext,
         otherEndpoints: List<RelayConnectedEndpoint>,
     )
 }
@@ -226,12 +226,14 @@ private fun addDiscordRelay(
 data class RelayConnectionContext(
     val ircClientMap: IrcClientMap,
     val jda: JDA,
-    val commandRegistry: CommandRegistry,
 )
+
+data class RelayEventHandlerContext(val commandRegistry: CommandRegistry)
 
 fun initializeIrcRelay(
     ircRelayConfig: IrcRelayConfig,
     connectionContext: RelayConnectionContext,
+    commandRegistry: CommandRegistry,
 ) {
     val ircConnections = ircRelayConfig.entries
 
@@ -255,8 +257,15 @@ fun initializeIrcRelay(
             )
         )
 
+        val eventHandlerContext = RelayEventHandlerContext(
+            commandRegistry = commandRegistry,
+        )
+
         endpoints.forEachIndexed { index, endpoint ->
-            endpoint.registerSourceEventHandler(connectionContext, otherEndpoints = endpoints.removeAt(index))
+            endpoint.registerSourceEventHandler(
+                context = eventHandlerContext,
+                otherEndpoints = endpoints.removeAt(index),
+            )
         }
     }
 }

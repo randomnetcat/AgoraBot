@@ -239,8 +239,8 @@ private fun runBot(config: BotRunConfig) {
                     connectionContext = RelayConnectionContext(
                         ircClientMap = clientMap,
                         jda = jda,
-                        commandRegistry = commandRegistry,
                     ),
+                    commandRegistry = commandRegistry,
                 )
             } catch (e: Exception) {
                 for (client in clientMap.clients) {
