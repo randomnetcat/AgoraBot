@@ -87,8 +87,8 @@ private fun addIrcRelay(
 }
 
 data class RelayConnectedIrcEndpoint(
-    private val client: IrcClient,
-    private val channelName: String,
+    val client: IrcClient,
+    val channelName: String,
     private val config: IrcRelayEndpointConfig,
 ) : RelayConnectedEndpoint() {
     private fun tryGetChannel(): Channel? {

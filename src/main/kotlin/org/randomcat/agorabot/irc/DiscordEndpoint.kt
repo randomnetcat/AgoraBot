@@ -35,8 +35,7 @@ private fun addDiscordRelay(
     })
 }
 
-data class RelayConnectedDiscordEndpoint(private val jda: JDA, private val channelId: String) :
-    RelayConnectedEndpoint() {
+data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : RelayConnectedEndpoint() {
     companion object {
         private fun relayToChannel(channel: MessageChannel, text: String) {
             (MessageBuilder(text).buildAll(MessageBuilder.SplitPolicy.NEWLINE)).forEach {
