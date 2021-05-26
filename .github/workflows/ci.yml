@@ -33,12 +33,3 @@ jobs:
           name: test_report
           path: build/reports/tests/test
         if: always()
-
-      - name: Create fat jar
-        run: ./gradlew fatjar
-
-      - name: Upload fat jar
-        uses: actions/upload-artifact@v2
-        with:
-          name: fat_jar
-          path: build/libs/agorabot.jar
