@@ -69,7 +69,7 @@ data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : 
 
     override fun sendDiscordMessage(message: DiscordMessage) {
         tryWithChannel { channel ->
-            channel.sendMessage(message)
+            channel.sendMessage(message).queue()
         }
     }
 
