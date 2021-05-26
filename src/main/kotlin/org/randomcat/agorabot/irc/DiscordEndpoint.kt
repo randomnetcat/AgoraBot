@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
+import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 
@@ -47,8 +48,12 @@ data class RelayConnectedDiscordEndpoint(private val jda: JDA, private val chann
         }
     }
 
+    private fun tryGetChannel(): MessageChannel? {
+        return jda.getTextChannelById(channelId)
+    }
+
     private inline fun tryWithChannel(block: (MessageChannel) -> Unit) {
-        jda.getTextChannelById(channelId)?.let(block)
+        tryGetChannel()?.let(block)
     }
 
     override fun sendTextMessage(sender: String, content: String) {
@@ -78,5 +83,9 @@ data class RelayConnectedDiscordEndpoint(private val jda: JDA, private val chann
             channelId = channelId,
             endpoints = otherEndpoints,
         )
+    }
+
+    override fun commandOutputSink(): CommandOutputSink? {
+        return tryGetChannel()?.let { CommandOutputSink.Discord(it) }
     }
 }

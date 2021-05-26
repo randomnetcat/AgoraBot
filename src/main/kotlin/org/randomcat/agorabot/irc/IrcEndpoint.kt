@@ -1,9 +1,11 @@
 package org.randomcat.agorabot.irc
 
+import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.event.channel.ChannelCtcpEvent
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.client.library.event.helper.ActorEvent
 import org.kitteh.irc.client.library.event.helper.ChannelEvent
+import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
 
@@ -89,8 +91,12 @@ data class RelayConnectedIrcEndpoint(
     private val channelName: String,
     private val config: IrcRelayEndpointConfig,
 ) : RelayConnectedEndpoint() {
+    private fun tryGetChannel(): Channel? {
+        return client.getChannel(channelName).orElse(null)
+    }
+
     private inline fun tryWithChannel(block: (IrcChannel) -> Unit) {
-        client.getChannel(channelName).orElse(null)?.let(block)
+        tryGetChannel()?.let(block)
     }
 
     override fun sendTextMessage(sender: String, content: String) {
@@ -124,5 +130,9 @@ data class RelayConnectedIrcEndpoint(
             commandRegistry = context.commandRegistry,
             endpoints = otherEndpoints,
         )
+    }
+
+    override fun commandOutputSink(): CommandOutputSink? {
+        return tryGetChannel()?.let { CommandOutputSink.Irc(it) }
     }
 }

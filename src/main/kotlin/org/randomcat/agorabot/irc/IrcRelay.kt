@@ -4,6 +4,7 @@ package org.randomcat.agorabot.irc
 
 import kotlinx.collections.immutable.persistentListOf
 import net.dv8tion.jda.api.JDA
+import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.CommandRegistry
 import org.randomcat.agorabot.util.DiscordMessage
 import org.slf4j.LoggerFactory
@@ -20,6 +21,11 @@ sealed class RelayConnectedEndpoint {
         context: RelayEventHandlerContext,
         otherEndpoints: List<RelayConnectedEndpoint>,
     )
+
+    /**
+     * Returns a [CommandOutputSink] if the endpoint is available and can be sent to, or null otherwise.
+     */
+    abstract fun commandOutputSink(): CommandOutputSink?
 }
 
 data class RelayConnectionContext(
