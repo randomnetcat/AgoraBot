@@ -6,17 +6,16 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
+import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
-import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
 import org.randomcat.agorabot.features.*
-import org.randomcat.agorabot.irc.IrcChannel
-import org.randomcat.agorabot.irc.initializeIrcRelay
+import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
@@ -28,38 +27,64 @@ import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
 
-private fun ircAndDiscordMapping(jda: JDA, ircSetupResult: IrcSetupResult): CommandOutputMapping {
-    return when (ircSetupResult) {
-        is IrcSetupResult.Connected -> {
-            val config = ircSetupResult.config
-            val client = ircSetupResult.client
+private fun ircAndDiscordMapping(
+    jda: JDA,
+    relayConnectedEndpointMap: RelayConnectedEndpointMap,
+    relayEntriesConfig: IrcRelayEntriesConfig,
+): CommandOutputMapping {
+    data class IrcChannelLookupKey(val client: IrcClient, val channelName: String)
 
-            val relayEntries = config.relayConfig.entries
+    val discordToIrcMap: MutableMap<String, MutableList<() -> List<CommandOutputSink>>> = mutableMapOf()
+    val ircToDiscordMap: MutableMap<IrcChannelLookupKey, MutableList<() -> List<CommandOutputSink>>> = mutableMapOf()
 
-            val discordToIrcMap: Map<String, () -> IrcChannel?> = relayEntries.associate {
-                it.discordChannelId to { client.getChannel(it.ircChannelName).orElse(null) }
-            }
+    for (entry in relayEntriesConfig.entries) {
+        val endpoints = entry.endpointNames.map { relayConnectedEndpointMap.getByName(it) }.toPersistentList()
 
-            val ircToDiscordMap: Map<String, () -> MessageChannel?> = relayEntries.associate {
-                it.ircChannelName to { jda.getTextChannelById(it.discordChannelId) }
-            }
+        endpoints.mapIndexed { index, relayConnectedEndpoint ->
+            val otherEndpoints = endpoints.removeAt(index)
 
-            CommandOutputMapping(
-                sinksForDiscordFun = { source ->
-                    listOfNotNull(
-                        discordToIrcMap[source.event.channel.id]?.invoke()?.let { CommandOutputSink.Irc(it) },
-                    )
-                },
-                sinksForIrcFun = { source ->
-                    listOfNotNull(
-                        ircToDiscordMap[source.event.channel.name]?.invoke()?.let { CommandOutputSink.Discord(it) },
-                    )
-                },
+            @Suppress(
+                "UNUSED_VARIABLE",
+                "MoveLambdaOutsideParentheses", // Lambda is the value, so it should be in parentheses
             )
-        }
+            val ensureExhaustive = when (relayConnectedEndpoint) {
+                is RelayConnectedDiscordEndpoint -> {
+                    require(jda == relayConnectedEndpoint.jda) {
+                        "Multiple JDAs are not supported here"
+                    }
 
-        else -> CommandOutputMapping.empty()
+                    val list = discordToIrcMap.getOrPut(relayConnectedEndpoint.channelId) { mutableListOf() }
+
+                    list.add({
+                        otherEndpoints.mapNotNull { it.commandOutputSink() }
+                    })
+                }
+
+                is RelayConnectedIrcEndpoint -> {
+                    val list = ircToDiscordMap.getOrPut(
+                        IrcChannelLookupKey(
+                            client = relayConnectedEndpoint.client,
+                            channelName = relayConnectedEndpoint.channelName,
+                        ),
+                    ) { mutableListOf() }
+
+                    list.add({
+                        otherEndpoints.mapNotNull { it.commandOutputSink() }
+                    })
+                }
+            }
+        }
     }
+
+    return CommandOutputMapping(
+        sinksForDiscordFun = { source ->
+            discordToIrcMap[source.event.channel.id]?.flatMap { it() } ?: emptyList()
+        },
+        sinksForIrcFun = { source ->
+            val key = IrcChannelLookupKey(client = source.event.client, channelName = source.event.channel.name)
+            ircToDiscordMap[key]?.flatMap { it() } ?: emptyList()
+        },
+    )
 }
 
 private fun makeBaseCommandStrategy(
@@ -148,10 +173,36 @@ private fun runBot(config: BotRunConfig) {
     jda.awaitReady()
 
     try {
+        val relayConnectedEndpointMap: RelayConnectedEndpointMap?
+        val commandOutputMapping: CommandOutputMapping
+
+        when (ircSetupResult) {
+            is IrcSetupResult.Connected -> {
+                relayConnectedEndpointMap = connectToRelayEndpoints(
+                    endpointsConfig = ircSetupResult.config.relayConfig.endpointsConfig,
+                    context = RelayConnectionContext(
+                        ircClientMap = ircSetupResult.clients,
+                        jda = jda,
+                    ),
+                )
+
+                commandOutputMapping = ircAndDiscordMapping(
+                    jda = jda,
+                    relayConnectedEndpointMap = relayConnectedEndpointMap,
+                    relayEntriesConfig = ircSetupResult.config.relayConfig.relayEntriesConfig,
+                )
+            }
+
+            else -> {
+                relayConnectedEndpointMap = null
+                commandOutputMapping = CommandOutputMapping.empty()
+            }
+        }
+
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
         val commandStrategy = makeBaseCommandStrategy(
-            BaseCommandOutputStrategyByOutputMapping(ircAndDiscordMapping(jda, ircSetupResult)),
+            BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
             BaseCommandGuildStateStrategy.fromMap(guildStateMap),
             makePermissionsStrategy(
                 permissionsConfig = permissionsConfig,
@@ -218,12 +269,23 @@ private fun runBot(config: BotRunConfig) {
         )
 
         if (ircSetupResult is IrcSetupResult.Connected) {
-            initializeIrcRelay(
-                ircClient = ircSetupResult.client,
-                ircRelayConfig = ircSetupResult.config.relayConfig,
-                jda = jda,
-                commandRegistry = commandRegistry,
-            )
+            val clientMap = ircSetupResult.clients
+
+            try {
+                if (relayConnectedEndpointMap != null) {
+                    initializeIrcRelay(
+                        config = ircSetupResult.config.relayConfig.relayEntriesConfig,
+                        connectedEndpointMap = relayConnectedEndpointMap,
+                        commandRegistry = commandRegistry,
+                    )
+                }
+            } catch (e: Exception) {
+                for (client in clientMap.clients) {
+                    client.shutdown("Exception during connection setup")
+                }
+
+                logger.error("Exception during IRC relay setup", e)
+            }
         }
 
         try {

@@ -30,29 +30,60 @@ private data class IrcConfigDto(
     @SerialName("connections") val connections: List<IrcConnectionConfigDto>,
 )
 
-private fun IrcConnectionConfigDto.toRelayEntry(): IrcRelayEntry {
-    return IrcRelayEntry(
-        ircChannelName = ircChannelName,
-        discordChannelId = discordChannelId,
-        relayJoinLeaveMessages = relayJoinLeave,
-        ircCommandPrefix = ircCommandPrefix,
-    )
-}
+private val DEFAULT_IRC_SERVER_NAME = IrcServerName("lone-server")
 
 fun decodeIrcConfig(configText: String): IrcConfig? {
     return try {
         val dto = Json.decodeFromString<IrcConfigDto>(configText)
 
+        for (connection in dto.connections) {
+            if (connection.relayJoinLeave) {
+                logger.warn("A relay configuration requested relaying of join/leave messages, but that is no longer supported.")
+            }
+        }
+
         IrcConfig(
             setupConfig = IrcSetupConfig(
-                serverConfig = IrcServerConfig(
-                    host = dto.server,
-                    port = dto.port.toInt(),
-                    serverIsSecure = dto.serverIsSecure,
-                    userNickname = dto.nickname,
+                serverListConfig = IrcServerListConfig(
+                    mapOf(
+                        DEFAULT_IRC_SERVER_NAME to IrcServerConfig(
+                            host = dto.server,
+                            port = dto.port.toInt(),
+                            serverIsSecure = dto.serverIsSecure,
+                            userNickname = dto.nickname,
+                        ),
+                    ),
                 ),
             ),
-            relayConfig = IrcRelayConfig(dto.connections.map { it.toRelayEntry() }),
+            relayConfig = IrcRelayConfig(
+                endpointsConfig = RelayEndpointListConfig(
+                    dto
+                        .connections
+                        .flatMapIndexed { index, connectionDto ->
+                            listOf(
+                                RelayEndpointName("discord-${index}") to RelayEndpointConfig.Discord(
+                                    channelId = connectionDto.discordChannelId,
+                                ),
+                                RelayEndpointName("irc-${index}") to RelayEndpointConfig.Irc(
+                                    serverName = DEFAULT_IRC_SERVER_NAME,
+                                    channelName = connectionDto.ircChannelName,
+                                    commandPrefix = connectionDto.ircCommandPrefix,
+                                ),
+                            )
+                        }
+                        .toMap(),
+                ),
+                relayEntriesConfig = IrcRelayEntriesConfig(
+                    dto.connections.indices.map { index ->
+                        IrcRelayEntry(
+                            endpointNames = listOf(
+                                RelayEndpointName("discord-${index}"),
+                                RelayEndpointName("irc-${index}"),
+                            ),
+                        )
+                    }
+                )
+            ),
         )
     } catch (e: SerializationException) {
         logger.error("Error while decoding IRC config", e)
