@@ -69,7 +69,18 @@ data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : 
 
     override fun sendDiscordMessage(message: DiscordMessage) {
         tryWithChannel { channel ->
-            channel.sendMessage(message).queue()
+            val name = message.member?.effectiveName ?: message.author.name
+
+            val attachmentsSection = if (message.attachments.isNotEmpty()) {
+                "\n\nAttachments:\n${message.attachments.joinToString("\n") { it.url }}"
+            } else {
+                ""
+            }
+
+            relayToChannel(
+                channel,
+                "${formatRawNameForDiscord(name)} says: ${message.contentRaw}$attachmentsSection",
+            )
         }
     }
 
