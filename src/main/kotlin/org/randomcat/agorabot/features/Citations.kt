@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureContext
-import org.randomcat.agorabot.config.CitationsConfig
+import org.randomcat.agorabot.config.parsing.features.CitationsConfig
 import org.randomcat.agorabot.listener.Command
 import java.net.URI
 

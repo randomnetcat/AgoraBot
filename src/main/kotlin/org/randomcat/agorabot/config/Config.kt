@@ -6,8 +6,6 @@ import kotlinx.serialization.json.*
 import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.SsmtpDigestSendStrategy
-import org.randomcat.agorabot.features.CFJ_URL_NUMBER_REPLACEMENT
-import org.randomcat.agorabot.features.RULE_URL_NUMBER_REPLACMENT
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -127,45 +125,5 @@ fun readPermissionsConfig(configPath: Path): PermissionsConfig? {
 
     return PermissionsConfig(
         botAdminList = adminList.map { (it as JsonPrimitive).content }
-    )
-}
-
-data class CitationsConfig(
-    val ruleUrlPattern: String?,
-    val cfjUrlPattern: String?,
-)
-
-fun readCitationsConfig(configPath: Path): CitationsConfig? {
-    if (Files.notExists(configPath)) {
-        logger.warn("Citations config path $configPath does not exist!")
-        return null
-    }
-
-    val json = Json.parseToJsonElement(Files.readString(configPath, Charsets.UTF_8))
-    if (json !is JsonObject) {
-        logger.error("Citations config should be a JSON object!")
-        return null
-    }
-
-    fun readPattern(key: String, expectedReplacement: String): String? {
-        return (json[key] as? JsonPrimitive)?.let { ruleUrlPatternPrimitive ->
-            if (ruleUrlPatternPrimitive.isString) {
-                ruleUrlPatternPrimitive.content.takeIf { it.contains(expectedReplacement) } ?: run {
-                    logger.warn("Citation config $key should contain \"$expectedReplacement\"")
-                    null
-                }
-            } else {
-                logger.warn("Citation config $key should be a string!")
-                null
-            }
-        }
-    }
-
-    val ruleUrlPattern = readPattern(key = "rule_url_format", expectedReplacement = RULE_URL_NUMBER_REPLACMENT)
-    val cfjUrlPattern = readPattern(key = "cfj_url_format", expectedReplacement = CFJ_URL_NUMBER_REPLACEMENT)
-
-    return CitationsConfig(
-        ruleUrlPattern = ruleUrlPattern,
-        cfjUrlPattern = cfjUrlPattern,
     )
 }

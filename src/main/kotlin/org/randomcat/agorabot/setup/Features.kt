@@ -2,8 +2,8 @@ package org.randomcat.agorabot.setup
 
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.commands.DiscordArchiver
-import org.randomcat.agorabot.config.CitationsConfig
-import org.randomcat.agorabot.config.readCitationsConfig
+import org.randomcat.agorabot.config.parsing.features.CitationsConfig
+import org.randomcat.agorabot.config.parsing.features.readCitationsConfig
 import org.randomcat.agorabot.features.archiveCommandsFeature
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Path
