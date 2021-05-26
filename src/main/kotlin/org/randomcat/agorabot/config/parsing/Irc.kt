@@ -32,15 +32,6 @@ private data class IrcConfigDto(
 
 private val DEFAULT_IRC_SERVER_NAME = IrcServerName("lone-server")
 
-private fun IrcConnectionConfigDto.toRelayEntry(): IrcRelayEntry {
-    return IrcRelayEntry(
-        ircServerName = DEFAULT_IRC_SERVER_NAME,
-        ircChannelName = ircChannelName,
-        discordChannelId = discordChannelId,
-        ircCommandPrefix = ircCommandPrefix,
-    )
-}
-
 fun decodeIrcConfig(configText: String): IrcConfig? {
     return try {
         val dto = Json.decodeFromString<IrcConfigDto>(configText)
@@ -64,7 +55,35 @@ fun decodeIrcConfig(configText: String): IrcConfig? {
                     ),
                 ),
             ),
-            relayConfig = IrcRelayConfig(dto.connections.map { it.toRelayEntry() }),
+            relayConfig = IrcRelayConfig(
+                endpointsConfig = RelayEndpointListConfig(
+                    dto
+                        .connections
+                        .flatMapIndexed { index, connectionDto ->
+                            listOf(
+                                RelayEndpointName("discord-${index}") to RelayEndpointConfig.Discord(
+                                    channelId = connectionDto.discordChannelId,
+                                ),
+                                RelayEndpointName("irc-${index}") to RelayEndpointConfig.Irc(
+                                    serverName = DEFAULT_IRC_SERVER_NAME,
+                                    channelName = connectionDto.ircChannelName,
+                                    commandPrefix = connectionDto.ircCommandPrefix,
+                                ),
+                            )
+                        }
+                        .toMap(),
+                ),
+                relayEntriesConfig = IrcRelayEntriesConfig(
+                    dto.connections.indices.map { index ->
+                        IrcRelayEntry(
+                            endpointNames = listOf(
+                                RelayEndpointName("discord-${index}"),
+                                RelayEndpointName("irc-${index}"),
+                            ),
+                        )
+                    }
+                )
+            ),
         )
     } catch (e: SerializationException) {
         logger.error("Error while decoding IRC config", e)

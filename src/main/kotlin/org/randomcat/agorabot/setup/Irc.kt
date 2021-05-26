@@ -32,7 +32,7 @@ fun setupIrcClient(paths: BotDataPaths): IrcSetupResult {
             IrcSetupResult.ConfigUnavailable
         }
 
-        ircConfig.relayConfig.entries.isEmpty() -> {
+        ircConfig.relayConfig.relayEntriesConfig.entries.isEmpty() -> {
             IrcSetupResult.NoRelayRequested
         }
 

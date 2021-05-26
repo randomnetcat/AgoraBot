@@ -2,7 +2,9 @@
 
 package org.randomcat.agorabot.irc
 
-import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.CommandRegistry
@@ -11,6 +13,8 @@ import org.slf4j.LoggerFactory
 import kotlin.time.ExperimentalTime
 
 private val logger = LoggerFactory.getLogger("AgoraBotIRC")
+
+data class RelayEventHandlerContext(val commandRegistry: CommandRegistry)
 
 sealed class RelayConnectedEndpoint {
     abstract fun sendTextMessage(sender: String, content: String)
@@ -33,34 +37,62 @@ data class RelayConnectionContext(
     val jda: JDA,
 )
 
-data class RelayEventHandlerContext(val commandRegistry: CommandRegistry)
+data class RelayConnectedEndpointMap(
+    private val endpointsByName: ImmutableMap<RelayEndpointName, RelayConnectedEndpoint>,
+) {
+    constructor(
+        endpointsByName: Map<RelayEndpointName, RelayConnectedEndpoint>,
+    ) : this(endpointsByName.toImmutableMap())
+
+    fun getByName(name: RelayEndpointName): RelayConnectedEndpoint {
+        return endpointsByName.getValue(name)
+    }
+}
+
+fun connectToRelayEndpoints(
+    endpointsConfig: RelayEndpointListConfig,
+    context: RelayConnectionContext,
+): RelayConnectedEndpointMap {
+    return RelayConnectedEndpointMap(
+        endpointsConfig.endpointsByName.mapValues { (_, config) ->
+            when (config) {
+                is RelayEndpointConfig.Discord -> {
+                    RelayConnectedDiscordEndpoint(
+                        jda = context.jda,
+                        channelId = config.channelId,
+                    )
+                }
+
+                is RelayEndpointConfig.Irc -> {
+                    val client = context.ircClientMap.getByName(config.serverName)
+
+                    logger.info("Joining channel ${config.channelName} on IRC server ${config.serverName.raw}")
+                    client.addChannel(config.channelName)
+
+                    RelayConnectedIrcEndpoint(
+                        client = client,
+                        channelName = config.channelName,
+                        config = IrcRelayEndpointConfig(
+                            commandPrefix = config.commandPrefix,
+                        ),
+                    )
+                }
+            }
+        }
+    )
+}
 
 fun initializeIrcRelay(
-    ircRelayConfig: IrcRelayConfig,
-    connectionContext: RelayConnectionContext,
+    config: IrcRelayEntriesConfig,
+    connectedEndpointMap: RelayConnectedEndpointMap,
     commandRegistry: CommandRegistry,
 ) {
-    val ircConnections = ircRelayConfig.entries
+    for (entry in config.entries) {
+        val endpointNames = entry.endpointNames
 
-    for (ircConnection in ircConnections) {
-        logger.info(
-            "Connecting IRC channel ${ircConnection.ircChannelName} " +
-                    "to Discord channel ${ircConnection.discordChannelId}."
-        )
+        logger.info("Creating bridge between endpoints: ${endpointNames.map { it.raw }}")
 
-        val endpoints = persistentListOf(
-            RelayConnectedDiscordEndpoint(
-                jda = connectionContext.jda,
-                channelId = ircConnection.discordChannelId,
-            ),
-            RelayConnectedIrcEndpoint(
-                client = connectionContext.ircClientMap.getByName(ircConnection.ircServerName),
-                channelName = ircConnection.ircChannelName,
-                config = IrcRelayEndpointConfig(
-                    commandPrefix = ircConnection.ircCommandPrefix,
-                )
-            )
-        )
+        val endpoints = endpointNames.map { connectedEndpointMap.getByName(it) }.toPersistentList()
 
         val eventHandlerContext = RelayEventHandlerContext(
             commandRegistry = commandRegistry,
