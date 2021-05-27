@@ -4,12 +4,18 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
+import java.security.interfaces.ECPrivateKey
+
+sealed class IrcServerAuthentication {
+    data class EcdsaPrivateKey(val key: ECPrivateKey) : IrcServerAuthentication()
+}
 
 data class IrcServerConfig(
     val host: String,
     val port: Int,
     val serverIsSecure: Boolean,
     val userNickname: String,
+    val authentication: IrcServerAuthentication?,
 )
 
 data class IrcServerListConfig(private val serversByName: ImmutableMap<IrcServerName, IrcServerConfig>) {

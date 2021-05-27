@@ -6,6 +6,7 @@ import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.User
 import org.kitteh.irc.client.library.event.helper.ActorEvent
+import org.kitteh.irc.client.library.feature.auth.SaslEcdsaNist256PChallenge
 import org.kitteh.irc.client.library.feature.sts.StsPropertiesStorageManager
 import org.kitteh.irc.client.library.feature.sts.StsStorageManager
 import java.nio.file.Path
@@ -30,7 +31,27 @@ private fun doCreateIrcClient(serverConfig: IrcServerConfig, stsStorageManager: 
         .management()
         .stsStorageManager(stsStorageManager)
         .then()
-        .buildAndConnect()
+        .build()
+        .also { client ->
+            @Suppress("UNUSED_VARIABLE")
+            val ensureExhaustive: Any = when (serverConfig.authentication) {
+                is IrcServerAuthentication.EcdsaPrivateKey -> {
+                    client.authManager.addProtocol(
+                        SaslEcdsaNist256PChallenge(
+                            client,
+                            serverConfig.userNickname,
+                            serverConfig.authentication.key,
+                        ),
+                    )
+                }
+
+                null -> {
+                }
+            }
+        }
+        .also {
+            it.connect()
+        }
 }
 
 @JvmInline

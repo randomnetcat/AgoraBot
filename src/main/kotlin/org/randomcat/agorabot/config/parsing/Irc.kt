@@ -51,6 +51,7 @@ fun decodeIrcConfig(configText: String): IrcConfig? {
                             port = dto.port.toInt(),
                             serverIsSecure = dto.serverIsSecure,
                             userNickname = dto.nickname,
+                            authentication = null,
                         ),
                     ),
                 ),

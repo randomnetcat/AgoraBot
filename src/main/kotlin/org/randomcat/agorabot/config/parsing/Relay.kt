@@ -23,6 +23,7 @@ private fun RelayIrcServerConfigDto.toIrcServerConfig(): IrcServerConfig {
         port = port.toInt(),
         serverIsSecure = isSecure,
         userNickname = userNickname,
+        authentication = null,
     )
 }
 
