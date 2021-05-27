@@ -1,12 +1,16 @@
 package org.randomcat.agorabot.setup
 
+import org.kitteh.irc.client.library.feature.auth.SaslEcdsaNist256PChallenge
+import org.randomcat.agorabot.config.parsing.RelayIrcServerAuthenticationDto
 import org.randomcat.agorabot.config.parsing.readIrcConfig
 import org.randomcat.agorabot.config.parsing.readRelayConfig
 import org.randomcat.agorabot.irc.IrcClientMap
 import org.randomcat.agorabot.irc.IrcConfig
+import org.randomcat.agorabot.irc.IrcServerAuthentication
 import org.randomcat.agorabot.irc.createIrcClients
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.io.path.readText
 
 private val logger = LoggerFactory.getLogger("AgoraBotIrcSetup")
 
@@ -54,7 +58,24 @@ fun setupIrcClient(paths: BotDataPaths): IrcSetupResult {
         val relayConfigPath = paths.relayConfigPath()
 
         if (relayConfigPath != null) {
-            val relayConfig = readRelayConfig(relayConfigPath)
+            val relayConfig = readRelayConfig(
+                path = relayConfigPath,
+            ) { authenticationDto ->
+                when (authenticationDto) {
+                    is RelayIrcServerAuthenticationDto.EcdsaPrivateKeyPath -> {
+                        val unresolvedPath = Path.of(authenticationDto.unresolvedPath)
+
+                        val resolvedPath = if (unresolvedPath.isAbsolute) {
+                            unresolvedPath
+                        } else {
+                            (paths as BotDataPaths.WithStandardPaths).configPath.resolve(unresolvedPath)
+                        }
+
+                        val key = SaslEcdsaNist256PChallenge.getPrivateKey(resolvedPath.readText().trim())
+                        IrcServerAuthentication.EcdsaPrivateKey(key)
+                    }
+                }
+            }
 
             if (relayConfig != null) {
                 return connectWithConfig(ircConfig = relayConfig, paths = paths)

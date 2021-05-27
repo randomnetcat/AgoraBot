@@ -10,20 +10,32 @@ import org.randomcat.util.isDistinct
 import java.nio.file.Path
 
 @Serializable
+sealed class RelayIrcServerAuthenticationDto {
+    @Serializable
+    @SerialName("ecdsa")
+    data class EcdsaPrivateKeyPath(
+        @SerialName("base64_private_key_file") val unresolvedPath: String,
+    ) : RelayIrcServerAuthenticationDto()
+}
+
+typealias AuthenticationBuilder = (RelayIrcServerAuthenticationDto) -> IrcServerAuthentication
+
+@Serializable
 private data class RelayIrcServerConfigDto(
     @SerialName("host") val host: String,
     @SerialName("port") val port: UInt,
     @SerialName("secure") val isSecure: Boolean,
     @SerialName("user_nickname") val userNickname: String,
+    @SerialName("authentication") val authentication: RelayIrcServerAuthenticationDto? = null,
 )
 
-private fun RelayIrcServerConfigDto.toIrcServerConfig(): IrcServerConfig {
+private fun RelayIrcServerConfigDto.toIrcServerConfig(authenticationBuilder: AuthenticationBuilder): IrcServerConfig {
     return IrcServerConfig(
         host = host,
         port = port.toInt(),
         serverIsSecure = isSecure,
         userNickname = userNickname,
-        authentication = null,
+        authentication = authentication?.let { authenticationBuilder(it) },
     )
 }
 
@@ -84,14 +96,14 @@ private data class RelayConfigDto(
     @SerialName("bridges") val bridges: List<RelayBridgeConfigDto>,
 )
 
-private fun RelayConfigDto.toIrcConfig(): IrcConfig {
+private fun RelayConfigDto.toIrcConfig(authenticationBuilder: AuthenticationBuilder): IrcConfig {
     return IrcConfig(
         setupConfig = IrcSetupConfig(
             serverListConfig = IrcServerListConfig(
                 setupConfig
                     .servers
                     .mapKeys { (k, _) -> IrcServerName(k) }
-                    .mapValues { (_, v) -> v.toIrcServerConfig() },
+                    .mapValues { (_, v) -> v.toIrcServerConfig(authenticationBuilder = authenticationBuilder) },
             ),
         ),
         relayConfig = IrcRelayConfig(
@@ -107,6 +119,9 @@ private fun RelayConfigDto.toIrcConfig(): IrcConfig {
     )
 }
 
-fun readRelayConfig(path: Path) = readConfigFromFile(path, null) { text ->
-    Json.decodeFromString<RelayConfigDto>(text).toIrcConfig()
+fun readRelayConfig(
+    path: Path,
+    authenticationBuilder: AuthenticationBuilder,
+) = readConfigFromFile(path, null) { text ->
+    Json.decodeFromString<RelayConfigDto>(text).toIrcConfig(authenticationBuilder = authenticationBuilder)
 }
