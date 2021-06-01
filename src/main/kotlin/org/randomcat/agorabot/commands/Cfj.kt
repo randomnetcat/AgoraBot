@@ -4,7 +4,7 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.util.repeated
 import kotlin.random.Random
 
-private const val FOUR_FACTORS_LOTS = 25
+private const val FOUR_FACTORS_LOTS = 10
 
 private val UNLIKELY_RESPONSES = listOf(
     "SHENANIGANS",
