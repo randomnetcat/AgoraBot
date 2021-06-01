@@ -51,6 +51,9 @@ inline fun <T> ignoringRestActionOn(jda: JDA, actionFun: () -> RestAction<T>?): 
     }
 }
 
+val Message.effectiveSenderName: String
+    get() = member?.effectiveName ?: author.name
+
 fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }
 }

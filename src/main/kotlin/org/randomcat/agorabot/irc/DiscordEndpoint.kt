@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
+import org.randomcat.agorabot.util.effectiveSenderName
 
 private fun formatRawNameForDiscord(name: String): String {
     return "**$name**"
@@ -69,7 +70,22 @@ data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : 
 
     override fun sendDiscordMessage(message: DiscordMessage) {
         tryWithChannel { channel ->
-            val name = message.member?.effectiveName ?: message.author.name
+            val senderName = message.effectiveSenderName
+
+            val referencedMessage = message.referencedMessage
+
+            val replySection = if (referencedMessage != null) {
+                val replyName = referencedMessage.effectiveSenderName
+
+                "In reply to ${formatRawNameForDiscord(replyName)} saying: ${referencedMessage.contentRaw}\n"
+            } else {
+                ""
+            }
+
+            val textSection = run {
+                val saysVerb = if (referencedMessage != null) "replies" else "says"
+                "${formatRawNameForDiscord(senderName)} $saysVerb: ${message.contentRaw}"
+            }
 
             val attachmentsSection = if (message.attachments.isNotEmpty()) {
                 "\n\nAttachments:\n${message.attachments.joinToString("\n") { it.url }}"
@@ -79,7 +95,7 @@ data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : 
 
             relayToChannel(
                 channel,
-                "${formatRawNameForDiscord(name)} says: ${message.contentRaw}$attachmentsSection",
+                "$replySection$textSection$attachmentsSection",
             )
         }
     }

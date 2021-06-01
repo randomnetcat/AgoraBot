@@ -8,23 +8,38 @@ import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
+import org.randomcat.agorabot.util.effectiveSenderName
 
 data class IrcRelayEndpointConfig(
     val commandPrefix: String?,
 )
 
 private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
-    val senderName = message.member?.nickname ?: message.author.name
+    val senderName = message.effectiveSenderName
 
-    val fullMessage =
-        senderName +
-                " says: " +
-                message.contentDisplay +
-                (message.attachments
-                    .map { it.url }
-                    .takeIf { it.isNotEmpty() }
-                    ?.joinToString(separator = "\n", prefix = "\n")
-                    ?: "")
+    val referencedMessage = message.referencedMessage
+
+    val replySection = run {
+        if (referencedMessage != null) {
+            val replyName = referencedMessage.effectiveSenderName
+            "In response to $replyName saying: ${referencedMessage.contentRaw}\n"
+        } else {
+            ""
+        }
+    }
+
+    val attachmentSection =
+        message
+            .attachments
+            .map { it.url }
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(separator = "\n", prefix = "\n")
+            ?: ""
+
+    val saysVerb = if (referencedMessage != null) "replies" else "says"
+    val textSection = "$senderName $saysVerb: ${message.contentDisplay}"
+
+    val fullMessage = replySection + textSection + attachmentSection
 
     sendSplitMultiLineMessage(fullMessage)
 }
