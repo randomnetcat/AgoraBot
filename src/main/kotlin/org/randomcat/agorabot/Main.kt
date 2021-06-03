@@ -232,6 +232,7 @@ private fun runBot(config: BotRunConfig) {
             ),
             "prefix_commands" to prefixCommandsFeature(prefixMap),
             "random_commands" to randomCommandsFeature(),
+            "judge_list_commands" to judgeListCommandsFeature(),
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
             "self_assign_roles" to selfAssignCommandsFeature(),
             "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
