@@ -103,7 +103,7 @@ class JudgeListCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                     val judgeNames = getJudgeListState().judgeNames
 
                     if (judgeNames.isNotEmpty()) {
-                        respond("Selected ${judgeNames.random()}.")
+                        respond("Selected: ${judgeNames.random()}")
                     } else {
                         respond("The judge list is empty.")
                     }
