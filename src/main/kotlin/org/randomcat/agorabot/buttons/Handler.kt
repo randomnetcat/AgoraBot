@@ -22,6 +22,9 @@ inline fun <reified T : Any> ButtonHandlersReceiver.withType(noinline handler: B
 data class ButtonHandlerMap(private val handlersByType: ImmutableMap<KClass<*>, ButtonHandler<*>>) {
     constructor(handlersByType: Map<KClass<*>, ButtonHandler<*>>) : this(handlersByType.toImmutableMap())
 
+    val handledClasses: Set<KClass<*>>
+        get() = handlersByType.keys
+
     fun toMap(): Map<KClass<*>, ButtonHandler<*>> = handlersByType
 }
 
