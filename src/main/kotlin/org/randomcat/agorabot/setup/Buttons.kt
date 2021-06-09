@@ -1,13 +1,15 @@
 package org.randomcat.agorabot.setup
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
+import kotlinx.serialization.serializer
 import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.JsonButtonRequestDataMap
 import org.randomcat.agorabot.config.ConfigPersistService
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 
 private fun makeSerializersModule(buttonRequestTypes: Set<KClass<*>>): SerializersModule {
@@ -21,7 +23,10 @@ private fun makeSerializersModule(buttonRequestTypes: Set<KClass<*>>): Serialize
     return SerializersModule {
         polymorphic(ButtonRequestDescriptor::class) {
             for (buttonRequestType in buttonRequestTypes) {
-                subclass(buttonRequestType as KClass<ButtonRequestDescriptor>)
+                subclass(
+                    buttonRequestType as KClass<ButtonRequestDescriptor>,
+                    serializer(buttonRequestType.createType()) as KSerializer<ButtonRequestDescriptor>,
+                )
             }
         }
     }
