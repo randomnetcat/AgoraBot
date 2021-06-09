@@ -92,7 +92,7 @@ class JsonButtonRequestDataMap(storagePath: Path, serializersModule: Serializers
     }
 
     override fun tryGetRequestById(id: ButtonRequestId, timeForExpirationCheck: Instant): ButtonRequestDescriptor? {
-        return impl.getValue()[id.raw]?.takeIf { it.expiry < timeForExpirationCheck }?.descriptor
+        return impl.getValue()[id.raw]?.takeIf { it.expiry > timeForExpirationCheck }?.descriptor
     }
 
     private fun generateId(): ButtonRequestId = ButtonRequestId(UUID.randomUUID().toString())
