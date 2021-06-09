@@ -1,6 +1,7 @@
 package org.randomcat.agorabot
 
 import net.dv8tion.jda.api.JDA
+import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
@@ -14,9 +15,16 @@ interface FeatureContext {
     fun commandRegistry(): QueryableCommandRegistry
 }
 
+sealed class FeatureButtonData {
+    object NoButtons : FeatureButtonData()
+    data class RegisterHandlers(val handlerMap: ButtonHandlerMap) : FeatureButtonData()
+}
+
 interface Feature {
     fun commandsInContext(context: FeatureContext): Map<String, Command>
     fun registerListenersTo(jda: JDA) {}
+
+    fun buttonData(): FeatureButtonData = FeatureButtonData.NoButtons
 
     companion object {
         fun ofCommands(block: (context: FeatureContext) -> Map<String, Command>): Feature {

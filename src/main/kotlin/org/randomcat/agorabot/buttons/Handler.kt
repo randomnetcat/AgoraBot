@@ -3,6 +3,7 @@ package org.randomcat.agorabot.buttons
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import org.randomcat.util.requireDistinct
 import kotlin.reflect.KClass
 
 interface ButtonHandlerContext {
@@ -20,10 +21,21 @@ inline fun <reified T : Any> ButtonHandlersReceiver.withType(noinline handler: B
 
 
 data class ButtonHandlerMap(private val handlersByType: ImmutableMap<KClass<*>, ButtonHandler<*>>) {
+    companion object {
+        fun mergeDisjointHandlers(handlerMaps: List<ButtonHandlerMap>): ButtonHandlerMap {
+            handlerMaps.flatMap { it.handledClasses }.requireDistinct()
+            return ButtonHandlerMap(handlerMaps.flatMap { it.toMap().entries }.associate { it.toPair() })
+        }
+    }
+
     constructor(handlersByType: Map<KClass<*>, ButtonHandler<*>>) : this(handlersByType.toImmutableMap())
 
     val handledClasses: Set<KClass<*>>
         get() = handlersByType.keys
+
+    fun tryGetHandler(type: KClass<*>): ButtonHandler<*>? {
+        return handlersByType[type]
+    }
 
     fun toMap(): Map<KClass<*>, ButtonHandler<*>> = handlersByType
 }
