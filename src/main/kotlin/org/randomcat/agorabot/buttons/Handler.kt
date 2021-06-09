@@ -40,7 +40,7 @@ data class ButtonHandlerMap(private val handlersByType: ImmutableMap<KClass<*>, 
     fun toMap(): Map<KClass<*>, ButtonHandler<*>> = handlersByType
 }
 
-fun compileButtonHandlersBlock(block: ButtonHandlersReceiver.() -> Unit): ButtonHandlerMap {
+fun ButtonHandlerMap(block: ButtonHandlersReceiver.() -> Unit): ButtonHandlerMap {
     val map = mutableMapOf<KClass<*>, ButtonHandler<*>>()
 
     class ReceiverImpl : ButtonHandlersReceiver {
