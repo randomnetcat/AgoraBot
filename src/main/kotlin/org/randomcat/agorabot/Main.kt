@@ -91,13 +91,15 @@ private fun makeBaseCommandStrategy(
     outputStrategy: BaseCommandOutputStrategy,
     guildStateStrategy: BaseCommandGuildStateStrategy,
     permissionsStrategy: BaseCommandPermissionsStrategy,
+    buttonStrategy: BaseCommandButtonStrategy,
 ): BaseCommandStrategy {
     return object :
         BaseCommandStrategy,
         BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
         BaseCommandOutputStrategy by outputStrategy,
         BaseCommandPermissionsStrategy by permissionsStrategy,
-        BaseCommandGuildStateStrategy by guildStateStrategy {}
+        BaseCommandGuildStateStrategy by guildStateStrategy,
+        BaseCommandButtonStrategy by buttonStrategy {}
 }
 
 private fun runBot(config: BotRunConfig) {
@@ -201,6 +203,12 @@ private fun runBot(config: BotRunConfig) {
 
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
+        val buttonRequestDataMap = setupButtonDataMap(
+            paths = config.paths,
+            buttonRequestTypes = emptySet(),
+            persistService = persistService,
+        )
+
         val commandStrategy = makeBaseCommandStrategy(
             BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
             BaseCommandGuildStateStrategy.fromMap(guildStateMap),
@@ -209,6 +217,7 @@ private fun runBot(config: BotRunConfig) {
                 botMap = botPermissionMap,
                 guildMap = guildPermissionMap
             ),
+            BaseCommandButtonStrategy.fromMap(buttonRequestDataMap = buttonRequestDataMap),
         )
 
         val commandRegistry = MutableMapCommandRegistry(emptyMap())
