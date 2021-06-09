@@ -206,23 +206,6 @@ private fun runBot(config: BotRunConfig) {
 
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
-        val buttonRequestDataMap = setupButtonDataMap(
-            paths = config.paths,
-            buttonRequestTypes = emptySet(),
-            persistService = persistService,
-        )
-
-        val commandStrategy = makeBaseCommandStrategy(
-            BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
-            BaseCommandGuildStateStrategy.fromMap(guildStateMap),
-            makePermissionsStrategy(
-                permissionsConfig = permissionsConfig,
-                botMap = botPermissionMap,
-                guildMap = guildPermissionMap
-            ),
-            BaseCommandButtonStrategy.fromMap(buttonRequestDataMap = buttonRequestDataMap),
-        )
-
         val commandRegistry = MutableMapCommandRegistry(emptyMap())
 
         val features = listOfNotNull(
@@ -248,6 +231,33 @@ private fun runBot(config: BotRunConfig) {
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
             "self_assign_roles" to selfAssignCommandsFeature(),
             "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
+            "button_test" to buttonTestFeature(),
+        )
+
+        val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
+            features.mapNotNull { it.second?.buttonData() }.mapNotNull {
+                when (it) {
+                    is FeatureButtonData.NoButtons -> null
+                    is FeatureButtonData.RegisterHandlers -> it.handlerMap
+                }
+            },
+        )
+
+        val buttonRequestDataMap = setupButtonDataMap(
+            paths = config.paths,
+            buttonRequestTypes = buttonHandlerMap.handledClasses,
+            persistService = persistService,
+        )
+
+        val commandStrategy = makeBaseCommandStrategy(
+            BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
+            BaseCommandGuildStateStrategy.fromMap(guildStateMap),
+            makePermissionsStrategy(
+                permissionsConfig = permissionsConfig,
+                botMap = botPermissionMap,
+                guildMap = guildPermissionMap
+            ),
+            BaseCommandButtonStrategy.fromMap(buttonRequestDataMap = buttonRequestDataMap),
         )
 
         val featureContext = object : FeatureContext {
@@ -279,15 +289,6 @@ private fun runBot(config: BotRunConfig) {
                 MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
                 commandRegistry,
             ),
-        )
-
-        val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
-            features.mapNotNull { it.second?.buttonData() }.mapNotNull {
-                when (it) {
-                    is FeatureButtonData.NoButtons -> null
-                    is FeatureButtonData.RegisterHandlers -> it.handlerMap
-                }
-            },
         )
 
         jda.addEventListener(BotButtonListener { event ->
