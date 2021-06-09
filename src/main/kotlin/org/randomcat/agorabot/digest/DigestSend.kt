@@ -4,12 +4,15 @@ import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 interface DigestSendStrategy {
     fun sendDigest(digest: Digest, destination: String)
 }
+
+private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
 
 class SsmtpDigestSendStrategy(
     private val digestFormat: DigestFormat,
@@ -18,7 +21,7 @@ class SsmtpDigestSendStrategy(
 ) : DigestSendStrategy {
     override fun sendDigest(digest: Digest, destination: String) {
         withTempFile("ssmtp-digest-data") { tempFile ->
-            val subject = "Discord digest ${DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDateTime.now())}"
+            val subject = "Discord digest ${DATE_FORMAT.format(Instant.now())}"
             val content = digestFormat.format(digest)
 
             val messageText =
