@@ -1,11 +1,14 @@
 package org.randomcat.agorabot.digest
 
-import org.randomcat.agorabot.util.utcLocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 interface DigestFormat {
     fun format(digest: Digest): String
 }
+
+private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
+private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.UTC)
 
 class SimpleDigestFormat : DigestFormat {
     override fun format(digest: Digest): String {
@@ -29,13 +32,13 @@ class SimpleDigestFormat : DigestFormat {
                             ""
             }
 
-            val adjustedDate = message.messageDate.utcLocalDateTime()
+            val messageInstant = message.messageDate.toInstant()
 
             "MESSAGE ${message.id}\n" +
                     "FROM ${message.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +
                     (message.channelName?.let { "IN #$it " } ?: "") +
-                    "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(adjustedDate)} " +
-                    "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(adjustedDate)}:" +
+                    "ON ${DATE_FORMAT.format(messageInstant)} " +
+                    "AT ${TIME_FORMAT.format(messageInstant)}:" +
                     "\n" +
                     contentPart
         }

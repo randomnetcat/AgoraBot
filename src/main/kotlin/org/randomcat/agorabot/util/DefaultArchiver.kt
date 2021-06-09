@@ -16,11 +16,15 @@ import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+
+private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
+private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.UTC)
 
 private fun writeMessageTextTo(
     message: Message,
@@ -45,14 +49,14 @@ private fun writeMessageTextTo(
                     ""
     }
 
-    val adjustedTimeCreated = message.timeCreated.utcLocalDateTime()
+    val instantCreated = message.timeCreated.toInstant()
 
     out.write(
         "MESSAGE ${message.id}\n" +
                 "FROM ${message.author.name} " +
                 "IN #${message.channel.name} " +
-                "ON ${DateTimeFormatter.ISO_LOCAL_DATE.format(adjustedTimeCreated)} " +
-                "AT ${DateTimeFormatter.ISO_LOCAL_TIME.format(adjustedTimeCreated)}:" +
+                "ON ${DATE_FORMAT.format(instantCreated)} " +
+                "AT ${TIME_FORMAT.format(instantCreated)}:" +
                 "\n" +
                 contentPart +
                 "\n\n"
