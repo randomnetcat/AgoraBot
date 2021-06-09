@@ -7,6 +7,10 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.buttons.ButtonRequestData
+import org.randomcat.agorabot.buttons.ButtonRequestDataMap
+import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
+import org.randomcat.agorabot.buttons.ButtonRequestId
 import org.randomcat.agorabot.config.GuildState
 import org.randomcat.agorabot.config.GuildStateMap
 import org.randomcat.agorabot.listener.Command
@@ -18,6 +22,7 @@ import org.randomcat.agorabot.permissions.BotPermissionContext
 import org.randomcat.agorabot.permissions.UserPermissionContext
 import org.randomcat.agorabot.util.DiscordPermission
 import org.randomcat.agorabot.util.resolveRoleString
+import java.time.Instant
 
 interface BaseCommandArgumentStrategy {
     fun sendArgumentErrorResponse(
@@ -67,11 +72,34 @@ interface BaseCommandGuildStateStrategy {
     }
 }
 
+interface BaseCommandButtonStrategy {
+    companion object {
+        fun fromMap(buttonRequestDataMap: ButtonRequestDataMap): BaseCommandButtonStrategy {
+            return object : BaseCommandButtonStrategy {
+                override fun storeButtonRequestAndGetId(
+                    descriptor: ButtonRequestDescriptor,
+                    expiry: Instant,
+                ): ButtonRequestId {
+                    return buttonRequestDataMap.putRequest(
+                        ButtonRequestData(
+                            descriptor = descriptor,
+                            expiry = expiry,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    fun storeButtonRequestAndGetId(descriptor: ButtonRequestDescriptor, expiry: Instant): ButtonRequestId
+}
+
 interface BaseCommandStrategy :
     BaseCommandArgumentStrategy,
     BaseCommandOutputStrategy,
     BaseCommandPermissionsStrategy,
-    BaseCommandGuildStateStrategy
+    BaseCommandGuildStateStrategy,
+    BaseCommandButtonStrategy
 
 private fun userPermissionContextForSource(source: CommandEventSource): UserPermissionContext {
     return when (source) {
@@ -228,6 +256,8 @@ interface BaseCommandExecutionReceiverDiscord : BaseCommandExecutionReceiver {
     fun currentGuildInfo(): GuildInfo?
 
     fun currentMessageEvent(): MessageReceivedEvent
+
+    fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration): String
 }
 
 fun BaseCommandExecutionReceiverDiscord.currentJda(): JDA = currentMessageEvent().jda
@@ -287,6 +317,14 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             return if (event.isFromGuild) GuildInfo(event, strategy) else null
         }
 
+        override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration): String {
+            return strategy
+                .storeButtonRequestAndGetId(
+                    descriptor = descriptor,
+                    expiry = Instant.now().plusSeconds(expiryDuration.toSeconds()),
+                )
+                .raw
+        }
     }
 
     private class ExecutionReceiverGuildedImpl(

@@ -9,8 +9,10 @@ import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
+import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
@@ -22,6 +24,7 @@ import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.exitProcess
 
@@ -91,13 +94,15 @@ private fun makeBaseCommandStrategy(
     outputStrategy: BaseCommandOutputStrategy,
     guildStateStrategy: BaseCommandGuildStateStrategy,
     permissionsStrategy: BaseCommandPermissionsStrategy,
+    buttonStrategy: BaseCommandButtonStrategy,
 ): BaseCommandStrategy {
     return object :
         BaseCommandStrategy,
         BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
         BaseCommandOutputStrategy by outputStrategy,
         BaseCommandPermissionsStrategy by permissionsStrategy,
-        BaseCommandGuildStateStrategy by guildStateStrategy {}
+        BaseCommandGuildStateStrategy by guildStateStrategy,
+        BaseCommandButtonStrategy by buttonStrategy {}
 }
 
 private fun runBot(config: BotRunConfig) {
@@ -201,16 +206,6 @@ private fun runBot(config: BotRunConfig) {
 
         val delayedRegistryReference = AtomicReference<QueryableCommandRegistry>(null)
 
-        val commandStrategy = makeBaseCommandStrategy(
-            BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
-            BaseCommandGuildStateStrategy.fromMap(guildStateMap),
-            makePermissionsStrategy(
-                permissionsConfig = permissionsConfig,
-                botMap = botPermissionMap,
-                guildMap = guildPermissionMap
-            ),
-        )
-
         val commandRegistry = MutableMapCommandRegistry(emptyMap())
 
         val features = listOfNotNull(
@@ -236,6 +231,33 @@ private fun runBot(config: BotRunConfig) {
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
             "self_assign_roles" to selfAssignCommandsFeature(),
             "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
+            "button_test" to buttonTestFeature(),
+        )
+
+        val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
+            features.mapNotNull { it.second?.buttonData() }.mapNotNull {
+                when (it) {
+                    is FeatureButtonData.NoButtons -> null
+                    is FeatureButtonData.RegisterHandlers -> it.handlerMap
+                }
+            },
+        )
+
+        val buttonRequestDataMap = setupButtonDataMap(
+            paths = config.paths,
+            buttonRequestTypes = buttonHandlerMap.handledClasses,
+            persistService = persistService,
+        )
+
+        val commandStrategy = makeBaseCommandStrategy(
+            BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
+            BaseCommandGuildStateStrategy.fromMap(guildStateMap),
+            makePermissionsStrategy(
+                permissionsConfig = permissionsConfig,
+                botMap = botPermissionMap,
+                guildMap = guildPermissionMap
+            ),
+            BaseCommandButtonStrategy.fromMap(buttonRequestDataMap = buttonRequestDataMap),
         )
 
         val featureContext = object : FeatureContext {
@@ -268,6 +290,39 @@ private fun runBot(config: BotRunConfig) {
                 commandRegistry,
             ),
         )
+
+        jda.addEventListener(BotButtonListener { event ->
+            val id = ButtonRequestId(event.componentId)
+
+            val requestDescriptor = buttonRequestDataMap.tryGetRequestById(
+                id = id,
+                timeForExpirationCheck = Instant.now(),
+            )
+
+            if (requestDescriptor != null) {
+                @Suppress("UNCHECKED_CAST")
+                val handler =
+                    buttonHandlerMap.tryGetHandler(requestDescriptor::class) as ButtonHandler<ButtonRequestDescriptor>?
+
+                if (handler != null) {
+                    // Unambiguous name for context
+                    val theEvent = event
+
+                    handler(
+                        object : ButtonHandlerContext {
+                            override val event: ButtonClickEvent
+                                get() = theEvent
+                        },
+                        requestDescriptor,
+                    )
+                } else {
+                    event.reply("Unknown button type. That feature may be disabled.").setEphemeral(true).queue()
+                }
+            } else {
+                event.reply("Unknown button request. That button may have expired.").setEphemeral(true).queue()
+            }
+        })
+
 
         if (ircSetupResult is IrcSetupResult.Connected) {
             val clientMap = ircSetupResult.clients
