@@ -32,7 +32,7 @@ class SimpleDigestFormat : DigestFormat {
                             ""
             }
 
-            val messageInstant = message.messageDate.toInstant()
+            val messageInstant = message.messageDate
 
             "MESSAGE ${message.id}\n" +
                     "FROM ${message.senderUsername}${if (includeNickname) " ($nickname)" else ""} " +

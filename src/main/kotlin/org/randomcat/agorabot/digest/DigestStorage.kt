@@ -58,7 +58,7 @@ private data class DigestMessageDto(
             id = message.id,
             channelName = message.channelName,
             content = message.content,
-            messageDate = message.messageDate,
+            messageDate = message.messageDate.atOffset(ZoneOffset.UTC),
             attachmentUrls = message.attachmentUrls.toList(),
         )
     }
@@ -69,7 +69,7 @@ private data class DigestMessageDto(
         id = id,
         channelName = channelName,
         content = content,
-        messageDate = messageDate,
+        messageDate = messageDate.toInstant(),
         attachmentUrls = attachmentUrls.toImmutableList(),
     )
 }

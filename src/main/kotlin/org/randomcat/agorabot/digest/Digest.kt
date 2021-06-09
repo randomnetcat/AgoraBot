@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.digest
 
 import kotlinx.collections.immutable.ImmutableList
-import java.time.OffsetDateTime
+import java.time.Instant
 
 data class DigestMessage(
     val senderUsername: String,
@@ -9,7 +9,7 @@ data class DigestMessage(
     val id: String,
     val channelName: String?,
     val content: String,
-    val messageDate: OffsetDateTime,
+    val messageDate: Instant,
     val attachmentUrls: ImmutableList<String>,
 )
 
