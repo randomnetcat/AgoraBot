@@ -8,6 +8,7 @@ import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.JsonButtonRequestDataMap
 import org.randomcat.agorabot.config.ConfigPersistService
+import java.time.Clock
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
@@ -43,5 +44,6 @@ fun setupButtonDataMap(
     return JsonButtonRequestDataMap(
         storagePath = storagePath,
         serializersModule = serializersModule,
+        clock = Clock.systemUTC(),
     ).also { it.schedulePersistenceOn(persistService) }
 }

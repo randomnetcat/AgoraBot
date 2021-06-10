@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.buttons
 
 import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.Serializable
@@ -8,10 +9,12 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.randomcat.agorabot.config.AtomicCachedStorage
 import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.config.SchedulableAtomicCachedStorage
 import org.randomcat.agorabot.config.StorageStrategy
 import java.nio.file.Path
+import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -55,13 +58,17 @@ private data class ButtonRequestDataDto(
 private typealias JsonValueType = PersistentMap<String, ButtonRequestData>
 private typealias JsonStoredValueType = Map<String, ButtonRequestDataDto>
 
-class JsonButtonRequestDataMap(storagePath: Path, serializersModule: SerializersModule) : ButtonRequestDataMap {
+class JsonButtonRequestDataMap(
+    storagePath: Path,
+    serializersModule: SerializersModule,
+    clock: Clock,
+) : ButtonRequestDataMap {
     private val impl = run {
         // Provides an unambiguous name for serializersModule
         @Suppress("UnnecessaryVariable")
         val theSerializersModule = serializersModule
 
-        AtomicCachedStorage<JsonValueType>(
+        SchedulableAtomicCachedStorage<JsonValueType>(
             storagePath,
             object : StorageStrategy<JsonValueType> {
                 private fun JsonValueType.toStoredValue(): JsonStoredValueType {
@@ -88,7 +95,17 @@ class JsonButtonRequestDataMap(storagePath: Path, serializersModule: Serializers
                     return jsonImpl.decodeFromString<JsonStoredValueType>(text).toValue()
                 }
             },
-        )
+        ).also { storage ->
+            storage.schedulePeriodicUpdate(Duration.ofMinutes(5)) { oldValue ->
+                val currentTime = clock.instant()
+
+                oldValue.mutate { valueMutator ->
+                    valueMutator.entries.removeIf { entry ->
+                        entry.value.expiry < currentTime
+                    }
+                }
+            }
+        }
     }
 
     override fun tryGetRequestById(id: ButtonRequestId, timeForExpirationCheck: Instant): ButtonRequestDescriptor? {
