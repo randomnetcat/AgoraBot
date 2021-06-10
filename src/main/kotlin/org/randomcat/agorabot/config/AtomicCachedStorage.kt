@@ -2,6 +2,10 @@ package org.randomcat.agorabot.config
 
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.*
+import java.time.Duration
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 interface StorageStrategy<T> {
@@ -53,5 +57,57 @@ class AtomicCachedStorage<T>(
 
     fun updateValue(mapper: (T) -> T) {
         valueReference.updateAndGet(mapper)
+    }
+}
+
+class SchedulableAtomicCachedStorage<T>(
+    storagePath: Path,
+    strategy: StorageStrategy<T>,
+) {
+    private val impl = AtomicCachedStorage<T>(storagePath = storagePath, strategy = strategy)
+    private val updateIsOngoingFlag = AtomicBoolean(false)
+    private val scheduledUpdateExecutor = Executors.newSingleThreadScheduledExecutor()
+
+    fun schedulePersistenceOn(persistService: ConfigPersistService) = impl.schedulePersistenceOn(persistService)
+
+    fun getValue() = impl.getValue()
+
+    /**
+     * Use to minimize the contention between scheduled updates and ad-hoc updates. Scheduled updates might take a while
+     * to do computation, so this ensures that the update thread isn't spinning forever.
+     */
+    private fun waitForScheduledUpdate() {
+        while (updateIsOngoingFlag.get()) {
+            Thread.onSpinWait()
+        }
+    }
+
+    private fun runPeriodicUpdate(mapper: (T) -> T) {
+        // Only one update can run at a time because the executor is single-threaded
+        updateIsOngoingFlag.set(true)
+
+        try {
+            impl.updateValue(mapper)
+        } finally {
+            updateIsOngoingFlag.set(false)
+        }
+    }
+
+    fun updateValue(mapper: (T) -> T) {
+        waitForScheduledUpdate()
+        return impl.updateValue(mapper)
+    }
+
+    fun schedulePeriodicUpdate(duration: Duration, mapper: (T) -> T) {
+        val delayInSeconds = duration.toSeconds()
+
+        scheduledUpdateExecutor.scheduleAtFixedRate(
+            {
+                runPeriodicUpdate(mapper)
+            },
+            delayInSeconds,
+            delayInSeconds,
+            TimeUnit.SECONDS,
+        )
     }
 }
