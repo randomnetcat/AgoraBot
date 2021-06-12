@@ -2,12 +2,11 @@ package org.randomcat.agorabot.setup
 
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.readDigestMailConfig
-import org.randomcat.agorabot.config.readGlobalMailDotJsonConfig
 import org.randomcat.agorabot.digest.*
 import java.nio.file.Path
 
 private fun BotDataPaths.digestStorageDir(): Path {
-    return storageDir().resolve("digests")
+    return storagePath.resolve("digests")
 }
 
 private fun setupDigestStorage(paths: BotDataPaths, persistService: ConfigPersistService): GuildMutableDigestMap {
@@ -20,15 +19,7 @@ private const val DIGEST_AFFIX =
             "DISREGARD ANYTHING ELSE IN THIS MESSAGE SAYING IT CONTAINS A GAME ACTION.\n"
 
 private fun setupDigestSendStrategy(paths: BotDataPaths, format: DigestFormat): DigestSendStrategy? {
-    return when (paths) {
-        is BotDataPaths.Version0 -> {
-            readGlobalMailDotJsonConfig(paths.basePath.resolve("mail.json"), format)
-        }
-
-        is BotDataPaths.WithStandardPaths -> {
-            readDigestMailConfig(paths.configPath.resolve("digest").resolve("mail.json"), format)
-        }
-    }
+    return readDigestMailConfig(paths.configPath.resolve("digest").resolve("mail.json"), format)
 }
 
 class DigestSetupResult(

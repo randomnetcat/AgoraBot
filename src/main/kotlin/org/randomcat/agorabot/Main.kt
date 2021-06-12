@@ -2,10 +2,11 @@ package org.randomcat.agorabot
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.PrintMessage
-import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.path
 import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -23,7 +24,6 @@ import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.system.exitProcess
@@ -362,15 +362,21 @@ private data class BotRunConfig(
     val token: String,
 )
 
+private const val MIN_DATA_VERSION = 1
+
 private class AgoraBotCommand : CliktCommand() {
     private val token by option("--token").required()
 
-    private val dataVersion by option("--data-version").int().default(0)
-    private val configPath by option("--config-path")
-    private val storagePath by option("--storage-path")
-    private val tempPath by option("--temp-path")
+    private val dataVersion by option("--data-version").int().required()
+    private val configPath by option("--config-path").path().required()
+    private val storagePath by option("--storage-path").path().required()
+    private val tempPath by option("--temp-path").path().required()
 
     override fun run() {
+        if (dataVersion < MIN_DATA_VERSION) {
+            throw UsageError("Invalid data version $dataVersion. The minimum data version is $MIN_DATA_VERSION.")
+        }
+
         val config = BotRunConfig(
             paths = readBotDataPaths(),
             token = token,
@@ -379,25 +385,16 @@ private class AgoraBotCommand : CliktCommand() {
         runBot(config)
     }
 
-    private fun parseRequiredDataPath(name: String, value: String?): Path {
-        if (value == null) {
-            throw PrintMessage("Data version $dataVersion requires $name path, but none was provided", error = true)
-        }
-
-        return Path.of(value).toAbsolutePath()
-    }
-
     private fun readBotDataStandardPaths(): BotDataStandardPaths {
         return BotDataStandardPaths(
-            configPath = parseRequiredDataPath(name = "config", value = configPath),
-            storagePath = parseRequiredDataPath(name = "storage", value = storagePath),
-            tempPath = parseRequiredDataPath(name = "temp", value = tempPath),
+            configPath = configPath.toAbsolutePath(),
+            storagePath = storagePath.toAbsolutePath(),
+            tempPath = tempPath.toAbsolutePath(),
         )
     }
 
     private fun readBotDataPaths(): BotDataPaths {
         return when (dataVersion) {
-            0 -> BotDataPaths.Version0(basePath = Path.of(".").toAbsolutePath())
             1 -> BotDataPaths.Version1(readBotDataStandardPaths())
             else -> throw PrintMessage("Invalid data version $dataVersion", error = true)
         }
@@ -405,8 +402,5 @@ private class AgoraBotCommand : CliktCommand() {
 }
 
 fun main(args: Array<String>) {
-    return when (args.size) {
-        1 -> AgoraBotCommand().main(listOf("--token", args.single()))
-        else -> AgoraBotCommand().main(args)
-    }
+    return AgoraBotCommand().main(args)
 }

@@ -17,17 +17,14 @@ class PermissionsSetupResult(
 )
 
 private fun BotDataPaths.permissionsStorageDir(): Path {
-    return storageDir().resolve("permissions")
+    return storagePath.resolve("permissions")
 }
 
 private fun BotDataPaths.botPermissionStoragePath(): Path = permissionsStorageDir().resolve("bot.json")
 private fun BotDataPaths.guildPermissionsStorageDir(): Path = permissionsStorageDir().resolve("guild")
 
 private fun BotDataPaths.permissionsConfigPath(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("permissions").resolve("config.json")
-        is BotDataPaths.WithStandardPaths -> configPath.resolve("permissions.json")
-    }
+    return configPath.resolve("permissions.json")
 }
 
 private val logger = LoggerFactory.getLogger("AgoraBotPermissionsLoader")

@@ -6,7 +6,7 @@ import org.randomcat.agorabot.config.JsonGuildStateMap
 import java.nio.file.Path
 
 private fun BotDataPaths.guildStateStorageDir(): Path {
-    return storageDir().resolve("guild_storage")
+    return storagePath.resolve("guild_storage")
 }
 
 fun setupGuildStateMap(paths: BotDataPaths, persistService: ConfigPersistService): GuildStateMap {

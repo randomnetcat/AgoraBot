@@ -9,10 +9,7 @@ import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Path
 
 private fun BotDataPaths.featureConfigDir(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("features")
-        is BotDataPaths.WithStandardPaths -> configPath.resolve("features")
-    }
+    return configPath.resolve("features")
 }
 
 fun setupCitationsConfig(paths: BotDataPaths): CitationsConfig? {
@@ -20,12 +17,12 @@ fun setupCitationsConfig(paths: BotDataPaths): CitationsConfig? {
 }
 
 private fun BotDataPaths.archiveStorageDir(): Path {
-    return storageDir().resolve("stored_archives")
+    return storagePath.resolve("stored_archives")
 }
 
 private fun setupArchiver(paths: BotDataPaths): DiscordArchiver {
     return DefaultDiscordArchiver(
-        storageDir = paths.tempDir().resolve("archive"),
+        storageDir = paths.tempPath.resolve("archive"),
     )
 }
 

@@ -38,7 +38,7 @@ fun setupButtonDataMap(
     buttonRequestTypes: Set<KClass<*>>,
     persistService: ConfigPersistService,
 ): ButtonRequestDataMap {
-    val storagePath = paths.storageDir().resolve("buttons_data")
+    val storagePath = paths.storagePath.resolve("buttons_data")
     val serializersModule = makeSerializersModule(buttonRequestTypes = buttonRequestTypes)
 
     return JsonButtonRequestDataMap(

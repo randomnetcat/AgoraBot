@@ -15,21 +15,15 @@ import kotlin.io.path.readText
 private val logger = LoggerFactory.getLogger("AgoraBotIrcSetup")
 
 private fun BotDataPaths.ircConfigPath(): Path {
-    return when (this) {
-        is BotDataPaths.Version0 -> basePath.resolve("irc").resolve("config.json")
-        is BotDataPaths.WithStandardPaths -> configPath.resolve("irc.json")
-    }
+    return configPath.resolve("irc.json")
 }
 
 private fun BotDataPaths.relayConfigPath(): Path? {
-    return when (this) {
-        is BotDataPaths.Version0 -> null
-        is BotDataPaths.WithStandardPaths -> configPath.resolve("relay.json")
-    }
+    return configPath.resolve("relay.json")
 }
 
 private fun BotDataPaths.ircStorageDir(): Path {
-    return storageDir().resolve("irc")
+    return storagePath.resolve("irc")
 }
 
 sealed class IrcSetupResult {
@@ -68,7 +62,7 @@ fun setupIrcClient(paths: BotDataPaths): IrcSetupResult {
                         val resolvedPath = if (unresolvedPath.isAbsolute) {
                             unresolvedPath
                         } else {
-                            (paths as BotDataPaths.WithStandardPaths).configPath.resolve(unresolvedPath)
+                            paths.configPath.resolve(unresolvedPath)
                         }
 
                         val key = SaslEcdsaNist256PChallenge.getPrivateKey(resolvedPath.readText().trim())
