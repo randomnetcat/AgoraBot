@@ -7,6 +7,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.AtomicCachedStorage
+import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.StorageStrategy
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.ValueType
@@ -67,5 +68,9 @@ class JsonSecretHitlerChannelGameMap(storagePath: Path) : SecretHitlerChannelGam
         impl.updateValue {
             it.remove(channelId)
         }
+    }
+
+    fun schedulePersistenceOn(persistService: ConfigPersistService) {
+        impl.schedulePersistenceOn(persistService)
     }
 }

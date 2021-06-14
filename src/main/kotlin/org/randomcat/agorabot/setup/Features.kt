@@ -2,6 +2,7 @@ package org.randomcat.agorabot.setup
 
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.commands.DiscordArchiver
+import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.parsing.features.CitationsConfig
 import org.randomcat.agorabot.config.parsing.features.readCitationsConfig
 import org.randomcat.agorabot.features.archiveCommandsFeature
@@ -9,6 +10,7 @@ import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
+import java.nio.file.Files
 import java.nio.file.Path
 
 private fun BotDataPaths.featureConfigDir(): Path {
@@ -36,11 +38,18 @@ fun setupArchiveFeature(paths: BotDataPaths): Feature {
     )
 }
 
-fun setupSecretHitlerFeature(paths: BotDataPaths): SecretHitlerRepository {
+fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistService): SecretHitlerRepository {
     val secretHitlerDir = paths.storagePath.resolve("secret_hitler")
+    Files.createDirectories(secretHitlerDir)
+
+    val gameList = JsonSecretHitlerGameList(storagePath = secretHitlerDir.resolve("games"))
+    gameList.schedulePersistenceOn(persistService)
+
+    val channelGameMap = JsonSecretHitlerChannelGameMap(storagePath = secretHitlerDir.resolve("games_by_channel"))
+    channelGameMap.schedulePersistenceOn(persistService)
 
     return SecretHitlerRepository(
-        gameList = JsonSecretHitlerGameList(storagePath = secretHitlerDir.resolve("games")),
-        channelGameMap = JsonSecretHitlerChannelGameMap(storagePath = secretHitlerDir.resolve("games_by_channel")),
+        gameList = gameList,
+        channelGameMap = channelGameMap,
     )
 }
