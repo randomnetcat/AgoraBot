@@ -13,7 +13,7 @@ fun formatSecretHitlerJoinMessageEmbed(state: SecretHitlerGameState.Joining): Me
         .setTitle("Secret Hitler Game")
         .addField(
             "Players",
-            state.playerNames.joinToString("\n") { name -> "<@${name.raw}>" },
+            state.playerNames.joinToString("\n") { name -> "<@${name.raw}>" }.ifEmpty { "[None yet]" },
             false,
         )
         .build()
