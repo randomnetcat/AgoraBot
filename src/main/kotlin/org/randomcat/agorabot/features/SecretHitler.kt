@@ -80,7 +80,7 @@ private suspend fun doHandleMessageUpdates(channel: Channel<UpdateAction>) {
 
                         // Ensure that the message edit action is queued only after any previous update in that channel
                         // has completed.
-                        futureMap.compute(updateAction.message.channel.id) { key, old ->
+                        futureMap.compute(updateAction.message.channel.id) { _, old ->
                             if (old != null) {
                                 old.thenCompose { _ ->
                                     restAction.submit()

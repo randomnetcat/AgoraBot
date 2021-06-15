@@ -17,5 +17,7 @@ inline fun <T, V> doUpdateAndExtract(runUpdate: ((T) -> T) -> Unit, crossinline 
     val finalValue = extractedValue
 
     check(finalValue !== UNSET_UPDATED_VALUE)
+
+    @Suppress("UNCHECKED_CAST")
     return finalValue as V
 }
