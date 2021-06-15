@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.config
 
+import org.randomcat.agorabot.util.doUpdateAndExtract
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.*
 import java.time.Duration
@@ -60,6 +61,10 @@ class AtomicCachedStorage<T>(
     }
 }
 
+internal inline fun <T, V> AtomicCachedStorage<T>.updateValueAndExtract(crossinline mapper: (T) -> Pair<T, V>): V {
+    return doUpdateAndExtract(this::updateValue, mapper)
+}
+
 class SchedulableAtomicCachedStorage<T>(
     storagePath: Path,
     strategy: StorageStrategy<T>,
@@ -110,4 +115,8 @@ class SchedulableAtomicCachedStorage<T>(
             TimeUnit.SECONDS,
         )
     }
+}
+
+internal inline fun <T, V> SchedulableAtomicCachedStorage<T>.updateValueAndExtract(crossinline mapper: (T) -> Pair<T, V>): V {
+    return doUpdateAndExtract(this::updateValue, mapper)
 }
