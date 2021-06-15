@@ -5,10 +5,10 @@ import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.ButtonRequestId
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.GuildScope
-import org.randomcat.agorabot.secrethitler.SecretHitlerGameId
-import org.randomcat.agorabot.secrethitler.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessage
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import java.time.Duration
 
 private val MANAGE_PERMISSION = GuildScope.command("secret_hitler").action("manage")
