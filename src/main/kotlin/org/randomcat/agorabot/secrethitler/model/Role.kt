@@ -44,6 +44,10 @@ data class SecretHitlerRoleMap(
     val plainFascistPlayers: Set<SecretHitlerPlayerNumber> = playersWithRole<SecretHitlerRole.PlainFascist>()
 
     val hitlerPlayer: SecretHitlerPlayerNumber = playersWithRole<SecretHitlerRole.Hitler>().single()
+
+    fun toMap(): Map<SecretHitlerPlayerNumber, SecretHitlerRole> {
+        return rolesByPlayer
+    }
 }
 
 fun SecretHitlerRoleMap.playerIsLiberal(player: SecretHitlerPlayerNumber) = liberalPlayers.contains(player)
