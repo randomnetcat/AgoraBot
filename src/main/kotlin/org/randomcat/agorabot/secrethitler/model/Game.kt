@@ -14,6 +14,7 @@ data class SecretHitlerGlobalGameState(
     val playerMap: SecretHitlerPlayerMap,
     val roleMap: SecretHitlerRoleMap,
     val boardState: SecretHitlerBoardState,
+    val electionState: SecretHitlerElectionState,
 ) {
     init {
         require(playerMap.validNumbers == roleMap.assignedPlayers) {
