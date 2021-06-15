@@ -106,4 +106,8 @@ data class SecretHitlerDeckState(private val policies: ImmutableList<SecretHitle
     fun drawSingle(shuffleProvider: ShuffleProvider): SingleDrawResult {
         return drawAny(count = 1, shuffleProvider).asSingle()
     }
+
+    fun allPolicies(): List<SecretHitlerPolicyType> {
+        return policies
+    }
 }
