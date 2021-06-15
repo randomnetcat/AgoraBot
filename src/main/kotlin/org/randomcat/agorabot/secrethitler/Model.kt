@@ -98,7 +98,11 @@ interface SecretHitlerChannelGameMap {
      */
     fun tryPutGameForChannelId(channelId: String, gameId: SecretHitlerGameId): Boolean
 
-    fun removeGameForChannelId(channelId: String)
+    /**
+     * Attempts to remove the entry for the channel with id [channelId]. If it existed, returns the game id that was
+     * associated with that channel; otherwise, returns null.
+     */
+    fun removeGameForChannelId(channelId: String): SecretHitlerGameId?
 }
 
 data class SecretHitlerRepository(
