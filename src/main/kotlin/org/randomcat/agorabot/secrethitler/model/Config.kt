@@ -11,6 +11,6 @@ data class SecretHitlerGameConfiguration(
     val fascistWinRequirement: Int = fascistPowers.size + 1
 
     fun fascistPowerAt(fascistPoliciesEnacted: Int): SecretHitlerFascistPower? {
-        return fascistPowers[fascistPoliciesEnacted]
+        return fascistPowers[fascistPoliciesEnacted - 1]
     }
 }
