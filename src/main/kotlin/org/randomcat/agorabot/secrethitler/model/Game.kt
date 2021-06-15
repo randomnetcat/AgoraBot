@@ -9,6 +9,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 value class SecretHitlerGameId(val raw: String)
 
+data class SecretHitlerGlobalGameState(
+    val configuration: SecretHitlerGameConfiguration,
+    val playerMap: SecretHitlerPlayerMap,
+    val roleMap: SecretHitlerRoleMap,
+    val boardState: SecretHitlerBoardState,
+) {
+    init {
+        require(playerMap.validNumbers == roleMap.assignedPlayers) {
+            "All player numbers should have exactly one role. " +
+                    "Players: ${playerMap.validNumbers}. Assigned roles: ${roleMap.assignedPlayers}"
+        }
+    }
+}
+
 sealed class SecretHitlerGameState {
     data class Joining(val playerNames: ImmutableSet<SecretHitlerPlayerExternalName>) : SecretHitlerGameState() {
         constructor() : this(persistentSetOf())
@@ -23,16 +37,6 @@ sealed class SecretHitlerGameState {
     }
 
     data class Running(
-        val configuration: SecretHitlerGameConfiguration,
-        val playerMap: SecretHitlerPlayerMap,
-        val roleMap: SecretHitlerRoleMap,
-        val boardState: SecretHitlerBoardState,
-    ) {
-        init {
-            require(playerMap.validNumbers == roleMap.assignedPlayers) {
-                "All player numbers should have exactly one role. " +
-                        "Players: ${playerMap.validNumbers}. Assigned roles: ${roleMap.assignedPlayers}"
-            }
-        }
-    }
+        val globalState: SecretHitlerGlobalGameState,
+    )
 }
