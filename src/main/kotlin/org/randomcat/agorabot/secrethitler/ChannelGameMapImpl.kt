@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.secrethitler
 
 import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.decodeFromString
@@ -64,10 +65,16 @@ class JsonSecretHitlerChannelGameMap(storagePath: Path) : SecretHitlerChannelGam
         return updated
     }
 
-    override fun removeGameForChannelId(channelId: String) {
-        impl.updateValue {
-            it.remove(channelId)
+    override fun removeGameForChannelId(channelId: String): SecretHitlerGameId? {
+        var removed: SecretHitlerGameId? = null
+
+        impl.updateValue { map ->
+            map.mutate { mutator ->
+                removed = mutator.remove(channelId)
+            }
         }
+
+        return removed
     }
 
     fun schedulePersistenceOn(persistService: ConfigPersistService) {
