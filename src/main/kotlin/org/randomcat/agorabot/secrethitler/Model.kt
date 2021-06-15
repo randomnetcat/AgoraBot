@@ -28,11 +28,15 @@ data class SecretHitlerPlayerMap(
 
     val validNumbers: Set<SecretHitlerPlayerNumber> = players.indices.map { SecretHitlerPlayerNumber(it) }.toSet()
 }
+enum class SecretHitlerParty {
+    FASCIST,
+    LIBERAL,
+}
 
-sealed class SecretHitlerRole {
-    object Liberal : SecretHitlerRole()
+sealed class SecretHitlerRole(val party: SecretHitlerParty) {
+    object Liberal : SecretHitlerRole(SecretHitlerParty.LIBERAL)
 
-    sealed class FascistParty : SecretHitlerRole()
+    sealed class FascistParty : SecretHitlerRole(SecretHitlerParty.FASCIST)
     object PlainFascist : FascistParty()
     object Hitler : FascistParty()
 }
