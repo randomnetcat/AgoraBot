@@ -11,11 +11,11 @@ import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.AtomicCachedStorage
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.StorageStrategy
+import org.randomcat.agorabot.config.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.ValueType
 import java.nio.file.Path
 import java.util.*
-import kotlin.properties.Delegates
 
 @Serializable
 private sealed class GameStateDto {
@@ -101,21 +101,15 @@ class JsonSecretHitlerGameList(storagePath: Path) : SecretHitlerGameList {
     }
 
     override fun updateGame(id: SecretHitlerGameId, mapper: (SecretHitlerGameState) -> SecretHitlerGameState): Boolean {
-        var updated by Delegates.notNull<Boolean>()
-
-        impl.updateValue {
+        return impl.updateValueAndExtract {
             val old = it[id]
 
             if (old != null) {
-                updated = true
-                it.put(id, mapper(old))
+                it.put(id, mapper(old)) to true
             } else {
-                updated = false
-                it
+                it to false
             }
         }
-
-        return updated
     }
 
     fun schedulePersistenceOn(persistService: ConfigPersistService) {

@@ -10,10 +10,10 @@ import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.AtomicCachedStorage
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.StorageStrategy
+import org.randomcat.agorabot.config.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.ValueType
 import java.nio.file.Path
-import kotlin.properties.Delegates
 
 // It'll be fiiiiineee....
 @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
@@ -50,31 +50,25 @@ class JsonSecretHitlerChannelGameMap(storagePath: Path) : SecretHitlerChannelGam
     }
 
     override fun tryPutGameForChannelId(channelId: String, gameId: SecretHitlerGameId): Boolean {
-        var updated by Delegates.notNull<Boolean>()
-
-        impl.updateValue {
+        return impl.updateValueAndExtract {
             if (!it.containsKey(channelId)) {
-                updated = true
-                it.put(channelId, gameId)
+                it.put(channelId, gameId) to true
             } else {
-                updated = false
-                it
+                it to false
             }
         }
-
-        return updated
     }
 
     override fun removeGameForChannelId(channelId: String): SecretHitlerGameId? {
-        var removed: SecretHitlerGameId? = null
+        return impl.updateValueAndExtract { map ->
+            var removed: SecretHitlerGameId? = null
 
-        impl.updateValue { map ->
-            map.mutate { mutator ->
+            val newMap = map.mutate { mutator ->
                 removed = mutator.remove(channelId)
             }
-        }
 
-        return removed
+            newMap to removed
+        }
     }
 
     fun schedulePersistenceOn(persistService: ConfigPersistService) {
