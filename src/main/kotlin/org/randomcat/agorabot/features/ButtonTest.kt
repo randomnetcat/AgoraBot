@@ -18,11 +18,11 @@ fun buttonTestFeature() = object : Feature {
     override fun buttonData(): FeatureButtonData {
         return FeatureButtonData.RegisterHandlers(
             ButtonHandlerMap {
-                withType<ButtonTestCommand.SuccessRequest> { context, request ->
+                withType<ButtonTestCommand.SuccessRequest> { context, _ ->
                     context.event.reply("Success!").setEphemeral(true).queue()
                 }
 
-                withType<ButtonTestCommand.FailureRequest> { context, request ->
+                withType<ButtonTestCommand.FailureRequest> { context, _ ->
                     context.event.reply("Failure!").setEphemeral(true).queue()
                 }
             }
