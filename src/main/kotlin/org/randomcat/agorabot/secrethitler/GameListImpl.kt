@@ -15,6 +15,7 @@ import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.ValueType
 import java.nio.file.Path
 import java.util.*
+import kotlin.properties.Delegates
 
 @Serializable
 private sealed class GameStateDto {
@@ -99,10 +100,22 @@ class JsonSecretHitlerGameList(storagePath: Path) : SecretHitlerGameList {
         }
     }
 
-    override fun updateGame(id: SecretHitlerGameId, mapper: (SecretHitlerGameState?) -> SecretHitlerGameState) {
+    override fun updateGame(id: SecretHitlerGameId, mapper: (SecretHitlerGameState) -> SecretHitlerGameState): Boolean {
+        var updated by Delegates.notNull<Boolean>()
+
         impl.updateValue {
-            it.put(id, mapper(it[id]))
+            val old = it[id]
+
+            if (old != null) {
+                updated = true
+                it.put(id, mapper(old))
+            } else {
+                updated = false
+                it
+            }
         }
+
+        return updated
     }
 
     fun schedulePersistenceOn(persistService: ConfigPersistService) {

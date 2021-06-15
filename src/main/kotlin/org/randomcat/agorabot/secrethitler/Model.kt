@@ -47,7 +47,10 @@ interface SecretHitlerGameList {
     fun createGame(state: SecretHitlerGameState): SecretHitlerGameId
     fun removeGameIfExists(id: SecretHitlerGameId)
 
-    fun updateGame(id: SecretHitlerGameId, mapper: (SecretHitlerGameState?) -> SecretHitlerGameState)
+    /**
+     * If [id] denotes an existing game, updates it by using [mapper], then returns true. Otherwise, returns false.
+     */
+    fun updateGame(id: SecretHitlerGameId, mapper: (SecretHitlerGameState) -> SecretHitlerGameState): Boolean
 }
 
 interface SecretHitlerChannelGameMap {
