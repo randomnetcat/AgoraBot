@@ -57,6 +57,19 @@ class SecretHitlerCommand(
                     }
                 }
             }
+
+            subcommand("abort") {
+                noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
+                    val abortedGame = repository.channelGameMap.removeGameForChannelId(currentChannel().id)
+
+                    if (abortedGame != null) {
+                        repository.gameList.removeGameIfExists(abortedGame)
+                        respond("Aborted game.")
+                    } else {
+                        respond("No game is running in this channel.")
+                    }
+                }
+            }
         }
     }
 }
