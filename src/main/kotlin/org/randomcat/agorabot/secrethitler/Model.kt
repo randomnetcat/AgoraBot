@@ -53,6 +53,42 @@ interface SecretHitlerGameList {
     fun updateGame(id: SecretHitlerGameId, mapper: (SecretHitlerGameState) -> SecretHitlerGameState): Boolean
 }
 
+inline fun <reified T : SecretHitlerGameState, R> SecretHitlerGameList.updateGameTyped(
+    id: SecretHitlerGameId,
+    onNoSuchGame: () -> R,
+    onInvalidType: (invalidGame: SecretHitlerGameState) -> R,
+    crossinline validMapper: (validGame: T) -> SecretHitlerGameState,
+    afterValid: () -> R,
+): R {
+    var invalidGame: SecretHitlerGameState? = null
+
+    val updated = updateGame(id) { gameState ->
+        if (gameState is T) {
+            invalidGame = null
+            validMapper(gameState)
+        } else {
+            invalidGame = gameState
+            gameState
+        }
+    }
+
+    val finalInvalidGame = invalidGame
+
+    return when {
+        finalInvalidGame != null -> {
+            onInvalidType(finalInvalidGame)
+        }
+
+        updated -> {
+            afterValid()
+        }
+
+        else -> {
+            onNoSuchGame()
+        }
+    }
+}
+
 interface SecretHitlerChannelGameMap {
     fun gameByChannelId(channelId: String): SecretHitlerGameId?
 
