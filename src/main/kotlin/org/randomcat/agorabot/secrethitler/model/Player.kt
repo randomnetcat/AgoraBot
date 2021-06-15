@@ -2,12 +2,15 @@ package org.randomcat.agorabot.secrethitler.model
 
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.serialization.Serializable
 import org.randomcat.util.isDistinct
 
 @JvmInline
+@Serializable
 value class SecretHitlerPlayerNumber(val raw: Int)
 
 @JvmInline
+@Serializable
 value class SecretHitlerPlayerExternalName(val raw: String)
 
 data class SecretHitlerPlayerMap(
