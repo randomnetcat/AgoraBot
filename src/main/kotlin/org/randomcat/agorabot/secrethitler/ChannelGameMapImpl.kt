@@ -13,6 +13,7 @@ import org.randomcat.agorabot.config.StorageStrategy
 import org.randomcat.agorabot.config.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.ValueType
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import java.nio.file.Path
 
 // It'll be fiiiiineee....

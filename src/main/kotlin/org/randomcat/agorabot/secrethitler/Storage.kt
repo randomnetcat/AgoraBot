@@ -1,5 +1,8 @@
 package org.randomcat.agorabot.secrethitler
 
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
+
 interface SecretHitlerGameList {
     fun gameById(id: SecretHitlerGameId): SecretHitlerGameState?
 

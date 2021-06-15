@@ -14,6 +14,9 @@ import org.randomcat.agorabot.config.StorageStrategy
 import org.randomcat.agorabot.config.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.ValueType
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import java.nio.file.Path
 import java.util.*
 

@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Button
 import org.randomcat.agorabot.buttons.ButtonRequestId
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.util.DiscordMessage
 
 fun formatSecretHitlerJoinMessageEmbed(state: SecretHitlerGameState.Joining): MessageEmbed {
