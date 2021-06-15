@@ -27,7 +27,7 @@ class SecretHitlerCommand(
 
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
-            subcommand("start") {
+            subcommand("create") {
                 noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
                     val state = SecretHitlerGameState.Joining()
                     val gameId = repository.gameList.createGame(state)
