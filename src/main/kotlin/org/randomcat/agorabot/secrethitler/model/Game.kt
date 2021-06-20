@@ -28,12 +28,51 @@ sealed class SecretHitlerGameState {
     data class Joining(val playerNames: ImmutableSet<SecretHitlerPlayerExternalName>) : SecretHitlerGameState() {
         constructor() : this(persistentSetOf())
 
-        fun withNewPlayer(player: SecretHitlerPlayerExternalName): SecretHitlerGameState.Joining {
-            return SecretHitlerGameState.Joining(playerNames = playerNames.toPersistentSet().add(player))
+        init {
+            require(playerNames.size <= SECRET_HITLER_MAX_PLAYERS)
         }
 
-        fun withoutPlayer(player: SecretHitlerPlayerExternalName): SecretHitlerGameState.Joining {
-            return SecretHitlerGameState.Joining(playerNames = playerNames.toPersistentSet().remove(player))
+        sealed class TryJoinResult {
+            data class Success(val newState: Joining) : TryJoinResult()
+            object Full : TryJoinResult()
+            object AlreadyJoined : TryJoinResult()
+        }
+
+        fun tryWithNewPlayer(player: SecretHitlerPlayerExternalName): TryJoinResult {
+            return when {
+                playerNames.contains(player) -> {
+                    TryJoinResult.AlreadyJoined
+                }
+
+                playerNames.size >= SECRET_HITLER_MAX_PLAYERS -> {
+                    TryJoinResult.Full
+                }
+
+                else -> {
+                    TryJoinResult.Success(
+                        SecretHitlerGameState.Joining(playerNames = playerNames.toPersistentSet().add(player)),
+                    )
+                }
+            }
+        }
+
+        sealed class TryLeaveResult {
+            data class Success(val newState: Joining) : TryLeaveResult()
+            object NotPlayer : TryLeaveResult()
+        }
+
+        fun tryWithoutPlayer(player: SecretHitlerPlayerExternalName): TryLeaveResult {
+            return when {
+                !playerNames.contains(player) -> {
+                    TryLeaveResult.NotPlayer
+                }
+
+                else -> {
+                    TryLeaveResult.Success(
+                        SecretHitlerGameState.Joining(playerNames = playerNames.toPersistentSet().remove(player)),
+                    )
+                }
+            }
         }
     }
 
