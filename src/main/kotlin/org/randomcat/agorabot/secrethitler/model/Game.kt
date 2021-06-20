@@ -39,5 +39,5 @@ sealed class SecretHitlerGameState {
 
     data class Running(
         val globalState: SecretHitlerGlobalGameState,
-    )
+    ) : SecretHitlerGameState()
 }
