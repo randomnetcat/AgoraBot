@@ -122,43 +122,84 @@ private fun handleTextResponse(event: ButtonClickEvent, responseBlock: () -> Str
     }
 }
 
+private sealed class JoinLeaveMapResult {
+    data class Failed(val message: String) : JoinLeaveMapResult()
+    data class Succeeded(val newState: SecretHitlerGameState.Joining) : JoinLeaveMapResult()
+}
+
+private sealed class HandleJoinLeaveInternalState {
+    data class Failed(
+        val message: String,
+    ) : HandleJoinLeaveInternalState()
+
+    data class Succeeded(
+        val newState: SecretHitlerGameState.Joining,
+        val updateNumber: BigInteger,
+    ) : HandleJoinLeaveInternalState()
+}
+
 private fun handleJoinLeave(
     repository: SecretHitlerRepository,
     action: String,
     gameId: SecretHitlerGameId,
     event: ButtonClickEvent,
-    mapState: (SecretHitlerGameState.Joining) -> SecretHitlerGameState.Joining,
+    mapState: (SecretHitlerGameState.Joining) -> JoinLeaveMapResult,
 ): String {
-    lateinit var updateNumber: BigInteger
-    lateinit var newState: SecretHitlerGameState.Joining
+    lateinit var globalState: HandleJoinLeaveInternalState
+    lateinit var responseMessage: String
 
-    return repository.gameList.updateGameTyped(
+    repository.gameList.updateGameTyped(
         id = gameId,
         onNoSuchGame = {
-            "That game does not exist."
+            globalState = HandleJoinLeaveInternalState.Failed("That game does not exist.")
         },
         onInvalidType = {
-            "That game can no longer be $action."
+            globalState = HandleJoinLeaveInternalState.Failed("That game can no longer be $action.")
         },
-        validMapper = { gameState: SecretHitlerGameState.Joining ->
-            updateNumber = nextUpdateNumber()
+        validMapper = { oldState: SecretHitlerGameState.Joining ->
+            val newState: SecretHitlerGameState.Joining
 
-            mapState(gameState).also {
-                newState = it
+            globalState = when (val mapResult = mapState(oldState)) {
+                is JoinLeaveMapResult.Succeeded -> {
+                    newState = mapResult.newState
+
+                    HandleJoinLeaveInternalState.Succeeded(
+                        newState = newState,
+                        updateNumber = nextUpdateNumber(),
+                    )
+                }
+
+                is JoinLeaveMapResult.Failed -> {
+                    newState = oldState
+
+                    HandleJoinLeaveInternalState.Failed(mapResult.message)
+                }
             }
+
+            newState
         },
         afterValid = {
-            sendUpdateAction(
-                UpdateAction.JoinMessageUpdate(
-                    updateNumber = updateNumber,
-                    message = checkNotNull(event.message),
-                    state = newState,
-                ),
-            )
+            return@updateGameTyped when (val finalGlobalState = globalState) {
+                is HandleJoinLeaveInternalState.Succeeded -> {
+                    sendUpdateAction(
+                        UpdateAction.JoinMessageUpdate(
+                            updateNumber = finalGlobalState.updateNumber,
+                            message = checkNotNull(event.message),
+                            state = finalGlobalState.newState,
+                        ),
+                    )
 
-            "Successfully $action."
+                    responseMessage = "Successfully $action."
+                }
+
+                is HandleJoinLeaveInternalState.Failed -> {
+                    responseMessage = finalGlobalState.message
+                }
+            }
         },
     )
+
+    return responseMessage
 }
 
 fun secretHitlerFeature(repository: SecretHitlerRepository) = object : Feature {
@@ -179,7 +220,23 @@ fun secretHitlerFeature(repository: SecretHitlerRepository) = object : Feature {
                             gameId = request.gameId,
                             event = context.event,
                         ) { gameState ->
-                            gameState.withNewPlayer(SecretHitlerPlayerExternalName(context.event.user.id))
+                            when (
+                                val result = gameState.tryWithNewPlayer(
+                                    SecretHitlerPlayerExternalName(context.event.user.id),
+                                )
+                            ) {
+                                is SecretHitlerGameState.Joining.TryJoinResult.Success -> {
+                                    JoinLeaveMapResult.Succeeded(result.newState)
+                                }
+
+                                is SecretHitlerGameState.Joining.TryJoinResult.Full -> {
+                                    JoinLeaveMapResult.Failed("That game is full.")
+                                }
+
+                                is SecretHitlerGameState.Joining.TryJoinResult.AlreadyJoined -> {
+                                    JoinLeaveMapResult.Failed("You are already a player in that game.")
+                                }
+                            }
                         }
                     }
                 }
@@ -192,7 +249,19 @@ fun secretHitlerFeature(repository: SecretHitlerRepository) = object : Feature {
                             gameId = request.gameId,
                             event = context.event,
                         ) { gameState ->
-                            gameState.withoutPlayer(SecretHitlerPlayerExternalName(context.event.user.id))
+                            when (
+                                val result = gameState.tryWithoutPlayer(
+                                    SecretHitlerPlayerExternalName(context.event.user.id),
+                                )
+                            ) {
+                                is SecretHitlerGameState.Joining.TryLeaveResult.Success -> {
+                                    JoinLeaveMapResult.Succeeded(result.newState)
+                                }
+
+                                is SecretHitlerGameState.Joining.TryLeaveResult.NotPlayer -> {
+                                    JoinLeaveMapResult.Failed("You are not a player in that game.")
+                                }
+                            }
                         }
                     }
                 }
