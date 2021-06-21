@@ -13,6 +13,7 @@ value class SecretHitlerPlayerNumber(val raw: Int)
 @Serializable
 value class SecretHitlerPlayerExternalName(val raw: String)
 
+const val SECRET_HITLER_MIN_PLAYERS = 5
 const val SECRET_HITLER_MAX_PLAYERS = 10
 
 data class SecretHitlerPlayerMap(
@@ -22,6 +23,7 @@ data class SecretHitlerPlayerMap(
 
     init {
         require(players.values.isDistinct())
+        require(players.size >= SECRET_HITLER_MIN_PLAYERS)
         require(players.size <= SECRET_HITLER_MAX_PLAYERS)
     }
 
