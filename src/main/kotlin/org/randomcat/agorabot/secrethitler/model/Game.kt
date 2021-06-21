@@ -29,7 +29,7 @@ sealed class SecretHitlerGameState {
         constructor() : this(persistentSetOf())
 
         init {
-            require(playerNames.size <= SECRET_HITLER_MAX_PLAYERS)
+            require(playerNames.size <= SECRET_HITLER_MAX_START_PLAYERS)
         }
 
         sealed class TryJoinResult {
@@ -44,7 +44,7 @@ sealed class SecretHitlerGameState {
                     TryJoinResult.AlreadyJoined
                 }
 
-                playerNames.size >= SECRET_HITLER_MAX_PLAYERS -> {
+                playerNames.size >= SECRET_HITLER_MAX_START_PLAYERS -> {
                     TryJoinResult.Full
                 }
 
