@@ -22,6 +22,18 @@ data class SecretHitlerPlayerMap(
         require(players.values.isDistinct())
     }
 
+    companion object {
+        fun fromNames(name: Set<SecretHitlerPlayerExternalName>): SecretHitlerPlayerMap {
+            return SecretHitlerPlayerMap(
+                players = name
+                    .mapIndexed { index, externalName ->
+                        SecretHitlerPlayerNumber(index) to externalName
+                    }
+                    .toMap(),
+            )
+        }
+    }
+
     fun playerByNumber(number: SecretHitlerPlayerNumber): SecretHitlerPlayerExternalName {
         return players.getValue(number)
     }
