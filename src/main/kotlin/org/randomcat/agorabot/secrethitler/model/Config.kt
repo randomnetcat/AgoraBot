@@ -122,7 +122,13 @@ private val GAME_CONFIG_MAP = persistentMapOf(
     ),
 )
 
+const val SECRET_HITLER_MIN_START_PLAYERS = 5
+const val SECRET_HITLER_MAX_START_PLAYERS = 10
+
 fun SecretHitlerGameState.Joining.startConfiguration(): SecretHitlerStartConfiguration {
+    require(playerNames.size >= SECRET_HITLER_MIN_START_PLAYERS)
+    require(playerNames.size <= SECRET_HITLER_MAX_START_PLAYERS)
+
     return GAME_CONFIG_MAP.getValue(playerNames.size).also {
         check(it.roleConfiguration.totalRoles == playerNames.size)
     }
