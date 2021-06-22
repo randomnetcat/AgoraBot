@@ -51,6 +51,39 @@ inline fun <reified T : SecretHitlerGameState, R> SecretHitlerGameList.updateGam
     }
 }
 
+internal val SH_VALID_EXTRACT_NOT_SET = Any()
+
+internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameList.updateGameTypedWithValidExtract(
+    id: SecretHitlerGameId,
+    onNoSuchGame: () -> R,
+    onInvalidType: (invalidGame: SecretHitlerGameState) -> R,
+    crossinline validMapper: (validGame: T) -> Pair<SecretHitlerGameState, VE>,
+    afterValid: (VE) -> R,
+): R {
+    var validExtractValue: Any? = SH_VALID_EXTRACT_NOT_SET
+
+    return updateGameTyped(
+        id = id,
+        onNoSuchGame = {
+            validExtractValue = SH_VALID_EXTRACT_NOT_SET
+            onNoSuchGame()
+        },
+        onInvalidType = { invalidGame ->
+            validExtractValue = SH_VALID_EXTRACT_NOT_SET
+            onInvalidType(invalidGame)
+        },
+        validMapper = { validGame: T ->
+            val result = validMapper(validGame)
+            validExtractValue = result.second
+            result.first
+        },
+        afterValid = {
+            check(validExtractValue !== SH_VALID_EXTRACT_NOT_SET)
+            afterValid(validExtractValue as VE)
+        },
+    )
+}
+
 interface SecretHitlerChannelGameMap {
     fun gameByChannelId(channelId: String): SecretHitlerGameId?
 
