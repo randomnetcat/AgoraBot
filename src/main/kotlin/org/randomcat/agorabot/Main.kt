@@ -241,7 +241,7 @@ private fun runBot(config: BotRunConfig) {
             "self_assign_roles" to selfAssignCommandsFeature(),
             "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
             "button_test" to buttonTestFeature(),
-            "secret_hitler" to secretHitlerFeature(repository = setupSecretHitlerFeature(config.paths, persistService)),
+            "secret_hitler" to setupSecretHitlerFeature(config.paths, persistService),
         )
 
         val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
