@@ -263,6 +263,7 @@ interface BaseCommandExecutionReceiverDiscord : BaseCommandExecutionReceiver {
 fun BaseCommandExecutionReceiverDiscord.currentJda(): JDA = currentMessageEvent().jda
 
 fun BaseCommandExecutionReceiverDiscord.currentChannel(): MessageChannel = currentMessageEvent().channel
+fun BaseCommandExecutionReceiverDiscord.currentChannelId(): String = currentChannel().id
 
 fun BaseCommandExecutionReceiverDiscord.botHasPermission(permission: DiscordPermission): Boolean {
     return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
