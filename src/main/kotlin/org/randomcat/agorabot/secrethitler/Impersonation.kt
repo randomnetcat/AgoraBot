@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.secrethitler
 
 import kotlinx.collections.immutable.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -42,6 +43,7 @@ class SecretHitlerJsonImpersonationMap(
         }
     }
 
+    @Serializable
     private data class StorageType(
         val namesByUserId: Map<String, String>,
         val dmRecipientsByName: Map<String, Set<String>>,
