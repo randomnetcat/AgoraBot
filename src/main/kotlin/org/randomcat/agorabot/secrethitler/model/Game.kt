@@ -78,5 +78,44 @@ sealed class SecretHitlerGameState {
 
     data class Running(
         val globalState: SecretHitlerGlobalGameState,
-    ) : SecretHitlerGameState()
+    ) : SecretHitlerGameState() {
+        sealed class StartResult {
+            data class Success(val newState: Running) : StartResult()
+            object InsufficientPlayers : StartResult()
+        }
+
+        companion object {
+            fun tryStart(
+                currentState: Joining,
+                assignRoles: (Set<SecretHitlerPlayerNumber>, SecretHitlerRoleConfiguration) -> SecretHitlerRoleMap,
+                shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
+            ): StartResult {
+                val playerNames = currentState.playerNames
+                if (playerNames.size < SECRET_HITLER_MIN_START_PLAYERS) return StartResult.InsufficientPlayers
+
+                val startConfiguration = currentState.startConfiguration()
+                val playerMap = SecretHitlerPlayerMap.fromNames(playerNames)
+                val roleMap = assignRoles(playerMap.validNumbers, startConfiguration.roleConfiguration)
+                check(roleMap.assignedPlayers == playerMap.validNumbers)
+
+                return StartResult.Success(
+                    Running(
+                        globalState = SecretHitlerGlobalGameState(
+                            configuration = startConfiguration.gameConfiguration,
+                            playerMap = playerMap,
+                            roleMap = roleMap,
+                            boardState = SecretHitlerBoardState(
+                                deckState = shuffleProvider.newDeck(),
+                                policiesState = SecretHitlerPoliciesState(),
+                            ),
+                            electionState = SecretHitlerElectionState(
+                                currentPresidentTicker = playerMap.minNumber,
+                                termLimitedPlayers = emptyList(),
+                            ),
+                        ),
+                    ),
+                )
+            }
+        }
+    }
 }
