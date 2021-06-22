@@ -10,6 +10,8 @@ import org.randomcat.agorabot.commands.SecretHitlerCommand
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
@@ -40,7 +42,7 @@ fun secretHitlerFeature(
 
         return FeatureButtonData.RegisterHandlers(
             ButtonHandlerMap {
-                withType<SecretHitlerCommand.JoinGameRequestDescriptor> { context, request ->
+                withType<SecretHitlerJoinGameButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleJoin(
                         repository = repository,
                         nameContext = nameContext,
@@ -49,7 +51,7 @@ fun secretHitlerFeature(
                     )
                 }
 
-                withType<SecretHitlerCommand.LeaveGameRequestDescriptor> { context, request ->
+                withType<SecretHitlerLeaveGameButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleLeave(
                         repository = repository,
                         nameContext = nameContext,
