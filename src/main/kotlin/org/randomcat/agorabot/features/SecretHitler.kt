@@ -31,7 +31,10 @@ fun secretHitlerFeature(
     override fun buttonData(): FeatureButtonData {
         val nameContext = object : SecretHitlerNameContext {
             override fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName {
-                return SecretHitlerPlayerExternalName(interaction.user.id)
+                val userId = interaction.user.id
+                val effectiveName = impersonationMap?.currentNameForId(userId) ?: userId
+
+                return SecretHitlerPlayerExternalName(effectiveName)
             }
         }
 
