@@ -5,6 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.AtomicCachedStorage
+import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.StorageStrategy
 import java.nio.file.Path
 
@@ -104,5 +105,9 @@ class SecretHitlerJsonImpersonationMap(
         impl.updateValue { old ->
             old.copy(dmRecipientsByName = old.dmRecipientsByName.put(name, persistentSetOf()))
         }
+    }
+
+    fun schedulePersistenceOn(persistService: ConfigPersistService) {
+        impl.schedulePersistenceOn(persistService)
     }
 }

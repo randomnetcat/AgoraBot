@@ -64,7 +64,9 @@ fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistS
     )
 
     val impersonationMap = if (config.enableImpersonation) {
-        SecretHitlerJsonImpersonationMap(secretHitlerDir.resolve("impersonation_data"))
+        SecretHitlerJsonImpersonationMap(secretHitlerDir.resolve("impersonation_data")).also {
+            it.schedulePersistenceOn(persistService)
+        }
     } else {
         null
     }
