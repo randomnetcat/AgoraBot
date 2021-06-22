@@ -194,6 +194,133 @@ private data class GlobalStateDto(
 }
 
 @Serializable
+private data class GovernmentMembersDto(
+    val president: SecretHitlerPlayerNumber,
+    val chancellor: SecretHitlerPlayerNumber,
+) {
+    companion object {
+        fun from(governmentMembers: SecretHitlerEphemeralState.GovernmentMembers): GovernmentMembersDto {
+            return GovernmentMembersDto(
+                president = governmentMembers.president,
+                chancellor = governmentMembers.chancellor,
+            )
+        }
+    }
+
+    fun toGovernmentMembers(): SecretHitlerEphemeralState.GovernmentMembers {
+        return SecretHitlerEphemeralState.GovernmentMembers(
+            president = president,
+            chancellor = chancellor,
+        )
+    }
+}
+
+@Serializable
+private sealed class EphemeralStateDto {
+    companion object {
+        fun from(state: SecretHitlerEphemeralState): EphemeralStateDto {
+            return when (state) {
+                is SecretHitlerEphemeralState.ChancellorSelectionPending -> {
+                    ChancellorSelectionPending.from(state)
+                }
+
+                is SecretHitlerEphemeralState.VotingOngoing -> {
+                    VotingOngoing.from(state)
+                }
+
+                is SecretHitlerEphemeralState.PresidentPolicyChoicePending -> {
+                    PresidentPolicyChoicePending.from(state)
+                }
+
+                is SecretHitlerEphemeralState.ChancellorPolicyChoicePending -> {
+                    ChancellorPolicyChoicePending.from(state)
+                }
+            }
+        }
+    }
+
+    abstract fun toEphemeralState(): SecretHitlerEphemeralState
+
+    @Serializable
+    data class ChancellorSelectionPending(val presidentCandidate: SecretHitlerPlayerNumber) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.ChancellorSelectionPending): ChancellorSelectionPending {
+                return ChancellorSelectionPending(
+                    presidentCandidate = state.presidentCandidate,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.ChancellorSelectionPending(
+                presidentCandidate = presidentCandidate,
+            )
+        }
+    }
+
+    @Serializable
+    data class VotingOngoing(val governmentMembers: GovernmentMembersDto) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.VotingOngoing): VotingOngoing {
+                return VotingOngoing(governmentMembers = GovernmentMembersDto.from(state.governmentMembers))
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.VotingOngoing(governmentMembers = governmentMembers.toGovernmentMembers())
+        }
+    }
+
+    @Serializable
+    data class PresidentPolicyChoicePending(
+        val governmentMembers: GovernmentMembersDto,
+        val policyOptions: List<SecretHitlerPolicyType>,
+    ) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.PresidentPolicyChoicePending): PresidentPolicyChoicePending {
+                return PresidentPolicyChoicePending(
+                    governmentMembers = GovernmentMembersDto.from(state.governmentMembers),
+                    policyOptions = state.options.policies,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.PresidentPolicyChoicePending(
+                governmentMembers = governmentMembers.toGovernmentMembers(),
+                options = SecretHitlerEphemeralState.PresidentPolicyOptions(policyOptions),
+            )
+        }
+    }
+
+    @Serializable
+    data class ChancellorPolicyChoicePending(
+        val governmentMembers: GovernmentMembersDto,
+        val policyOptions: List<SecretHitlerPolicyType>,
+        val vetoState: SecretHitlerEphemeralState.VetoRequestState,
+    ) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.ChancellorPolicyChoicePending): ChancellorPolicyChoicePending {
+                return ChancellorPolicyChoicePending(
+                    governmentMembers = GovernmentMembersDto.from(state.governmentMembers),
+                    policyOptions = state.options.policies,
+                    vetoState = state.vetoState,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.ChancellorPolicyChoicePending(
+                governmentMembers = governmentMembers.toGovernmentMembers(),
+                options = SecretHitlerEphemeralState.ChancellorPolicyOptions(policyOptions),
+                vetoState = vetoState,
+            )
+        }
+    }
+
+}
+
+@Serializable
 private sealed class GameStateDto {
     companion object {
         fun from(gameState: SecretHitlerGameState): GameStateDto {
@@ -221,11 +348,15 @@ private sealed class GameStateDto {
     }
 
     @Serializable
-    data class Running(val globalState: GlobalStateDto) : GameStateDto() {
+    data class Running(
+        val globalState: GlobalStateDto,
+        val ephemeralState: EphemeralStateDto,
+    ) : GameStateDto() {
         companion object {
             fun from(gameState: SecretHitlerGameState.Running): Running {
                 return Running(
                     globalState = GlobalStateDto.from(gameState.globalState),
+                    ephemeralState = EphemeralStateDto.from(gameState.ephemeralState),
                 )
             }
         }
@@ -233,6 +364,7 @@ private sealed class GameStateDto {
         override fun toGameState(): SecretHitlerGameState {
             return SecretHitlerGameState.Running(
                 globalState = globalState.toGlobalState(),
+                ephemeralState = ephemeralState.toEphemeralState(),
             )
         }
     }
