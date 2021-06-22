@@ -5,7 +5,6 @@ import org.randomcat.agorabot.commands.SecretHitlerCommand
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import java.math.BigInteger
 
@@ -86,9 +85,12 @@ private fun handleJoinLeave(
 
 internal fun doHandleSecretHitlerJoin(
     repository: SecretHitlerRepository,
+    context: SecretHitlerNameContext,
     event: ButtonClickEvent,
     request: SecretHitlerCommand.JoinGameRequestDescriptor,
 ) {
+    val playerName = context.nameFromInteraction(event.interaction)
+
     handleTextResponse(event) {
         handleJoinLeave(
             repository = repository,
@@ -96,11 +98,7 @@ internal fun doHandleSecretHitlerJoin(
             gameId = request.gameId,
             event = event,
         ) { gameState ->
-            when (
-                val result = gameState.tryWithNewPlayer(
-                    SecretHitlerPlayerExternalName(event.user.id),
-                )
-            ) {
+            when (val result = gameState.tryWithNewPlayer(playerName)) {
                 is SecretHitlerGameState.Joining.TryJoinResult.Success -> {
                     JoinLeaveMapResult.Succeeded(result.newState)
                 }
@@ -119,9 +117,12 @@ internal fun doHandleSecretHitlerJoin(
 
 internal fun doHandleSecretHitlerLeave(
     repository: SecretHitlerRepository,
+    context: SecretHitlerNameContext,
     event: ButtonClickEvent,
     request: SecretHitlerCommand.LeaveGameRequestDescriptor,
 ) {
+    val playerName = context.nameFromInteraction(event.interaction)
+
     handleTextResponse(event) {
         handleJoinLeave(
             repository = repository,
@@ -129,11 +130,7 @@ internal fun doHandleSecretHitlerLeave(
             gameId = request.gameId,
             event = event,
         ) { gameState ->
-            when (
-                val result = gameState.tryWithoutPlayer(
-                    SecretHitlerPlayerExternalName(event.user.id),
-                )
-            ) {
+            when (val result = gameState.tryWithoutPlayer(playerName)) {
                 is SecretHitlerGameState.Joining.TryLeaveResult.Success -> {
                     JoinLeaveMapResult.Succeeded(result.newState)
                 }
