@@ -82,7 +82,9 @@ sealed class SecretHitlerGameState {
     ) : SecretHitlerGameState() {
         sealed class StartResult {
             data class Success(val newState: Running) : StartResult()
-            object InsufficientPlayers : StartResult()
+
+            sealed class Failure : StartResult()
+            object InsufficientPlayers : Failure()
         }
 
         companion object {
