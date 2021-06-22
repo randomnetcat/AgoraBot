@@ -78,6 +78,7 @@ sealed class SecretHitlerGameState {
 
     data class Running(
         val globalState: SecretHitlerGlobalGameState,
+        val ephemeralState: SecretHitlerEphemeralState,
     ) : SecretHitlerGameState() {
         sealed class StartResult {
             data class Success(val newState: Running) : StartResult()
@@ -98,6 +99,8 @@ sealed class SecretHitlerGameState {
                 val roleMap = assignRoles(playerMap.validNumbers, startConfiguration.roleConfiguration)
                 check(roleMap.assignedPlayers == playerMap.validNumbers)
 
+                val firstPresident = playerMap.minNumber
+
                 return StartResult.Success(
                     Running(
                         globalState = SecretHitlerGlobalGameState(
@@ -109,9 +112,12 @@ sealed class SecretHitlerGameState {
                                 policiesState = SecretHitlerPoliciesState(),
                             ),
                             electionState = SecretHitlerElectionState(
-                                currentPresidentTicker = playerMap.minNumber,
+                                currentPresidentTicker = firstPresident,
                                 termLimitedPlayers = emptyList(),
                             ),
+                        ),
+                        ephemeralState = SecretHitlerEphemeralState.ChancellorSelectionPending(
+                            presidentCandidate = firstPresident,
                         ),
                     ),
                 )
