@@ -21,7 +21,7 @@ import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessageEmbed
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
-import org.randomcat.agorabot.secrethitler.updateGameTyped
+import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
 import java.util.concurrent.CompletableFuture
@@ -145,61 +145,50 @@ private fun handleJoinLeave(
     event: ButtonClickEvent,
     mapState: (SecretHitlerGameState.Joining) -> JoinLeaveMapResult,
 ): String {
-    lateinit var globalState: HandleJoinLeaveInternalState
-    lateinit var responseMessage: String
-
-    repository.gameList.updateGameTyped(
+    return repository.gameList.updateGameTypedWithValidExtract(
         id = gameId,
         onNoSuchGame = {
-            globalState = HandleJoinLeaveInternalState.Failed("That game does not exist.")
+            "That game does not exist."
         },
         onInvalidType = {
-            globalState = HandleJoinLeaveInternalState.Failed("That game can no longer be $action.")
+            "That game can no longer be $action."
         },
         validMapper = { oldState: SecretHitlerGameState.Joining ->
-            val newState: SecretHitlerGameState.Joining
-
-            globalState = when (val mapResult = mapState(oldState)) {
+            when (val mapResult = mapState(oldState)) {
                 is JoinLeaveMapResult.Succeeded -> {
-                    newState = mapResult.newState
+                    val newState = mapResult.newState
 
-                    HandleJoinLeaveInternalState.Succeeded(
+                    newState to HandleJoinLeaveInternalState.Succeeded(
                         newState = newState,
                         updateNumber = nextUpdateNumber(),
                     )
                 }
 
                 is JoinLeaveMapResult.Failed -> {
-                    newState = oldState
-
-                    HandleJoinLeaveInternalState.Failed(mapResult.message)
+                    oldState to HandleJoinLeaveInternalState.Failed(mapResult.message)
                 }
             }
-
-            newState
         },
-        afterValid = {
-            return@updateGameTyped when (val finalGlobalState = globalState) {
+        afterValid = { state ->
+            when (state) {
                 is HandleJoinLeaveInternalState.Succeeded -> {
                     sendUpdateAction(
                         UpdateAction.JoinMessageUpdate(
-                            updateNumber = finalGlobalState.updateNumber,
+                            updateNumber = state.updateNumber,
                             message = checkNotNull(event.message),
-                            state = finalGlobalState.newState,
+                            state = state.newState,
                         ),
                     )
 
-                    responseMessage = "Successfully $action."
+                    "Successfully $action."
                 }
 
                 is HandleJoinLeaveInternalState.Failed -> {
-                    responseMessage = finalGlobalState.message
+                    state.message
                 }
             }
         },
     )
-
-    return responseMessage
 }
 
 fun secretHitlerFeature(repository: SecretHitlerRepository) = object : Feature {
