@@ -1,15 +1,16 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
-import org.randomcat.agorabot.commands.SecretHitlerCommand
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 
 object SecretHitlerButtons {
     fun handleJoin(
         repository: SecretHitlerRepository,
         nameContext: SecretHitlerNameContext,
         event: ButtonClickEvent,
-        request: SecretHitlerCommand.JoinGameRequestDescriptor,
+        request: SecretHitlerJoinGameButtonDescriptor,
     ) {
         doHandleSecretHitlerJoin(
             repository = repository,
@@ -23,7 +24,7 @@ object SecretHitlerButtons {
         repository: SecretHitlerRepository,
         nameContext: SecretHitlerNameContext,
         event: ButtonClickEvent,
-        request: SecretHitlerCommand.LeaveGameRequestDescriptor,
+        request: SecretHitlerLeaveGameButtonDescriptor,
     ) {
         doHandleSecretHitlerLeave(
             repository = repository,

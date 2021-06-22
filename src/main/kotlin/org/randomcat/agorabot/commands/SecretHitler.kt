@@ -1,16 +1,15 @@
 package org.randomcat.agorabot.commands
 
-import kotlinx.serialization.Serializable
-import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.ButtonRequestId
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessage
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import java.time.Duration
 
@@ -24,12 +23,6 @@ class SecretHitlerCommand(
     private val repository: SecretHitlerRepository,
     private val impersonationMap: SecretHitlerMutableImpersonationMap?,
 ) : BaseCommand(strategy) {
-    @Serializable
-    data class JoinGameRequestDescriptor(val gameId: SecretHitlerGameId) : ButtonRequestDescriptor
-
-    @Serializable
-    data class LeaveGameRequestDescriptor(val gameId: SecretHitlerGameId) : ButtonRequestDescriptor
-
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
             if (impersonationMap != null) {
@@ -88,13 +81,13 @@ class SecretHitlerCommand(
                                 state = state,
                                 joinButtonId = ButtonRequestId(
                                     newButtonId(
-                                        descriptor = JoinGameRequestDescriptor(gameId = gameId),
+                                        descriptor = SecretHitlerJoinGameButtonDescriptor(gameId = gameId),
                                         expiryDuration = JOIN_LEAVE_DURATION,
                                     ),
                                 ),
                                 leaveButtonId = ButtonRequestId(
                                     newButtonId(
-                                        descriptor = LeaveGameRequestDescriptor(gameId = gameId),
+                                        descriptor = SecretHitlerLeaveGameButtonDescriptor(gameId = gameId),
                                         expiryDuration = JOIN_LEAVE_DURATION,
                                     ),
                                 ),

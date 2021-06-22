@@ -1,8 +1,9 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
-import org.randomcat.agorabot.commands.SecretHitlerCommand
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
@@ -87,7 +88,7 @@ internal fun doHandleSecretHitlerJoin(
     repository: SecretHitlerRepository,
     context: SecretHitlerNameContext,
     event: ButtonClickEvent,
-    request: SecretHitlerCommand.JoinGameRequestDescriptor,
+    request: SecretHitlerJoinGameButtonDescriptor,
 ) {
     val playerName = context.nameFromInteraction(event.interaction)
 
@@ -119,7 +120,7 @@ internal fun doHandleSecretHitlerLeave(
     repository: SecretHitlerRepository,
     context: SecretHitlerNameContext,
     event: ButtonClickEvent,
-    request: SecretHitlerCommand.LeaveGameRequestDescriptor,
+    request: SecretHitlerLeaveGameButtonDescriptor,
 ) {
     val playerName = context.nameFromInteraction(event.interaction)
 
