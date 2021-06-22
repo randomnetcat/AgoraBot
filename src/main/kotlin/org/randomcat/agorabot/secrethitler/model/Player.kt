@@ -47,4 +47,11 @@ data class SecretHitlerPlayerMap(
     }
 
     val validNumbers: Set<SecretHitlerPlayerNumber> = players.keys
+
+    val minNumber: SecretHitlerPlayerNumber = validNumbers.minByOrNull { it.raw } ?: error("expected number")
+    val maxNumber: SecretHitlerPlayerNumber = validNumbers.maxByOrNull { it.raw } ?: error("expected number")
+
+    fun circularNumberAfter(number: SecretHitlerPlayerNumber): SecretHitlerPlayerNumber {
+        return validNumbers.filter { it.raw > number.raw }.minByOrNull { it.raw } ?: minNumber
+    }
 }
