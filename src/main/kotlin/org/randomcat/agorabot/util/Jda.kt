@@ -44,11 +44,13 @@ fun Guild.resolveRoleString(roleString: String): Role? {
 fun emptyRestActionOn(jda: JDA): RestAction<Unit> = CompletedRestAction.ofSuccess(jda, Unit)
 
 inline fun <T> ignoringRestActionOn(jda: JDA, actionFun: () -> RestAction<T>?): RestAction<Unit> {
-    return try {
-        actionFun()?.also { check(it.jda === jda) }?.ignoreErrors() ?: emptyRestActionOn(jda)
+    val action = try {
+        actionFun()
     } catch (e: Exception) {
-        emptyRestActionOn(jda)
+        null
     }
+
+    return action?.also { check(it.jda === jda) }?.ignoreErrors() ?: emptyRestActionOn(jda)
 }
 
 val Message.effectiveSenderName: String
