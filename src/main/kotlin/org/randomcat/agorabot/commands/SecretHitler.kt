@@ -48,6 +48,7 @@ class SecretHitlerCommand(
                             .requiresGuild()
                             .permissions(IMPERSONATE_PERMISSION) {
                                 impersonationMap.clearNameForId(currentMessageEvent().author.id)
+                                respond("Done.")
                             }
                     }
 
