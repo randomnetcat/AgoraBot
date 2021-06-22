@@ -59,8 +59,9 @@ class SecretHitlerCommand(
 
                                 for (name in names) {
                                     impersonationMap.addDmUserIdForName(name = name, userId = userId)
-                                    respond("Done.")
                                 }
+
+                                respond("Done.")
                             }
                     }
 
