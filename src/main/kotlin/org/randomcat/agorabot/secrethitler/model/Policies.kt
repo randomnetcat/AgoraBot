@@ -12,18 +12,6 @@ enum class SecretHitlerFascistPower {
     EXECUTE_PLAYER,
 }
 
-sealed class SecretHitlerPoliciesEnactmentResult {
-    sealed class ImmediateWin : SecretHitlerPoliciesEnactmentResult() {
-        object LiberalWin : ImmediateWin()
-        object FascistWin : ImmediateWin()
-    }
-
-    data class GameContinues(
-        val newPolicyState: SecretHitlerPoliciesState,
-        val fascistPower: SecretHitlerFascistPower?,
-    ) : SecretHitlerPoliciesEnactmentResult()
-}
-
 data class SecretHitlerPoliciesState(
     val liberalPoliciesEnacted: Int,
     val fascistPoliciesEnacted: Int,
@@ -39,27 +27,39 @@ data class SecretHitlerPoliciesState(
         require(fascistPoliciesEnacted < Int.MAX_VALUE)
     }
 
-    fun enactFascistPolicy(config: SecretHitlerGameConfiguration): SecretHitlerPoliciesEnactmentResult {
+    sealed class EnactmentResult {
+        sealed class ImmediateWin : EnactmentResult() {
+            object LiberalWin : ImmediateWin()
+            object FascistWin : ImmediateWin()
+        }
+
+        data class GameContinues(
+            val newPolicyState: SecretHitlerPoliciesState,
+            val fascistPower: SecretHitlerFascistPower?,
+        ) : EnactmentResult()
+    }
+
+    fun enactFascistPolicy(config: SecretHitlerGameConfiguration): EnactmentResult {
         val newFascistPolicyCount = fascistPoliciesEnacted + 1
 
         if (newFascistPolicyCount >= config.fascistWinRequirement) {
-            return SecretHitlerPoliciesEnactmentResult.ImmediateWin.FascistWin
+            return EnactmentResult.ImmediateWin.FascistWin
         }
 
-        return SecretHitlerPoliciesEnactmentResult.GameContinues(
+        return EnactmentResult.GameContinues(
             newPolicyState = this.copy(fascistPoliciesEnacted = newFascistPolicyCount),
             fascistPower = config.fascistPowerAt(newFascistPolicyCount),
         )
     }
 
-    fun enactLiberalPolicy(config: SecretHitlerGameConfiguration): SecretHitlerPoliciesEnactmentResult {
+    fun enactLiberalPolicy(config: SecretHitlerGameConfiguration): EnactmentResult {
         val newLiberalPolicyCount = liberalPoliciesEnacted + 1
 
         if (newLiberalPolicyCount >= config.liberalWinRequirement) {
-            return SecretHitlerPoliciesEnactmentResult.ImmediateWin.LiberalWin
+            return EnactmentResult.ImmediateWin.LiberalWin
         }
 
-        return SecretHitlerPoliciesEnactmentResult.GameContinues(
+        return EnactmentResult.GameContinues(
             newPolicyState = this.copy(liberalPoliciesEnacted = newLiberalPolicyCount),
             fascistPower = null,
         )
