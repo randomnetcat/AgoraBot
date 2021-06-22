@@ -8,15 +8,23 @@ import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.withType
 import org.randomcat.agorabot.commands.SecretHitlerCommand
 import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 
-fun secretHitlerFeature(repository: SecretHitlerRepository) = object : Feature {
+fun secretHitlerFeature(
+    repository: SecretHitlerRepository,
+    impersonationMap: SecretHitlerMutableImpersonationMap?,
+) = object : Feature {
     override fun commandsInContext(context: FeatureContext): Map<String, Command> {
         return mapOf(
-            "secret_hitler" to SecretHitlerCommand(context.defaultCommandStrategy, repository = repository),
+            "secret_hitler" to SecretHitlerCommand(
+                context.defaultCommandStrategy,
+                repository = repository,
+                impersonationMap = impersonationMap,
+            ),
         )
     }
 

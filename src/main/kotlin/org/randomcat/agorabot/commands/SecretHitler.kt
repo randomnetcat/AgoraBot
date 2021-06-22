@@ -4,7 +4,9 @@ import kotlinx.serialization.Serializable
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.ButtonRequestId
 import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
+import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessage
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
@@ -13,12 +15,14 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import java.time.Duration
 
 private val MANAGE_PERMISSION = GuildScope.command("secret_hitler").action("manage")
+private val IMPERSONATE_PERMISSION = BotScope.command("secret_hitler").action("impersonate")
 
 private val JOIN_LEAVE_DURATION = Duration.ofDays(1)
 
 class SecretHitlerCommand(
     strategy: BaseCommandStrategy,
     private val repository: SecretHitlerRepository,
+    private val impersonationMap: SecretHitlerMutableImpersonationMap?,
 ) : BaseCommand(strategy) {
     @Serializable
     data class JoinGameRequestDescriptor(val gameId: SecretHitlerGameId) : ButtonRequestDescriptor
@@ -28,6 +32,48 @@ class SecretHitlerCommand(
 
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
+            if (impersonationMap != null) {
+                subcommand("impersonate") {
+                    subcommand("set_name") {
+                        args(StringArg("name"))
+                            .requiresGuild()
+                            .permissions(IMPERSONATE_PERMISSION) { (name) ->
+                                impersonationMap.setNameForId(userId = currentMessageEvent().author.id, newName = name)
+                                respond("Done.")
+                            }
+                    }
+
+                    subcommand("restore_name") {
+                        noArgs()
+                            .requiresGuild()
+                            .permissions(IMPERSONATE_PERMISSION) {
+                                impersonationMap.clearNameForId(currentMessageEvent().author.id)
+                            }
+                    }
+
+                    subcommand("receive_dms") {
+                        args(RemainingStringArgs("names"))
+                            .requiresGuild()
+                            .permissions(IMPERSONATE_PERMISSION) { (names) ->
+                                val userId = currentMessageEvent().author.id
+
+                                for (name in names) {
+                                    impersonationMap.addDmUserIdForName(name = name, userId = userId)
+                                    respond("Done.")
+                                }
+                            }
+                    }
+
+                    subcommand("restore_dms") {
+                        args(StringArg("name"))
+                            .requiresGuild()
+                            .permissions(IMPERSONATE_PERMISSION) { (name) ->
+                                impersonationMap.clearDmUsersForName(name)
+                            }
+                    }
+                }
+            }
+
             subcommand("create") {
                 noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
                     val state = SecretHitlerGameState.Joining()

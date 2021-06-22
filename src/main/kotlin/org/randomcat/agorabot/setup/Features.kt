@@ -4,10 +4,14 @@ import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.commands.DiscordArchiver
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.parsing.features.CitationsConfig
+import org.randomcat.agorabot.config.parsing.features.SecretHitlerFeatureConfig
 import org.randomcat.agorabot.config.parsing.features.readCitationsConfig
+import org.randomcat.agorabot.config.parsing.features.readSecretHitlerConfig
 import org.randomcat.agorabot.features.archiveCommandsFeature
+import org.randomcat.agorabot.features.secretHitlerFeature
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.SecretHitlerJsonImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Files
@@ -38,7 +42,13 @@ fun setupArchiveFeature(paths: BotDataPaths): Feature {
     )
 }
 
-fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistService): SecretHitlerRepository {
+private fun setupSecretHitlerConfig(paths: BotDataPaths): SecretHitlerFeatureConfig? {
+    return readSecretHitlerConfig(paths.featureConfigDir().resolve("secret_hitler.json"))
+}
+
+fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistService): Feature? {
+    val config = setupSecretHitlerConfig(paths) ?: return null
+
     val secretHitlerDir = paths.storagePath.resolve("secret_hitler")
     Files.createDirectories(secretHitlerDir)
 
@@ -48,8 +58,16 @@ fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistS
     val channelGameMap = JsonSecretHitlerChannelGameMap(storagePath = secretHitlerDir.resolve("games_by_channel"))
     channelGameMap.schedulePersistenceOn(persistService)
 
-    return SecretHitlerRepository(
+    val repository = SecretHitlerRepository(
         gameList = gameList,
         channelGameMap = channelGameMap,
     )
+
+    val impersonationMap = if (config.enableImpersonation) {
+        SecretHitlerJsonImpersonationMap(secretHitlerDir.resolve("impersonation_data"))
+    } else {
+        null
+    }
+
+    return secretHitlerFeature(repository = repository, impersonationMap = impersonationMap)
 }
