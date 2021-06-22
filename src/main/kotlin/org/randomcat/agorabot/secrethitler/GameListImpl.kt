@@ -326,7 +326,7 @@ private sealed class GameStateDto {
         fun from(gameState: SecretHitlerGameState): GameStateDto {
             return when (gameState) {
                 is SecretHitlerGameState.Joining -> {
-                    GameStateDto.Joining(names = gameState.playerNames.map { it.raw })
+                    GameStateDto.Joining(names = gameState.playerNames.toList())
                 }
 
                 is SecretHitlerGameState.Running -> {
@@ -339,11 +339,9 @@ private sealed class GameStateDto {
     abstract fun toGameState(): SecretHitlerGameState
 
     @Serializable
-    data class Joining(val names: List<String>) : GameStateDto() {
+    data class Joining(val names: List<SecretHitlerPlayerExternalName>) : GameStateDto() {
         override fun toGameState(): SecretHitlerGameState {
-            return SecretHitlerGameState.Joining(
-                playerNames = names.map { SecretHitlerPlayerExternalName(it) }.toImmutableSet(),
-            )
+            return SecretHitlerGameState.Joining(playerNames = names.toImmutableSet())
         }
     }
 
