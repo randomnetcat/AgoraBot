@@ -7,6 +7,7 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessage
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import java.time.Duration
@@ -68,6 +69,21 @@ class SecretHitlerCommand(
                     } else {
                         respond("No game is running in this channel.")
                     }
+                }
+            }
+
+            subcommand("start") {
+                noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
+                    val gameId = repository.channelGameMap.gameByChannelId(currentChannel().id)
+                    if (gameId == null) {
+                        respond("No game is running in this channel.")
+                        return@permissions
+                    }
+
+                    handleStart(
+                        repository = repository,
+                        gameId = gameId,
+                    )
                 }
             }
         }
