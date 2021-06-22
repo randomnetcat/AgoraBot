@@ -37,16 +37,16 @@ inline fun <reified T : SecretHitlerGameState, R> SecretHitlerGameList.updateGam
     val finalInvalidGame = invalidGame
 
     return when {
+        !updated -> {
+            onNoSuchGame()
+        }
+
         finalInvalidGame != null -> {
             onInvalidType(finalInvalidGame)
         }
 
-        updated -> {
-            afterValid()
-        }
-
         else -> {
-            onNoSuchGame()
+            afterValid()
         }
     }
 }
