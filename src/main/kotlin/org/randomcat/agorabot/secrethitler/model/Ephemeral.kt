@@ -28,7 +28,16 @@ sealed class SecretHitlerEphemeralState {
 
     data class ChancellorSelectionPending(
         val presidentCandidate: SecretHitlerPlayerNumber,
-    ) : SecretHitlerEphemeralState()
+    ) : SecretHitlerEphemeralState() {
+        fun selectChancellor(chancellor: SecretHitlerPlayerNumber): VotingOngoing {
+            return VotingOngoing(
+                SecretHitlerGovernmentMembers(
+                    president = presidentCandidate,
+                    chancellor = chancellor,
+                )
+            )
+        }
+    }
 
     data class VotingOngoing(val governmentMembers: SecretHitlerGovernmentMembers) : SecretHitlerEphemeralState()
 
