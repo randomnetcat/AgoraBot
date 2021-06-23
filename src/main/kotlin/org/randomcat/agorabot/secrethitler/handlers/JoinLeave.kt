@@ -7,13 +7,8 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDe
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
+import org.randomcat.agorabot.util.handleTextResponse
 import java.math.BigInteger
-
-private fun handleTextResponse(event: ButtonClickEvent, responseBlock: () -> String) {
-    event.deferReply(true).queue { hook ->
-        hook.sendMessage(responseBlock()).queue()
-    }
-}
 
 private sealed class JoinLeaveMapResult {
     data class Failed(val message: String) : JoinLeaveMapResult()
