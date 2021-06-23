@@ -26,24 +26,19 @@ sealed class SecretHitlerEphemeralState {
         REJECTED,
     }
 
-    data class GovernmentMembers(
-        val president: SecretHitlerPlayerNumber,
-        val chancellor: SecretHitlerPlayerNumber,
-    )
-
     data class ChancellorSelectionPending(
         val presidentCandidate: SecretHitlerPlayerNumber,
     ) : SecretHitlerEphemeralState()
 
-    data class VotingOngoing(val governmentMembers: GovernmentMembers) : SecretHitlerEphemeralState()
+    data class VotingOngoing(val governmentMembers: SecretHitlerGovernmentMembers) : SecretHitlerEphemeralState()
 
     data class PresidentPolicyChoicePending(
-        val governmentMembers: GovernmentMembers,
+        val governmentMembers: SecretHitlerGovernmentMembers,
         val options: PresidentPolicyOptions,
     ) : SecretHitlerEphemeralState()
 
     data class ChancellorPolicyChoicePending(
-        val governmentMembers: GovernmentMembers,
+        val governmentMembers: SecretHitlerGovernmentMembers,
         val options: ChancellorPolicyOptions,
         val vetoState: VetoRequestState,
     ) : SecretHitlerEphemeralState()
