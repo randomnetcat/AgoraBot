@@ -47,6 +47,7 @@ data class SecretHitlerPlayerMap(
     }
 
     val validNumbers: Set<SecretHitlerPlayerNumber> = players.keys
+    val playerCount: Int = validNumbers.size
 
     val minNumber: SecretHitlerPlayerNumber = validNumbers.minByOrNull { it.raw } ?: error("expected number")
     val maxNumber: SecretHitlerPlayerNumber = validNumbers.maxByOrNull { it.raw } ?: error("expected number")
