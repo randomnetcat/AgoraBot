@@ -56,6 +56,12 @@ internal fun doHandleSecretHitlerStart(
             when (underlyingResult) {
                 is SecretHitlerGameState.Running.StartResult.Success -> {
                     context.respond("Starting game...")
+
+                    secretHitlerSendChancellorSelectionMessage(
+                        context = context,
+                        gameId = gameId,
+                        state = underlyingResult.newState,
+                    )
                 }
 
                 is SecretHitlerGameState.Running.StartResult.InsufficientPlayers -> {
