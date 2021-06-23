@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
 
@@ -58,6 +59,12 @@ val Message.effectiveSenderName: String
 
 fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }
+}
+
+fun handleTextResponse(event: GenericInteractionCreateEvent, responseBlock: () -> String) {
+    event.deferReply(true).queue { hook ->
+        hook.sendMessage(responseBlock()).queue()
+    }
 }
 
 fun <T> RestAction<T>.ignoreErrors() = map { Unit }.onErrorMap { Unit }
