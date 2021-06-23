@@ -138,13 +138,16 @@ private data class PoliciesStateDto(
 @Serializable
 private data class ElectionStateDto(
     val currentPresidentTicker: SecretHitlerPlayerNumber,
-    val termLimitedPlayers: List<SecretHitlerPlayerNumber>,
+    val termLimitedPlayers: GovernmentMembersDto?,
 ) {
     companion object {
         fun from(electionState: SecretHitlerElectionState): ElectionStateDto {
             return ElectionStateDto(
                 currentPresidentTicker = electionState.currentPresidentTicker,
-                termLimitedPlayers = electionState.termLimitedPlayers,
+                termLimitedPlayers = electionState
+                    .termLimitState
+                    .termLimitedGovernment
+                    ?.let { GovernmentMembersDto.from(it) },
             )
         }
     }
@@ -152,7 +155,7 @@ private data class ElectionStateDto(
     fun toElectionState(): SecretHitlerElectionState {
         return SecretHitlerElectionState(
             currentPresidentTicker = currentPresidentTicker,
-            termLimitedPlayers = termLimitedPlayers,
+            termLimitState = SecretHitlerTermLimitState(termLimitedPlayers?.toGovernmentMembers()),
         )
     }
 }
@@ -199,7 +202,7 @@ private data class GovernmentMembersDto(
     val chancellor: SecretHitlerPlayerNumber,
 ) {
     companion object {
-        fun from(governmentMembers: SecretHitlerEphemeralState.GovernmentMembers): GovernmentMembersDto {
+        fun from(governmentMembers: SecretHitlerGovernmentMembers): GovernmentMembersDto {
             return GovernmentMembersDto(
                 president = governmentMembers.president,
                 chancellor = governmentMembers.chancellor,
@@ -207,8 +210,8 @@ private data class GovernmentMembersDto(
         }
     }
 
-    fun toGovernmentMembers(): SecretHitlerEphemeralState.GovernmentMembers {
-        return SecretHitlerEphemeralState.GovernmentMembers(
+    fun toGovernmentMembers(): SecretHitlerGovernmentMembers {
+        return SecretHitlerGovernmentMembers(
             president = president,
             chancellor = chancellor,
         )

@@ -113,10 +113,7 @@ sealed class SecretHitlerGameState {
                                 deckState = shuffleProvider.newDeck(),
                                 policiesState = SecretHitlerPoliciesState(),
                             ),
-                            electionState = SecretHitlerElectionState(
-                                currentPresidentTicker = firstPresident,
-                                termLimitedPlayers = emptyList(),
-                            ),
+                            electionState = SecretHitlerElectionState.forInitialPresident(firstPresident),
                         ),
                         ephemeralState = SecretHitlerEphemeralState.ChancellorSelectionPending(
                             presidentCandidate = firstPresident,
