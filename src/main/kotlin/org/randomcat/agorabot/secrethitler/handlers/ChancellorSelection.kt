@@ -12,6 +12,8 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import java.time.Duration
 
+private const val LAST_PRESIDENT_INELIGIBILITY_THRESHOLD = 5
+
 fun SecretHitlerGameState.Running.chancellorSelectionIsValid(
     presidentCandidate: SecretHitlerPlayerNumber,
     chancellorCandidate: SecretHitlerPlayerNumber,
@@ -22,7 +24,10 @@ fun SecretHitlerGameState.Running.chancellorSelectionIsValid(
 
     val termLimitedGovernment = globalState.electionState.termLimitState.termLimitedGovernment ?: return true
 
-    if (globalState.playerMap.playerCount > 5 && termLimitedGovernment.president == chancellorCandidate) {
+    if (
+        globalState.playerMap.playerCount > LAST_PRESIDENT_INELIGIBILITY_THRESHOLD &&
+        termLimitedGovernment.president == chancellorCandidate
+    ) {
         return false
     }
 
