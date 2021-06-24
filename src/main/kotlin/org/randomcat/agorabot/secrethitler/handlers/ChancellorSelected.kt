@@ -18,6 +18,7 @@ private sealed class ChancellorSelectResult {
     sealed class Failure : ChancellorSelectResult()
     object Unauthorized : Failure()
     object InvalidState : Failure()
+    object IneligibleChancellor : Failure()
 }
 
 private const val INVALID_STATE_MESSAGE = "You can no longer select a Chancellor in that game."
@@ -28,8 +29,8 @@ internal fun doHandleSecretHitlerChancellorSelect(
     event: ButtonClickEvent,
     request: SecretHitlerChancellorCandidateSelectionButtonDescriptor,
 ) {
-    val expectedNumber = request.president
-    val actualName = nameContext.nameFromInteraction(event.interaction)
+    val expectedPresidentNumber = request.president
+    val actualPresidentName = nameContext.nameFromInteraction(event.interaction)
 
     handleTextResponse(event) {
         repository.gameList.updateGameTypedWithValidExtract(
@@ -41,9 +42,9 @@ internal fun doHandleSecretHitlerChancellorSelect(
                 INVALID_STATE_MESSAGE
             },
             validMapper = { currentState: SecretHitlerGameState.Running ->
-                val actualNumber = currentState.globalState.playerMap.numberByPlayer(actualName)
+                val actualPresidentNumber = currentState.globalState.playerMap.numberByPlayer(actualPresidentName)
 
-                if (actualNumber != expectedNumber) {
+                if (actualPresidentNumber != expectedPresidentNumber) {
                     return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.Unauthorized
                 }
 
@@ -51,15 +52,26 @@ internal fun doHandleSecretHitlerChancellorSelect(
                     return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.InvalidState
                 }
 
-                check(currentState.ephemeralState.presidentCandidate == actualNumber)
+                check(currentState.ephemeralState.presidentCandidate == actualPresidentNumber)
+
+                val selectedChancellorNumber = request.selectedChancellor
+
+                currentState.chancellorSelectionIsValid(
+                    presidentCandidate = actualPresidentNumber,
+                    chancellorCandidate = selectedChancellorNumber,
+                ).let { isValid ->
+                    if (!isValid) {
+                        return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.IneligibleChancellor
+                    }
+                }
 
                 val newState = currentState.copy(
-                    ephemeralState = currentState.ephemeralState.selectChancellor(request.selectedChancellor),
+                    ephemeralState = currentState.ephemeralState.selectChancellor(selectedChancellorNumber),
                 )
 
                 newState to ChancellorSelectResult.Success(
                     newState = newState,
-                    chancellorName = currentState.globalState.playerMap.playerByNumber(request.selectedChancellor),
+                    chancellorName = currentState.globalState.playerMap.playerByNumber(selectedChancellorNumber),
                 )
             },
             afterValid = { result ->
@@ -74,6 +86,10 @@ internal fun doHandleSecretHitlerChancellorSelect(
 
                     is ChancellorSelectResult.Unauthorized -> {
                         "You are not the Presidential candidate."
+                    }
+
+                    is ChancellorSelectResult.IneligibleChancellor -> {
+                        "That person is not eligible to be chancellor."
                     }
                 }
             }

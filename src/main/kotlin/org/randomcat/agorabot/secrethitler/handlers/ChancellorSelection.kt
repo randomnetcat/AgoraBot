@@ -12,14 +12,21 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import java.time.Duration
 
-private fun SecretHitlerGameState.Running.isEligibleChancellor(candidate: SecretHitlerPlayerNumber): Boolean {
-    val termLimitedGovernment = globalState.electionState.termLimitState.termLimitedGovernment ?: return true
-
-    if (globalState.playerMap.playerCount > 5 && termLimitedGovernment.president == candidate) {
+fun SecretHitlerGameState.Running.chancellorSelectionIsValid(
+    presidentCandidate: SecretHitlerPlayerNumber,
+    chancellorCandidate: SecretHitlerPlayerNumber,
+): Boolean {
+    if (presidentCandidate == chancellorCandidate) {
         return false
     }
 
-    if (termLimitedGovernment.chancellor == candidate) {
+    val termLimitedGovernment = globalState.electionState.termLimitState.termLimitedGovernment ?: return true
+
+    if (globalState.playerMap.playerCount > 5 && termLimitedGovernment.president == chancellorCandidate) {
+        return false
+    }
+
+    if (termLimitedGovernment.chancellor == chancellorCandidate) {
         return false
     }
 
@@ -40,7 +47,10 @@ fun secretHitlerSendChancellorSelectionMessage(
     val sortedPlayerNumbers = state.globalState.playerMap.validNumbers.sortedBy { it.raw }
 
     val buttons = sortedPlayerNumbers.mapIndexed { index, chancellorCandidate ->
-        val permissible = (chancellorCandidate != presidentCandidate) && state.isEligibleChancellor(chancellorCandidate)
+        val permissible = state.chancellorSelectionIsValid(
+            presidentCandidate = presidentCandidate,
+            chancellorCandidate = chancellorCandidate,
+        )
 
         Button.primary(
             if (permissible)
