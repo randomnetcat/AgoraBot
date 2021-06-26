@@ -8,7 +8,6 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Message
-import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessageEmbed
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
