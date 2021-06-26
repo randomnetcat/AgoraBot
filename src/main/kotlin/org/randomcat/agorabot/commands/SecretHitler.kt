@@ -1,22 +1,16 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.buttons.ButtonRequestId
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
-import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
-import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
-import org.randomcat.agorabot.secrethitler.formatSecretHitlerJoinMessage
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
-import java.time.Duration
 
 private val MANAGE_PERMISSION = GuildScope.command("secret_hitler").action("manage")
 private val IMPERSONATE_PERMISSION = BotScope.command("secret_hitler").action("impersonate")
-
-private val JOIN_LEAVE_DURATION = Duration.ofDays(1)
 
 class SecretHitlerCommand(
     strategy: BaseCommandStrategy,
@@ -76,23 +70,7 @@ class SecretHitlerCommand(
                     val assignSucceeded = repository.channelGameMap.tryPutGameForChannelId(currentChannel().id, gameId)
 
                     if (assignSucceeded) {
-                        respond(
-                            formatSecretHitlerJoinMessage(
-                                state = state,
-                                joinButtonId = ButtonRequestId(
-                                    newButtonId(
-                                        descriptor = SecretHitlerJoinGameButtonDescriptor(gameId = gameId),
-                                        expiryDuration = JOIN_LEAVE_DURATION,
-                                    ),
-                                ),
-                                leaveButtonId = ButtonRequestId(
-                                    newButtonId(
-                                        descriptor = SecretHitlerLeaveGameButtonDescriptor(gameId = gameId),
-                                        expiryDuration = JOIN_LEAVE_DURATION,
-                                    ),
-                                ),
-                            ),
-                        )
+                        sendJoinLeaveMessage(gameId, state)
                     } else {
                         respond("There is already a game ongoing in this channel.")
                         repository.gameList.removeGameIfExists(gameId)
@@ -125,6 +103,32 @@ class SecretHitlerCommand(
                         repository = repository,
                         gameId = gameId,
                     )
+                }
+            }
+
+            subcommand("resend") {
+                noArgs().requiresGuild() {
+                    val gameId = repository.channelGameMap.gameByChannelId(currentChannelId())
+                    if (gameId == null) {
+                        respond("No game is running in this channel.")
+                        return@requiresGuild
+                    }
+
+                    val gameState = repository.gameList.gameById(gameId)
+                    if (gameState == null) {
+                        respond("That game no longer exists.")
+                        return@requiresGuild
+                    }
+
+                    when (gameState) {
+                        is SecretHitlerGameState.Joining -> {
+                            sendJoinLeaveMessage(gameId, gameState)
+                        }
+
+                        else -> {
+                            respond("Don't know how to resend a message for that state.")
+                        }
+                    }
                 }
             }
         }

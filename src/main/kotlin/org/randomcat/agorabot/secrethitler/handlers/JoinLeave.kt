@@ -1,14 +1,21 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
+import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.Button
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
+import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.handleTextResponse
 import java.math.BigInteger
+import java.time.Duration
 
 private sealed class JoinLeaveMapResult {
     data class Failed(val message: String) : JoinLeaveMapResult()
@@ -137,4 +144,52 @@ internal fun doHandleSecretHitlerLeave(
             }
         }
     }
+}
+
+private val JOIN_LEAVE_DURATION = Duration.ofDays(1)
+
+internal fun formatSecretHitlerJoinMessageEmbed(state: SecretHitlerGameState.Joining): MessageEmbed {
+    return EmbedBuilder()
+        .setTitle("Secret Hitler Game")
+        .addField(
+            "Players",
+            state.playerNames.joinToString("\n") { name -> "<@${name.raw}>" }.ifEmpty { "[None yet]" },
+            false,
+        )
+        .build()
+}
+
+private fun formatSecretHitlerJoinMessage(
+    state: SecretHitlerGameState.Joining,
+    joinButtonId: String,
+    leaveButtonId: String,
+): DiscordMessage {
+    return MessageBuilder(formatSecretHitlerJoinMessageEmbed(state = state))
+        .setActionRows(
+            ActionRow.of(
+                Button.success(joinButtonId, "Join"),
+                Button.danger(leaveButtonId, "Leave"),
+            ),
+        )
+        .build()
+}
+
+internal fun doSendSecretHitlerJoinLeaveMessage(
+    context: SecretHitlerCommandContext,
+    gameId: SecretHitlerGameId,
+    state: SecretHitlerGameState.Joining,
+) {
+    context.sendGameMessage(
+        formatSecretHitlerJoinMessage(
+            state = state,
+            joinButtonId = context.newButtonId(
+                descriptor = SecretHitlerJoinGameButtonDescriptor(gameId),
+                expiryDuration = JOIN_LEAVE_DURATION,
+            ),
+            leaveButtonId = context.newButtonId(
+                descriptor = SecretHitlerLeaveGameButtonDescriptor(gameId),
+                expiryDuration = JOIN_LEAVE_DURATION,
+            ),
+        ),
+    )
 }
