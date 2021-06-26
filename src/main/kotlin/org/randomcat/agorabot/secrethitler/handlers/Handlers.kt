@@ -1,33 +1,30 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
-import org.randomcat.agorabot.commands.impl.BaseCommandExecutionReceiverGuilded
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 
-private typealias CommandReceiver = BaseCommandExecutionReceiverGuilded
-
 object SecretHitlerHandlers {
-    private fun CommandReceiver.context() = SecretHitlerCommandContext(this)
-
-    fun CommandReceiver.sendJoinLeaveMessage(
+    fun sendJoinLeaveMessage(
+        context: SecretHitlerCommandContext,
         gameId: SecretHitlerGameId,
         state: SecretHitlerGameState.Joining,
     ) {
         doSendSecretHitlerJoinLeaveMessage(
-            context = context(),
+            context = context,
             gameId = gameId,
             state = state,
         )
     }
 
-    fun CommandReceiver.handleStart(
-        repository: SecretHitlerRepository,
+    fun handleStart(
+        context: SecretHitlerCommandContext,
+        gameList: SecretHitlerGameList,
         gameId: SecretHitlerGameId,
     ) {
         doHandleSecretHitlerStart(
-            context = context(),
-            gameList = repository.gameList,
+            context = context,
+            gameList = gameList,
             gameId = gameId,
         )
     }
