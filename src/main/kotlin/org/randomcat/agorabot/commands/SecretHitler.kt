@@ -5,6 +5,7 @@ import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerCommandContext
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
@@ -17,6 +18,11 @@ class SecretHitlerCommand(
     private val repository: SecretHitlerRepository,
     private val impersonationMap: SecretHitlerMutableImpersonationMap?,
 ) : BaseCommand(strategy) {
+    private val BaseCommandExecutionReceiverGuilded.context: SecretHitlerCommandContext
+        get() {
+            return SecretHitlerCommandContext(this)
+        }
+
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
             if (impersonationMap != null) {
@@ -70,7 +76,11 @@ class SecretHitlerCommand(
                     val assignSucceeded = repository.channelGameMap.tryPutGameForChannelId(currentChannel().id, gameId)
 
                     if (assignSucceeded) {
-                        sendJoinLeaveMessage(gameId, state)
+                        sendJoinLeaveMessage(
+                            context = context,
+                            gameId = gameId,
+                            state = state,
+                        )
                     } else {
                         respond("There is already a game ongoing in this channel.")
                         repository.gameList.removeGameIfExists(gameId)
@@ -100,7 +110,8 @@ class SecretHitlerCommand(
                     }
 
                     handleStart(
-                        repository = repository,
+                        context = context,
+                        gameList = repository.gameList,
                         gameId = gameId,
                     )
                 }
@@ -122,7 +133,11 @@ class SecretHitlerCommand(
 
                     when (gameState) {
                         is SecretHitlerGameState.Joining -> {
-                            sendJoinLeaveMessage(gameId, gameState)
+                            sendJoinLeaveMessage(
+                                context = context,
+                                gameId = gameId,
+                                state = gameState,
+                            )
                         }
 
                         else -> {
