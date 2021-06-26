@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.commands
 
+import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
@@ -9,9 +10,37 @@ import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerCommandContext
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
+import org.randomcat.agorabot.util.DiscordMessage
+import java.time.Duration
 
 private val MANAGE_PERMISSION = GuildScope.command("secret_hitler").action("manage")
 private val IMPERSONATE_PERMISSION = BotScope.command("secret_hitler").action("impersonate")
+
+private fun makeContext(commandReceiver: BaseCommandExecutionReceiverGuilded): SecretHitlerCommandContext {
+    return object : SecretHitlerCommandContext {
+        override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
+            return commandReceiver.newButtonId(descriptor, expiryDuration)
+        }
+
+        // Assume that commands are only sent in the same channel as the game.
+        override fun sendGameMessage(message: String) {
+            commandReceiver.currentChannel().sendMessage(message).queue()
+        }
+
+        // Assume that commands are only sent in the same channel as the game.
+        override fun sendGameMessage(message: DiscordMessage) {
+            commandReceiver.currentChannel().sendMessage(message).queue()
+        }
+
+        override fun respond(message: DiscordMessage) {
+            commandReceiver.respond(message)
+        }
+
+        override fun respond(message: String) {
+            commandReceiver.respond(message)
+        }
+    }
+}
 
 class SecretHitlerCommand(
     strategy: BaseCommandStrategy,
@@ -19,9 +48,7 @@ class SecretHitlerCommand(
     private val impersonationMap: SecretHitlerMutableImpersonationMap?,
 ) : BaseCommand(strategy) {
     private val BaseCommandExecutionReceiverGuilded.context: SecretHitlerCommandContext
-        get() {
-            return SecretHitlerCommandContext(this)
-        }
+        get() = makeContext(this)
 
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
