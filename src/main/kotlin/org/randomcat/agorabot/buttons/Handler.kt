@@ -8,6 +8,7 @@ import kotlin.reflect.KClass
 
 interface ButtonHandlerContext {
     val event: ButtonClickEvent
+    val buttonRequestDataMap: ButtonRequestDataMap
 }
 
 typealias ButtonHandler<T> = (context: ButtonHandlerContext, request: T) -> Unit

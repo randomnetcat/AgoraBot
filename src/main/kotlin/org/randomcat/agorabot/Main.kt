@@ -305,13 +305,17 @@ private fun runBot(config: BotRunConfig) {
                     buttonHandlerMap.tryGetHandler(requestDescriptor::class) as ButtonHandler<ButtonRequestDescriptor>?
 
                 if (handler != null) {
-                    // Unambiguous name for context
+                    // Unambiguous names
                     val theEvent = event
+                    val theDataMap = buttonRequestDataMap
 
                     handler(
                         object : ButtonHandlerContext {
                             override val event: ButtonClickEvent
                                 get() = theEvent
+
+                            override val buttonRequestDataMap: ButtonRequestDataMap
+                                get() = theDataMap
                         },
                         requestDescriptor,
                     )
