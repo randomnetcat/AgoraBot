@@ -44,6 +44,12 @@ private fun makeContext(
             sendPrivateMessage(recipient, MessageBuilder(message).build())
         }
 
+        private fun queuePrivateMessage(recipientId: String, message: DiscordMessage) {
+            commandReceiver.currentJda().openPrivateChannelById(recipientId).queue { channel ->
+                channel.sendMessage(message).queue()
+            }
+        }
+
         override fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: DiscordMessage) {
             val overrideRecipientIds = impersonationMap?.dmUserIdsForName(recipient.raw)
 
@@ -56,14 +62,16 @@ private fun makeContext(
                         .build()
 
                 for (recipientId in overrideRecipientIds) {
-                    commandReceiver.currentJda().openPrivateChannelById(recipientId).queue { channel ->
-                        channel.sendMessage(adjustedMessage).queue()
-                    }
+                    queuePrivateMessage(
+                        recipientId = recipientId,
+                        message = adjustedMessage,
+                    )
                 }
             } else {
-                commandReceiver.currentJda().openPrivateChannelById(recipient.raw).queue { channel ->
-                    channel.sendMessage(message).queue()
-                }
+                queuePrivateMessage(
+                    recipientId = recipient.raw,
+                    message = message,
+                )
             }
         }
 
