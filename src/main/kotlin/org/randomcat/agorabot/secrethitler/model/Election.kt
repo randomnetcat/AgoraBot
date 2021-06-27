@@ -17,12 +17,18 @@ data class SecretHitlerTermLimitState(
 data class SecretHitlerElectionState(
     val currentPresidentTicker: SecretHitlerPlayerNumber,
     val termLimitState: SecretHitlerTermLimitState,
+    val electionTrackerState: Int,
 ) {
+    init {
+        require(electionTrackerState >= 0)
+    }
+
     companion object {
         fun forInitialPresident(firstPresident: SecretHitlerPlayerNumber): SecretHitlerElectionState {
             return SecretHitlerElectionState(
                 currentPresidentTicker = firstPresident,
                 termLimitState = SecretHitlerTermLimitState.noLimits(),
+                electionTrackerState = 0,
             )
         }
     }
