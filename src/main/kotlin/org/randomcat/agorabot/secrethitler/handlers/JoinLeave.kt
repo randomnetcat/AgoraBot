@@ -39,7 +39,7 @@ private class JoinMessageUpdateAction(
     targetMessage: Message,
     private val context: SecretHitlerNameContext,
     private val state: SecretHitlerGameState.Joining,
-) : SecretHitlerJoinLeaveMessageQueue.UpdateAction(
+) : SecretHitlerMessageUpdateQueue.UpdateAction(
     updateNumber = updateNumber,
     targetMessage = targetMessage,
 ) {
@@ -78,7 +78,7 @@ private fun handleJoinLeave(
 
                     newState to HandleJoinLeaveInternalState.Succeeded(
                         newState = newState,
-                        updateNumber = SecretHitlerJoinLeaveMessageQueue.nextUpdateNumber(),
+                        updateNumber = SecretHitlerMessageUpdateQueue.nextUpdateNumber(),
                     )
                 }
 
@@ -90,7 +90,7 @@ private fun handleJoinLeave(
         afterValid = { state ->
             when (state) {
                 is HandleJoinLeaveInternalState.Succeeded -> {
-                    SecretHitlerJoinLeaveMessageQueue.sendUpdateAction(
+                    SecretHitlerMessageUpdateQueue.sendUpdateAction(
                         JoinMessageUpdateAction(
                             updateNumber = state.updateNumber,
                             targetMessage = checkNotNull(event.message),
