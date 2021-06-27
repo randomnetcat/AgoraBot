@@ -23,6 +23,7 @@ internal object SecretHitlerJoinLeaveMessageQueue {
         data class JoinMessageUpdate(
             override val updateNumber: BigInteger,
             val message: Message,
+            val context: SecretHitlerNameContext,
             val state: SecretHitlerGameState.Joining,
         ) : UpdateAction()
     }
@@ -55,7 +56,12 @@ internal object SecretHitlerJoinLeaveMessageQueue {
                         is UpdateAction.JoinMessageUpdate -> {
                             val newMessage =
                                 MessageBuilder(updateAction.message)
-                                    .setEmbed(formatSecretHitlerJoinMessageEmbed(updateAction.state))
+                                    .setEmbed(
+                                        formatSecretHitlerJoinMessageEmbed(
+                                            context = updateAction.context,
+                                            state = updateAction.state,
+                                        ),
+                                    )
                                     .build()
 
                             val restAction = updateAction.message.editMessage(newMessage).map { Unit }

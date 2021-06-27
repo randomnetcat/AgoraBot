@@ -34,6 +34,7 @@ private sealed class HandleJoinLeaveInternalState {
 }
 
 private fun handleJoinLeave(
+    context: SecretHitlerNameContext,
     repository: SecretHitlerRepository,
     action: String,
     gameId: SecretHitlerGameId,
@@ -71,6 +72,7 @@ private fun handleJoinLeave(
                         SecretHitlerJoinLeaveMessageQueue.UpdateAction.JoinMessageUpdate(
                             updateNumber = state.updateNumber,
                             message = checkNotNull(event.message),
+                            context = context,
                             state = state.newState,
                         ),
                     )
@@ -96,6 +98,7 @@ internal fun doHandleSecretHitlerJoin(
 
     handleTextResponse(event) {
         handleJoinLeave(
+            context = context,
             repository = repository,
             action = "joined",
             gameId = request.gameId,
@@ -128,6 +131,7 @@ internal fun doHandleSecretHitlerLeave(
 
     handleTextResponse(event) {
         handleJoinLeave(
+            context = context,
             repository = repository,
             action = "left",
             gameId = request.gameId,
@@ -148,23 +152,30 @@ internal fun doHandleSecretHitlerLeave(
 
 private val JOIN_LEAVE_DURATION = Duration.ofDays(1)
 
-internal fun formatSecretHitlerJoinMessageEmbed(state: SecretHitlerGameState.Joining): MessageEmbed {
+internal fun formatSecretHitlerJoinMessageEmbed(
+    context: SecretHitlerNameContext,
+    state: SecretHitlerGameState.Joining,
+): MessageEmbed {
     return EmbedBuilder()
         .setTitle("Secret Hitler Game")
         .addField(
             "Players",
-            state.playerNames.joinToString("\n") { name -> "<@${name.raw}>" }.ifEmpty { "[None yet]" },
+            state
+                .playerNames
+                .joinToString("\n") { name -> context.renderExternalName(name) }
+                .ifEmpty { "[None yet]" },
             false,
         )
         .build()
 }
 
 private fun formatSecretHitlerJoinMessage(
+    context: SecretHitlerNameContext,
     state: SecretHitlerGameState.Joining,
     joinButtonId: String,
     leaveButtonId: String,
 ): DiscordMessage {
-    return MessageBuilder(formatSecretHitlerJoinMessageEmbed(state = state))
+    return MessageBuilder(formatSecretHitlerJoinMessageEmbed(context = context, state = state))
         .setActionRows(
             ActionRow.of(
                 Button.success(joinButtonId, "Join"),
@@ -181,6 +192,7 @@ internal fun doSendSecretHitlerJoinLeaveMessage(
 ) {
     context.sendGameMessage(
         formatSecretHitlerJoinMessage(
+            context = context,
             state = state,
             joinButtonId = context.newButtonId(
                 descriptor = SecretHitlerJoinGameButtonDescriptor(gameId),

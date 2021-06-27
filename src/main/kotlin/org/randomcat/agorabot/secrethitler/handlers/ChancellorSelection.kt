@@ -78,11 +78,12 @@ fun secretHitlerSendChancellorSelectionMessage(
     val actionRows = buttons.chunked(5).map { ActionRow.of(it) }
 
     val embed = EmbedBuilder()
-        .setTitle("<@${presidentCandidateName.raw}>, please pick a Chancellor")
+        .setTitle("${context.renderExternalName(presidentCandidateName)}, please pick a Chancellor")
         .addField(
             "Candidates",
             sortedPlayerNumbers.withIndex().joinToString("\n") { (index, playerNumber) ->
-                "Candidate #${index + 1}: <@${state.globalState.playerMap.playerByNumber(playerNumber).raw}>"
+                "Candidate #${index + 1}: " +
+                        context.renderExternalName(state.globalState.playerMap.playerByNumber(playerNumber))
             },
             false,
         )

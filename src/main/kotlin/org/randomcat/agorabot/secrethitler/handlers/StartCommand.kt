@@ -66,14 +66,14 @@ internal fun doHandleSecretHitlerStart(
                         val roleMap = underlyingResult.newState.globalState.roleMap
 
                         val fascistsPart = roleMap.plainFascistPlayers.joinToString(", ") {
-                            "<@${nameForNumber(it).raw}>"
+                            context.renderExternalName(nameForNumber(it))
                         }
 
                         val liberalMessage = "You are a Liberal."
 
                         val plainFascistMessage =
                             "You are a Fascist. The Fascists are $fascistsPart." +
-                                    " Hitler is <@${nameForNumber(roleMap.hitlerPlayer).raw}>."
+                                    " Hitler is ${context.renderExternalName(nameForNumber(roleMap.hitlerPlayer))}."
 
                         val hitlerMessage = if (underlyingResult.configuration.roleConfiguration.hitlerKnowsFascists) {
                             "You are Hitler. The Fascists are $fascistsPart."
