@@ -77,7 +77,7 @@ internal fun doHandleSecretHitlerChancellorSelect(
             afterValid = { result ->
                 when (result) {
                     is ChancellorSelectResult.Success -> {
-                        "You selected <@${result.chancellorName.raw}>. Voting will now commence."
+                        "You selected ${context.renderExternalName(result.chancellorName)}. Voting will now commence."
                     }
 
                     is ChancellorSelectResult.InvalidState -> {
