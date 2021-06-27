@@ -58,6 +58,13 @@ sealed class SecretHitlerEphemeralState {
             return votesByPlayer.getValue(playerNumber)
         }
 
+        fun playersWithVote(voteKind: VoteKind): Set<SecretHitlerPlayerNumber> {
+            return votesByPlayer.filter { (_, v) -> v == voteKind }.keys
+        }
+
+        fun playersVotingFor() = playersWithVote(VoteKind.FOR)
+        fun playersVotingAgainst() = playersWithVote(VoteKind.AGAINST)
+
         fun withVote(player: SecretHitlerPlayerNumber, vote: VoteKind): VoteMap {
             require(!votesByPlayer.containsKey(player)) {
                 "Attempt to set duplicate vote for player with name ${player.raw}"
