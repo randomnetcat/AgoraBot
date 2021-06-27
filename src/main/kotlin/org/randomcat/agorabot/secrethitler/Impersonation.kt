@@ -77,7 +77,7 @@ class SecretHitlerJsonImpersonationMap(
     }
 
     override fun dmUserIdsForName(name: String): Set<String>? {
-        return impl.getValue().dmRecipientsByName[name]
+        return impl.getValue().dmRecipientsByName[name]?.takeIf { it.isNotEmpty() }
     }
 
     override fun setNameForId(userId: String, newName: String) {
