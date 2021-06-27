@@ -139,6 +139,7 @@ private data class PoliciesStateDto(
 private data class ElectionStateDto(
     val currentPresidentTicker: SecretHitlerPlayerNumber,
     val termLimitedPlayers: GovernmentMembersDto?,
+    val electionTrackerState: Int,
 ) {
     companion object {
         fun from(electionState: SecretHitlerElectionState): ElectionStateDto {
@@ -148,6 +149,7 @@ private data class ElectionStateDto(
                     .termLimitState
                     .termLimitedGovernment
                     ?.let { GovernmentMembersDto.from(it) },
+                electionTrackerState = electionState.electionTrackerState,
             )
         }
     }
@@ -156,6 +158,7 @@ private data class ElectionStateDto(
         return SecretHitlerElectionState(
             currentPresidentTicker = currentPresidentTicker,
             termLimitState = SecretHitlerTermLimitState(termLimitedPlayers?.toGovernmentMembers()),
+            electionTrackerState = electionTrackerState,
         )
     }
 }
