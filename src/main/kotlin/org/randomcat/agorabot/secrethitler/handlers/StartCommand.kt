@@ -57,6 +57,42 @@ internal fun doHandleSecretHitlerStart(
                 is SecretHitlerGameState.Running.StartResult.Success -> {
                     context.respond("Starting game...")
 
+                    fun nameForNumber(number: SecretHitlerPlayerNumber): SecretHitlerPlayerExternalName {
+                        return underlyingResult.newState.globalState.playerMap.playerByNumber(number)
+                    }
+
+                    @OptIn(ExperimentalStdlibApi::class)
+                    val messageMap: Map<SecretHitlerPlayerNumber, String> = buildMap {
+                        val roleMap = underlyingResult.newState.globalState.roleMap
+
+                        val fascistsPart = roleMap.plainFascistPlayers.joinToString(", ") {
+                            "<@${nameForNumber(it).raw}>"
+                        }
+
+                        val liberalMessage = "You are a Liberal."
+
+                        val plainFascistMessage =
+                            "You are a Fascist. The Fascists are $fascistsPart." +
+                                    " Hitler is <@${nameForNumber(roleMap.hitlerPlayer).raw}>."
+
+                        val hitlerMessage = if (underlyingResult.configuration.roleConfiguration.hitlerKnowsFascists) {
+                            "You are Hitler. The Fascists are $fascistsPart."
+                        } else {
+                            "You are Hitler."
+                        }
+
+                        putAll(roleMap.liberalPlayers.associateWith { liberalMessage })
+                        putAll(roleMap.plainFascistPlayers.associateWith { plainFascistMessage })
+                        put(roleMap.hitlerPlayer, hitlerMessage)
+                    }
+
+                    for ((playerNumber, message) in messageMap) {
+                        context.sendPrivateMessage(
+                            underlyingResult.newState.globalState.playerMap.playerByNumber(playerNumber),
+                            message,
+                        )
+                    }
+
                     secretHitlerSendChancellorSelectionMessage(
                         context = context,
                         gameId = gameId,
