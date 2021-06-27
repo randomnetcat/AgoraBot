@@ -32,7 +32,7 @@ internal fun doHandleSecretHitlerStart(
         onNoSuchGame = {
             context.respond("The game that was running in this channel has since been deleted.")
         },
-        onInvalidType = { invalidGame ->
+        onInvalidType = { _ ->
             context.respond("That game can no longer be started.")
         },
         validMapper = { currentState: SecretHitlerGameState.Joining ->
