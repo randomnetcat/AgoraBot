@@ -86,24 +86,22 @@ internal object SecretHitlerJoinLeaveMessageQueue {
         }
     }
 
-    private fun setupMessageUpdateChannel(): SendChannel<UpdateAction> {
-        val channel = Channel<UpdateAction>(capacity = 100)
-
-        CoroutineScope(Dispatchers.Default).launch {
-            doHandleMessageUpdates(channel)
-        }
-
-        return channel
-    }
-
     private val updateNumber = AtomicReference<BigInteger>(BigInteger.ZERO)
 
     fun nextUpdateNumber(): BigInteger {
         return updateNumber.getAndUpdate { it + BigInteger.ONE }
     }
 
-    private val messageUpdateChannel: SendChannel<UpdateAction> by lazy {
-        setupMessageUpdateChannel()
+    private val messageUpdateChannel: SendChannel<UpdateAction>
+
+    init {
+        val channel = Channel<UpdateAction>(capacity = 100)
+
+        CoroutineScope(Dispatchers.Default).launch {
+            doHandleMessageUpdates(channel)
+        }
+
+        messageUpdateChannel = channel
     }
 
     fun sendUpdateAction(action: UpdateAction) {
