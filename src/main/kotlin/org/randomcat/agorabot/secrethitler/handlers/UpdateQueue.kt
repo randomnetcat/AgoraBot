@@ -12,7 +12,7 @@ import java.math.BigInteger
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 
-internal object SecretHitlerJoinLeaveMessageQueue {
+internal object SecretHitlerMessageUpdateQueue {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     abstract class UpdateAction(
