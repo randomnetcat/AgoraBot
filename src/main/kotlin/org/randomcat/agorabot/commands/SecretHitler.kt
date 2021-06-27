@@ -62,7 +62,7 @@ private fun makeContext(
                 }
             } else {
                 commandReceiver.currentJda().openPrivateChannelById(recipient.raw).queue { channel ->
-                    channel.sendMessage(message)
+                    channel.sendMessage(message).queue()
                 }
             }
         }
