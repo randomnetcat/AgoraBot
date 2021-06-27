@@ -55,6 +55,14 @@ internal object SecretHitlerMessageUpdateQueue {
                             }
                         } else {
                             editAction.submit()
+                        }.exceptionally { e ->
+                            try {
+                                logger.error("Error during message update", e)
+                            } catch (t: Throwable) {
+                                // We're screwed
+                            }
+
+                            Unit
                         }
                     }
                 } catch (e: Exception) {
