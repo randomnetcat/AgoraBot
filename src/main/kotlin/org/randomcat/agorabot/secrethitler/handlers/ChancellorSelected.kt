@@ -25,12 +25,12 @@ private const val INVALID_STATE_MESSAGE = "You can no longer select a Chancellor
 
 internal fun doHandleSecretHitlerChancellorSelect(
     repository: SecretHitlerRepository,
-    nameContext: SecretHitlerNameContext,
+    context: SecretHitlerInteractionContext,
     event: ButtonClickEvent,
     request: SecretHitlerChancellorCandidateSelectionButtonDescriptor,
 ) {
     val expectedPresidentNumber = request.president
-    val actualPresidentName = nameContext.nameFromInteraction(event.interaction)
+    val actualPresidentName = context.nameFromInteraction(event.interaction)
 
     handleTextResponse(event) {
         repository.gameList.updateGameTypedWithValidExtract(

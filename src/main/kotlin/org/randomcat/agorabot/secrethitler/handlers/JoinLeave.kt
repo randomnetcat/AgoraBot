@@ -88,7 +88,7 @@ private fun handleJoinLeave(
 
 internal fun doHandleSecretHitlerJoin(
     repository: SecretHitlerRepository,
-    context: SecretHitlerNameContext,
+    context: SecretHitlerInteractionContext,
     event: ButtonClickEvent,
     request: SecretHitlerJoinGameButtonDescriptor,
 ) {
@@ -120,7 +120,7 @@ internal fun doHandleSecretHitlerJoin(
 
 internal fun doHandleSecretHitlerLeave(
     repository: SecretHitlerRepository,
-    context: SecretHitlerNameContext,
+    context: SecretHitlerInteractionContext,
     event: ButtonClickEvent,
     request: SecretHitlerLeaveGameButtonDescriptor,
 ) {

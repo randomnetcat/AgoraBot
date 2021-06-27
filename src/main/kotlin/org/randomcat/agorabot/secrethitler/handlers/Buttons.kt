@@ -9,13 +9,13 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDe
 object SecretHitlerButtons {
     fun handleJoin(
         repository: SecretHitlerRepository,
-        nameContext: SecretHitlerNameContext,
+        context: SecretHitlerInteractionContext,
         event: ButtonClickEvent,
         request: SecretHitlerJoinGameButtonDescriptor,
     ) {
         doHandleSecretHitlerJoin(
             repository = repository,
-            context = nameContext,
+            context = context,
             event = event,
             request = request,
         )
@@ -23,13 +23,13 @@ object SecretHitlerButtons {
 
     fun handleLeave(
         repository: SecretHitlerRepository,
-        nameContext: SecretHitlerNameContext,
+        context: SecretHitlerInteractionContext,
         event: ButtonClickEvent,
         request: SecretHitlerLeaveGameButtonDescriptor,
     ) {
         doHandleSecretHitlerLeave(
             repository = repository,
-            context = nameContext,
+            context = context,
             event = event,
             request = request,
         )
@@ -37,13 +37,13 @@ object SecretHitlerButtons {
 
     fun handleChancellorSelection(
         repository: SecretHitlerRepository,
-        nameContext: SecretHitlerNameContext,
+        context: SecretHitlerInteractionContext,
         event: ButtonClickEvent,
         request: SecretHitlerChancellorCandidateSelectionButtonDescriptor,
     ) {
         doHandleSecretHitlerChancellorSelect(
             repository = repository,
-            nameContext = nameContext,
+            context = context,
             event = event,
             request = request,
         )

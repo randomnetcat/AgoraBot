@@ -25,6 +25,6 @@ interface SecretHitlerCommandContext : SecretHitlerGameContext {
     fun respond(message: DiscordMessage)
 }
 
-interface SecretHitlerNameContext {
+interface SecretHitlerInteractionContext {
     fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName
 }
