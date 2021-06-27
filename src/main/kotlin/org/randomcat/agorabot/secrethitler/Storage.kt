@@ -79,6 +79,8 @@ internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameL
         },
         afterValid = {
             check(validExtractValue !== SH_VALID_EXTRACT_NOT_SET)
+
+            @Suppress("UNCHECKED_CAST")
             afterValid(validExtractValue as VE)
         },
     )
