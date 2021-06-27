@@ -14,6 +14,7 @@ import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
@@ -105,6 +106,9 @@ fun secretHitlerFeature(
                         event = context.event,
                         request = request,
                     )
+                }
+
+                withType<SecretHitlerVoteButtonDescriptor> { context, request ->
                 }
             },
         )
