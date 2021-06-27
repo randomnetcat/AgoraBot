@@ -6,9 +6,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.launch
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Message
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
 import java.util.concurrent.CompletableFuture
@@ -17,15 +15,11 @@ import java.util.concurrent.atomic.AtomicReference
 internal object SecretHitlerJoinLeaveMessageQueue {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    sealed class UpdateAction {
-        abstract val updateNumber: BigInteger
-
-        data class JoinMessageUpdate(
-            override val updateNumber: BigInteger,
-            val message: Message,
-            val context: SecretHitlerNameContext,
-            val state: SecretHitlerGameState.Joining,
-        ) : UpdateAction()
+    abstract class UpdateAction(
+        val updateNumber: BigInteger,
+        val targetMessage: Message,
+    ) {
+        abstract fun newMessageData(): Message
     }
 
     private suspend fun doHandleMessageUpdates(channel: Channel<UpdateAction>) {
@@ -51,32 +45,16 @@ internal object SecretHitlerJoinLeaveMessageQueue {
                 try {
                     largestUpdateNumber = updateAction.updateNumber
 
-                    @Suppress("UNUSED_VARIABLE")
-                    val ensureExhaustive = when (updateAction) {
-                        is UpdateAction.JoinMessageUpdate -> {
-                            val newMessage =
-                                MessageBuilder(updateAction.message)
-                                    .setEmbed(
-                                        formatSecretHitlerJoinMessageEmbed(
-                                            context = updateAction.context,
-                                            state = updateAction.state,
-                                        ),
-                                    )
-                                    .build()
+                    val targetMessage = updateAction.targetMessage
+                    val editAction = targetMessage.editMessage(updateAction.newMessageData()).map { Unit }
 
-                            val restAction = updateAction.message.editMessage(newMessage).map { Unit }
-
-                            // Ensure that the message edit action is queued only after any previous update in that
-                            // channel has completed.
-                            futureMap.compute(updateAction.message.channel.id) { _, old ->
-                                if (old != null) {
-                                    old.thenCompose { _ ->
-                                        restAction.submit()
-                                    }
-                                } else {
-                                    restAction.submit()
-                                }
+                    futureMap.compute(targetMessage.channel.id) { _, old ->
+                        if (old != null) {
+                            old.thenCompose { _ ->
+                                editAction.submit()
                             }
+                        } else {
+                            editAction.submit()
                         }
                     }
                 } catch (e: Exception) {

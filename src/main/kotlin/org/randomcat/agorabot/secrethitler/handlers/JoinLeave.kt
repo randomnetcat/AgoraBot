@@ -2,6 +2,7 @@ package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
@@ -31,6 +32,27 @@ private sealed class HandleJoinLeaveInternalState {
         val newState: SecretHitlerGameState.Joining,
         val updateNumber: BigInteger,
     ) : HandleJoinLeaveInternalState()
+}
+
+private class JoinMessageUpdateAction(
+    updateNumber: BigInteger,
+    targetMessage: Message,
+    private val context: SecretHitlerNameContext,
+    private val state: SecretHitlerGameState.Joining,
+) : SecretHitlerJoinLeaveMessageQueue.UpdateAction(
+    updateNumber = updateNumber,
+    targetMessage = targetMessage,
+) {
+    override fun newMessageData(): Message {
+        return MessageBuilder(targetMessage)
+            .setEmbed(
+                formatSecretHitlerJoinMessageEmbed(
+                    context = context,
+                    state = state,
+                ),
+            )
+            .build()
+    }
 }
 
 private fun handleJoinLeave(
@@ -69,9 +91,9 @@ private fun handleJoinLeave(
             when (state) {
                 is HandleJoinLeaveInternalState.Succeeded -> {
                     SecretHitlerJoinLeaveMessageQueue.sendUpdateAction(
-                        SecretHitlerJoinLeaveMessageQueue.UpdateAction.JoinMessageUpdate(
+                        JoinMessageUpdateAction(
                             updateNumber = state.updateNumber,
-                            message = checkNotNull(event.message),
+                            targetMessage = checkNotNull(event.message),
                             context = context,
                             state = state.newState,
                         ),
@@ -152,7 +174,7 @@ internal fun doHandleSecretHitlerLeave(
 
 private val JOIN_LEAVE_DURATION = Duration.ofDays(1)
 
-internal fun formatSecretHitlerJoinMessageEmbed(
+private fun formatSecretHitlerJoinMessageEmbed(
     context: SecretHitlerNameContext,
     state: SecretHitlerGameState.Joining,
 ): MessageEmbed {
