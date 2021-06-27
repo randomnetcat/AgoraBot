@@ -73,7 +73,7 @@ internal fun doHandleSecretHitlerChancellorSelect(
 
                 newState to ChancellorSelectResult.Success(
                     newState = newState,
-                    chancellorName = currentState.globalState.playerMap.playerByNumber(selectedChancellorNumber),
+                    chancellorName = currentState.globalState.playerMap.playerByNumberKnown(selectedChancellorNumber),
                 )
             },
             afterValid = { result ->

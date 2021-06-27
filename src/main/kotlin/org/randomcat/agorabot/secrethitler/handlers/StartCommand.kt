@@ -58,7 +58,7 @@ internal fun doHandleSecretHitlerStart(
                     context.respond("Starting game...")
 
                     fun nameForNumber(number: SecretHitlerPlayerNumber): SecretHitlerPlayerExternalName {
-                        return underlyingResult.newState.globalState.playerMap.playerByNumber(number)
+                        return underlyingResult.newState.globalState.playerMap.playerByNumberKnown(number)
                     }
 
                     @OptIn(ExperimentalStdlibApi::class)
@@ -88,7 +88,7 @@ internal fun doHandleSecretHitlerStart(
 
                     for ((playerNumber, message) in messageMap) {
                         context.sendPrivateMessage(
-                            underlyingResult.newState.globalState.playerMap.playerByNumber(playerNumber),
+                            underlyingResult.newState.globalState.playerMap.playerByNumberKnown(playerNumber),
                             message,
                         )
                     }

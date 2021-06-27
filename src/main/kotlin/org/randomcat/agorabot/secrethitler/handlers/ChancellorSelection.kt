@@ -47,7 +47,7 @@ fun secretHitlerSendChancellorSelectionMessage(
     require(state.ephemeralState is SecretHitlerEphemeralState.ChancellorSelectionPending)
 
     val presidentCandidate = state.ephemeralState.presidentCandidate
-    val presidentCandidateName = state.globalState.playerMap.playerByNumber(presidentCandidate)
+    val presidentCandidateName = state.globalState.playerMap.playerByNumberKnown(presidentCandidate)
 
     val sortedPlayerNumbers = state.globalState.playerMap.validNumbers.sortedBy { it.raw }
 
@@ -83,7 +83,7 @@ fun secretHitlerSendChancellorSelectionMessage(
             "Candidates",
             sortedPlayerNumbers.withIndex().joinToString("\n") { (index, playerNumber) ->
                 "Candidate #${index + 1}: " +
-                        context.renderExternalName(state.globalState.playerMap.playerByNumber(playerNumber))
+                        context.renderExternalName(state.globalState.playerMap.playerByNumberKnown(playerNumber))
             },
             false,
         )

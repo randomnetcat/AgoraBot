@@ -34,12 +34,16 @@ data class SecretHitlerPlayerMap(
         }
     }
 
-    fun playerByNumber(number: SecretHitlerPlayerNumber): SecretHitlerPlayerExternalName {
-        return players.getValue(number)
+    fun playerByNumber(number: SecretHitlerPlayerNumber): SecretHitlerPlayerExternalName? {
+        return players[number]
     }
 
-    fun numberByPlayer(playerName: SecretHitlerPlayerExternalName): SecretHitlerPlayerNumber {
-        return players.entries.single { it.value == playerName }.key
+    fun playerByNumberKnown(number: SecretHitlerPlayerNumber): SecretHitlerPlayerExternalName {
+        return playerByNumber(number) ?: error("Incorrectly assumed that player number ${number.raw} exists")
+    }
+
+    fun numberByPlayer(playerName: SecretHitlerPlayerExternalName): SecretHitlerPlayerNumber? {
+        return players.entries.firstOrNull { it.value == playerName }?.key
     }
 
     fun toMap(): Map<SecretHitlerPlayerNumber, SecretHitlerPlayerExternalName> {

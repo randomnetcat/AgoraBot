@@ -25,8 +25,8 @@ private fun formatVotingEmbed(
     val playerMap = currentState.globalState.playerMap
     val governmentMembers = currentState.ephemeralState.governmentMembers
 
-    val presidentName = playerMap.playerByNumber(governmentMembers.president)
-    val chancellorName = playerMap.playerByNumber(governmentMembers.chancellor)
+    val presidentName = playerMap.playerByNumberKnown(governmentMembers.president)
+    val chancellorName = playerMap.playerByNumberKnown(governmentMembers.chancellor)
 
     return EmbedBuilder()
         .addField(
@@ -47,7 +47,7 @@ private fun formatVotingEmbed(
                 .votingPlayers
                 .sortedBy { it.raw }
                 .joinToString("\n") { votingPlayerNumber ->
-                    context.renderExternalName(playerMap.playerByNumber(votingPlayerNumber))
+                    context.renderExternalName(playerMap.playerByNumberKnown(votingPlayerNumber))
                 }
                 .ifEmpty { "[None yet]" },
             false,
@@ -109,6 +109,7 @@ private sealed class VoteButtonResult {
     sealed class Failure : VoteButtonResult()
     object InvalidType : Failure()
     object AlreadyVoted : Failure()
+    object NotPlayer : Failure()
 }
 
 private const val INVALID_TYPE_MESSAGE = "You can no longer vote in that game."
@@ -133,6 +134,10 @@ internal fun doHandleSecretHitlerVote(
             validMapper = { currentState: SecretHitlerGameState.Running ->
                 val voterName = context.nameFromInteraction(event.interaction)
                 val voterNumber = currentState.globalState.playerMap.numberByPlayer(voterName)
+
+                if (voterNumber == null) {
+                    return@updateGameTypedWithValidExtract currentState to VoteButtonResult.NotPlayer
+                }
 
                 if (currentState.ephemeralState !is SecretHitlerEphemeralState.VotingOngoing) {
                     return@updateGameTypedWithValidExtract currentState to VoteButtonResult.InvalidType
@@ -162,6 +167,10 @@ internal fun doHandleSecretHitlerVote(
 
                     is VoteButtonResult.InvalidType -> {
                         INVALID_TYPE_MESSAGE
+                    }
+
+                    is VoteButtonResult.NotPlayer -> {
+                        "You are not a player in that game."
                     }
                 }
             }
