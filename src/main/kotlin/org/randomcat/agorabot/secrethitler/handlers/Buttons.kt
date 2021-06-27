@@ -5,6 +5,7 @@ import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
+import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
 
 object SecretHitlerButtons {
     fun handleJoin(
@@ -42,6 +43,20 @@ object SecretHitlerButtons {
         request: SecretHitlerChancellorCandidateSelectionButtonDescriptor,
     ) {
         doHandleSecretHitlerChancellorSelect(
+            repository = repository,
+            context = context,
+            event = event,
+            request = request,
+        )
+    }
+
+    fun handleVote(
+        repository: SecretHitlerRepository,
+        context: SecretHitlerInteractionContext,
+        event: ButtonClickEvent,
+        request: SecretHitlerVoteButtonDescriptor,
+    ) {
+        doHandleSecretHitlerVote(
             repository = repository,
             context = context,
             event = event,

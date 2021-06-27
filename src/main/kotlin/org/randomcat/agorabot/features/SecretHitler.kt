@@ -169,6 +169,12 @@ fun secretHitlerFeature(
                 }
 
                 withType<SecretHitlerVoteButtonDescriptor> { context, request ->
+                    SecretHitlerButtons.handleVote(
+                        repository = repository,
+                        context = interactionContextFor(context),
+                        event = context.event,
+                        request = request,
+                    )
                 }
             },
         )
