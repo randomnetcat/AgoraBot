@@ -14,7 +14,7 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandida
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
-import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 
 fun secretHitlerFeature(
@@ -32,7 +32,7 @@ fun secretHitlerFeature(
     }
 
     override fun buttonData(): FeatureButtonData {
-        val nameContext = object : SecretHitlerNameContext {
+        val nameContext = object : SecretHitlerInteractionContext {
             override fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName {
                 val userId = interaction.user.id
                 val effectiveName = impersonationMap?.currentNameForId(userId) ?: userId
@@ -46,7 +46,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerJoinGameButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleJoin(
                         repository = repository,
-                        nameContext = nameContext,
+                        context = nameContext,
                         event = context.event,
                         request = request,
                     )
@@ -55,7 +55,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerLeaveGameButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleLeave(
                         repository = repository,
-                        nameContext = nameContext,
+                        context = nameContext,
                         event = context.event,
                         request = request,
                     )
@@ -64,7 +64,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerChancellorCandidateSelectionButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleChancellorSelection(
                         repository = repository,
-                        nameContext = nameContext,
+                        context = nameContext,
                         event = context.event,
                         request = request,
                     )
