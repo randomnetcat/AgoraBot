@@ -127,4 +127,6 @@ sealed class SecretHitlerGameState {
             }
         }
     }
+
+    object Completed : SecretHitlerGameState()
 }

@@ -335,6 +335,10 @@ private sealed class GameStateDto {
                 is SecretHitlerGameState.Running -> {
                     GameStateDto.Running.from(gameState)
                 }
+
+                is SecretHitlerGameState.Completed -> {
+                    GameStateDto.Completed
+                }
             }
         }
     }
@@ -367,6 +371,13 @@ private sealed class GameStateDto {
                 globalState = globalState.toGlobalState(),
                 ephemeralState = ephemeralState.toEphemeralState(),
             )
+        }
+    }
+
+    @Serializable
+    object Completed : GameStateDto() {
+        override fun toGameState(): SecretHitlerGameState {
+            return SecretHitlerGameState.Completed
         }
     }
 }
