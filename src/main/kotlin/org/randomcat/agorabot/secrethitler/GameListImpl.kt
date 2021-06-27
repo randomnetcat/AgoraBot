@@ -222,6 +222,21 @@ private data class GovernmentMembersDto(
 }
 
 @Serializable
+private data class VoteMapDto(val votesByPlayer: Map<SecretHitlerPlayerNumber, SecretHitlerEphemeralState.VoteKind>) {
+    companion object {
+        fun from(voteMap: SecretHitlerEphemeralState.VoteMap): VoteMapDto {
+            return VoteMapDto(
+                votesByPlayer = voteMap.toMap(),
+            )
+        }
+    }
+
+    fun toVoteMap(): SecretHitlerEphemeralState.VoteMap {
+        return SecretHitlerEphemeralState.VoteMap(votesByPlayer = votesByPlayer)
+    }
+}
+
+@Serializable
 private sealed class EphemeralStateDto {
     companion object {
         fun from(state: SecretHitlerEphemeralState): EphemeralStateDto {
@@ -265,15 +280,24 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
-    data class VotingOngoing(val governmentMembers: GovernmentMembersDto) : EphemeralStateDto() {
+    data class VotingOngoing(
+        val governmentMembers: GovernmentMembersDto,
+        val voteMap: VoteMapDto,
+    ) : EphemeralStateDto() {
         companion object {
             fun from(state: SecretHitlerEphemeralState.VotingOngoing): VotingOngoing {
-                return VotingOngoing(governmentMembers = GovernmentMembersDto.from(state.governmentMembers))
+                return VotingOngoing(
+                    governmentMembers = GovernmentMembersDto.from(state.governmentMembers),
+                    voteMap = VoteMapDto.from(state.voteMap),
+                )
             }
         }
 
         override fun toEphemeralState(): SecretHitlerEphemeralState {
-            return SecretHitlerEphemeralState.VotingOngoing(governmentMembers = governmentMembers.toGovernmentMembers())
+            return SecretHitlerEphemeralState.VotingOngoing(
+                governmentMembers = governmentMembers.toGovernmentMembers(),
+                voteMap = voteMap.toVoteMap(),
+            )
         }
     }
 
