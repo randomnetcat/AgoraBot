@@ -18,13 +18,17 @@ interface SecretHitlerMessageContext {
     fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: DiscordMessage)
 }
 
-interface SecretHitlerGameContext : SecretHitlerButtonContext, SecretHitlerMessageContext
+interface SecretHitlerNameContext {
+    fun renderExternalName(name: SecretHitlerPlayerExternalName): String
+}
+
+interface SecretHitlerGameContext : SecretHitlerButtonContext, SecretHitlerMessageContext, SecretHitlerNameContext
 
 interface SecretHitlerCommandContext : SecretHitlerGameContext {
     fun respond(message: String)
     fun respond(message: DiscordMessage)
 }
 
-interface SecretHitlerInteractionContext {
+interface SecretHitlerInteractionContext : SecretHitlerNameContext {
     fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName
 }

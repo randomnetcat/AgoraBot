@@ -11,6 +11,7 @@ import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerCommandContext
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.util.DiscordMessage
@@ -22,8 +23,9 @@ private val IMPERSONATE_PERMISSION = BotScope.command("secret_hitler").action("i
 private fun makeContext(
     commandReceiver: BaseCommandExecutionReceiverGuilded,
     impersonationMap: SecretHitlerImpersonationMap?,
+    nameContext: SecretHitlerNameContext,
 ): SecretHitlerCommandContext {
-    return object : SecretHitlerCommandContext {
+    return object : SecretHitlerCommandContext, SecretHitlerNameContext by nameContext {
         override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
             return commandReceiver.newButtonId(descriptor, expiryDuration)
         }
@@ -79,9 +81,10 @@ class SecretHitlerCommand(
     strategy: BaseCommandStrategy,
     private val repository: SecretHitlerRepository,
     private val impersonationMap: SecretHitlerMutableImpersonationMap?,
+    private val nameContext: SecretHitlerNameContext,
 ) : BaseCommand(strategy) {
     private val BaseCommandExecutionReceiverGuilded.context: SecretHitlerCommandContext
-        get() = makeContext(this, impersonationMap)
+        get() = makeContext(this, impersonationMap, nameContext)
 
     override fun BaseCommandImplReceiver.impl() {
         subcommands {

@@ -15,7 +15,20 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDes
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionContext
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
+
+private object NameContextImpl : SecretHitlerNameContext {
+    override fun renderExternalName(name: SecretHitlerPlayerExternalName): String {
+        val raw = name.raw
+
+        return if (raw.toLongOrNull() != null) {
+            "<@$raw>"
+        } else {
+            raw
+        }
+    }
+}
 
 fun secretHitlerFeature(
     repository: SecretHitlerRepository,
@@ -27,12 +40,13 @@ fun secretHitlerFeature(
                 context.defaultCommandStrategy,
                 repository = repository,
                 impersonationMap = impersonationMap,
+                nameContext = NameContextImpl,
             ),
         )
     }
 
     override fun buttonData(): FeatureButtonData {
-        val nameContext = object : SecretHitlerInteractionContext {
+        val nameContext = object : SecretHitlerInteractionContext, SecretHitlerNameContext by NameContextImpl {
             override fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName {
                 val userId = interaction.user.id
                 val effectiveName = impersonationMap?.currentNameForId(userId) ?: userId
