@@ -1,8 +1,6 @@
 package org.randomcat.agorabot.commands
 
-import kotlinx.collections.immutable.ImmutableSet
-import kotlinx.collections.immutable.toImmutableSet
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.MessageChannel
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
@@ -12,9 +10,9 @@ import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerCommandContext
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerMessageContext
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.util.DiscordMessage
 import java.time.Duration
 
@@ -23,56 +21,15 @@ private val IMPERSONATE_PERMISSION = BotScope.command("secret_hitler").action("i
 
 private fun makeContext(
     commandReceiver: BaseCommandExecutionReceiverGuilded,
-    nameContext: SecretHitlerCommand.CommandNameContext,
+    nameContext: SecretHitlerNameContext,
+    messageContext: SecretHitlerMessageContext,
 ): SecretHitlerCommandContext {
-    return object : SecretHitlerCommandContext, SecretHitlerNameContext by nameContext {
+    return object :
+        SecretHitlerCommandContext,
+        SecretHitlerNameContext by nameContext,
+        SecretHitlerMessageContext by messageContext {
         override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
             return commandReceiver.newButtonId(descriptor, expiryDuration)
-        }
-
-        // Assume that commands are only sent in the same channel as the game.
-        override fun sendGameMessage(message: String) {
-            commandReceiver.currentChannel().sendMessage(message).queue()
-        }
-
-        // Assume that commands are only sent in the same channel as the game.
-        override fun sendGameMessage(message: DiscordMessage) {
-            commandReceiver.currentChannel().sendMessage(message).queue()
-        }
-
-        override fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: String) {
-            sendPrivateMessage(recipient, MessageBuilder(message).build())
-        }
-
-        private fun queuePrivateMessage(recipientId: String, message: DiscordMessage) {
-            commandReceiver.currentJda().openPrivateChannelById(recipientId).queue { channel ->
-                channel.sendMessage(message).queue()
-            }
-        }
-
-        override fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: DiscordMessage) {
-            return when (val idsResult = nameContext.resolveDmUserIds(recipient)) {
-                is SecretHitlerCommand.CommandNameContext.DmIdsResult.Direct -> {
-                    queuePrivateMessage(idsResult.userId, message)
-                }
-
-                is SecretHitlerCommand.CommandNameContext.DmIdsResult.Impersonated -> {
-                    val adjustedMessage =
-                        MessageBuilder(message)
-                            .also {
-                                it.stringBuilder.insert(0, "Redirected from ${recipient.raw}:\n")
-                            }
-                            .build()
-
-                    for (userId in idsResult.userIds) {
-                        queuePrivateMessage(userId, adjustedMessage)
-                    }
-                }
-
-                is SecretHitlerCommand.CommandNameContext.DmIdsResult.Invalid -> {
-                    sendGameMessage("Unable to resolve user ${recipient.raw}")
-                }
-            }
         }
 
         override fun respond(message: DiscordMessage) {
@@ -89,24 +46,15 @@ class SecretHitlerCommand(
     strategy: BaseCommandStrategy,
     private val repository: SecretHitlerRepository,
     private val impersonationMap: SecretHitlerMutableImpersonationMap?,
-    private val nameContext: CommandNameContext,
+    private val nameContext: SecretHitlerNameContext,
+    private val makeMessageContext: (currentChannel: MessageChannel) -> SecretHitlerMessageContext,
 ) : BaseCommand(strategy) {
     private val BaseCommandExecutionReceiverGuilded.context: SecretHitlerCommandContext
-        get() = makeContext(this, nameContext)
-
-    interface CommandNameContext : SecretHitlerNameContext {
-        sealed class DmIdsResult {
-            data class Direct(val userId: String) : DmIdsResult()
-
-            data class Impersonated(val userIds: ImmutableSet<String>) : DmIdsResult() {
-                constructor(userIds: Set<String>) : this(userIds.toImmutableSet())
-            }
-
-            object Invalid : DmIdsResult()
-        }
-
-        fun resolveDmUserIds(name: SecretHitlerPlayerExternalName): DmIdsResult
-    }
+        get() = makeContext(
+            commandReceiver = this,
+            nameContext = nameContext,
+            messageContext = makeMessageContext(currentChannel()),
+        )
 
     override fun BaseCommandImplReceiver.impl() {
         subcommands {

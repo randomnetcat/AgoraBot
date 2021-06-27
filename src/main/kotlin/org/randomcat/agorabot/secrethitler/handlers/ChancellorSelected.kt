@@ -32,9 +32,11 @@ internal fun doHandleSecretHitlerChancellorSelect(
     val expectedPresidentNumber = request.president
     val actualPresidentName = context.nameFromInteraction(event.interaction)
 
+    val gameId = request.gameId
+
     handleTextResponse(event) {
         repository.gameList.updateGameTypedWithValidExtract(
-            id = request.gameId,
+            id = gameId,
             onNoSuchGame = {
                 "That game no longer exists."
             },
@@ -77,6 +79,12 @@ internal fun doHandleSecretHitlerChancellorSelect(
             afterValid = { result ->
                 when (result) {
                     is ChancellorSelectResult.Success -> {
+                        doSendSecretHitlerVotingMessage(
+                            context = context,
+                            gameId = gameId,
+                            gameState = result.newState,
+                        )
+
                         "You selected ${context.renderExternalName(result.chancellorName)}. Voting will now commence."
                     }
 

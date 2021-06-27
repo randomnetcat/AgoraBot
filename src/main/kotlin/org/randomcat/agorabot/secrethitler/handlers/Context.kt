@@ -10,13 +10,17 @@ interface SecretHitlerButtonContext {
     fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String
 }
 
-interface SecretHitlerMessageContext {
-    fun sendGameMessage(message: String)
-    fun sendGameMessage(message: DiscordMessage)
-
+interface SecretHitlerPrivateMessageContext {
     fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: String)
     fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: DiscordMessage)
 }
+
+interface SecretHitlerGameMessageContext {
+    fun sendGameMessage(message: String)
+    fun sendGameMessage(message: DiscordMessage)
+}
+
+interface SecretHitlerMessageContext : SecretHitlerPrivateMessageContext, SecretHitlerGameMessageContext
 
 interface SecretHitlerNameContext {
     fun renderExternalName(name: SecretHitlerPlayerExternalName): String
@@ -29,6 +33,6 @@ interface SecretHitlerCommandContext : SecretHitlerGameContext {
     fun respond(message: DiscordMessage)
 }
 
-interface SecretHitlerInteractionContext : SecretHitlerNameContext {
+interface SecretHitlerInteractionContext : SecretHitlerGameContext {
     fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName
 }
