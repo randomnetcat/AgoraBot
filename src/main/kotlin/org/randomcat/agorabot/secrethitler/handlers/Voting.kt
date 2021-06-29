@@ -14,6 +14,7 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
+import java.math.BigInteger
 import java.time.Duration
 
 private fun formatVotingEmbed(
@@ -104,12 +105,42 @@ internal fun doSendSecretHitlerVotingMessage(
 }
 
 private sealed class VoteButtonResult {
-    data class Success(val newState: SecretHitlerGameState.Running) : VoteButtonResult()
+    data class Success(
+        val newState: SecretHitlerGameState.Running,
+        val updateNumber: BigInteger,
+    ) : VoteButtonResult()
 
     sealed class Failure : VoteButtonResult()
     object InvalidType : Failure()
     object AlreadyVoted : Failure()
     object NotPlayer : Failure()
+}
+
+private fun queueVoteMessageUpdate(
+    context: SecretHitlerNameContext,
+    updateNumber: BigInteger,
+    targetMessage: Message,
+    currentState: SecretHitlerGameState.Running,
+) {
+    require(currentState.ephemeralState is SecretHitlerEphemeralState.VotingOngoing)
+
+    SecretHitlerMessageUpdateQueue.sendUpdateAction(
+        object : SecretHitlerMessageUpdateQueue.UpdateAction(
+            updateNumber = updateNumber,
+            targetMessage = targetMessage,
+        ) {
+            override fun newMessageData(): Message {
+                return MessageBuilder(targetMessage)
+                    .setEmbed(
+                        formatVotingEmbed(
+                            context = context,
+                            currentState = currentState,
+                        ),
+                    )
+                    .build()
+            }
+        }
+    )
 }
 
 private const val INVALID_TYPE_MESSAGE = "You can no longer vote in that game."
@@ -153,11 +184,21 @@ internal fun doHandleSecretHitlerVote(
                     )
                 )
 
-                newState to VoteButtonResult.Success(newState = newState)
+                newState to VoteButtonResult.Success(
+                    newState = newState,
+                    updateNumber = SecretHitlerMessageUpdateQueue.nextUpdateNumber(),
+                )
             },
             afterValid = { result ->
                 when (result) {
                     is VoteButtonResult.Success -> {
+                        queueVoteMessageUpdate(
+                            context = context,
+                            updateNumber = result.updateNumber,
+                            targetMessage = checkNotNull(event.message),
+                            currentState = result.newState,
+                        )
+
                         "Vote cast."
                     }
 
