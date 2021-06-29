@@ -7,11 +7,10 @@ import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
-import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerCommandContext
+import org.randomcat.agorabot.secrethitler.handlers.*
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
-import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerMessageContext
-import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerNameContext
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.util.DiscordMessage
 import java.time.Duration
@@ -164,7 +163,8 @@ class SecretHitlerCommand(
                         return@requiresGuild
                     }
 
-                    when (gameState) {
+                    @Suppress("UNUSED_VARIABLE")
+                    val ensureExhaustive = when (gameState) {
                         is SecretHitlerGameState.Joining -> {
                             sendJoinLeaveMessage(
                                 context = context,
@@ -173,8 +173,32 @@ class SecretHitlerCommand(
                             )
                         }
 
-                        else -> {
-                            respond("Don't know how to resend a message for that state.")
+                        is SecretHitlerGameState.Running -> {
+                            when (gameState.ephemeralState) {
+                                is SecretHitlerEphemeralState.ChancellorSelectionPending -> {
+                                    secretHitlerSendChancellorSelectionMessage(
+                                        context = context,
+                                        gameId = gameId,
+                                        state = gameState,
+                                    )
+                                }
+
+                                is SecretHitlerEphemeralState.VotingOngoing -> {
+                                    doSendSecretHitlerVotingMessage(
+                                        context = context,
+                                        gameId = gameId,
+                                        gameState = gameState,
+                                    )
+                                }
+
+                                else -> {
+                                    respond("Not yet implemented")
+                                }
+                            }
+                        }
+
+                        is SecretHitlerGameState.Completed -> {
+                            respond("That game is complete.")
                         }
                     }
                 }
