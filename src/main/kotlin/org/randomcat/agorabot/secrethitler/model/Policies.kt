@@ -64,4 +64,11 @@ data class SecretHitlerPoliciesState(
             fascistPower = null,
         )
     }
+
+    fun enactPolicy(config: SecretHitlerGameConfiguration, type: SecretHitlerPolicyType): EnactmentResult {
+        return when (type) {
+            SecretHitlerPolicyType.LIBERAL -> enactLiberalPolicy(config)
+            SecretHitlerPolicyType.FASCIST -> enactFascistPolicy(config)
+        }
+    }
 }
