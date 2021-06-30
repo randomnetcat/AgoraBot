@@ -76,13 +76,60 @@ sealed class SecretHitlerGameState {
         }
     }
 
-    data class Running(
-        val globalState: SecretHitlerGlobalGameState,
-        val ephemeralState: SecretHitlerEphemeralState,
-    ) : SecretHitlerGameState() {
+    companion object {
+        fun <Ephemeral : SecretHitlerEphemeralState> Running(
+            globalState: SecretHitlerGlobalGameState,
+            ephemeralState: Ephemeral,
+        ): Running.With<Ephemeral> {
+            return Running.With(
+                globalState = globalState,
+                ephemeralState = ephemeralState,
+            )
+        }
+    }
+
+    sealed class Running : SecretHitlerGameState() {
+        abstract val globalState: SecretHitlerGlobalGameState
+        abstract val ephemeralState: SecretHitlerEphemeralState
+
+        fun <Ephemeral : SecretHitlerEphemeralState> withEphemeral(
+            newEphemeralState: Ephemeral,
+        ): Running.With<Ephemeral> {
+            return when (this) {
+                is With<*> -> With(
+                    globalState = globalState,
+                    ephemeralState = newEphemeralState,
+                )
+            }
+        }
+
+        inline fun <reified Ephemeral : SecretHitlerEphemeralState> tryWith(): With<Ephemeral>? {
+            return when (this) {
+                is With<*> -> {
+                    if (ephemeralState is Ephemeral) {
+                        @Suppress("UNCHECKED_CAST")
+                        this as With<Ephemeral>
+                    } else {
+                        null
+                    }
+                }
+            }
+        }
+
+        inline fun <reified Ephemeral : SecretHitlerEphemeralState> assumeWith(): With<Ephemeral> {
+            return checkNotNull(this.tryWith<Ephemeral>()) {
+                "Incorrect assumption of ephemeral state ${Ephemeral::class.qualifiedName}"
+            }
+        }
+
+        data class With<Ephemeral : SecretHitlerEphemeralState>(
+            override val globalState: SecretHitlerGlobalGameState,
+            override val ephemeralState: Ephemeral,
+        ) : Running()
+
         sealed class StartResult {
             data class Success(
-                val newState: Running,
+                val newState: Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending>,
                 val configuration: SecretHitlerStartConfiguration,
             ) : StartResult()
 
