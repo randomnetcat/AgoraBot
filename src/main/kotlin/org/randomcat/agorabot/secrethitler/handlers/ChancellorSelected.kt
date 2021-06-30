@@ -61,7 +61,7 @@ private fun doStateUpdate(
             }
 
             val newState = typedState.withEphemeral(
-                typedState.ephemeralState.selectChancellor(selectedChancellor),
+                typedState.ephemeralState.withChancellorSelected(selectedChancellor),
             )
 
             newState to ChancellorSelectResult.Success(
