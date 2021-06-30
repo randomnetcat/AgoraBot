@@ -21,6 +21,7 @@ private data class GameConfigurationDto(
     val fascistPowers: List<SecretHitlerFascistPower?>,
     val hitlerChancellorWinRequirement: Int,
     val vetoUnlockRequirement: Int,
+    val speedyEnactRequirement: Int,
 ) {
     companion object {
         fun from(configuration: SecretHitlerGameConfiguration): GameConfigurationDto {
@@ -29,6 +30,7 @@ private data class GameConfigurationDto(
                 fascistPowers = (1 until configuration.fascistWinRequirement).map { configuration.fascistPowerAt(it) },
                 hitlerChancellorWinRequirement = configuration.hitlerChancellorWinRequirement,
                 vetoUnlockRequirement = configuration.vetoUnlockRequirement,
+                speedyEnactRequirement = configuration.speedyEnactRequirement,
             )
         }
     }
@@ -39,6 +41,7 @@ private data class GameConfigurationDto(
             fascistPowers = fascistPowers.toImmutableList(),
             hitlerChancellorWinRequirement = hitlerChancellorWinRequirement,
             vetoUnlockRequirement = vetoUnlockRequirement,
+            speedyEnactRequirement = speedyEnactRequirement,
         )
     }
 }
