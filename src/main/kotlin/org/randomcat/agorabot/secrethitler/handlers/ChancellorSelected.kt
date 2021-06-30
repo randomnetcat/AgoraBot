@@ -1,11 +1,10 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
+import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
 
@@ -16,12 +15,63 @@ private sealed class ChancellorSelectResult {
     ) : ChancellorSelectResult()
 
     sealed class Failure : ChancellorSelectResult()
+    object NoSuchGame : Failure()
     object Unauthorized : Failure()
     object InvalidState : Failure()
     object IneligibleChancellor : Failure()
 }
 
-private const val INVALID_STATE_MESSAGE = "You can no longer select a Chancellor in that game."
+private fun doStateUpdate(
+    gameList: SecretHitlerGameList,
+    gameId: SecretHitlerGameId,
+    actualPresidentName: SecretHitlerPlayerExternalName,
+    expectedPresidentNumber: SecretHitlerPlayerNumber,
+    selectedChancellor: SecretHitlerPlayerNumber,
+): ChancellorSelectResult {
+    return gameList.updateGameTypedWithValidExtract(
+        id = gameId,
+        onNoSuchGame = {
+            ChancellorSelectResult.NoSuchGame
+        },
+        onInvalidType = {
+            ChancellorSelectResult.InvalidState
+        },
+        validMapper = { currentState: SecretHitlerGameState.Running ->
+            val actualPresidentNumber = currentState.globalState.playerMap.numberByPlayer(actualPresidentName)
+
+            if (actualPresidentNumber != expectedPresidentNumber) {
+                return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.Unauthorized
+            }
+
+            if (currentState.ephemeralState !is SecretHitlerEphemeralState.ChancellorSelectionPending) {
+                return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.InvalidState
+            }
+
+            check(currentState.ephemeralState.presidentCandidate == actualPresidentNumber)
+
+            currentState.chancellorSelectionIsValid(
+                presidentCandidate = actualPresidentNumber,
+                chancellorCandidate = selectedChancellor,
+            ).let { isValid ->
+                if (!isValid) {
+                    return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.IneligibleChancellor
+                }
+            }
+
+            val newState = currentState.copy(
+                ephemeralState = currentState.ephemeralState.selectChancellor(selectedChancellor),
+            )
+
+            newState to ChancellorSelectResult.Success(
+                newState = newState,
+                chancellorName = currentState.globalState.playerMap.playerByNumberKnown(selectedChancellor),
+            )
+        },
+        afterValid = { result ->
+            result
+        },
+    )
+}
 
 internal fun doHandleSecretHitlerChancellorSelect(
     repository: SecretHitlerRepository,
@@ -29,78 +79,44 @@ internal fun doHandleSecretHitlerChancellorSelect(
     event: ButtonClickEvent,
     request: SecretHitlerChancellorCandidateSelectionButtonDescriptor,
 ) {
-    val expectedPresidentNumber = request.president
+    val gameId = request.gameId
     val actualPresidentName = context.nameFromInteraction(event.interaction)
 
-    val gameId = request.gameId
-
     handleTextResponse(event) {
-        repository.gameList.updateGameTypedWithValidExtract(
-            id = gameId,
-            onNoSuchGame = {
-                "That game no longer exists."
-            },
-            onInvalidType = {
-                INVALID_STATE_MESSAGE
-            },
-            validMapper = { currentState: SecretHitlerGameState.Running ->
-                val actualPresidentNumber = currentState.globalState.playerMap.numberByPlayer(actualPresidentName)
-
-                if (actualPresidentNumber != expectedPresidentNumber) {
-                    return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.Unauthorized
-                }
-
-                if (currentState.ephemeralState !is SecretHitlerEphemeralState.ChancellorSelectionPending) {
-                    return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.InvalidState
-                }
-
-                check(currentState.ephemeralState.presidentCandidate == actualPresidentNumber)
-
-                val selectedChancellorNumber = request.selectedChancellor
-
-                currentState.chancellorSelectionIsValid(
-                    presidentCandidate = actualPresidentNumber,
-                    chancellorCandidate = selectedChancellorNumber,
-                ).let { isValid ->
-                    if (!isValid) {
-                        return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.IneligibleChancellor
-                    }
-                }
-
-                val newState = currentState.copy(
-                    ephemeralState = currentState.ephemeralState.selectChancellor(selectedChancellorNumber),
-                )
-
-                newState to ChancellorSelectResult.Success(
-                    newState = newState,
-                    chancellorName = currentState.globalState.playerMap.playerByNumberKnown(selectedChancellorNumber),
-                )
-            },
-            afterValid = { result ->
-                when (result) {
-                    is ChancellorSelectResult.Success -> {
-                        doSendSecretHitlerVotingMessage(
-                            context = context,
-                            gameId = gameId,
-                            gameState = result.newState,
-                        )
-
-                        "You selected ${context.renderExternalName(result.chancellorName)}. Voting will now commence."
-                    }
-
-                    is ChancellorSelectResult.InvalidState -> {
-                        INVALID_STATE_MESSAGE
-                    }
-
-                    is ChancellorSelectResult.Unauthorized -> {
-                        "You are not the Presidential candidate."
-                    }
-
-                    is ChancellorSelectResult.IneligibleChancellor -> {
-                        "That person is not eligible to be chancellor."
-                    }
-                }
-            }
+        val result = doStateUpdate(
+            gameList = repository.gameList,
+            gameId = gameId,
+            actualPresidentName = actualPresidentName,
+            expectedPresidentNumber = request.president,
+            selectedChancellor = request.selectedChancellor,
         )
+
+        when (result) {
+            is ChancellorSelectResult.Success -> {
+                doSendSecretHitlerVotingMessage(
+                    context = context,
+                    gameId = gameId,
+                    gameState = result.newState,
+                )
+
+                "You selected ${context.renderExternalName(result.chancellorName)}. Voting will now commence."
+            }
+
+            is ChancellorSelectResult.NoSuchGame -> {
+                "That game no longer exists."
+            }
+
+            is ChancellorSelectResult.InvalidState -> {
+                "You can no longer select a Chancellor in that game."
+            }
+
+            is ChancellorSelectResult.Unauthorized -> {
+                "You are not the Presidential candidate."
+            }
+
+            is ChancellorSelectResult.IneligibleChancellor -> {
+                "That person is not eligible to be chancellor."
+            }
+        }
     }
 }
