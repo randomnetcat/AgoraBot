@@ -7,11 +7,13 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Button
+import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
 import java.math.BigInteger
@@ -111,6 +113,7 @@ private sealed class VoteButtonResult {
     ) : VoteButtonResult()
 
     sealed class Failure : VoteButtonResult()
+    object NoSuchGame : Failure()
     object InvalidType : Failure()
     object AlreadyVoted : Failure()
     object NotPlayer : Failure()
@@ -143,7 +146,51 @@ private fun queueVoteMessageUpdate(
     )
 }
 
-private const val INVALID_TYPE_MESSAGE = "You can no longer vote in that game."
+private fun updateState(
+    gameList: SecretHitlerGameList,
+    gameId: SecretHitlerGameId,
+    voterName: SecretHitlerPlayerExternalName,
+    voteKind: SecretHitlerEphemeralState.VoteKind,
+): VoteButtonResult {
+    return gameList.updateGameTypedWithValidExtract(
+        id = gameId,
+        onNoSuchGame = {
+            VoteButtonResult.NoSuchGame
+        },
+        onInvalidType = { _ ->
+            VoteButtonResult.InvalidType
+        },
+        validMapper = { currentState: SecretHitlerGameState.Running ->
+            val voterNumber = currentState.globalState.playerMap.numberByPlayer(voterName)
+
+            if (voterNumber == null) {
+                return@updateGameTypedWithValidExtract currentState to VoteButtonResult.NotPlayer
+            }
+
+            if (currentState.ephemeralState !is SecretHitlerEphemeralState.VotingOngoing) {
+                return@updateGameTypedWithValidExtract currentState to VoteButtonResult.InvalidType
+            }
+
+            if (currentState.ephemeralState.voteMap.votingPlayers.contains(voterNumber)) {
+                return@updateGameTypedWithValidExtract currentState to VoteButtonResult.AlreadyVoted
+            }
+
+            val newState = currentState.copy(
+                ephemeralState = currentState.ephemeralState.copy(
+                    voteMap = currentState.ephemeralState.voteMap.withVote(voterNumber, voteKind),
+                )
+            )
+
+            newState to VoteButtonResult.Success(
+                newState = newState,
+                updateNumber = SecretHitlerMessageUpdateQueue.nextUpdateNumber(),
+            )
+        },
+        afterValid = { result ->
+            result
+        }
+    )
+}
 
 internal fun doHandleSecretHitlerVote(
     repository: SecretHitlerRepository,
@@ -152,71 +199,40 @@ internal fun doHandleSecretHitlerVote(
     request: SecretHitlerVoteButtonDescriptor,
 ) {
     handleTextResponse(event) {
-        val gameId = request.gameId
-
-        val response = repository.gameList.updateGameTypedWithValidExtract(
-            id = gameId,
-            onNoSuchGame = {
-                "That game no longer exists."
-            },
-            onInvalidType = { _ ->
-                INVALID_TYPE_MESSAGE
-            },
-            validMapper = { currentState: SecretHitlerGameState.Running ->
-                val voterName = context.nameFromInteraction(event.interaction)
-                val voterNumber = currentState.globalState.playerMap.numberByPlayer(voterName)
-
-                if (voterNumber == null) {
-                    return@updateGameTypedWithValidExtract currentState to VoteButtonResult.NotPlayer
-                }
-
-                if (currentState.ephemeralState !is SecretHitlerEphemeralState.VotingOngoing) {
-                    return@updateGameTypedWithValidExtract currentState to VoteButtonResult.InvalidType
-                }
-
-                if (currentState.ephemeralState.voteMap.votingPlayers.contains(voterNumber)) {
-                    return@updateGameTypedWithValidExtract currentState to VoteButtonResult.AlreadyVoted
-                }
-
-                val newState = currentState.copy(
-                    ephemeralState = currentState.ephemeralState.copy(
-                        voteMap = currentState.ephemeralState.voteMap.withVote(voterNumber, request.voteKind),
-                    )
-                )
-
-                newState to VoteButtonResult.Success(
-                    newState = newState,
-                    updateNumber = SecretHitlerMessageUpdateQueue.nextUpdateNumber(),
-                )
-            },
-            afterValid = { result ->
-                when (result) {
-                    is VoteButtonResult.Success -> {
-                        queueVoteMessageUpdate(
-                            context = context,
-                            updateNumber = result.updateNumber,
-                            targetMessage = checkNotNull(event.message),
-                            currentState = result.newState,
-                        )
-
-                        "Vote cast."
-                    }
-
-                    is VoteButtonResult.AlreadyVoted -> {
-                        "You have already voted."
-                    }
-
-                    is VoteButtonResult.InvalidType -> {
-                        INVALID_TYPE_MESSAGE
-                    }
-
-                    is VoteButtonResult.NotPlayer -> {
-                        "You are not a player in that game."
-                    }
-                }
-            }
+        val result = updateState(
+            gameList = repository.gameList,
+            gameId = request.gameId,
+            voterName = context.nameFromInteraction(event.interaction),
+            voteKind = request.voteKind,
         )
 
-        response
+        when (result) {
+            is VoteButtonResult.Success -> {
+                queueVoteMessageUpdate(
+                    context = context,
+                    updateNumber = result.updateNumber,
+                    targetMessage = checkNotNull(event.message),
+                    currentState = result.newState,
+                )
+
+                "Vote cast."
+            }
+
+            is VoteButtonResult.NoSuchGame -> {
+                "That game no longer exists."
+            }
+
+            is VoteButtonResult.AlreadyVoted -> {
+                "You have already voted."
+            }
+
+            is VoteButtonResult.InvalidType -> {
+                "You can no longer vote in that game."
+            }
+
+            is VoteButtonResult.NotPlayer -> {
+                "You are not a player in that game."
+            }
+        }
     }
 }
