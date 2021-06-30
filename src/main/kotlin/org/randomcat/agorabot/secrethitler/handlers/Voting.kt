@@ -21,10 +21,8 @@ import java.time.Duration
 
 private fun formatVotingEmbed(
     context: SecretHitlerNameContext,
-    currentState: SecretHitlerGameState.Running,
+    currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
 ): MessageEmbed {
-    require(currentState.ephemeralState is SecretHitlerEphemeralState.VotingOngoing)
-
     val playerMap = currentState.globalState.playerMap
     val governmentMembers = currentState.ephemeralState.governmentMembers
 
@@ -63,10 +61,8 @@ private val VOTE_BUTTON_EXPIRY = Duration.ofDays(1)
 private fun formatVotingMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
-    currentState: SecretHitlerGameState.Running,
+    currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
 ): Message {
-    require(currentState.ephemeralState is SecretHitlerEphemeralState.VotingOngoing)
-
     val embed = formatVotingEmbed(context, currentState)
 
     return MessageBuilder(embed)
@@ -100,15 +96,14 @@ private fun formatVotingMessage(
 internal fun doSendSecretHitlerVotingMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
-    gameState: SecretHitlerGameState.Running,
+    gameState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
 ) {
-    require(gameState.ephemeralState is SecretHitlerEphemeralState.VotingOngoing)
     context.sendGameMessage(formatVotingMessage(context, gameId, gameState))
 }
 
 private sealed class VoteButtonResult {
     data class Success(
-        val newState: SecretHitlerGameState.Running,
+        val newState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
         val updateNumber: BigInteger,
     ) : VoteButtonResult()
 
@@ -123,10 +118,8 @@ private fun queueVoteMessageUpdate(
     context: SecretHitlerNameContext,
     updateNumber: BigInteger,
     targetMessage: Message,
-    currentState: SecretHitlerGameState.Running,
+    currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
 ) {
-    require(currentState.ephemeralState is SecretHitlerEphemeralState.VotingOngoing)
-
     SecretHitlerMessageUpdateQueue.sendUpdateAction(
         object : SecretHitlerMessageUpdateQueue.UpdateAction(
             updateNumber = updateNumber,
@@ -168,17 +161,19 @@ private inline fun updateState(
                 return@updateGameTypedWithValidExtract currentState to VoteButtonResult.NotPlayer
             }
 
-            if (currentState.ephemeralState !is SecretHitlerEphemeralState.VotingOngoing) {
+            val typedState = currentState.tryWith<SecretHitlerEphemeralState.VotingOngoing>()
+
+            if (typedState == null) {
                 return@updateGameTypedWithValidExtract currentState to VoteButtonResult.InvalidType
             }
 
-            if (currentState.ephemeralState.voteMap.votingPlayers.contains(voterNumber)) {
+            if (typedState.ephemeralState.voteMap.votingPlayers.contains(voterNumber)) {
                 return@updateGameTypedWithValidExtract currentState to VoteButtonResult.AlreadyVoted
             }
 
-            val newState = currentState.copy(
-                ephemeralState = currentState.ephemeralState.copy(
-                    voteMap = currentState.ephemeralState.voteMap.withVote(voterNumber, voteKind),
+            val newState = typedState.withEphemeral(
+                typedState.ephemeralState.copy(
+                    voteMap = typedState.ephemeralState.voteMap.withVote(voterNumber, voteKind),
                 )
             )
 

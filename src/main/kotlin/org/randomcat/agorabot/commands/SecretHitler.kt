@@ -179,7 +179,7 @@ class SecretHitlerCommand(
                                     secretHitlerSendChancellorSelectionMessage(
                                         context = context,
                                         gameId = gameId,
-                                        state = gameState,
+                                        state = gameState.assumeWith<SecretHitlerEphemeralState.ChancellorSelectionPending>(),
                                     )
                                 }
 
@@ -187,7 +187,7 @@ class SecretHitlerCommand(
                                     doSendSecretHitlerVotingMessage(
                                         context = context,
                                         gameId = gameId,
-                                        gameState = gameState,
+                                        gameState = gameState.assumeWith<SecretHitlerEphemeralState.VotingOngoing>(),
                                     )
                                 }
 

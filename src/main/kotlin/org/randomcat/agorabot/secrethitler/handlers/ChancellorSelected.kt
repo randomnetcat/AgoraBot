@@ -10,7 +10,7 @@ import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class ChancellorSelectResult {
     data class Success(
-        val newState: SecretHitlerGameState.Running,
+        val newState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
         val chancellorName: SecretHitlerPlayerExternalName,
     ) : ChancellorSelectResult()
 
@@ -43,13 +43,15 @@ private fun doStateUpdate(
                 return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.Unauthorized
             }
 
-            if (currentState.ephemeralState !is SecretHitlerEphemeralState.ChancellorSelectionPending) {
+            val typedState = currentState.tryWith<SecretHitlerEphemeralState.ChancellorSelectionPending>()
+
+            if (typedState == null) {
                 return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.InvalidState
             }
 
-            check(currentState.ephemeralState.presidentCandidate == actualPresidentNumber)
+            check(typedState.ephemeralState.presidentCandidate == actualPresidentNumber)
 
-            currentState.chancellorSelectionIsValid(
+            typedState.chancellorSelectionIsValid(
                 presidentCandidate = actualPresidentNumber,
                 chancellorCandidate = selectedChancellor,
             ).let { isValid ->
@@ -58,8 +60,8 @@ private fun doStateUpdate(
                 }
             }
 
-            val newState = currentState.copy(
-                ephemeralState = currentState.ephemeralState.selectChancellor(selectedChancellor),
+            val newState = typedState.withEphemeral(
+                typedState.ephemeralState.selectChancellor(selectedChancellor),
             )
 
             newState to ChancellorSelectResult.Success(

@@ -41,11 +41,8 @@ fun SecretHitlerGameState.Running.chancellorSelectionIsValid(
 fun secretHitlerSendChancellorSelectionMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
-    state: SecretHitlerGameState,
+    state: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending>,
 ) {
-    require(state is SecretHitlerGameState.Running)
-    require(state.ephemeralState is SecretHitlerEphemeralState.ChancellorSelectionPending)
-
     val presidentCandidate = state.ephemeralState.presidentCandidate
     val presidentCandidateName = state.globalState.playerMap.playerByNumberKnown(presidentCandidate)
 
