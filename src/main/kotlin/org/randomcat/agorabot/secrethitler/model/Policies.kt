@@ -39,7 +39,7 @@ data class SecretHitlerPoliciesState(
         ) : EnactmentResult()
     }
 
-    fun enactFascistPolicy(config: SecretHitlerGameConfiguration): EnactmentResult {
+    fun withFascistPolicyEnacted(config: SecretHitlerGameConfiguration): EnactmentResult {
         val newFascistPolicyCount = fascistPoliciesEnacted + 1
 
         if (newFascistPolicyCount >= config.fascistWinRequirement) {
@@ -52,7 +52,7 @@ data class SecretHitlerPoliciesState(
         )
     }
 
-    fun enactLiberalPolicy(config: SecretHitlerGameConfiguration): EnactmentResult {
+    fun withLiberalPolicyEnacted(config: SecretHitlerGameConfiguration): EnactmentResult {
         val newLiberalPolicyCount = liberalPoliciesEnacted + 1
 
         if (newLiberalPolicyCount >= config.liberalWinRequirement) {
@@ -65,10 +65,10 @@ data class SecretHitlerPoliciesState(
         )
     }
 
-    fun enactPolicy(config: SecretHitlerGameConfiguration, type: SecretHitlerPolicyType): EnactmentResult {
+    fun withPolicyEnacted(config: SecretHitlerGameConfiguration, type: SecretHitlerPolicyType): EnactmentResult {
         return when (type) {
-            SecretHitlerPolicyType.LIBERAL -> enactLiberalPolicy(config)
-            SecretHitlerPolicyType.FASCIST -> enactFascistPolicy(config)
+            SecretHitlerPolicyType.LIBERAL -> withLiberalPolicyEnacted(config)
+            SecretHitlerPolicyType.FASCIST -> withFascistPolicyEnacted(config)
         }
     }
 }
