@@ -146,11 +146,12 @@ private fun queueVoteMessageUpdate(
     )
 }
 
-private fun updateState(
+private inline fun updateState(
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,
     voterName: SecretHitlerPlayerExternalName,
     voteKind: SecretHitlerEphemeralState.VoteKind,
+    crossinline nextUpdateNumber: () -> BigInteger,
 ): VoteButtonResult {
     return gameList.updateGameTypedWithValidExtract(
         id = gameId,
@@ -183,7 +184,7 @@ private fun updateState(
 
             newState to VoteButtonResult.Success(
                 newState = newState,
-                updateNumber = SecretHitlerMessageUpdateQueue.nextUpdateNumber(),
+                updateNumber = nextUpdateNumber(),
             )
         },
         afterValid = { result ->
@@ -204,6 +205,7 @@ internal fun doHandleSecretHitlerVote(
             gameId = request.gameId,
             voterName = context.nameFromInteraction(event.interaction),
             voteKind = request.voteKind,
+            nextUpdateNumber = { SecretHitlerMessageUpdateQueue.nextUpdateNumber() }
         )
 
         when (result) {
