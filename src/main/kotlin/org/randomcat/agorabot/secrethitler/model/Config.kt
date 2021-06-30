@@ -10,6 +10,7 @@ data class SecretHitlerGameConfiguration(
     private val fascistPowers: ImmutableList<SecretHitlerFascistPower?>,
     val hitlerChancellorWinRequirement: Int,
     val vetoUnlockRequirement: Int,
+    val speedyEnactRequirement: Int,
 ) {
     val fascistWinRequirement: Int = fascistPowers.size + 1
 
@@ -59,6 +60,7 @@ private val POWERS_7_OR_MORE = persistentListOf(
 private const val LIBERAL_WIN_REQUIREMENT = 5
 private const val HITLER_CHANCELLOR_WIN_REQUIREMENT = 3
 private const val VETO_REQUIREMENT = 5
+private const val SPEEDY_ENACT_REQUIREMENT = 3
 
 private fun makeStandardGameConfiguration(
     fascistPowers: List<SecretHitlerFascistPower?>,
@@ -68,6 +70,7 @@ private fun makeStandardGameConfiguration(
         fascistPowers = fascistPowers.toImmutableList(),
         hitlerChancellorWinRequirement = HITLER_CHANCELLOR_WIN_REQUIREMENT,
         vetoUnlockRequirement = VETO_REQUIREMENT,
+        speedyEnactRequirement = SPEEDY_ENACT_REQUIREMENT,
     )
 }
 
