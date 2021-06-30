@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
+import org.slf4j.LoggerFactory
 
 const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
 const val DISCORD_MAX_MESSAGE_LENGTH = 2000
@@ -61,9 +62,19 @@ fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }
 }
 
+private val logger = LoggerFactory.getLogger("AgoraBotUtil")
+
 fun handleTextResponse(event: GenericInteractionCreateEvent, responseBlock: () -> String) {
-    event.deferReply(true).queue { hook ->
-        hook.sendMessage(responseBlock()).queue()
+    // Ensure that responseBlock is always run, because it may have side effects
+    val webhookResult = runCatching { event.deferReply(true).submit() }
+    val response = responseBlock()
+
+    webhookResult.getOrThrow().thenApply { hook ->
+        hook.sendMessage(response).queue()
+        Unit
+    }.exceptionally { e ->
+        logger.error("Error during interaction response", e)
+        Unit
     }
 }
 
