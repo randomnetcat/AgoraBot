@@ -93,4 +93,13 @@ sealed class SecretHitlerEphemeralState {
         val options: ChancellorPolicyOptions,
         val vetoState: VetoRequestState,
     ) : SecretHitlerEphemeralState()
+
+    sealed class PolicyPending : SecretHitlerEphemeralState() {
+        abstract val presidentNumber: SecretHitlerPlayerNumber
+
+        data class InvestigateParty(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
+        data class SpecialElection(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
+        data class PolicyPeek(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
+        data class Execution(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
+    }
 }
