@@ -103,6 +103,8 @@ sealed class SecretHitlerGameState {
             }
         }
 
+        abstract fun withGlobal(newGlobalState: SecretHitlerGlobalGameState): Running
+
         inline fun <reified Ephemeral : SecretHitlerEphemeralState> tryWith(): With<Ephemeral>? {
             return when (this) {
                 is With<*> -> {
@@ -125,7 +127,11 @@ sealed class SecretHitlerGameState {
         data class With<Ephemeral : SecretHitlerEphemeralState>(
             override val globalState: SecretHitlerGlobalGameState,
             override val ephemeralState: Ephemeral,
-        ) : Running()
+        ) : Running() {
+            override fun withGlobal(newGlobalState: SecretHitlerGlobalGameState): Running.With<Ephemeral> {
+                return this.copy(globalState = newGlobalState)
+            }
+        }
 
         sealed class StartResult {
             data class Success(
