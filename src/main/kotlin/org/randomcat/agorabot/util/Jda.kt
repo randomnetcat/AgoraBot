@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory
 
 const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
 const val DISCORD_MAX_MESSAGE_LENGTH = 2000
+const val MAX_BUTTONS_PER_ROW = 5
 
 fun MessageAction.disallowMentions() = allowedMentions(emptyList())
 
