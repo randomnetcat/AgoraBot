@@ -1,20 +1,22 @@
 package org.randomcat.agorabot.secrethitler.model.transitions
 
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState.ChancellorSelectionPending
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState.Running
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
 
-fun Running.afterNewElectionWith(president: SecretHitlerPlayerNumber): Running.With<ChancellorSelectionPending> {
+fun GameState.Running.afterNewElectionWith(
+    president: SecretHitlerPlayerNumber,
+): GameState.Running.With<EphemeralState.ChancellorSelectionPending> {
     return withEphemeral(
-        ChancellorSelectionPending(
+        EphemeralState.ChancellorSelectionPending(
             presidentCandidate = president,
         )
     )
 }
 
-private fun Running.With<ChancellorSelectionPending>.withTickerValue(
+private fun GameState.Running.With<EphemeralState.ChancellorSelectionPending>.withTickerValue(
     nextTickerValue: SecretHitlerPlayerNumber,
-): Running.With<ChancellorSelectionPending> {
+): GameState.Running.With<EphemeralState.ChancellorSelectionPending> {
     return this.withGlobal(
         newGlobalState = this.globalState.copy(
             electionState = this.globalState.electionState.copy(
@@ -24,7 +26,8 @@ private fun Running.With<ChancellorSelectionPending>.withTickerValue(
     )
 }
 
-fun Running.afterAdvancingTickerAndNewElection(): Running.With<ChancellorSelectionPending> {
+fun GameState.Running.afterAdvancingTickerAndNewElection(
+): GameState.Running.With<EphemeralState.ChancellorSelectionPending> {
     val nextTickerValue = globalState.playerMap.circularNumberAfter(globalState.electionState.currentPresidentTicker)
     return afterNewElectionWith(president = nextTickerValue).withTickerValue(nextTickerValue)
 }
