@@ -12,6 +12,14 @@ data class SecretHitlerGameConfiguration(
     val vetoUnlockRequirement: Int,
     val speedyEnactRequirement: Int,
 ) {
+    init {
+        require(liberalWinRequirement > 0)
+        require(hitlerChancellorWinRequirement >= 0)
+        require(vetoUnlockRequirement >= 0)
+        require(speedyEnactRequirement > 0)
+        require(fascistPowers.size != Int.MAX_VALUE)
+    }
+
     val fascistWinRequirement: Int = fascistPowers.size + 1
 
     fun fascistPowerAt(fascistPoliciesEnacted: Int): SecretHitlerFascistPower? {
