@@ -259,6 +259,21 @@ private sealed class EphemeralStateDto {
                 is SecretHitlerEphemeralState.ChancellorPolicyChoicePending -> {
                     ChancellorPolicyChoicePending.from(state)
                 }
+                is SecretHitlerEphemeralState.PolicyPending.InvestigateParty -> {
+                    InvestigatePending.from(state)
+                }
+
+                is SecretHitlerEphemeralState.PolicyPending.SpecialElection -> {
+                    SpecialElectionPending.from(state)
+                }
+
+                is SecretHitlerEphemeralState.PolicyPending.PolicyPeek -> {
+                    PolicyPeekPending.from(state)
+                }
+
+                is SecretHitlerEphemeralState.PolicyPending.Execution -> {
+                    ExecutionPending.from(state)
+                }
             }
         }
     }
@@ -351,6 +366,81 @@ private sealed class EphemeralStateDto {
         }
     }
 
+    @Serializable
+    data class InvestigatePending(
+        val presidentNumber: SecretHitlerPlayerNumber,
+    ) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.PolicyPending.InvestigateParty): InvestigatePending {
+                return InvestigatePending(
+                    presidentNumber = state.presidentNumber,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.PolicyPending.InvestigateParty(
+                presidentNumber = presidentNumber,
+            )
+        }
+    }
+
+    @Serializable
+    data class SpecialElectionPending(
+        val presidentNumber: SecretHitlerPlayerNumber,
+    ) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.PolicyPending.SpecialElection): SpecialElectionPending {
+                return SpecialElectionPending(
+                    presidentNumber = state.presidentNumber,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.PolicyPending.SpecialElection(
+                presidentNumber = presidentNumber,
+            )
+        }
+    }
+
+    @Serializable
+    data class PolicyPeekPending(
+        val presidentNumber: SecretHitlerPlayerNumber,
+    ) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.PolicyPending.PolicyPeek): PolicyPeekPending {
+                return PolicyPeekPending(
+                    presidentNumber = state.presidentNumber,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.PolicyPending.PolicyPeek(
+                presidentNumber = presidentNumber,
+            )
+        }
+    }
+
+    @Serializable
+    data class ExecutionPending(
+        val presidentNumber: SecretHitlerPlayerNumber,
+    ) : EphemeralStateDto() {
+        companion object {
+            fun from(state: SecretHitlerEphemeralState.PolicyPending.Execution): ExecutionPending {
+                return ExecutionPending(
+                    presidentNumber = state.presidentNumber,
+                )
+            }
+        }
+
+        override fun toEphemeralState(): SecretHitlerEphemeralState {
+            return SecretHitlerEphemeralState.PolicyPending.Execution(
+                presidentNumber = presidentNumber,
+            )
+        }
+    }
 }
 
 @Serializable
