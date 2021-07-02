@@ -7,12 +7,12 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
 
-sealed class SecretHitlerWithVoteResult {
+sealed class SecretHitlerAfterVoteResult {
     data class VotingContinues(
         val newState: GameState.Running.With<EphemeralState.VotingOngoing>,
-    ) : SecretHitlerWithVoteResult()
+    ) : SecretHitlerAfterVoteResult()
 
-    sealed class VotingComplete : SecretHitlerWithVoteResult()
+    sealed class VotingComplete : SecretHitlerAfterVoteResult()
 
     data class GovernmentElected(
         val newState: GameState.Running.With<EphemeralState.PresidentPolicyChoicePending>,
@@ -36,7 +36,7 @@ private fun SecretHitlerGlobalGameState.withDeckState(
 
 private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGovernment(
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
-): SecretHitlerWithVoteResult.GovernmentElected {
+): SecretHitlerAfterVoteResult.GovernmentElected {
     val drawResult = this.globalState.boardState.deckState.drawStandard(shuffleProvider)
 
     val newGlobalState = this.globalState.withDeckState(drawResult.newDeck)
@@ -46,7 +46,7 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
         options = PresidentPolicyOptions(drawResult.drawnCards),
     )
 
-    return SecretHitlerWithVoteResult.GovernmentElected(
+    return SecretHitlerAfterVoteResult.GovernmentElected(
         newState = GameState.Running(newGlobalState, newEphemeralState),
         shuffledDeck = drawResult.shuffled,
     )
@@ -56,7 +56,7 @@ fun GameState.Running.With<EphemeralState.VotingOngoing>.afterNewVote(
     voter: SecretHitlerPlayerNumber,
     voteKind: EphemeralState.VoteKind,
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
-): SecretHitlerWithVoteResult {
+): SecretHitlerAfterVoteResult {
     require(!ephemeralState.voteMap.votingPlayers.contains(voter))
 
     val newVoteState = ephemeralState.voteMap.withVote(
@@ -71,10 +71,10 @@ fun GameState.Running.With<EphemeralState.VotingOngoing>.afterNewVote(
         if (forCount > againstCount) {
             afterElectedGovernment(shuffleProvider)
         } else {
-            SecretHitlerWithVoteResult.GovernmentRejected(afterInactiveGovernment(shuffleProvider = shuffleProvider))
+            SecretHitlerAfterVoteResult.GovernmentRejected(afterInactiveGovernment(shuffleProvider = shuffleProvider))
         }
     } else {
-        SecretHitlerWithVoteResult.VotingContinues(
+        SecretHitlerAfterVoteResult.VotingContinues(
             newState = this.withEphemeral(
                 newEphemeralState = this.ephemeralState.copy(
                     voteMap = newVoteState,
