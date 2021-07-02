@@ -14,6 +14,8 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
+import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerAfterVoteResult
+import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiveGovernmentResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterNewVote
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
@@ -104,7 +106,8 @@ internal fun doSendSecretHitlerVotingMessage(
 
 private sealed class VoteButtonResult {
     data class Success(
-        val newState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
+        val nestedResult: SecretHitlerAfterVoteResult,
+        val newState: SecretHitlerGameState,
         val updateNumber: BigInteger,
     ) : VoteButtonResult()
 
@@ -140,6 +143,22 @@ private fun queueVoteMessageUpdate(
     )
 }
 
+private fun SecretHitlerInactiveGovernmentResult.stateForUpdate(): SecretHitlerGameState {
+    return when (this) {
+        is SecretHitlerInactiveGovernmentResult.NewElection -> this.newState
+        is SecretHitlerInactiveGovernmentResult.CountryInChaos.GameContinues -> this.newState
+        is SecretHitlerInactiveGovernmentResult.CountryInChaos.GameEnds -> SecretHitlerGameState.Completed
+    }
+}
+
+private fun SecretHitlerAfterVoteResult.stateForUpdate(): SecretHitlerGameState {
+    return when (this) {
+        is SecretHitlerAfterVoteResult.VotingContinues -> this.newState
+        is SecretHitlerAfterVoteResult.GovernmentElected -> this.newState
+        is SecretHitlerAfterVoteResult.GovernmentRejected -> this.nestedResult.stateForUpdate()
+    }
+}
+
 private inline fun updateState(
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,
@@ -172,13 +191,16 @@ private inline fun updateState(
                 return@updateGameTypedWithValidExtract currentState to VoteButtonResult.AlreadyVoted
             }
 
-            val newState = typedState.withEphemeral(
-                typedState.ephemeralState.copy(
-                    voteMap = typedState.ephemeralState.voteMap.withVote(voterNumber, voteKind),
-                )
+            val voteResult = typedState.afterNewVote(
+                voter = voterNumber,
+                voteKind = voteKind,
+                shuffleProvider = SecretHitlerGlobals.shuffleProvider(),
             )
 
+            val newState = voteResult.stateForUpdate()
+
             newState to VoteButtonResult.Success(
+                nestedResult = voteResult,
                 newState = newState,
                 updateNumber = nextUpdateNumber(),
             )
@@ -196,9 +218,11 @@ internal fun doHandleSecretHitlerVote(
     request: SecretHitlerVoteButtonDescriptor,
 ) {
     handleTextResponse(event) {
+        val gameId = request.gameId
+
         val result = updateState(
             gameList = repository.gameList,
-            gameId = request.gameId,
+            gameId = gameId,
             voterName = context.nameFromInteraction(event.interaction),
             voteKind = request.voteKind,
             nextUpdateNumber = { SecretHitlerMessageUpdateQueue.nextUpdateNumber() }
@@ -206,12 +230,27 @@ internal fun doHandleSecretHitlerVote(
 
         when (result) {
             is VoteButtonResult.Success -> {
-                queueVoteMessageUpdate(
-                    context = context,
-                    updateNumber = result.updateNumber,
-                    targetMessage = checkNotNull(event.message),
-                    currentState = result.newState,
-                )
+                @Suppress("UNUSED_VARIABLE")
+                val ensureExhaustive = when (val nestedResult = result.nestedResult) {
+                    is SecretHitlerAfterVoteResult.VotingContinues -> {
+                        queueVoteMessageUpdate(
+                            context = context,
+                            updateNumber = result.updateNumber,
+                            targetMessage = checkNotNull(event.message),
+                            currentState = nestedResult.newState,
+                        )
+                    }
+
+                    is SecretHitlerAfterVoteResult.GovernmentElected -> {
+                        // TODO: send useful messages
+                        context.sendGameMessage("Government elected")
+                    }
+
+                    is SecretHitlerAfterVoteResult.GovernmentRejected -> {
+                        // TODO: send useful messages
+                        context.sendGameMessage("Government rejected")
+                    }
+                }
 
                 "Vote cast."
             }
