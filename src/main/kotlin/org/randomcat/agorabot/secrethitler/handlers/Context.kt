@@ -2,6 +2,7 @@ package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.interactions.Interaction
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.util.DiscordMessage
 import java.time.Duration
@@ -11,8 +12,17 @@ interface SecretHitlerButtonContext {
 }
 
 interface SecretHitlerPrivateMessageContext {
-    fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: String)
-    fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: DiscordMessage)
+    fun sendPrivateMessage(
+        recipient: SecretHitlerPlayerExternalName,
+        gameId: SecretHitlerGameId,
+        message: String,
+    )
+
+    fun sendPrivateMessage(
+        recipient: SecretHitlerPlayerExternalName,
+        gameId: SecretHitlerGameId,
+        message: DiscordMessage,
+    )
 }
 
 interface SecretHitlerGameMessageContext {

@@ -88,8 +88,9 @@ internal fun doHandleSecretHitlerStart(
 
                     for ((playerNumber, message) in messageMap) {
                         context.sendPrivateMessage(
-                            underlyingResult.newState.globalState.playerMap.playerByNumberKnown(playerNumber),
-                            message,
+                            recipient = underlyingResult.newState.globalState.playerMap.playerByNumberKnown(playerNumber),
+                            gameId = gameId,
+                            message = message,
                         )
                     }
 

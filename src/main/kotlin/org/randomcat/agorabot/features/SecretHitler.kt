@@ -17,6 +17,7 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDes
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
 import org.randomcat.agorabot.secrethitler.handlers.*
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.asSnowflakeOrNull
@@ -41,8 +42,12 @@ private class MessageContextImpl(
     private val impersonationMap: SecretHitlerImpersonationMap?,
     private val gameMessageChannel: MessageChannel,
 ) : SecretHitlerMessageContext {
-    override fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: String) {
-        sendPrivateMessage(recipient, MessageBuilder(message).build())
+    override fun sendPrivateMessage(
+        recipient: SecretHitlerPlayerExternalName,
+        gameId: SecretHitlerGameId,
+        message: String,
+    ) {
+        sendPrivateMessage(recipient, gameId, MessageBuilder(message).build())
     }
 
     private fun queuePrivateMessage(recipientId: String, message: DiscordMessage) {
@@ -51,7 +56,11 @@ private class MessageContextImpl(
         }
     }
 
-    override fun sendPrivateMessage(recipient: SecretHitlerPlayerExternalName, message: DiscordMessage) {
+    override fun sendPrivateMessage(
+        recipient: SecretHitlerPlayerExternalName,
+        gameId: SecretHitlerGameId,
+        message: DiscordMessage,
+    ) {
         val rawName = recipient.raw
 
         val impersonationIds = impersonationMap?.dmUserIdsForName(rawName)
