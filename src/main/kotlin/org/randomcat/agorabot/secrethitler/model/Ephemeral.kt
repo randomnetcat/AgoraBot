@@ -7,7 +7,7 @@ sealed class SecretHitlerEphemeralState {
         constructor(policies: List<SecretHitlerPolicyType>) : this(policies.toImmutableList())
 
         init {
-            require(policies.size == 3)
+            require(policies.size == SecretHitlerDeckState.STANDARD_DRAW_AMOUNT)
         }
     }
 
@@ -15,7 +15,8 @@ sealed class SecretHitlerEphemeralState {
         constructor(policies: List<SecretHitlerPolicyType>) : this(policies.toImmutableList())
 
         init {
-            require(policies.size == 2)
+            // One card should have been removed by the President
+            require(policies.size == SecretHitlerDeckState.STANDARD_DRAW_AMOUNT - 1)
         }
     }
 
