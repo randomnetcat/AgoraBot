@@ -10,15 +10,19 @@ sealed class SecretHitlerAfterVoteResult {
         val newState: GameState.Running.With<EphemeralState.VotingOngoing>,
     ) : SecretHitlerAfterVoteResult()
 
-    sealed class VotingComplete : SecretHitlerAfterVoteResult()
+    sealed class VotingComplete : SecretHitlerAfterVoteResult() {
+        abstract val completeVoteMap: EphemeralState.VoteMap
+    }
 
     data class GovernmentElected(
         val newState: GameState.Running.With<EphemeralState.PresidentPolicyChoicePending>,
         val shuffledDeck: Boolean,
+        override val completeVoteMap: EphemeralState.VoteMap,
     ) : VotingComplete()
 
     data class GovernmentRejected(
         val nestedResult: SecretHitlerInactiveGovernmentResult,
+        override val completeVoteMap: EphemeralState.VoteMap,
     ) : VotingComplete()
 }
 
@@ -46,6 +50,7 @@ private fun SecretHitlerGlobalGameState.withTermLimitedGovernment(
 
 private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGovernment(
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
+    completeVoteMap: EphemeralState.VoteMap,
 ): SecretHitlerAfterVoteResult.GovernmentElected {
     val drawResult = this.globalState.boardState.deckState.drawStandard(shuffleProvider)
 
@@ -63,6 +68,7 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
     return SecretHitlerAfterVoteResult.GovernmentElected(
         newState = GameState.Running(newGlobalState, newEphemeralState),
         shuffledDeck = drawResult.shuffled,
+        completeVoteMap = completeVoteMap,
     )
 }
 
@@ -83,9 +89,15 @@ fun GameState.Running.With<EphemeralState.VotingOngoing>.afterNewVote(
         val againstCount = newVoteState.playersVotingAgainst().count()
 
         if (forCount > againstCount) {
-            afterElectedGovernment(shuffleProvider)
+            afterElectedGovernment(
+                shuffleProvider = shuffleProvider,
+                completeVoteMap = newVoteState,
+            )
         } else {
-            SecretHitlerAfterVoteResult.GovernmentRejected(afterInactiveGovernment(shuffleProvider = shuffleProvider))
+            SecretHitlerAfterVoteResult.GovernmentRejected(
+                nestedResult = afterInactiveGovernment(shuffleProvider = shuffleProvider),
+                completeVoteMap = newVoteState,
+            )
         }
     } else {
         SecretHitlerAfterVoteResult.VotingContinues(
