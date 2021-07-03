@@ -10,10 +10,7 @@ import net.dv8tion.jda.api.interactions.components.Button
 import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
+import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerAfterVoteResult
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiveGovernmentResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterNewVote
@@ -209,6 +206,39 @@ private inline fun updateState(
     )
 }
 
+private fun sendVoteSummaryMessage(
+    context: SecretHitlerGameContext,
+    playerMap: SecretHitlerPlayerMap,
+    voteMap: SecretHitlerEphemeralState.VoteMap,
+) {
+    fun renderPlayerByNumber(number: SecretHitlerPlayerNumber): String {
+        return context.renderExternalName(playerMap.playerByNumberKnown(number))
+    }
+
+    fun renderVoteListField(players: Set<SecretHitlerPlayerNumber>): String {
+        return players.joinToString("\n") { renderPlayerByNumber(it) }.ifEmpty { "None" }
+    }
+
+    context.sendGameMessage(
+        MessageBuilder(
+            EmbedBuilder()
+                .setTitle("Voting Complete")
+                .addField(
+                    "For",
+                    renderVoteListField(voteMap.playersVotingFor()),
+                    true,
+                )
+                .addField(
+                    "Against",
+                    renderVoteListField(voteMap.playersVotingAgainst()),
+                    true,
+                )
+                .build()
+
+        ).build(),
+    )
+}
+
 internal fun doHandleSecretHitlerVote(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
@@ -240,6 +270,12 @@ internal fun doHandleSecretHitlerVote(
                     }
 
                     is SecretHitlerAfterVoteResult.GovernmentElected -> {
+                        sendVoteSummaryMessage(
+                            context = context,
+                            playerMap = nestedResult.newState.globalState.playerMap,
+                            voteMap = nestedResult.completeVoteMap,
+                        )
+
                         sendSecretHitlerGovernmentElectedMessages(
                             context = context,
                             gameId = gameId,
