@@ -30,6 +30,7 @@ private fun formatVotingEmbed(
     val chancellorName = playerMap.playerByNumberKnown(governmentMembers.chancellor)
 
     return EmbedBuilder()
+        .setTitle("Voting on Government")
         .addField(
             "President",
             context.renderExternalName(presidentName),
