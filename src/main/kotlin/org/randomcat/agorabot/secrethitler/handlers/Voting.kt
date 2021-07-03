@@ -107,7 +107,6 @@ internal fun doSendSecretHitlerVotingMessage(
 private sealed class VoteButtonResult {
     data class Success(
         val nestedResult: SecretHitlerAfterVoteResult,
-        val newState: SecretHitlerGameState,
         val updateNumber: BigInteger,
     ) : VoteButtonResult()
 
@@ -201,7 +200,6 @@ private inline fun updateState(
 
             newState to VoteButtonResult.Success(
                 nestedResult = voteResult,
-                newState = newState,
                 updateNumber = nextUpdateNumber(),
             )
         },
@@ -242,8 +240,11 @@ internal fun doHandleSecretHitlerVote(
                     }
 
                     is SecretHitlerAfterVoteResult.GovernmentElected -> {
-                        // TODO: send useful messages
-                        context.sendGameMessage("Government elected")
+                        sendSecretHitlerGovernmentElectedMessages(
+                            context = context,
+                            gameId = gameId,
+                            currentState = nestedResult.newState,
+                        )
                     }
 
                     is SecretHitlerAfterVoteResult.GovernmentRejected -> {
