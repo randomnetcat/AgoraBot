@@ -1,9 +1,7 @@
 package org.randomcat.agorabot.secrethitler.model.transitions
 
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerDeckState
+import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState.PresidentPolicyOptions
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerGlobalGameState
-import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
 
@@ -34,12 +32,28 @@ private fun SecretHitlerGlobalGameState.withDeckState(
     )
 }
 
+private fun SecretHitlerGlobalGameState.withTermLimitedGovernment(
+    termLimitedGovernment: SecretHitlerGovernmentMembers,
+): SecretHitlerGlobalGameState {
+    return this.copy(
+        electionState = this.electionState.copy(
+            termLimitState = SecretHitlerTermLimitState(
+                termLimitedGovernment = termLimitedGovernment,
+            ),
+        ),
+    )
+}
+
 private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGovernment(
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
 ): SecretHitlerAfterVoteResult.GovernmentElected {
     val drawResult = this.globalState.boardState.deckState.drawStandard(shuffleProvider)
 
-    val newGlobalState = this.globalState.withDeckState(drawResult.newDeck)
+    val newGlobalState =
+        this
+            .globalState
+            .withDeckState(drawResult.newDeck)
+            .withTermLimitedGovernment(this.ephemeralState.governmentMembers)
 
     val newEphemeralState = EphemeralState.PresidentPolicyChoicePending(
         governmentMembers = this.ephemeralState.governmentMembers,
