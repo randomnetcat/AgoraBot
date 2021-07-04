@@ -10,6 +10,12 @@ import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiv
 import org.randomcat.agorabot.util.MAX_BUTTONS_PER_ROW
 import java.time.Duration
 
+private val SecretHitlerPolicyType.readableName
+    get() = when (this) {
+        SecretHitlerPolicyType.LIBERAL -> "Liberal"
+        SecretHitlerPolicyType.FASCIST -> "Fascist"
+    }
+
 private val PRESIDENT_POLICY_CHOICE_EXPIRY = Duration.ofDays(1)
 
 private fun sendPresidentPolicySelectionMessage(
@@ -33,10 +39,7 @@ private fun sendPresidentPolicySelectionMessage(
 
                             builder.addField(
                                 "Policy #$humanIndex",
-                                when (policyType) {
-                                    SecretHitlerPolicyType.LIBERAL -> "Liberal"
-                                    SecretHitlerPolicyType.FASCIST -> "Fascist"
-                                },
+                                policyType.readableName,
                                 false,
                             )
                         }
@@ -154,5 +157,47 @@ fun sendSecretHitlerGovernmentRejectedMessages(
         governmentMembers = governmentMembers,
     )
 
-    context.sendGameMessage("Futher messages not yet implemented")
+    @Suppress("UNUSED_VARIABLE")
+    val ensureExhaustive = when (result) {
+        is SecretHitlerInactiveGovernmentResult.NewElection -> {
+            secretHitlerSendChancellorSelectionMessage(
+                context = context,
+                gameId = gameId,
+                state = result.newState,
+            )
+        }
+
+        is SecretHitlerInactiveGovernmentResult.CountryInChaos -> {
+            context.sendGameMessage(
+                MessageBuilder(
+                    EmbedBuilder()
+                        .setTitle("Country in Chaos")
+                        .appendDescription("The election tracker has reached the maximum value. The top policy on the deck has been enacted.")
+                        .addField(
+                            "Policy Enacted",
+                            result.drawnPolicyType.readableName,
+                            false,
+                        )
+                        .build(),
+                ).build()
+            )
+
+            when (result) {
+                is SecretHitlerInactiveGovernmentResult.CountryInChaos.GameContinues -> {
+                    secretHitlerSendChancellorSelectionMessage(
+                        context = context,
+                        gameId = gameId,
+                        state = result.newState,
+                    )
+                }
+
+                is SecretHitlerInactiveGovernmentResult.CountryInChaos.GameEnds -> {
+                    sendSecretHitlerWinMessage(
+                        context = context,
+                        winResult = result.winResult,
+                    )
+                }
+            }
+        }
+    }
 }
