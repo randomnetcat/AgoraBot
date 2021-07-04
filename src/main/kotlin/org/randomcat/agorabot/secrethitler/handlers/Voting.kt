@@ -104,6 +104,7 @@ internal fun doSendSecretHitlerVotingMessage(
 
 private sealed class VoteButtonResult {
     data class Success(
+        val originalState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
         val nestedResult: SecretHitlerAfterVoteResult,
         val updateNumber: BigInteger,
     ) : VoteButtonResult()
@@ -197,6 +198,7 @@ private inline fun updateState(
             val newState = voteResult.stateForUpdate()
 
             newState to VoteButtonResult.Success(
+                originalState = typedState,
                 nestedResult = voteResult,
                 updateNumber = nextUpdateNumber(),
             )
@@ -249,7 +251,7 @@ internal fun doHandleSecretHitlerVote(
     handleTextResponse(event) {
         val gameId = request.gameId
 
-        val result = updateState(
+        val updateResult = updateState(
             gameList = repository.gameList,
             gameId = gameId,
             voterName = context.nameFromInteraction(event.interaction),
@@ -257,36 +259,47 @@ internal fun doHandleSecretHitlerVote(
             nextUpdateNumber = { SecretHitlerMessageUpdateQueue.nextUpdateNumber() }
         )
 
-        when (result) {
+        when (updateResult) {
             is VoteButtonResult.Success -> {
                 @Suppress("UNUSED_VARIABLE")
-                val ensureExhaustive = when (val nestedResult = result.nestedResult) {
+                val ensureExhaustive = when (val afterVoteResult = updateResult.nestedResult) {
                     is SecretHitlerAfterVoteResult.VotingContinues -> {
                         queueVoteMessageUpdate(
                             context = context,
-                            updateNumber = result.updateNumber,
+                            updateNumber = updateResult.updateNumber,
                             targetMessage = checkNotNull(event.message),
-                            currentState = nestedResult.newState,
+                            currentState = afterVoteResult.newState,
                         )
                     }
 
-                    is SecretHitlerAfterVoteResult.GovernmentElected -> {
+                    is SecretHitlerAfterVoteResult.VotingComplete -> {
+                        val originalPlayerMap = updateResult.originalState.globalState.playerMap
+
                         sendVoteSummaryMessage(
                             context = context,
-                            playerMap = nestedResult.newState.globalState.playerMap,
-                            voteMap = nestedResult.completeVoteMap,
+                            playerMap = originalPlayerMap,
+                            voteMap = afterVoteResult.completeVoteMap,
                         )
 
-                        sendSecretHitlerGovernmentElectedMessages(
-                            context = context,
-                            gameId = gameId,
-                            currentState = nestedResult.newState,
-                        )
-                    }
+                        when (afterVoteResult) {
+                            is SecretHitlerAfterVoteResult.GovernmentElected -> {
+                                sendSecretHitlerGovernmentElectedMessages(
+                                    context = context,
+                                    gameId = gameId,
+                                    currentState = afterVoteResult.newState,
+                                )
+                            }
 
-                    is SecretHitlerAfterVoteResult.GovernmentRejected -> {
-                        // TODO: send useful messages
-                        context.sendGameMessage("Government rejected")
+                            is SecretHitlerAfterVoteResult.GovernmentRejected -> {
+                                sendSecretHitlerGovernmentRejectedMessages(
+                                    context = context,
+                                    gameId = gameId,
+                                    playerMap = originalPlayerMap,
+                                    governmentMembers = updateResult.originalState.ephemeralState.governmentMembers,
+                                    result = afterVoteResult.nestedResult,
+                                )
+                            }
+                        }
                     }
                 }
 
