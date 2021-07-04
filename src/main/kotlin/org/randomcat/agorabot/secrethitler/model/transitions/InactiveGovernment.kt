@@ -8,13 +8,18 @@ sealed class SecretHitlerInactiveGovernmentResult {
     ) : SecretHitlerInactiveGovernmentResult()
 
     sealed class CountryInChaos : SecretHitlerInactiveGovernmentResult() {
+        abstract val drawnPolicyType: SecretHitlerPolicyType
+
         data class GameContinues(
             val newState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending>,
-            val drawnPolicyType: SecretHitlerPolicyType,
+            override val drawnPolicyType: SecretHitlerPolicyType,
             val shuffledDeck: Boolean,
         ) : CountryInChaos()
 
-        data class GameEnds(val winResult: SecretHitlerWinResult) : CountryInChaos()
+        data class GameEnds(
+            val winResult: SecretHitlerWinResult,
+            override val drawnPolicyType: SecretHitlerPolicyType,
+        ) : CountryInChaos()
     }
 }
 
@@ -76,7 +81,10 @@ private fun SecretHitlerGameState.Running.afterChaos(
         }
 
         is SecretHitlerSpeedyEnactResult.GameEnds -> {
-            SecretHitlerInactiveGovernmentResult.CountryInChaos.GameEnds(winResult = enactResult.winResult)
+            SecretHitlerInactiveGovernmentResult.CountryInChaos.GameEnds(
+                winResult = enactResult.winResult,
+                drawnPolicyType = drawResult.drawnCard,
+            )
         }
     }
 }
