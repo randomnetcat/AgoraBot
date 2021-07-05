@@ -54,6 +54,9 @@ private fun formatVotingEmbed(
                 .ifEmpty { "[None yet]" },
             false,
         )
+        .addField(currentState.globalState.liberalPoliciesEmbedField())
+        .addField(currentState.globalState.fascistPoliciesEmbedField())
+        .addField(currentState.globalState.electionTrackerEmbedField())
         .build()
 }
 
