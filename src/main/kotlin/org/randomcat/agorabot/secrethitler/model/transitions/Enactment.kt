@@ -7,12 +7,14 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPolicyType
 
 sealed class SecretHitlerEnactmentResult {
     sealed class GameContinues : SecretHitlerEnactmentResult() {
-        data class NoPower(val newGlobalState: SecretHitlerGlobalGameState) : GameContinues()
+        data class NoPower(override val newGlobalState: SecretHitlerGlobalGameState) : GameContinues()
 
         data class PowerActivated(
-            val newGlobalState: SecretHitlerGlobalGameState,
+            override val newGlobalState: SecretHitlerGlobalGameState,
             val power: SecretHitlerFascistPower,
         ) : GameContinues()
+
+        abstract val newGlobalState: SecretHitlerGlobalGameState
     }
 
     data class GameEnds(val winResult: SecretHitlerWinResult) : SecretHitlerEnactmentResult()
