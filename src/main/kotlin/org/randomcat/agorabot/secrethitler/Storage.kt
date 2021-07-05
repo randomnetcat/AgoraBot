@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.secrethitler
 
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 
@@ -82,6 +83,38 @@ internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameL
 
             @Suppress("UNCHECKED_CAST")
             afterValid(validExtractValue as VE)
+        },
+    )
+}
+
+internal val SH_INVALID_RUNNING_GAME_MARKER = Any()
+
+internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitlerGameList.updateRunningGameWithValidExtract(
+    id: SecretHitlerGameId,
+    onNoSuchGame: () -> R,
+    onInvalidType: () -> R, // Does not accept game in order to ease implementation. May revisit later.
+    crossinline validMapper: (validGame: SecretHitlerGameState.Running.With<E>) -> Pair<SecretHitlerGameState, VE>,
+    afterValid: (VE) -> R,
+): R {
+    return updateGameTypedWithValidExtract(
+        id = id,
+        onNoSuchGame = onNoSuchGame,
+        onInvalidType = { onInvalidType() },
+        validMapper = { runningGame: SecretHitlerGameState.Running ->
+            val typedGame = runningGame.tryWith<E>()
+
+            if (typedGame == null) {
+                runningGame to SH_INVALID_RUNNING_GAME_MARKER
+            } else {
+                validMapper(typedGame)
+            }
+        },
+        afterValid = { validExtract: Any? ->
+            if (validExtract != SH_INVALID_RUNNING_GAME_MARKER) {
+                afterValid(validExtract as VE)
+            } else {
+                onInvalidType()
+            }
         },
     )
 }
