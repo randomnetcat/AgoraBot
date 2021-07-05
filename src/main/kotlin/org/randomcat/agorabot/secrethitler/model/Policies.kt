@@ -5,6 +5,13 @@ enum class SecretHitlerPolicyType {
     LIBERAL,
 }
 
+val SecretHitlerPolicyType.readableName
+    get() = when (this) {
+        SecretHitlerPolicyType.LIBERAL -> "Liberal"
+        SecretHitlerPolicyType.FASCIST -> "Fascist"
+    }
+
+
 enum class SecretHitlerFascistPower {
     EXAMINE_CARDS,
     INVESTIGATE_PARTY,
