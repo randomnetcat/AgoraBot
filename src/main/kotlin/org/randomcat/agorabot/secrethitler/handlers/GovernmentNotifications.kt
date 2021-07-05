@@ -10,12 +10,6 @@ import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiv
 import org.randomcat.agorabot.util.MAX_BUTTONS_PER_ROW
 import java.time.Duration
 
-private val SecretHitlerPolicyType.readableName
-    get() = when (this) {
-        SecretHitlerPolicyType.LIBERAL -> "Liberal"
-        SecretHitlerPolicyType.FASCIST -> "Fascist"
-    }
-
 private val PRESIDENT_POLICY_CHOICE_EXPIRY = Duration.ofDays(1)
 
 private fun sendPresidentPolicySelectionMessage(
