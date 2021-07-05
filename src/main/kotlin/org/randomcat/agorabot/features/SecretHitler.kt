@@ -18,7 +18,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.asSnowflakeOrNull
-import org.randomcat.agorabot.util.handleTextResponse
 import java.time.Duration
 import java.time.Instant
 
@@ -185,9 +184,12 @@ fun secretHitlerFeature(
                 }
 
                 withType<SecretHitlerPresidentPolicyChoiceButtonDescriptor> { context, request ->
-                    handleTextResponse(context.event) {
-                        "Not yet implemented"
-                    }
+                    SecretHitlerButtons.handlePresidentPolicySelection(
+                        repository = repository,
+                        context = interactionContextFor(context),
+                        event = context.event,
+                        request = request,
+                    )
                 }
             },
         )
