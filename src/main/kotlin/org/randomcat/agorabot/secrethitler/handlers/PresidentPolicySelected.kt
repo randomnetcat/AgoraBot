@@ -74,6 +74,12 @@ internal fun doHandleSecretHitlerPresidentPolicySelected(
 
         when (updateResult) {
             is PresidentPolicySelectedResult.Success -> {
+                sendSecretHitlerChancellorPolicySelectionMessage(
+                    context = context,
+                    gameId = request.gameId,
+                    state = updateResult.newState,
+                )
+
                 "You have selected a policy to discard. The Chancellor will now select a policy to enact."
             }
 
