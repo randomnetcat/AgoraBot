@@ -23,13 +23,10 @@ sealed class SecretHitlerInactiveGovernmentResult {
     }
 }
 
-private fun <E : SecretHitlerEphemeralState> SecretHitlerGameState.Running.With<E>.withNoTermLimits(
-): SecretHitlerGameState.Running.With<E> {
-    return this.withGlobal(
-        newGlobalState = this.globalState.copy(
-            electionState = this.globalState.electionState.copy(
-                termLimitState = SecretHitlerTermLimitState.noLimits(),
-            ),
+private fun SecretHitlerGlobalGameState.withNoTermLimits(): SecretHitlerGlobalGameState {
+    return this.copy(
+        electionState = this.electionState.copy(
+            termLimitState = SecretHitlerTermLimitState.noLimits(),
         ),
     )
 }
@@ -43,9 +40,13 @@ private fun SecretHitlerGameState.Running.afterChaos(
         is SecretHitlerSpeedyEnactResult.GameContinues -> {
             SecretHitlerInactiveGovernmentResult.CountryInChaos.GameContinues(
                 newState = this
-                    .withGlobal(enactResult.newGlobalState.withElectionTrackerReset())
-                    .afterAdvancingTickerAndNewElection()
-                    .withNoTermLimits(),
+                    .withGlobal(
+                        enactResult
+                            .newGlobalState
+                            .withElectionTrackerReset()
+                            .withNoTermLimits()
+                    )
+                    .afterAdvancingTickerAndNewElection(),
                 drawnPolicyType = drawResult.drawnCard,
                 shuffledDeck = drawResult.shuffled,
             )
