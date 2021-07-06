@@ -124,7 +124,7 @@ sealed class SecretHitlerGameState {
             }
         }
 
-        data class With<Ephemeral : SecretHitlerEphemeralState>(
+        data class With<out Ephemeral : SecretHitlerEphemeralState>(
             override val globalState: SecretHitlerGlobalGameState,
             override val ephemeralState: Ephemeral,
         ) : Running() {
