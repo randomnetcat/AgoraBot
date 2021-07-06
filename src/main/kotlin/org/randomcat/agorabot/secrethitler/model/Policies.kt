@@ -19,6 +19,14 @@ enum class SecretHitlerFascistPower {
     EXECUTE_PLAYER,
 }
 
+val SecretHitlerFascistPower.readableName: String
+    get() = when (this) {
+        SecretHitlerFascistPower.EXAMINE_CARDS -> "Policy Peek"
+        SecretHitlerFascistPower.SPECIAL_ELECTION -> "Special Election"
+        SecretHitlerFascistPower.INVESTIGATE_PARTY -> "Investigate Loyalty"
+        SecretHitlerFascistPower.EXECUTE_PLAYER -> "Execute Player"
+    }
+
 data class SecretHitlerPoliciesState(
     val liberalPoliciesEnacted: Int,
     val fascistPoliciesEnacted: Int,
