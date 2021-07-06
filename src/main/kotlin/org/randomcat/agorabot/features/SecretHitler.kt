@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.features
 
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.interactions.Interaction
@@ -96,17 +97,49 @@ private class MessageContextImpl(
     }
 }
 
+private object NullMessageContext : SecretHitlerMessageContext {
+    override fun sendPrivateMessage(
+        recipient: SecretHitlerPlayerExternalName,
+        gameId: SecretHitlerGameId,
+        message: String,
+    ) {
+        // Intentionally do nothing.
+    }
+
+    override fun sendPrivateMessage(
+        recipient: SecretHitlerPlayerExternalName,
+        gameId: SecretHitlerGameId,
+        message: DiscordMessage,
+    ) {
+        // Intentionally do nothing.
+    }
+
+    override fun sendGameMessage(message: String) {
+        // Intentionally do nothing.
+    }
+
+    override fun sendGameMessage(message: DiscordMessage) {
+        // Intentionally do nothing.
+    }
+}
+
 fun secretHitlerFeature(
     repository: SecretHitlerRepository,
     impersonationMap: SecretHitlerMutableImpersonationMap?,
 ) = object : Feature {
     private val nameContext = NameContextImpl(impersonationMap)
 
-    private fun makeMessageContext(channel: MessageChannel): SecretHitlerMessageContext {
-        return MessageContextImpl(
-            impersonationMap = impersonationMap,
-            gameMessageChannel = channel,
-        )
+    private fun makeMessageContext(jda: JDA, gameMessageChannelId: String?): SecretHitlerMessageContext {
+        val gameChannel = gameMessageChannelId?.let { jda.getTextChannelById(it) }
+
+        return if (gameChannel != null) {
+            MessageContextImpl(
+                impersonationMap = impersonationMap,
+                gameMessageChannel = gameChannel,
+            )
+        } else {
+            NullMessageContext
+        }
     }
 
     override fun commandsInContext(context: FeatureContext): Map<String, Command> {
@@ -116,18 +149,31 @@ fun secretHitlerFeature(
                 repository = repository,
                 impersonationMap = impersonationMap,
                 nameContext = nameContext,
-                makeMessageContext = this::makeMessageContext,
+                makeMessageContext = { gameMessageChannel ->
+                    MessageContextImpl(
+                        impersonationMap = impersonationMap,
+                        gameMessageChannel = gameMessageChannel,
+                    )
+                },
             ),
         )
     }
 
     override fun buttonData(): FeatureButtonData {
-        fun interactionContextFor(context: ButtonHandlerContext): SecretHitlerInteractionContext {
+        fun interactionContextFor(
+            context: ButtonHandlerContext,
+            gameId: SecretHitlerGameId,
+        ): SecretHitlerInteractionContext {
+            val gameMessageChannelId = repository.channelGameMap.channelIdByGame(gameId)
+
             return object :
                 SecretHitlerInteractionContext,
                 SecretHitlerGameContext,
                 SecretHitlerNameContext by nameContext,
-                SecretHitlerMessageContext by makeMessageContext(channel = context.event.channel) {
+                SecretHitlerMessageContext by makeMessageContext(
+                    jda = context.event.jda,
+                    gameMessageChannelId = gameMessageChannelId,
+                ) {
                 override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
                     return context.buttonRequestDataMap.putRequest(
                         data = ButtonRequestData(
@@ -151,7 +197,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerJoinGameButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleJoin(
                         repository = repository,
-                        context = interactionContextFor(context),
+                        context = interactionContextFor(context, request.gameId),
                         event = context.event,
                         request = request,
                     )
@@ -160,7 +206,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerLeaveGameButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleLeave(
                         repository = repository,
-                        context = interactionContextFor(context),
+                        context = interactionContextFor(context, request.gameId),
                         event = context.event,
                         request = request,
                     )
@@ -169,7 +215,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerChancellorCandidateSelectionButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleChancellorSelection(
                         repository = repository,
-                        context = interactionContextFor(context),
+                        context = interactionContextFor(context, request.gameId),
                         event = context.event,
                         request = request,
                     )
@@ -178,7 +224,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerVoteButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handleVote(
                         repository = repository,
-                        context = interactionContextFor(context),
+                        context = interactionContextFor(context, request.gameId),
                         event = context.event,
                         request = request,
                     )
@@ -187,7 +233,7 @@ fun secretHitlerFeature(
                 withType<SecretHitlerPresidentPolicyChoiceButtonDescriptor> { context, request ->
                     SecretHitlerButtons.handlePresidentPolicySelection(
                         repository = repository,
-                        context = interactionContextFor(context),
+                        context = interactionContextFor(context, request.gameId),
                         event = context.event,
                         request = request,
                     )
