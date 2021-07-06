@@ -111,6 +111,7 @@ internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitler
         },
         afterValid = { validExtract: Any? ->
             if (validExtract != SH_INVALID_RUNNING_GAME_MARKER) {
+                @Suppress("UNCHECKED_CAST")
                 afterValid(validExtract as VE)
             } else {
                 onInvalidType()
