@@ -122,9 +122,11 @@ internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitler
 
 interface SecretHitlerChannelGameMap {
     fun gameByChannelId(channelId: String): SecretHitlerGameId?
+    fun channelIdByGame(gameId: SecretHitlerGameId): String?
 
     /**
-     * Attempts to set the game id for [channelId] to [gameId], failing if the channel already has a game id set.
+     * Attempts to set the game id for [channelId] to [gameId], failing if the channel already has a game id set, or
+     * if the game id is already associated with a channel.
      * @return true if the game id is successfully set, false otherwise
      */
     fun tryPutGameForChannelId(channelId: String, gameId: SecretHitlerGameId): Boolean
