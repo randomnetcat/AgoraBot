@@ -69,6 +69,14 @@ data class SecretHitlerDeckState(private val policies: ImmutableList<SecretHitle
         }
     }
 
+    data class StandardPeekResult(
+        val peekedCards: ImmutableList<SecretHitlerPolicyType>,
+    ) {
+        init {
+            require(peekedCards.size == STANDARD_DRAW_AMOUNT)
+        }
+    }
+
     data class SingleDrawResult(
         val drawnCard: SecretHitlerPolicyType,
         val newDeck: SecretHitlerDeckState,
@@ -101,6 +109,10 @@ data class SecretHitlerDeckState(private val policies: ImmutableList<SecretHitle
 
     fun drawStandard(shuffleProvider: ShuffleProvider): StandardDrawResult {
         return drawAny(count = STANDARD_DRAW_AMOUNT, shuffleProvider).asStandard()
+    }
+
+    fun peekStandard(): StandardPeekResult {
+        return StandardPeekResult(policies.subList(0, STANDARD_DRAW_AMOUNT))
     }
 
     fun drawSingle(shuffleProvider: ShuffleProvider): SingleDrawResult {
