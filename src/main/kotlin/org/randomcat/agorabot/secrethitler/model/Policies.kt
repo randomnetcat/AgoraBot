@@ -55,7 +55,7 @@ data class SecretHitlerPoliciesState(
 
         return EnactmentResult.GameContinues(
             newPolicyState = this.copy(fascistPoliciesEnacted = newFascistPolicyCount),
-            fascistPower = config.fascistPowerAt(newFascistPolicyCount),
+            fascistPower = config.fascistPowerAt(fascistPoliciesEnacted = newFascistPolicyCount),
         )
     }
 
