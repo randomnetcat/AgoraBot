@@ -198,6 +198,24 @@ fun secretHitlerFeature(
                         "Not yet implemented"
                     }
                 }
+
+                withType<SecretHitlerPendingInvestigatePartySelectionButtonDescriptor> { context, request ->
+                    handleTextResponse(context.event) {
+                        "Not yet implemented"
+                    }
+                }
+
+                withType<SecretHitlerPendingSpecialElectionSelectionButtonDescriptor> { context, request ->
+                    handleTextResponse(context.event) {
+                        "Not yet implemented"
+                    }
+                }
+
+                withType<SecretHitlerPendingExecutionSelectionButtonDescriptor> { context, request ->
+                    handleTextResponse(context.event) {
+                        "Not yet implemented"
+                    }
+                }
             },
         )
     }
