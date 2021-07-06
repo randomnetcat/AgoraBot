@@ -267,10 +267,6 @@ private sealed class EphemeralStateDto {
                     SpecialElectionPending.from(state)
                 }
 
-                is SecretHitlerEphemeralState.PolicyPending.PolicyPeek -> {
-                    PolicyPeekPending.from(state)
-                }
-
                 is SecretHitlerEphemeralState.PolicyPending.Execution -> {
                     ExecutionPending.from(state)
                 }
@@ -399,25 +395,6 @@ private sealed class EphemeralStateDto {
 
         override fun toEphemeralState(): SecretHitlerEphemeralState {
             return SecretHitlerEphemeralState.PolicyPending.SpecialElection(
-                presidentNumber = presidentNumber,
-            )
-        }
-    }
-
-    @Serializable
-    data class PolicyPeekPending(
-        val presidentNumber: SecretHitlerPlayerNumber,
-    ) : EphemeralStateDto() {
-        companion object {
-            fun from(state: SecretHitlerEphemeralState.PolicyPending.PolicyPeek): PolicyPeekPending {
-                return PolicyPeekPending(
-                    presidentNumber = state.presidentNumber,
-                )
-            }
-        }
-
-        override fun toEphemeralState(): SecretHitlerEphemeralState {
-            return SecretHitlerEphemeralState.PolicyPending.PolicyPeek(
                 presidentNumber = presidentNumber,
             )
         }

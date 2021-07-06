@@ -100,7 +100,6 @@ sealed class SecretHitlerEphemeralState {
 
         data class InvestigateParty(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
         data class SpecialElection(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
-        data class PolicyPeek(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
         data class Execution(override val presidentNumber: SecretHitlerPlayerNumber) : PolicyPending()
     }
 }
