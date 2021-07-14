@@ -59,7 +59,6 @@ fun secretHitlerSendChancellorSelectionMessage(
                 context.newButtonId(
                     SecretHitlerChancellorCandidateSelectionButtonDescriptor(
                         gameId = gameId,
-                        president = presidentCandidate,
                         selectedChancellor = chancellorCandidate,
                     ),
                     Duration.ofDays(1),

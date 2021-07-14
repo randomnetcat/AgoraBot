@@ -79,7 +79,6 @@ fun sendSecretHitlerPresidentPolicySelectionMessage(
         makeButtonDescriptor = { policyIndex ->
             SecretHitlerPresidentPolicyChoiceButtonDescriptor(
                 gameId = gameId,
-                president = presidentNumber,
                 policyIndex = policyIndex,
             )
         },
@@ -103,7 +102,6 @@ fun sendSecretHitlerChancellorPolicySelectionMessage(
         makeButtonDescriptor = { policyIndex ->
             SecretHitlerChancellorPolicyChoiceButtonDescriptor(
                 gameId = gameId,
-                chancellor = chancellorNumber,
                 policyIndex = policyIndex,
             )
         },

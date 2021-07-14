@@ -9,7 +9,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 @Serializable
 data class SecretHitlerChancellorCandidateSelectionButtonDescriptor(
     val gameId: SecretHitlerGameId,
-    val president: SecretHitlerPlayerNumber,
     val selectedChancellor: SecretHitlerPlayerNumber,
 ) : ButtonRequestDescriptor
 
@@ -22,13 +21,11 @@ data class SecretHitlerVoteButtonDescriptor(
 @Serializable
 data class SecretHitlerPresidentPolicyChoiceButtonDescriptor(
     val gameId: SecretHitlerGameId,
-    val president: SecretHitlerPlayerNumber,
     val policyIndex: Int,
 ) : ButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerChancellorPolicyChoiceButtonDescriptor(
     val gameId: SecretHitlerGameId,
-    val chancellor: SecretHitlerPlayerNumber,
     val policyIndex: Int,
 ) : ButtonRequestDescriptor

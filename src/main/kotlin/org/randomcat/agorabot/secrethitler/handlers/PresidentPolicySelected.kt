@@ -3,7 +3,10 @@ package org.randomcat.agorabot.secrethitler.handlers
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentPolicyChoiceButtonDescriptor
-import org.randomcat.agorabot.secrethitler.model.*
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.model.transitions.afterPresidentPolicySelected
 import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
@@ -24,7 +27,6 @@ private fun doStateUpdate(
     repository: SecretHitlerRepository,
     gameId: SecretHitlerGameId,
     actualPresidentName: SecretHitlerPlayerExternalName,
-    expectedPresidentNumber: SecretHitlerPlayerNumber,
     selectedPolicyIndex: Int,
 ): PresidentPolicySelectedResult {
     return repository.gameList.updateRunningGameWithValidExtract(
@@ -41,11 +43,11 @@ private fun doStateUpdate(
                 return@updateRunningGameWithValidExtract currentState to PresidentPolicySelectedResult.NotPlayer
             }
 
+            val expectedPresidentNumber = currentState.ephemeralState.governmentMembers.president
+
             if (actualPresidentNumber != expectedPresidentNumber) {
                 return@updateRunningGameWithValidExtract currentState to PresidentPolicySelectedResult.Unauthorized
             }
-
-            check(actualPresidentNumber == currentState.ephemeralState.governmentMembers.president)
 
             val newState = currentState.afterPresidentPolicySelected(policyIndex = selectedPolicyIndex)
 
@@ -68,7 +70,6 @@ internal fun doHandleSecretHitlerPresidentPolicySelected(
             repository = repository,
             gameId = request.gameId,
             actualPresidentName = context.nameFromInteraction(event.interaction),
-            expectedPresidentNumber = request.president,
             selectedPolicyIndex = request.policyIndex,
         )
 
