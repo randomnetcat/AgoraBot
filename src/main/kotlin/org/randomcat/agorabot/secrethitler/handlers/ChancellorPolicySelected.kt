@@ -30,7 +30,6 @@ private fun doStateUpdate(
     repository: SecretHitlerRepository,
     gameId: SecretHitlerGameId,
     actualChancellorName: SecretHitlerPlayerExternalName,
-    expectedChancellorNumber: SecretHitlerPlayerNumber,
     selectedPolicyIndex: Int,
 ): ChancellorPolicySelectedHandlerUpdateResult {
     return repository.gameList.updateRunningGameWithValidExtract(
@@ -47,11 +46,11 @@ private fun doStateUpdate(
                 return@updateRunningGameWithValidExtract currentState to ChancellorPolicySelectedHandlerUpdateResult.NotPlayer
             }
 
+            val expectedChancellorNumber = currentState.ephemeralState.governmentMembers.chancellor
+
             if (actualChancellorNumber != expectedChancellorNumber) {
                 return@updateRunningGameWithValidExtract currentState to ChancellorPolicySelectedHandlerUpdateResult.Unauthorized
             }
-
-            check(actualChancellorNumber == currentState.ephemeralState.governmentMembers.chancellor)
 
             val nestedResult = currentState.afterChancellorPolicySelected(policyIndex = selectedPolicyIndex)
 
@@ -129,7 +128,6 @@ fun doHandleSecretHitlerChancellorPolicySelected(
             repository = repository,
             gameId = gameId,
             actualChancellorName = context.nameFromInteraction(event.interaction),
-            expectedChancellorNumber = request.chancellor,
             selectedPolicyIndex = request.policyIndex,
         )
 
