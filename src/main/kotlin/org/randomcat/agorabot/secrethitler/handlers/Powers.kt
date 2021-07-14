@@ -98,7 +98,6 @@ fun sendSecretHitlerPowerActivatedMessages(
                 makeButtonDescriptor = { selectedPlayer ->
                     SecretHitlerPendingInvestigatePartySelectionButtonDescriptor(
                         gameId = gameId,
-                        president = presidentNumber,
                         selectedPlayer = selectedPlayer,
                     )
                 },
@@ -113,7 +112,6 @@ fun sendSecretHitlerPowerActivatedMessages(
                 makeButtonDescriptor = { selectedPlayer ->
                     SecretHitlerPendingSpecialElectionSelectionButtonDescriptor(
                         gameId = gameId,
-                        president = presidentNumber,
                         selectedPlayer = selectedPlayer,
                     )
                 },
@@ -128,7 +126,6 @@ fun sendSecretHitlerPowerActivatedMessages(
                 makeButtonDescriptor = { selectedPlayer ->
                     SecretHitlerPendingExecutionSelectionButtonDescriptor(
                         gameId = gameId,
-                        president = presidentNumber,
                         selectedPlayer = selectedPlayer,
                     )
                 },
