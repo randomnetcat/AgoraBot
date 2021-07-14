@@ -5,7 +5,7 @@ import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.model.*
-import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
+import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class ChancellorSelectResult {
@@ -16,6 +16,7 @@ private sealed class ChancellorSelectResult {
 
     sealed class Failure : ChancellorSelectResult()
     object NoSuchGame : Failure()
+    object NotPlayer : Failure()
     object Unauthorized : Failure()
     object InvalidState : Failure()
     object IneligibleChancellor : Failure()
@@ -25,10 +26,9 @@ private fun doStateUpdate(
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,
     actualPresidentName: SecretHitlerPlayerExternalName,
-    expectedPresidentNumber: SecretHitlerPlayerNumber,
     selectedChancellor: SecretHitlerPlayerNumber,
 ): ChancellorSelectResult {
-    return gameList.updateGameTypedWithValidExtract(
+    return gameList.updateRunningGameWithValidExtract(
         id = gameId,
         onNoSuchGame = {
             ChancellorSelectResult.NoSuchGame
@@ -36,32 +36,29 @@ private fun doStateUpdate(
         onInvalidType = {
             ChancellorSelectResult.InvalidState
         },
-        validMapper = { currentState: SecretHitlerGameState.Running ->
+        validMapper = { currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending> ->
             val actualPresidentNumber = currentState.globalState.playerMap.numberByPlayer(actualPresidentName)
+            if (actualPresidentNumber == null) {
+                return@updateRunningGameWithValidExtract currentState to ChancellorSelectResult.NotPlayer
+            }
+
+            val expectedPresidentNumber = currentState.ephemeralState.presidentCandidate
 
             if (actualPresidentNumber != expectedPresidentNumber) {
-                return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.Unauthorized
+                return@updateRunningGameWithValidExtract currentState to ChancellorSelectResult.Unauthorized
             }
 
-            val typedState = currentState.tryWith<SecretHitlerEphemeralState.ChancellorSelectionPending>()
-
-            if (typedState == null) {
-                return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.InvalidState
-            }
-
-            check(typedState.ephemeralState.presidentCandidate == actualPresidentNumber)
-
-            typedState.chancellorSelectionIsValid(
+            val chancellorSelectionIsValid = currentState.chancellorSelectionIsValid(
                 presidentCandidate = actualPresidentNumber,
                 chancellorCandidate = selectedChancellor,
-            ).let { isValid ->
-                if (!isValid) {
-                    return@updateGameTypedWithValidExtract currentState to ChancellorSelectResult.IneligibleChancellor
-                }
+            )
+
+            if (!chancellorSelectionIsValid) {
+                return@updateRunningGameWithValidExtract currentState to ChancellorSelectResult.IneligibleChancellor
             }
 
-            val newState = typedState.withEphemeral(
-                typedState.ephemeralState.withChancellorSelected(selectedChancellor),
+            val newState = currentState.withEphemeral(
+                currentState.ephemeralState.withChancellorSelected(selectedChancellor),
             )
 
             newState to ChancellorSelectResult.Success(
@@ -89,7 +86,6 @@ internal fun doHandleSecretHitlerChancellorSelect(
             gameList = repository.gameList,
             gameId = gameId,
             actualPresidentName = actualPresidentName,
-            expectedPresidentNumber = request.president,
             selectedChancellor = request.selectedChancellor,
         )
 
@@ -106,6 +102,10 @@ internal fun doHandleSecretHitlerChancellorSelect(
 
             is ChancellorSelectResult.NoSuchGame -> {
                 "That game no longer exists."
+            }
+
+            is ChancellorSelectResult.NotPlayer -> {
+                "You are not a player in that game."
             }
 
             is ChancellorSelectResult.InvalidState -> {
