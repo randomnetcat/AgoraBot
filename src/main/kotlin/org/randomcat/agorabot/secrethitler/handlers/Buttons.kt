@@ -74,4 +74,18 @@ object SecretHitlerButtons {
             request = request,
         )
     }
+
+    fun handleChancellorPolicySelection(
+        repository: SecretHitlerRepository,
+        context: SecretHitlerInteractionContext,
+        event: ButtonClickEvent,
+        request: SecretHitlerChancellorPolicyChoiceButtonDescriptor,
+    ) {
+        doHandleSecretHitlerChancellorPolicySelected(
+            repository = repository,
+            context = context,
+            event = event,
+            request = request,
+        )
+    }
 }
