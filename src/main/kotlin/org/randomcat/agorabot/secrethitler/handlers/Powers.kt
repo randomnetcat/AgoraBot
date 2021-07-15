@@ -26,6 +26,8 @@ private fun sendPlayerSelectPowerNotification(
 ) {
     val presidentName = playerMap.playerByNumberKnown(presidentNumber)
 
+    val sortedNumbers = playerMap.validNumbers.sortedBy { it.raw }
+
     context.sendGameMessage(
         MessageBuilder(
             EmbedBuilder()
@@ -36,10 +38,20 @@ private fun sendPlayerSelectPowerNotification(
                     context.renderExternalName(presidentName),
                     false,
                 )
+                .addField(
+                    "Options",
+                    sortedNumbers
+                        .mapIndexed { index, playerNumber ->
+                            "Option #${index + 1}: " +
+                                    context.renderExternalName(playerMap.playerByNumberKnown(playerNumber))
+                        }
+                        .joinToString("\n"),
+                    false,
+                )
                 .build(),
         )
             .also { builder ->
-                val buttons = playerMap.validNumbers.sortedBy { it.raw }.mapIndexed { index, playerNumber ->
+                val buttons = sortedNumbers.mapIndexed { index, playerNumber ->
                     val isPermissible = playerNumber != presidentNumber
 
                     Button
