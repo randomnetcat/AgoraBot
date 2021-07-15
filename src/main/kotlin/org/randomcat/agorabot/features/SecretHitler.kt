@@ -249,9 +249,12 @@ fun secretHitlerFeature(
                 }
 
                 withType<SecretHitlerPendingInvestigatePartySelectionButtonDescriptor> { context, request ->
-                    handleTextResponse(context.event) {
-                        "Not yet implemented"
-                    }
+                    SecretHitlerButtons.handlePresidentInvestigatePowerSelection(
+                        repository = repository,
+                        context = interactionContextFor(context, request.gameId),
+                        event = context.event,
+                        request = request,
+                    )
                 }
 
                 withType<SecretHitlerPendingSpecialElectionSelectionButtonDescriptor> { context, request ->

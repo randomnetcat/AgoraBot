@@ -3,6 +3,7 @@ package org.randomcat.agorabot.secrethitler.handlers
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.*
+import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSecretHitlerPresidentInvestigatePowerSelection
 
 object SecretHitlerButtons {
     fun handleJoin(
@@ -82,6 +83,20 @@ object SecretHitlerButtons {
         request: SecretHitlerChancellorPolicyChoiceButtonDescriptor,
     ) {
         doHandleSecretHitlerChancellorPolicySelected(
+            repository = repository,
+            context = context,
+            event = event,
+            request = request,
+        )
+    }
+
+    fun handlePresidentInvestigatePowerSelection(
+        repository: SecretHitlerRepository,
+        context: SecretHitlerInteractionContext,
+        event: ButtonClickEvent,
+        request: SecretHitlerPendingInvestigatePartySelectionButtonDescriptor,
+    ) {
+        doHandleSecretHitlerPresidentInvestigatePowerSelection(
             repository = repository,
             context = context,
             event = event,
