@@ -14,7 +14,6 @@ import org.randomcat.agorabot.util.handleTextResponse
 private sealed class InvestigateSelectionResult {
     data class Success(
         val newState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending>,
-        val presidentName: SecretHitlerPlayerExternalName,
         val selectedPlayerName: SecretHitlerPlayerExternalName,
         val selectedPlayerParty: SecretHitlerParty,
     ) : InvestigateSelectionResult()
@@ -38,7 +37,6 @@ private fun doStateUpdate(
 
             newState to InvestigateSelectionResult.Success(
                 newState = newState,
-                presidentName = actualPresidentName,
                 selectedPlayerName = commonResult.selectedPlayerName,
                 selectedPlayerParty = currentState.globalState.roleMap.roleOf(selectedPlayerNumber).party,
             )
@@ -88,10 +86,12 @@ fun doHandleSecretHitlerPresidentInvestigatePowerSelection(
     handleTextResponse(event) {
         val gameId = request.gameId
 
+        val actualPresidentName = context.nameFromInteraction(event.interaction)
+
         val updateResult = doStateUpdate(
             repository = repository,
             gameId = gameId,
-            actualPresidentName = context.nameFromInteraction(event.interaction),
+            actualPresidentName = actualPresidentName,
             selectedPlayerNumber = request.selectedPlayer,
         )
 
@@ -100,7 +100,7 @@ fun doHandleSecretHitlerPresidentInvestigatePowerSelection(
                 sendInvestigationResultMessages(
                     context = context,
                     gameId = gameId,
-                    presidentName = updateResult.presidentName,
+                    presidentName = actualPresidentName,
                     selectedPlayerName = updateResult.selectedPlayerName,
                     investigationResult = updateResult.selectedPlayerParty,
                 )
