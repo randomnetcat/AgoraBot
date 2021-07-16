@@ -26,6 +26,9 @@ sealed class SecretHitlerPowerCommonFailure(val standardErrorMessage: String) : 
 
     object SelectedNotPlayer :
         SecretHitlerPowerCommonFailure("The person you have selected is no longer a player in that game.")
+
+    object SelectedSelf :
+        SecretHitlerPowerCommonFailure("You cannot select yourself.")
 }
 
 fun verifySecretHitlerPowerUse(
@@ -42,6 +45,10 @@ fun verifySecretHitlerPowerUse(
 
     if (actualPresidentNumber != expectedPresidentNumber) {
         return SecretHitlerPowerCommonFailure.Unauthorized
+    }
+
+    if (actualPresidentNumber == selectedPlayerNumber) {
+        return SecretHitlerPowerCommonFailure.SelectedSelf
     }
 
     val selectedPlayerName = playerMap.playerByNumber(selectedPlayerNumber)
