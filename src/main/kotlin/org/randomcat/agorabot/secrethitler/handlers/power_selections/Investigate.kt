@@ -59,23 +59,12 @@ private fun sendInvestigationResultMessages(
     selectedPlayerName: SecretHitlerPlayerExternalName,
     investigationResult: SecretHitlerParty,
 ) {
-    context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Investigate Party Selection")
-                .setDescription("The President has been informed of the selected player's party.")
-                .addField(
-                    "President",
-                    context.renderExternalName(presidentName),
-                    true,
-                )
-                .addField(
-                    "Investigated Player",
-                    context.renderExternalName(selectedPlayerName),
-                    true,
-                )
-                .build(),
-        ).build(),
+    sendSecretHitlerCommonPowerSelectionNotification(
+        context = context,
+        title = "Investigate Party Selection",
+        description = "The President has been informed of the selected player's party.",
+        presidentName = presidentName,
+        selectedPlayerName = selectedPlayerName,
     )
 
     context.sendPrivateMessage(
