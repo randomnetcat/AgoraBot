@@ -155,7 +155,8 @@ private fun SecretHitlerInactiveGovernmentResult.stateForUpdate(): SecretHitlerG
 private fun SecretHitlerAfterVoteResult.stateForUpdate(): SecretHitlerGameState {
     return when (this) {
         is SecretHitlerAfterVoteResult.VotingContinues -> this.newState
-        is SecretHitlerAfterVoteResult.GovernmentElected -> this.newState
+        is SecretHitlerAfterVoteResult.GovernmentElected.GameContinues -> this.newState
+        is SecretHitlerAfterVoteResult.GovernmentElected.GameEnds -> SecretHitlerGameState.Completed
         is SecretHitlerAfterVoteResult.GovernmentRejected -> this.nestedResult.stateForUpdate()
     }
 }
@@ -276,29 +277,50 @@ internal fun doHandleSecretHitlerVote(
                     }
 
                     is SecretHitlerAfterVoteResult.VotingComplete -> {
-                        val originalPlayerMap = updateResult.originalState.globalState.playerMap
+                        val playerMap = updateResult.originalState.globalState.playerMap
+                        val governmentMembers = updateResult.originalState.ephemeralState.governmentMembers
 
                         sendVoteSummaryMessage(
                             context = context,
-                            playerMap = originalPlayerMap,
+                            playerMap = playerMap,
                             voteMap = afterVoteResult.completeVoteMap,
                         )
 
                         when (afterVoteResult) {
                             is SecretHitlerAfterVoteResult.GovernmentElected -> {
-                                sendSecretHitlerGovernmentElectedMessages(
+                                sendSecretHitlerGovernmentElectedNotification(
                                     context = context,
-                                    gameId = gameId,
-                                    currentState = afterVoteResult.newState,
+                                    playerMap = playerMap,
+                                    governmentMembers = governmentMembers,
                                 )
+
+                                when (afterVoteResult) {
+                                    is SecretHitlerAfterVoteResult.GovernmentElected.GameContinues -> {
+                                        check(afterVoteResult.newState.globalState.playerMap == playerMap)
+                                        check(afterVoteResult.newState.ephemeralState.governmentMembers == governmentMembers)
+
+                                        sendSecretHitlerPresidentPolicySelectionMessage(
+                                            context = context,
+                                            currentState = afterVoteResult.newState,
+                                            gameId = gameId,
+                                        )
+                                    }
+
+                                    is SecretHitlerAfterVoteResult.GovernmentElected.GameEnds -> {
+                                        sendSecretHitlerWinMessage(
+                                            context = context,
+                                            winResult = afterVoteResult.winResult,
+                                        )
+                                    }
+                                }
                             }
 
                             is SecretHitlerAfterVoteResult.GovernmentRejected -> {
                                 sendSecretHitlerGovernmentRejectedMessages(
                                     context = context,
                                     gameId = gameId,
-                                    playerMap = originalPlayerMap,
-                                    governmentMembers = updateResult.originalState.ephemeralState.governmentMembers,
+                                    playerMap = playerMap,
+                                    governmentMembers = governmentMembers,
                                     result = afterVoteResult.nestedResult,
                                 )
                             }
