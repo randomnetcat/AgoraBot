@@ -191,6 +191,14 @@ class SecretHitlerCommand(
                                     )
                                 }
 
+                                is SecretHitlerEphemeralState.ChancellorPolicyChoicePending -> {
+                                    sendSecretHitlerChancellorPolicySelectionMessage(
+                                        context = context,
+                                        gameId = gameId,
+                                        state = gameState.assumeWith<SecretHitlerEphemeralState.ChancellorPolicyChoicePending>(),
+                                    )
+                                }
+
                                 else -> {
                                     respond("Not yet implemented")
                                 }
