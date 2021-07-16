@@ -38,33 +38,19 @@ private fun sendBasicElectionNotification(
     )
 }
 
-private fun sendElectedNotification(
+fun sendSecretHitlerGovernmentElectedNotification(
     context: SecretHitlerGameContext,
-    currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PresidentPolicyChoicePending>,
+    playerMap: SecretHitlerPlayerMap,
+    governmentMembers: SecretHitlerGovernmentMembers,
 ) {
     sendBasicElectionNotification(
         context = context,
         title = "Government Elected",
-        description = "The government has been elected. Policy selection will now commence.",
-        playerMap = currentState.globalState.playerMap,
-        governmentMembers = currentState.ephemeralState.governmentMembers,
+        description = "The government has been elected.",
+        playerMap = playerMap,
+        governmentMembers = governmentMembers,
     )
 }
-
-fun sendSecretHitlerGovernmentElectedMessages(
-    context: SecretHitlerGameContext,
-    gameId: SecretHitlerGameId,
-    currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PresidentPolicyChoicePending>,
-) {
-    sendElectedNotification(context, currentState)
-
-    sendSecretHitlerPresidentPolicySelectionMessage(
-        context = context,
-        currentState = currentState,
-        gameId = gameId,
-    )
-}
-
 
 private fun sendGovernmentRejectedNotification(
     context: SecretHitlerGameContext,

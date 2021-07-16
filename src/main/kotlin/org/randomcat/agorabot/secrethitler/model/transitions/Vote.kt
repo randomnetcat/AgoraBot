@@ -14,11 +14,18 @@ sealed class SecretHitlerAfterVoteResult {
         abstract val completeVoteMap: EphemeralState.VoteMap
     }
 
-    data class GovernmentElected(
-        val newState: GameState.Running.With<EphemeralState.PresidentPolicyChoicePending>,
-        val shuffledDeck: Boolean,
-        override val completeVoteMap: EphemeralState.VoteMap,
-    ) : VotingComplete()
+    sealed class GovernmentElected : VotingComplete() {
+        data class GameContinues(
+            val newState: GameState.Running.With<EphemeralState.PresidentPolicyChoicePending>,
+            val shuffledDeck: Boolean,
+            override val completeVoteMap: EphemeralState.VoteMap,
+        ) : GovernmentElected()
+
+        data class GameEnds(
+            val winResult: SecretHitlerWinResult,
+            override val completeVoteMap: EphemeralState.VoteMap,
+        ) : GovernmentElected()
+    }
 
     data class GovernmentRejected(
         val nestedResult: SecretHitlerInactiveGovernmentResult,
@@ -52,6 +59,16 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
     completeVoteMap: EphemeralState.VoteMap,
 ): SecretHitlerAfterVoteResult.GovernmentElected {
+    if (
+        globalState.roleMap.roleOf(ephemeralState.governmentMembers.chancellor) is SecretHitlerRole.Hitler &&
+        globalState.boardState.policiesState.fascistPoliciesEnacted >= globalState.configuration.hitlerChancellorWinRequirement
+    ) {
+        return SecretHitlerAfterVoteResult.GovernmentElected.GameEnds(
+            winResult = SecretHitlerWinResult.FascistsWin,
+            completeVoteMap = completeVoteMap,
+        )
+    }
+
     val drawResult = this.globalState.boardState.deckState.drawStandard(shuffleProvider)
 
     val newGlobalState =
@@ -66,7 +83,7 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
         options = PresidentPolicyOptions(drawResult.drawnCards),
     )
 
-    return SecretHitlerAfterVoteResult.GovernmentElected(
+    return SecretHitlerAfterVoteResult.GovernmentElected.GameContinues(
         newState = GameState.Running(newGlobalState, newEphemeralState),
         shuffledDeck = drawResult.shuffled,
         completeVoteMap = completeVoteMap,
