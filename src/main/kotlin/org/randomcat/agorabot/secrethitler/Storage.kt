@@ -52,7 +52,7 @@ inline fun <reified T : SecretHitlerGameState, R> SecretHitlerGameList.updateGam
     }
 }
 
-internal val SH_VALID_EXTRACT_NOT_SET = Any()
+internal object SecretHitlerValidExtractNotSet
 
 internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameList.updateGameTypedWithValidExtract(
     id: SecretHitlerGameId,
@@ -61,16 +61,16 @@ internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameL
     crossinline validMapper: (validGame: T) -> Pair<SecretHitlerGameState, VE>,
     afterValid: (VE) -> R,
 ): R {
-    var validExtractValue: Any? = SH_VALID_EXTRACT_NOT_SET
+    var validExtractValue: Any? = SecretHitlerValidExtractNotSet
 
     return updateGameTyped(
         id = id,
         onNoSuchGame = {
-            validExtractValue = SH_VALID_EXTRACT_NOT_SET
+            validExtractValue = SecretHitlerValidExtractNotSet
             onNoSuchGame()
         },
         onInvalidType = { invalidGame ->
-            validExtractValue = SH_VALID_EXTRACT_NOT_SET
+            validExtractValue = SecretHitlerValidExtractNotSet
             onInvalidType(invalidGame)
         },
         validMapper = { validGame: T ->
@@ -79,7 +79,7 @@ internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameL
             result.first
         },
         afterValid = {
-            check(validExtractValue !== SH_VALID_EXTRACT_NOT_SET)
+            check(validExtractValue !== SecretHitlerValidExtractNotSet)
 
             @Suppress("UNCHECKED_CAST")
             afterValid(validExtractValue as VE)
@@ -87,7 +87,7 @@ internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameL
     )
 }
 
-internal val SH_INVALID_RUNNING_GAME_MARKER = Any()
+internal object SecretHitlerInvalidRunningGameMarker
 
 internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitlerGameList.updateRunningGameWithValidExtract(
     id: SecretHitlerGameId,
@@ -104,13 +104,13 @@ internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitler
             val typedGame = runningGame.tryWith<E>()
 
             if (typedGame == null) {
-                runningGame to SH_INVALID_RUNNING_GAME_MARKER
+                runningGame to SecretHitlerInvalidRunningGameMarker
             } else {
                 validMapper(typedGame)
             }
         },
         afterValid = { validExtract: Any? ->
-            if (validExtract != SH_INVALID_RUNNING_GAME_MARKER) {
+            if (validExtract != SecretHitlerInvalidRunningGameMarker) {
                 @Suppress("UNCHECKED_CAST")
                 afterValid(validExtract as VE)
             } else {
