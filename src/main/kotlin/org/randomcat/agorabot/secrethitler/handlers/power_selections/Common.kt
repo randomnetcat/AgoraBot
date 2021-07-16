@@ -1,6 +1,9 @@
 package org.randomcat.agorabot.secrethitler.handlers.power_selections
 
+import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
 
@@ -95,5 +98,32 @@ internal inline fun <reified E, R> SecretHitlerGameList.updateGameForPowerSelect
         afterValid = { result ->
             result
         },
+    )
+}
+
+fun sendSecretHitlerCommonPowerSelectionNotification(
+    context: SecretHitlerGameContext,
+    title: String,
+    description: String,
+    presidentName: SecretHitlerPlayerExternalName,
+    selectedPlayerName: SecretHitlerPlayerExternalName,
+) {
+    context.sendGameMessage(
+        MessageBuilder(
+            EmbedBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .addField(
+                    "President",
+                    context.renderExternalName(presidentName),
+                    true,
+                )
+                .addField(
+                    "Selected Player",
+                    context.renderExternalName(selectedPlayerName),
+                    true,
+                )
+                .build(),
+        ).build(),
     )
 }
