@@ -9,7 +9,6 @@ import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionConte
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.afterAdvancingTickerAndNewElection
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class InvestigateSelectionResult {
@@ -20,12 +19,7 @@ private sealed class InvestigateSelectionResult {
         val selectedPlayerParty: SecretHitlerParty,
     ) : InvestigateSelectionResult()
 
-    sealed class Failure : InvestigateSelectionResult()
-    object Unauthorized : Failure()
-    object InvalidState : Failure()
-    object NoSuchGame : Failure()
-    object ActorNotPlayer : Failure()
-    object SelectedNotPlayer : Failure()
+    data class Failure(val failureReason: SecretHitlerPowerCommonFailure) : InvestigateSelectionResult()
 }
 
 private fun doStateUpdate(
@@ -34,38 +28,20 @@ private fun doStateUpdate(
     actualPresidentName: SecretHitlerPlayerExternalName,
     selectedPlayerNumber: SecretHitlerPlayerNumber,
 ): InvestigateSelectionResult {
-    return repository.gameList.updateRunningGameWithValidExtract(
-        id = gameId,
-        onNoSuchGame = { InvestigateSelectionResult.NoSuchGame },
-        onInvalidType = { InvestigateSelectionResult.InvalidState },
-        validMapper = { currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending.InvestigateParty> ->
-            val actualPresidentNumber = currentState.globalState.playerMap.numberByPlayer(actualPresidentName)
-            if (actualPresidentNumber == null) {
-                return@updateRunningGameWithValidExtract currentState to InvestigateSelectionResult.ActorNotPlayer
-            }
-
-            val expectedPresidentNumber = currentState.ephemeralState.presidentNumber
-
-            if (actualPresidentNumber != expectedPresidentNumber) {
-                return@updateRunningGameWithValidExtract currentState to InvestigateSelectionResult.Unauthorized
-            }
-
-            val selectedPlayerName = currentState.globalState.playerMap.playerByNumber(selectedPlayerNumber)
-            if (selectedPlayerName == null) {
-                return@updateRunningGameWithValidExtract currentState to InvestigateSelectionResult.SelectedNotPlayer
-            }
-
+    return repository.gameList.updateGameForPowerSelection(
+        gameId = gameId,
+        actualPresidentName = actualPresidentName,
+        selectedPlayerNumber = selectedPlayerNumber,
+        mapError = InvestigateSelectionResult::Failure,
+        onValid = { commonResult, currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending.InvestigateParty> ->
             val newState = currentState.afterAdvancingTickerAndNewElection()
 
             newState to InvestigateSelectionResult.Success(
                 newState = newState,
                 presidentName = actualPresidentName,
-                selectedPlayerName = selectedPlayerName,
+                selectedPlayerName = commonResult.selectedPlayerName,
                 selectedPlayerParty = currentState.globalState.roleMap.roleOf(selectedPlayerNumber).party,
             )
-        },
-        afterValid = { result ->
-            result
         },
     )
 }
@@ -149,24 +125,8 @@ fun doHandleSecretHitlerPresidentInvestigatePowerSelection(
                 "You will be informed of that player's party."
             }
 
-            is InvestigateSelectionResult.NoSuchGame -> {
-                "That game no longer exists."
-            }
-
-            is InvestigateSelectionResult.ActorNotPlayer -> {
-                "You are not a player in that game."
-            }
-
-            is InvestigateSelectionResult.Unauthorized -> {
-                "You are not the President in that game."
-            }
-
-            is InvestigateSelectionResult.InvalidState -> {
-                "You can no longer select a player to investigate in that game."
-            }
-
-            is InvestigateSelectionResult.SelectedNotPlayer -> {
-                "The person you have selected is no longer a player in that game."
+            is InvestigateSelectionResult.Failure -> {
+                updateResult.failureReason.standardErrorMessage
             }
         }
     }
