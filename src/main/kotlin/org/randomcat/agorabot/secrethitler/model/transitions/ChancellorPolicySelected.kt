@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.secrethitler.model.transitions
 
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerFascistPower
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPolicyType
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
@@ -45,12 +46,13 @@ sealed class SecretHitlerAfterChancellorPolicySelectedResult {
     ) : SecretHitlerAfterChancellorPolicySelectedResult()
 }
 
-private fun GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>.handleGameContinuing(
+private fun handleGameContinuing(
     enactResult: SecretHitlerEnactmentResult.GameContinues,
+    presidentNumber: SecretHitlerPlayerNumber,
     policyType: SecretHitlerPolicyType,
 ): SecretHitlerAfterChancellorPolicySelectedResult.GameContinues {
     // Returns the state to use if the result is to advance to the next election.
-    fun stateForNewElection() = this.withGlobal(enactResult.newGlobalState).afterAdvancingTickerAndNewElection()
+    fun stateForNewElection() = enactResult.newGlobalState.stateForElectionAfterAdvancingTicker()
 
     return when (enactResult) {
         // If there's no power, immediately advance to the next election.
@@ -66,7 +68,7 @@ private fun GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>
 
             val fascistPowerResult = secretHitlerFascistPowerEphemeralState(
                 fascistPower = enactResult.power,
-                presidentNumber = this.ephemeralState.governmentMembers.president,
+                presidentNumber = presidentNumber,
             )
 
             // Some powers are stateful (they require input from the President), so they have a dedicated ephemeral
@@ -107,7 +109,11 @@ fun GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>.afterCh
 
     return when (val enactResult = globalState.afterEnacting(policyType)) {
         is SecretHitlerEnactmentResult.GameContinues -> {
-            handleGameContinuing(enactResult, policyType)
+            handleGameContinuing(
+                enactResult = enactResult,
+                presidentNumber = ephemeralState.governmentMembers.president,
+                policyType = policyType,
+            )
         }
 
         is SecretHitlerEnactmentResult.GameEnds -> {

@@ -113,7 +113,7 @@ fun GameState.Running.With<EphemeralState.VotingOngoing>.afterNewVote(
             )
         } else {
             SecretHitlerAfterVoteResult.GovernmentRejected(
-                nestedResult = afterInactiveGovernment(shuffleProvider = shuffleProvider),
+                nestedResult = globalState.afterInactiveGovernment(shuffleProvider = shuffleProvider),
                 completeVoteMap = newVoteState,
             )
         }
