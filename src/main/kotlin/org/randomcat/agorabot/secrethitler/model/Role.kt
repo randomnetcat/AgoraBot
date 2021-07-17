@@ -2,6 +2,7 @@ package org.randomcat.agorabot.secrethitler.model
 
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toPersistentMap
 
 enum class SecretHitlerParty {
     FASCIST,
@@ -47,6 +48,11 @@ data class SecretHitlerRoleMap(
 
     fun toMap(): Map<SecretHitlerPlayerNumber, SecretHitlerRole> {
         return rolesByPlayer
+    }
+
+    fun withoutPlayer(player: SecretHitlerPlayerNumber): SecretHitlerRoleMap {
+        require(assignedPlayers.contains(player))
+        return SecretHitlerRoleMap(rolesByPlayer.toPersistentMap().remove(player))
     }
 }
 

@@ -2,6 +2,7 @@ package org.randomcat.agorabot.secrethitler.model
 
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.Serializable
 import org.randomcat.util.isDistinct
 
@@ -58,5 +59,10 @@ data class SecretHitlerPlayerMap(
 
     fun circularNumberAfter(number: SecretHitlerPlayerNumber): SecretHitlerPlayerNumber {
         return validNumbers.filter { it.raw > number.raw }.minByOrNull { it.raw } ?: minNumber
+    }
+
+    fun withoutPlayer(number: SecretHitlerPlayerNumber): SecretHitlerPlayerMap {
+        require(validNumbers.contains(number))
+        return SecretHitlerPlayerMap(players.toPersistentMap().remove(number))
     }
 }
