@@ -14,10 +14,12 @@ import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerAfterVoteResult
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiveGovernmentResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterNewVote
-import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
+import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
 import java.math.BigInteger
 import java.time.Duration
+import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
 private fun formatVotingEmbed(
     context: SecretHitlerNameContext,
@@ -161,6 +163,8 @@ private fun SecretHitlerAfterVoteResult.stateForUpdate(): SecretHitlerGameState 
     }
 }
 
+private data class VoteCheckResult(val voterNumber: SecretHitlerPlayerNumber)
+
 private inline fun updateState(
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,
@@ -168,32 +172,35 @@ private inline fun updateState(
     voteKind: SecretHitlerEphemeralState.VoteKind,
     crossinline nextUpdateNumber: () -> BigInteger,
 ): VoteButtonResult {
-    return gameList.updateGameTypedWithValidExtract(
+    return gameList.updateRunningGameWithValidation(
         id = gameId,
         onNoSuchGame = {
             VoteButtonResult.NoSuchGame
         },
-        onInvalidType = { _ ->
+        onInvalidType = {
             VoteButtonResult.InvalidType
         },
-        validMapper = { currentState: SecretHitlerGameState.Running ->
+        checkCustomError = { currentState ->
             val voterNumber = currentState.globalState.playerMap.numberByPlayer(voterName)
 
-            if (voterNumber == null) {
-                return@updateGameTypedWithValidExtract currentState to VoteButtonResult.NotPlayer
+            when {
+                voterNumber == null -> {
+                    InvalidResult(VoteButtonResult.NotPlayer)
+                }
+
+                currentState.ephemeralState.voteMap.votingPlayers.contains(voterNumber) -> {
+                    InvalidResult(VoteButtonResult.AlreadyVoted)
+                }
+
+                else -> {
+                    ValidResult(VoteCheckResult(voterNumber = voterNumber))
+                }
             }
+        },
+        validMapper = { currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>, checkResult ->
+            val voterNumber = checkResult.voterNumber
 
-            val typedState = currentState.tryWith<SecretHitlerEphemeralState.VotingOngoing>()
-
-            if (typedState == null) {
-                return@updateGameTypedWithValidExtract currentState to VoteButtonResult.InvalidType
-            }
-
-            if (typedState.ephemeralState.voteMap.votingPlayers.contains(voterNumber)) {
-                return@updateGameTypedWithValidExtract currentState to VoteButtonResult.AlreadyVoted
-            }
-
-            val voteResult = typedState.afterNewVote(
+            val voteResult = currentState.afterNewVote(
                 voter = voterNumber,
                 voteKind = voteKind,
                 shuffleProvider = SecretHitlerGlobals.shuffleProvider(),
@@ -202,14 +209,11 @@ private inline fun updateState(
             val newState = voteResult.stateForUpdate()
 
             newState to VoteButtonResult.Success(
-                originalState = typedState,
+                originalState = currentState,
                 nestedResult = voteResult,
                 updateNumber = nextUpdateNumber(),
             )
         },
-        afterValid = { result ->
-            result
-        }
     )
 }
 
