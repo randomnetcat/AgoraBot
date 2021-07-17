@@ -8,7 +8,7 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingInvestigat
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
 import org.randomcat.agorabot.secrethitler.model.*
-import org.randomcat.agorabot.secrethitler.model.transitions.afterAdvancingTickerAndNewElection
+import org.randomcat.agorabot.secrethitler.model.transitions.stateForElectionAfterAdvancingTicker
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class InvestigateSelectionResult {
@@ -33,7 +33,7 @@ private fun doStateUpdate(
         selectedPlayerNumber = selectedPlayerNumber,
         mapError = InvestigateSelectionResult::Failure,
         onValid = { commonResult, currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending.InvestigateParty> ->
-            val newState = currentState.afterAdvancingTickerAndNewElection()
+            val newState = currentState.globalState.stateForElectionAfterAdvancingTicker()
 
             newState to InvestigateSelectionResult.Success(
                 newState = newState,

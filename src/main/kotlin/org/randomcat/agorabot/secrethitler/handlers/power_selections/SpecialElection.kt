@@ -6,7 +6,7 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingSpecialEle
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
 import org.randomcat.agorabot.secrethitler.model.*
-import org.randomcat.agorabot.secrethitler.model.transitions.afterNewElectionWith
+import org.randomcat.agorabot.secrethitler.model.transitions.stateForNewElectionWith
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class SpecialElectionSelectionResult {
@@ -32,7 +32,7 @@ private fun doStateUpdate(
         onValid = { checkResult, currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending.SpecialElection> ->
             // All players are eligible (except the current President, but updateGameForPowerSelection will check that).
             // The selected President must choose an *eligible* Chancellor, so no additional state is needed.
-            val newState = currentState.afterNewElectionWith(selectedPlayerNumber)
+            val newState = currentState.globalState.stateForNewElectionWith(selectedPlayerNumber)
 
             newState to SpecialElectionSelectionResult.Success(
                 newState = newState,

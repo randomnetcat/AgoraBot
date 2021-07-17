@@ -1,16 +1,18 @@
 package org.randomcat.agorabot.secrethitler.model.transitions
 
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGlobalGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
 
-fun GameState.Running.afterNewElectionWith(
+fun SecretHitlerGlobalGameState.stateForNewElectionWith(
     president: SecretHitlerPlayerNumber,
 ): GameState.Running.With<EphemeralState.ChancellorSelectionPending> {
-    return withEphemeral(
-        EphemeralState.ChancellorSelectionPending(
+    return GameState.Running(
+        globalState = this,
+        ephemeralState = EphemeralState.ChancellorSelectionPending(
             presidentCandidate = president,
-        )
+        ),
     )
 }
 
@@ -26,8 +28,8 @@ private fun GameState.Running.With<EphemeralState.ChancellorSelectionPending>.wi
     )
 }
 
-fun GameState.Running.afterAdvancingTickerAndNewElection(
+fun SecretHitlerGlobalGameState.stateForElectionAfterAdvancingTicker(
 ): GameState.Running.With<EphemeralState.ChancellorSelectionPending> {
-    val nextTickerValue = globalState.playerMap.circularNumberAfter(globalState.electionState.currentPresidentTicker)
-    return afterNewElectionWith(president = nextTickerValue).withTickerValue(nextTickerValue)
+    val nextTickerValue = playerMap.circularNumberAfter(electionState.currentPresidentTicker)
+    return stateForNewElectionWith(president = nextTickerValue).withTickerValue(nextTickerValue)
 }

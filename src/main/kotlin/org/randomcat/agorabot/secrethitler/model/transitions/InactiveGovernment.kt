@@ -31,22 +31,19 @@ private fun SecretHitlerGlobalGameState.withNoTermLimits(): SecretHitlerGlobalGa
     )
 }
 
-private fun SecretHitlerGameState.Running.afterChaos(
+private fun SecretHitlerGlobalGameState.afterChaos(
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
 ): SecretHitlerInactiveGovernmentResult.CountryInChaos {
-    val drawResult = this.globalState.boardState.deckState.drawSingle(shuffleProvider = shuffleProvider)
+    val drawResult = this.boardState.deckState.drawSingle(shuffleProvider = shuffleProvider)
 
-    return when (val enactResult = this.globalState.afterSpeedyEnacting(drawResult.drawnCard)) {
+    return when (val enactResult = this.afterSpeedyEnacting(drawResult.drawnCard)) {
         is SecretHitlerSpeedyEnactResult.GameContinues -> {
             SecretHitlerInactiveGovernmentResult.CountryInChaos.GameContinues(
-                newState = this
-                    .withGlobal(
-                        enactResult
-                            .newGlobalState
-                            .withElectionTrackerReset()
-                            .withNoTermLimits()
-                    )
-                    .afterAdvancingTickerAndNewElection(),
+                newState = enactResult
+                    .newGlobalState
+                    .withElectionTrackerReset()
+                    .withNoTermLimits()
+                    .stateForElectionAfterAdvancingTicker(),
                 drawnPolicyType = drawResult.drawnCard,
                 shuffledDeck = drawResult.shuffled,
             )
@@ -61,15 +58,15 @@ private fun SecretHitlerGameState.Running.afterChaos(
     }
 }
 
-fun SecretHitlerGameState.Running.afterInactiveGovernment(
+fun SecretHitlerGlobalGameState.afterInactiveGovernment(
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
 ): SecretHitlerInactiveGovernmentResult {
-    if (globalState.electionState.electionTrackerState == (globalState.configuration.speedyEnactRequirement - 1)) {
+    if (electionState.electionTrackerState == (configuration.speedyEnactRequirement - 1)) {
         return afterChaos(shuffleProvider = shuffleProvider)
     }
 
     return SecretHitlerInactiveGovernmentResult.NewElection(
-        newState = this.afterAdvancingTickerAndNewElection().let {
+        newState = this.stateForElectionAfterAdvancingTicker().let {
             it.withGlobal(it.globalState.withIncrementedElectionTracker())
         },
     )
