@@ -19,7 +19,7 @@ sealed class SecretHitlerPowerCommonFailure(val standardErrorMessage: String) : 
         SecretHitlerPowerCommonFailure("You are not the President in that game.")
 
     object InvalidState :
-        SecretHitlerPowerCommonFailure("You can no longer select a player to investigate in that game.")
+        SecretHitlerPowerCommonFailure("You can no longer select a player in that game.")
 
     object NoSuchGame :
         SecretHitlerPowerCommonFailure("That game no longer exists.")
