@@ -10,6 +10,7 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
+import org.randomcat.agorabot.util.MAX_BUTTONS_PER_ROW
 import java.time.Duration
 
 private const val LAST_PRESIDENT_INELIGIBILITY_THRESHOLD = 5
@@ -54,24 +55,24 @@ fun secretHitlerSendChancellorSelectionMessage(
             chancellorCandidate = chancellorCandidate,
         )
 
-        Button.primary(
-            if (permissible)
-                context.newButtonId(
-                    SecretHitlerChancellorCandidateSelectionButtonDescriptor(
-                        gameId = gameId,
-                        selectedChancellor = chancellorCandidate,
-                    ),
-                    Duration.ofDays(1),
-                )
-            else
-                BUTTON_INVALID_ID_RAW,
-            "Candidate #${index + 1}"
-        ).let {
-            if (permissible) it else it.asDisabled()
-        }
+        Button
+            .primary(
+                if (permissible)
+                    context.newButtonId(
+                        SecretHitlerChancellorCandidateSelectionButtonDescriptor(
+                            gameId = gameId,
+                            selectedChancellor = chancellorCandidate,
+                        ),
+                        Duration.ofDays(1),
+                    )
+                else
+                    BUTTON_INVALID_ID_RAW,
+                "Candidate #${index + 1}"
+            )
+            .withDisabled(!permissible)
     }
 
-    val actionRows = buttons.chunked(5).map { ActionRow.of(it) }
+    val actionRows = buttons.chunked(MAX_BUTTONS_PER_ROW) { ActionRow.of(it) }
 
     val embed = EmbedBuilder()
         .setTitle("${context.renderExternalName(presidentCandidateName)}, please pick a Chancellor")
