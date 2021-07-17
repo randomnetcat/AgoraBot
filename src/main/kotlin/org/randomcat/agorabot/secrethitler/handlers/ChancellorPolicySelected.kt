@@ -8,8 +8,10 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorPolicyC
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerAfterChancellorPolicySelectedResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterChancellorPolicySelected
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
+import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
+import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
 
@@ -32,7 +34,7 @@ private fun doStateUpdate(
     actualChancellorName: SecretHitlerPlayerExternalName,
     selectedPolicyIndex: Int,
 ): ChancellorPolicySelectedHandlerUpdateResult {
-    return repository.gameList.updateRunningGameWithValidExtract(
+    return repository.gameList.updateRunningGameWithValidation(
         id = gameId,
         onNoSuchGame = {
             ChancellorPolicySelectedHandlerUpdateResult.NoSuchGame
@@ -40,18 +42,25 @@ private fun doStateUpdate(
         onInvalidType = {
             ChancellorPolicySelectedHandlerUpdateResult.InvalidState
         },
-        validMapper = { currentState: GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending> ->
+        checkCustomError = { currentState ->
             val actualChancellorNumber = currentState.globalState.playerMap.numberByPlayer(actualChancellorName)
-            if (actualChancellorNumber == null) {
-                return@updateRunningGameWithValidExtract currentState to ChancellorPolicySelectedHandlerUpdateResult.NotPlayer
-            }
-
             val expectedChancellorNumber = currentState.ephemeralState.governmentMembers.chancellor
 
-            if (actualChancellorNumber != expectedChancellorNumber) {
-                return@updateRunningGameWithValidExtract currentState to ChancellorPolicySelectedHandlerUpdateResult.Unauthorized
-            }
+            when {
+                actualChancellorNumber == null -> {
+                    InvalidResult(ChancellorPolicySelectedHandlerUpdateResult.NotPlayer)
+                }
 
+                actualChancellorNumber != expectedChancellorNumber -> {
+                    InvalidResult(ChancellorPolicySelectedHandlerUpdateResult.Unauthorized)
+                }
+
+                else -> {
+                    ValidResult(Unit)
+                }
+            }
+        },
+        validMapper = { currentState: GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>, _ ->
             val nestedResult = currentState.afterChancellorPolicySelected(policyIndex = selectedPolicyIndex)
 
             val newState = when (nestedResult) {
@@ -68,9 +77,6 @@ private fun doStateUpdate(
                 nestedResult = nestedResult,
                 originalState = currentState,
             )
-        },
-        afterValid = { result ->
-            result
         },
     )
 }

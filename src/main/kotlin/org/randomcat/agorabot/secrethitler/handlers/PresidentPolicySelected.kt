@@ -8,8 +8,10 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.model.transitions.afterPresidentPolicySelected
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
+import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
+import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
 private sealed class PresidentPolicySelectedResult {
     data class Success(
@@ -29,7 +31,7 @@ private fun doStateUpdate(
     actualPresidentName: SecretHitlerPlayerExternalName,
     selectedPolicyIndex: Int,
 ): PresidentPolicySelectedResult {
-    return repository.gameList.updateRunningGameWithValidExtract(
+    return repository.gameList.updateRunningGameWithValidation(
         gameId,
         onNoSuchGame = {
             PresidentPolicySelectedResult.NoSuchGame
@@ -37,24 +39,28 @@ private fun doStateUpdate(
         onInvalidType = {
             PresidentPolicySelectedResult.InvalidState
         },
-        validMapper = { currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PresidentPolicyChoicePending> ->
+        checkCustomError = { currentState ->
             val actualPresidentNumber = currentState.globalState.playerMap.numberByPlayer(actualPresidentName)
-            if (actualPresidentNumber == null) {
-                return@updateRunningGameWithValidExtract currentState to PresidentPolicySelectedResult.NotPlayer
-            }
-
             val expectedPresidentNumber = currentState.ephemeralState.governmentMembers.president
 
-            if (actualPresidentNumber != expectedPresidentNumber) {
-                return@updateRunningGameWithValidExtract currentState to PresidentPolicySelectedResult.Unauthorized
-            }
+            when {
+                actualPresidentNumber == null -> {
+                    InvalidResult(PresidentPolicySelectedResult.NotPlayer)
+                }
 
+                actualPresidentNumber != expectedPresidentNumber -> {
+                    InvalidResult(PresidentPolicySelectedResult.Unauthorized)
+                }
+
+                else -> {
+                    ValidResult(Unit)
+                }
+            }
+        },
+        validMapper = { currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PresidentPolicyChoicePending>, _ ->
             val newState = currentState.afterPresidentPolicySelected(policyIndex = selectedPolicyIndex)
 
             newState to PresidentPolicySelectedResult.Success(newState = newState)
-        },
-        afterValid = { result ->
-            result
         },
     )
 }

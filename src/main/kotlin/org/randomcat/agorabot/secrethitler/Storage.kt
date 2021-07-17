@@ -120,6 +120,42 @@ internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitler
     )
 }
 
+sealed class SecretHitlerUpdateValidationResult<out ErrorResult, out ValidResult> {
+    data class Invalid<out ErrorResult>(
+        val result: ErrorResult,
+    ) : SecretHitlerUpdateValidationResult<ErrorResult, Nothing>()
+
+    data class Valid<out ValidResult>(
+        val result: ValidResult,
+    ) : SecretHitlerUpdateValidationResult<Nothing, ValidResult>()
+}
+
+internal inline fun <reified E : SecretHitlerEphemeralState, R, CheckValid> SecretHitlerGameList.updateRunningGameWithValidation(
+    id: SecretHitlerGameId,
+    onNoSuchGame: () -> R,
+    onInvalidType: () -> R,
+    crossinline checkCustomError: (game: SecretHitlerGameState.Running.With<E>) -> SecretHitlerUpdateValidationResult<R, CheckValid>, // Returns non-null if no change should be made. Otherwise, validMapper is applied and the state is updated.
+    crossinline validMapper: (validGame: SecretHitlerGameState.Running.With<E>, checkResult: CheckValid) -> Pair<SecretHitlerGameState, R>,
+): R {
+    return updateRunningGameWithValidExtract(
+        id = id,
+        onNoSuchGame = onNoSuchGame,
+        onInvalidType = onInvalidType,
+        validMapper = { currentState: SecretHitlerGameState.Running.With<E> ->
+            when (val customCheckResult = checkCustomError(currentState)) {
+                is SecretHitlerUpdateValidationResult.Invalid -> {
+                    currentState to customCheckResult.result
+                }
+
+                is SecretHitlerUpdateValidationResult.Valid -> {
+                    validMapper(currentState, customCheckResult.result)
+                }
+            }
+        },
+        afterValid = { it },
+    )
+}
+
 interface SecretHitlerChannelGameMap {
     fun gameByChannelId(channelId: String): SecretHitlerGameId?
     fun channelIdByGame(gameId: SecretHitlerGameId): String?
