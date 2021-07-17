@@ -61,7 +61,10 @@ private fun doStateUpdate(
             }
         },
         validMapper = { currentState: GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>, _ ->
-            val nestedResult = currentState.afterChancellorPolicySelected(policyIndex = selectedPolicyIndex)
+            val nestedResult = currentState.afterChancellorPolicySelected(
+                policyIndex = selectedPolicyIndex,
+                shuffleProvider = SecretHitlerGlobals.shuffleProvider(),
+            )
 
             val newState = when (nestedResult) {
                 is SecretHitlerAfterChancellorPolicySelectedResult.GameContinues -> {
@@ -222,7 +225,7 @@ private fun sendPolicyPeekMessages(
     enactingGovernment: SecretHitlerGovernmentMembers,
     deckState: SecretHitlerDeckState,
 ) {
-    val peekResult = deckState.peekStandard()
+    val peekResult = deckState.drawDeck.peekStandard()
 
     val presidentName = playerMap.playerByNumberKnown(enactingGovernment.president)
 

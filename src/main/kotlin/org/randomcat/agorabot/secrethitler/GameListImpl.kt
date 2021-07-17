@@ -103,16 +103,23 @@ private data class RoleMapDto(
 
 @Serializable
 private data class DeckStateDto(
-    val policies: List<SecretHitlerPolicyType>,
+    val drawDeckPolicies: List<SecretHitlerPolicyType>,
+    val discardDeckPolicies: List<SecretHitlerPolicyType>,
 ) {
     companion object {
         fun from(deckState: SecretHitlerDeckState): DeckStateDto {
-            return DeckStateDto(deckState.allPolicies())
+            return DeckStateDto(
+                drawDeckPolicies = deckState.drawDeck.allPolicies(),
+                discardDeckPolicies = deckState.discardDeck.allPolicies(),
+            )
         }
     }
 
     fun toDeckState(): SecretHitlerDeckState {
-        return SecretHitlerDeckState(policies = policies)
+        return SecretHitlerDeckState(
+            drawDeck = SecretHitlerDrawDeckState(drawDeckPolicies),
+            discardDeck = SecretHitlerDiscardDeckState(discardDeckPolicies),
+        )
     }
 }
 

@@ -1,5 +1,7 @@
 package org.randomcat.agorabot.secrethitler.model.transitions
 
+import kotlinx.collections.immutable.toPersistentList
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerDeckState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerFascistPower
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPolicyType
@@ -102,12 +104,24 @@ private fun handleGameContinuing(
 
 fun GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>.afterChancellorPolicySelected(
     policyIndex: Int,
+    shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
 ): SecretHitlerAfterChancellorPolicySelectedResult {
     require(policyIndex < ephemeralState.options.policies.size)
 
     val policyType = ephemeralState.options.policies[policyIndex]
 
-    return when (val enactResult = globalState.afterEnacting(policyType)) {
+    val discardedPolicies = ephemeralState.options.policies.toPersistentList().removeAt(policyIndex)
+
+    val globalStateWithNewDeck = globalState.withDeckState(
+        SecretHitlerDeckState(
+            drawDeck = globalState.boardState.deckState.drawDeck,
+            discardDeck = globalState.boardState.deckState.discardDeck.afterDiscardingAll(discardedPolicies),
+        ).shuffledIfDrawPileSmall(
+            shuffleProvider = shuffleProvider,
+        )
+    )
+
+    return when (val enactResult = globalStateWithNewDeck.afterEnacting(policyType)) {
         is SecretHitlerEnactmentResult.GameContinues -> {
             handleGameContinuing(
                 enactResult = enactResult,

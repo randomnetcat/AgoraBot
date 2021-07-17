@@ -13,7 +13,6 @@ sealed class SecretHitlerInactiveGovernmentResult {
         data class GameContinues(
             val newState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending>,
             override val drawnPolicyType: SecretHitlerPolicyType,
-            val shuffledDeck: Boolean,
         ) : CountryInChaos()
 
         data class GameEnds(
@@ -34,9 +33,18 @@ private fun SecretHitlerGlobalGameState.withNoTermLimits(): SecretHitlerGlobalGa
 private fun SecretHitlerGlobalGameState.afterChaos(
     shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
 ): SecretHitlerInactiveGovernmentResult.CountryInChaos {
-    val drawResult = this.boardState.deckState.drawSingle(shuffleProvider = shuffleProvider)
+    val drawResult = this.boardState.deckState.drawDeck.drawSingle()
 
-    return when (val enactResult = this.afterSpeedyEnacting(drawResult.drawnCard)) {
+    val stateWithNewDeck = this.withDeckState(
+        SecretHitlerDeckState(
+            drawDeck = drawResult.newDeck,
+            discardDeck = this.boardState.deckState.discardDeck,
+        ).shuffledIfDrawPileSmall(
+            shuffleProvider = shuffleProvider,
+        ),
+    )
+
+    return when (val enactResult = stateWithNewDeck.afterSpeedyEnacting(drawResult.drawnCard)) {
         is SecretHitlerSpeedyEnactResult.GameContinues -> {
             SecretHitlerInactiveGovernmentResult.CountryInChaos.GameContinues(
                 newState = enactResult
@@ -45,7 +53,6 @@ private fun SecretHitlerGlobalGameState.afterChaos(
                     .withNoTermLimits()
                     .stateForElectionAfterAdvancingTicker(),
                 drawnPolicyType = drawResult.drawnCard,
-                shuffledDeck = drawResult.shuffled,
             )
         }
 

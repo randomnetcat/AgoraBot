@@ -128,6 +128,10 @@ sealed class SecretHitlerGameState {
             override val globalState: SecretHitlerGlobalGameState,
             override val ephemeralState: Ephemeral,
         ) : Running() {
+            init {
+                requireCoherent(globalState, ephemeralState)
+            }
+
             override fun withGlobal(newGlobalState: SecretHitlerGlobalGameState): Running.With<Ephemeral> {
                 return this.copy(globalState = newGlobalState)
             }
@@ -166,7 +170,10 @@ sealed class SecretHitlerGameState {
                             playerMap = playerMap,
                             roleMap = roleMap,
                             boardState = SecretHitlerBoardState(
-                                deckState = shuffleProvider.newDeck(),
+                                deckState = SecretHitlerDeckState(
+                                    drawDeck = shuffleProvider.initialDeck(),
+                                    discardDeck = SecretHitlerDiscardDeckState.empty(),
+                                ),
                                 policiesState = SecretHitlerPoliciesState(),
                             ),
                             electionState = SecretHitlerElectionState.forInitialPresident(firstPresident),
