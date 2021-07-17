@@ -29,3 +29,18 @@ data class SecretHitlerChancellorPolicyChoiceButtonDescriptor(
     val gameId: SecretHitlerGameId,
     val policyIndex: Int,
 ) : ButtonRequestDescriptor
+
+@Serializable
+data class SecretHitlerChancellorRequestVetoButtonDescriptor(
+    val gameId: SecretHitlerGameId,
+) : ButtonRequestDescriptor
+
+@Serializable
+data class SecretHitlerPresidentAcceptVetoButtonDescriptor(
+    val gameId: SecretHitlerGameId,
+) : ButtonRequestDescriptor
+
+@Serializable
+data class SecretHitlerPresidentRejectVetoButtonDescriptor(
+    val gameId: SecretHitlerGameId,
+) : ButtonRequestDescriptor
