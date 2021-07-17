@@ -17,7 +17,6 @@ sealed class SecretHitlerAfterVoteResult {
     sealed class GovernmentElected : VotingComplete() {
         data class GameContinues(
             val newState: GameState.Running.With<EphemeralState.PresidentPolicyChoicePending>,
-            val shuffledDeck: Boolean,
             override val completeVoteMap: EphemeralState.VoteMap,
         ) : GovernmentElected()
 
@@ -33,16 +32,6 @@ sealed class SecretHitlerAfterVoteResult {
     ) : VotingComplete()
 }
 
-private fun SecretHitlerGlobalGameState.withDeckState(
-    newDeckState: SecretHitlerDeckState,
-): SecretHitlerGlobalGameState {
-    return this.copy(
-        boardState = this.boardState.copy(
-            deckState = newDeckState,
-        )
-    )
-}
-
 private fun SecretHitlerGlobalGameState.withTermLimitedGovernment(
     termLimitedGovernment: SecretHitlerGovernmentMembers,
 ): SecretHitlerGlobalGameState {
@@ -56,7 +45,6 @@ private fun SecretHitlerGlobalGameState.withTermLimitedGovernment(
 }
 
 private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGovernment(
-    shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
     completeVoteMap: EphemeralState.VoteMap,
 ): SecretHitlerAfterVoteResult.GovernmentElected {
     if (
@@ -69,12 +57,17 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
         )
     }
 
-    val drawResult = this.globalState.boardState.deckState.drawStandard(shuffleProvider)
+    val drawResult = this.globalState.boardState.deckState.drawDeck.drawStandard()
 
     val newGlobalState =
         this
             .globalState
-            .withDeckState(drawResult.newDeck)
+            .withDeckState(
+                SecretHitlerDeckState(
+                    drawDeck = drawResult.newDeck,
+                    discardDeck = this.globalState.boardState.deckState.discardDeck,
+                ),
+            )
             .withElectionTrackerReset()
             .withTermLimitedGovernment(this.ephemeralState.governmentMembers)
 
@@ -85,7 +78,6 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
 
     return SecretHitlerAfterVoteResult.GovernmentElected.GameContinues(
         newState = GameState.Running(newGlobalState, newEphemeralState),
-        shuffledDeck = drawResult.shuffled,
         completeVoteMap = completeVoteMap,
     )
 }
@@ -108,7 +100,6 @@ fun GameState.Running.With<EphemeralState.VotingOngoing>.afterNewVote(
 
         if (forCount > againstCount) {
             afterElectedGovernment(
-                shuffleProvider = shuffleProvider,
                 completeVoteMap = newVoteState,
             )
         } else {
