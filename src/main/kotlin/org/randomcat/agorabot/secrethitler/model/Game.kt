@@ -21,6 +21,14 @@ data class SecretHitlerGlobalGameState(
             "All player numbers should have exactly one role. " +
                     "Players: ${playerMap.validNumbers}. Assigned roles: ${roleMap.assignedPlayers}"
         }
+
+        require(boardState.policiesState.liberalPoliciesEnacted < configuration.liberalWinRequirement) {
+            "Liberal policies enacted should be less than win requirement."
+        }
+
+        require(boardState.policiesState.fascistPoliciesEnacted < configuration.fascistWinRequirement) {
+            "Fascist policies enacted should be less than win requirement."
+        }
     }
 }
 
