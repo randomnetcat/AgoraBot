@@ -57,7 +57,28 @@ private fun requireValidFascistCount(
     }
 }
 
+private fun requireSufficientDeckUnlessPolicySelectionOngoing(
+    globalState: SecretHitlerGlobalGameState,
+    ephemeralState: SecretHitlerEphemeralState,
+) {
+    val deskMustBeDrawable = when (ephemeralState) {
+        is SecretHitlerEphemeralState.PresidentPolicyChoicePending -> false
+        is SecretHitlerEphemeralState.ChancellorPolicyChoicePending -> false
+        else -> true
+    }
+
+    if (deskMustBeDrawable) {
+        val actualPolicyCount = globalState.boardState.deckState.drawDeck.policyCount
+
+        require(actualPolicyCount >= SecretHitlerDrawDeckState.STANDARD_DRAW_AMOUNT) {
+            "Expected at least ${SecretHitlerDrawDeckState.STANDARD_DRAW_AMOUNT} cards in draw deck, " +
+                    "but got $actualPolicyCount"
+        }
+    }
+}
+
 fun requireCoherent(globalGameState: SecretHitlerGlobalGameState, ephemeralState: SecretHitlerEphemeralState) {
     requireValidLiberalCount(globalGameState, ephemeralState)
     requireValidFascistCount(globalGameState, ephemeralState)
+    requireSufficientDeckUnlessPolicySelectionOngoing(globalGameState, ephemeralState)
 }
