@@ -52,7 +52,7 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
         globalState.boardState.policiesState.fascistPoliciesEnacted >= globalState.configuration.hitlerChancellorWinRequirement
     ) {
         return SecretHitlerAfterVoteResult.GovernmentElected.GameEnds(
-            winResult = SecretHitlerWinResult.FascistsWin,
+            winResult = SecretHitlerWinResult.FascistsWin.HitlerElectedChancellor,
             completeVoteMap = completeVoteMap,
         )
     }
