@@ -1,5 +1,7 @@
 package org.randomcat.agorabot.secrethitler.model
 
+import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerWinResult
+
 enum class SecretHitlerPolicyType {
     FASCIST,
     LIBERAL,
@@ -43,10 +45,7 @@ data class SecretHitlerPoliciesState(
     }
 
     sealed class EnactmentResult {
-        sealed class ImmediateWin : EnactmentResult() {
-            object LiberalWin : ImmediateWin()
-            object FascistWin : ImmediateWin()
-        }
+        data class GameEnds(val winResult: SecretHitlerWinResult) : EnactmentResult()
 
         data class GameContinues(
             val newPolicyState: SecretHitlerPoliciesState,
@@ -58,7 +57,7 @@ data class SecretHitlerPoliciesState(
         val newFascistPolicyCount = fascistPoliciesEnacted + 1
 
         if (newFascistPolicyCount >= config.fascistWinRequirement) {
-            return EnactmentResult.ImmediateWin.FascistWin
+            return EnactmentResult.GameEnds(SecretHitlerWinResult.FascistsWin)
         }
 
         return EnactmentResult.GameContinues(
@@ -71,7 +70,7 @@ data class SecretHitlerPoliciesState(
         val newLiberalPolicyCount = liberalPoliciesEnacted + 1
 
         if (newLiberalPolicyCount >= config.liberalWinRequirement) {
-            return EnactmentResult.ImmediateWin.LiberalWin
+            return EnactmentResult.GameEnds(SecretHitlerWinResult.LiberalsWin)
         }
 
         return EnactmentResult.GameContinues(
