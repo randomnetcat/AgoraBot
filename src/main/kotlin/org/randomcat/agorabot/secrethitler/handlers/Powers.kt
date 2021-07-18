@@ -22,6 +22,7 @@ private fun sendPlayerSelectPowerNotification(
     selectVerb: String,
     presidentNumber: SecretHitlerPlayerNumber,
     playerMap: SecretHitlerPlayerMap,
+    extraExcludedPlayers: Set<SecretHitlerPlayerNumber>,
     makeButtonDescriptor: (selectedPlayer: SecretHitlerPlayerNumber) -> ButtonRequestDescriptor,
 ) {
     val presidentName = playerMap.playerByNumberKnown(presidentNumber)
@@ -52,7 +53,7 @@ private fun sendPlayerSelectPowerNotification(
         )
             .also { builder ->
                 val buttons = sortedNumbers.mapIndexed { index, playerNumber ->
-                    val isPermissible = playerNumber != presidentNumber
+                    val isPermissible = playerNumber != presidentNumber && !extraExcludedPlayers.contains(playerNumber)
 
                     Button
                         .primary(
@@ -88,6 +89,7 @@ fun sendSecretHitlerPowerActivatedMessages(
         powerName: String,
         powerDescription: String,
         selectVerb: String,
+        extraExcludedPlayers: Set<SecretHitlerPlayerNumber> = emptySet(),
         makeButtonDescriptor: (playerNumber: SecretHitlerPlayerNumber) -> ButtonRequestDescriptor,
     ) {
         sendPlayerSelectPowerNotification(
@@ -97,6 +99,7 @@ fun sendSecretHitlerPowerActivatedMessages(
             powerName = powerName,
             description = powerDescription,
             selectVerb = selectVerb,
+            extraExcludedPlayers = extraExcludedPlayers,
             makeButtonDescriptor = makeButtonDescriptor,
         )
     }
@@ -107,6 +110,7 @@ fun sendSecretHitlerPowerActivatedMessages(
                 powerName = SecretHitlerFascistPower.INVESTIGATE_PARTY.readableName,
                 powerDescription = "The President must select a player's party to investigate.",
                 selectVerb = "Investigate",
+                extraExcludedPlayers = currentState.globalState.powersState.previouslyInvestigatedPlayers,
                 makeButtonDescriptor = { selectedPlayer ->
                     SecretHitlerPendingInvestigatePartySelectionButtonDescriptor(
                         gameId = gameId,
