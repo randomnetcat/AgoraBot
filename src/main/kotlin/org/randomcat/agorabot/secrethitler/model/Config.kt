@@ -57,7 +57,15 @@ private val POWERS_5_OR_6 = persistentListOf(
     SecretHitlerFascistPower.EXECUTE_PLAYER,
 )
 
-private val POWERS_7_OR_MORE = persistentListOf(
+private val POWERS_7_OR_8 = persistentListOf(
+    null,
+    SecretHitlerFascistPower.INVESTIGATE_PARTY,
+    SecretHitlerFascistPower.SPECIAL_ELECTION,
+    SecretHitlerFascistPower.EXECUTE_PLAYER,
+    SecretHitlerFascistPower.EXECUTE_PLAYER,
+)
+
+private val POWERS_9_OR_10 = persistentListOf(
     null,
     SecretHitlerFascistPower.INVESTIGATE_PARTY,
     SecretHitlerFascistPower.SPECIAL_ELECTION,
@@ -105,7 +113,7 @@ private val GAME_CONFIG_MAP = persistentMapOf(
             plainFascistCount = 2,
             hitlerKnowsFascists = false,
         ),
-        makeStandardGameConfiguration(fascistPowers = POWERS_7_OR_MORE),
+        makeStandardGameConfiguration(fascistPowers = POWERS_7_OR_8),
     ),
     8 to SecretHitlerStartConfiguration(
         SecretHitlerRoleConfiguration(
@@ -113,7 +121,7 @@ private val GAME_CONFIG_MAP = persistentMapOf(
             plainFascistCount = 2,
             hitlerKnowsFascists = false,
         ),
-        makeStandardGameConfiguration(fascistPowers = POWERS_7_OR_MORE),
+        makeStandardGameConfiguration(fascistPowers = POWERS_7_OR_8),
     ),
     9 to SecretHitlerStartConfiguration(
         SecretHitlerRoleConfiguration(
@@ -121,7 +129,7 @@ private val GAME_CONFIG_MAP = persistentMapOf(
             plainFascistCount = 3,
             hitlerKnowsFascists = false,
         ),
-        makeStandardGameConfiguration(fascistPowers = POWERS_7_OR_MORE),
+        makeStandardGameConfiguration(fascistPowers = POWERS_9_OR_10),
     ),
     10 to SecretHitlerStartConfiguration(
         SecretHitlerRoleConfiguration(
@@ -129,7 +137,7 @@ private val GAME_CONFIG_MAP = persistentMapOf(
             plainFascistCount = 3,
             hitlerKnowsFascists = false,
         ),
-        makeStandardGameConfiguration(fascistPowers = POWERS_7_OR_MORE),
+        makeStandardGameConfiguration(fascistPowers = POWERS_9_OR_10),
     ),
 )
 
