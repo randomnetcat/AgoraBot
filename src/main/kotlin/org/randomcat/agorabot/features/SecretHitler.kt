@@ -19,7 +19,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.asSnowflakeOrNull
-import org.randomcat.agorabot.util.handleTextResponse
 import java.time.Duration
 import java.time.Instant
 
@@ -276,21 +275,30 @@ fun secretHitlerFeature(
                 }
 
                 withType<SecretHitlerChancellorRequestVetoButtonDescriptor> { context, request ->
-                    handleTextResponse(context.event) {
-                        "Not yet implemented."
-                    }
+                    SecretHitlerButtons.handleChancellorVetoRequest(
+                        repository = repository,
+                        context = interactionContextFor(context, request.gameId),
+                        event = context.event,
+                        request = request,
+                    )
                 }
 
                 withType<SecretHitlerPresidentAcceptVetoButtonDescriptor> { context, request ->
-                    handleTextResponse(context.event) {
-                        "Not yet implemented."
-                    }
+                    SecretHitlerButtons.handlePresidentVetoApproval(
+                        repository = repository,
+                        context = interactionContextFor(context, request.gameId),
+                        event = context.event,
+                        request = request,
+                    )
                 }
 
                 withType<SecretHitlerPresidentRejectVetoButtonDescriptor> { context, request ->
-                    handleTextResponse(context.event) {
-                        "Not yet implemented."
-                    }
+                    SecretHitlerButtons.handlePresidentVetoRejection(
+                        repository = repository,
+                        context = interactionContextFor(context, request.gameId),
+                        event = context.event,
+                        request = request,
+                    )
                 }
             },
         )

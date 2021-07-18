@@ -133,4 +133,46 @@ object SecretHitlerButtons {
             request = request,
         )
     }
+
+    fun handleChancellorVetoRequest(
+        repository: SecretHitlerRepository,
+        context: SecretHitlerInteractionContext,
+        event: ButtonClickEvent,
+        request: SecretHitlerChancellorRequestVetoButtonDescriptor,
+    ) {
+        doHandleSecretHitlerChancellorVetoRequest(
+            repository = repository,
+            context = context,
+            event = event,
+            request = request,
+        )
+    }
+
+    fun handlePresidentVetoApproval(
+        repository: SecretHitlerRepository,
+        context: SecretHitlerInteractionContext,
+        event: ButtonClickEvent,
+        request: SecretHitlerPresidentAcceptVetoButtonDescriptor,
+    ) {
+        doHandleSecretHitlerPresidentVetoApproval(
+            repository = repository,
+            context = context,
+            event = event,
+            request = request,
+        )
+    }
+
+    fun handlePresidentVetoRejection(
+        repository: SecretHitlerRepository,
+        context: SecretHitlerInteractionContext,
+        event: ButtonClickEvent,
+        request: SecretHitlerPresidentRejectVetoButtonDescriptor,
+    ) {
+        doHandleSecretHitlerPresidentVetoRejection(
+            repository = repository,
+            context = context,
+            event = event,
+            request = request,
+        )
+    }
 }
