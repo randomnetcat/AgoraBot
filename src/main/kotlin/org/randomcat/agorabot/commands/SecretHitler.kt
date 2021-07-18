@@ -199,6 +199,14 @@ class SecretHitlerCommand(
                                     )
                                 }
 
+                                is SecretHitlerEphemeralState.PolicyPending -> {
+                                    sendSecretHitlerPowerActivatedMessages(
+                                        context = context,
+                                        gameId = gameId,
+                                        currentState = gameState.assumeWith<SecretHitlerEphemeralState.PolicyPending>(),
+                                    )
+                                }
+
                                 else -> {
                                     respond("Not yet implemented")
                                 }
