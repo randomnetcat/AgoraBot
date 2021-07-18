@@ -52,12 +52,8 @@ fun SecretHitlerGlobalGameState.afterEnacting(policyType: SecretHitlerPolicyType
             }
         }
 
-        is SecretHitlerPoliciesState.EnactmentResult.ImmediateWin.LiberalWin -> {
-            SecretHitlerEnactmentResult.GameEnds(SecretHitlerWinResult.LiberalsWin)
-        }
-
-        is SecretHitlerPoliciesState.EnactmentResult.ImmediateWin.FascistWin -> {
-            SecretHitlerEnactmentResult.GameEnds(SecretHitlerWinResult.FascistsWin)
+        is SecretHitlerPoliciesState.EnactmentResult.GameEnds -> {
+            SecretHitlerEnactmentResult.GameEnds(nestedResult.winResult)
         }
     }
 }
