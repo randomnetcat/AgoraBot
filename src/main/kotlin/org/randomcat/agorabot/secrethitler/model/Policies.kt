@@ -57,7 +57,7 @@ data class SecretHitlerPoliciesState(
         val newFascistPolicyCount = fascistPoliciesEnacted + 1
 
         if (newFascistPolicyCount >= config.fascistWinRequirement) {
-            return EnactmentResult.GameEnds(SecretHitlerWinResult.FascistsWin)
+            return EnactmentResult.GameEnds(SecretHitlerWinResult.FascistsWin.FascistPolicyGoalReached)
         }
 
         return EnactmentResult.GameContinues(
@@ -70,7 +70,7 @@ data class SecretHitlerPoliciesState(
         val newLiberalPolicyCount = liberalPoliciesEnacted + 1
 
         if (newLiberalPolicyCount >= config.liberalWinRequirement) {
-            return EnactmentResult.GameEnds(SecretHitlerWinResult.LiberalsWin)
+            return EnactmentResult.GameEnds(SecretHitlerWinResult.LiberalsWin.LiberalPolicyGoalReached)
         }
 
         return EnactmentResult.GameContinues(

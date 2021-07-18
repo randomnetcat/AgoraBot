@@ -11,7 +11,7 @@ sealed class SecretHitlerExecutionResult {
 
         object HitlerKilled : GameEnds() {
             override val winResult: SecretHitlerWinResult
-                get() = SecretHitlerWinResult.LiberalsWin
+                get() = SecretHitlerWinResult.LiberalsWin.HitlerKilled
         }
     }
 
