@@ -174,6 +174,25 @@ private data class ElectionStateDto(
 }
 
 @Serializable
+private data class PowersStateDto(
+    val previouslyInvestigatedPlayers: Set<SecretHitlerPlayerNumber>,
+) {
+    companion object {
+        fun from(powersState: SecretHitlerPowersState): PowersStateDto {
+            return PowersStateDto(
+                previouslyInvestigatedPlayers = powersState.previouslyInvestigatedPlayers,
+            )
+        }
+    }
+
+    fun toPowersState(): SecretHitlerPowersState {
+        return SecretHitlerPowersState(
+            previouslyInvestigatedPlayers = previouslyInvestigatedPlayers.toImmutableSet(),
+        )
+    }
+}
+
+@Serializable
 private data class GlobalStateDto(
     val configuration: GameConfigurationDto,
     val playerMap: PlayerMapDto,
@@ -181,6 +200,7 @@ private data class GlobalStateDto(
     val deckState: DeckStateDto,
     val policiesState: PoliciesStateDto,
     val electionState: ElectionStateDto,
+    val powersState: PowersStateDto,
 ) {
     companion object {
         fun from(globalGameState: SecretHitlerGlobalGameState): GlobalStateDto {
@@ -191,6 +211,7 @@ private data class GlobalStateDto(
                 deckState = DeckStateDto.from(globalGameState.boardState.deckState),
                 policiesState = PoliciesStateDto.from(globalGameState.boardState.policiesState),
                 electionState = ElectionStateDto.from(globalGameState.electionState),
+                powersState = PowersStateDto.from(globalGameState.powersState),
             )
         }
     }
@@ -205,6 +226,7 @@ private data class GlobalStateDto(
                 policiesState = policiesState.toPoliciesState(),
             ),
             electionState = electionState.toElectionState(),
+            powersState = powersState.toPowersState(),
         )
     }
 }

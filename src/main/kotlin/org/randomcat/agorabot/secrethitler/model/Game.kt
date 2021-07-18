@@ -15,6 +15,7 @@ data class SecretHitlerGlobalGameState(
     val roleMap: SecretHitlerRoleMap,
     val boardState: SecretHitlerBoardState,
     val electionState: SecretHitlerElectionState,
+    val powersState: SecretHitlerPowersState,
 ) {
     init {
         require(playerMap.validNumbers == roleMap.assignedPlayers) {
@@ -184,6 +185,7 @@ sealed class SecretHitlerGameState {
                                 ),
                                 policiesState = SecretHitlerPoliciesState(),
                             ),
+                            powersState = SecretHitlerPowersState.initial(),
                             electionState = SecretHitlerElectionState.forInitialPresident(firstPresident),
                         ),
                         ephemeralState = SecretHitlerEphemeralState.ChancellorSelectionPending(

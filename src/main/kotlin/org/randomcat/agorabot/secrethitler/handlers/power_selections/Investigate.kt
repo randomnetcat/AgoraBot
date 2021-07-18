@@ -18,7 +18,10 @@ private sealed class InvestigateSelectionResult {
         val selectedPlayerParty: SecretHitlerParty,
     ) : InvestigateSelectionResult()
 
-    data class Failure(val failureReason: SecretHitlerPowerCommonFailure) : InvestigateSelectionResult()
+    sealed class Failure : InvestigateSelectionResult() {
+        data class Common(val failureReason: SecretHitlerPowerCommonFailure) : Failure()
+        object AlreadyInvestigated : Failure()
+    }
 }
 
 private fun doStateUpdate(
@@ -31,12 +34,20 @@ private fun doStateUpdate(
         gameId = gameId,
         actualPresidentName = actualPresidentName,
         selectedPlayerNumber = selectedPlayerNumber,
-        mapError = InvestigateSelectionResult::Failure,
+        mapError = InvestigateSelectionResult.Failure::Common,
         onValid = { commonResult, currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending.InvestigateParty> ->
-            val newState = currentState.globalState.stateForElectionAfterAdvancingTicker()
+            if (currentState.globalState.powersState.previouslyInvestigatedPlayers.contains(selectedPlayerNumber)) {
+                return@updateGameForPowerSelection currentState to InvestigateSelectionResult.Failure.AlreadyInvestigated
+            }
 
-            newState to InvestigateSelectionResult.Success(
-                newState = newState,
+            val stateAfterHistoryUpdate = currentState.globalState.copy(
+                powersState = currentState.globalState.powersState.afterInvestigationOf(selectedPlayerNumber),
+            )
+
+            val finalState = stateAfterHistoryUpdate.stateForElectionAfterAdvancingTicker()
+
+            finalState to InvestigateSelectionResult.Success(
+                newState = finalState,
                 selectedPlayerName = commonResult.selectedPlayerName,
                 selectedPlayerParty = currentState.globalState.roleMap.roleOf(selectedPlayerNumber).party,
             )
@@ -114,8 +125,12 @@ fun doHandleSecretHitlerPresidentInvestigatePowerSelection(
                 "You will be informed of that player's party."
             }
 
-            is InvestigateSelectionResult.Failure -> {
+            is InvestigateSelectionResult.Failure.Common -> {
                 updateResult.failureReason.standardErrorMessage
+            }
+
+            is InvestigateSelectionResult.Failure.AlreadyInvestigated -> {
+                "That player has already been investigated in this game."
             }
         }
     }
