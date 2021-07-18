@@ -26,6 +26,7 @@ import org.randomcat.agorabot.setup.*
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.io.path.createDirectories
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
@@ -105,9 +106,17 @@ private fun makeBaseCommandStrategy(
         BaseCommandButtonStrategy by buttonStrategy {}
 }
 
+private fun createDirectories(paths: BotDataPaths) {
+    paths.configPath.createDirectories()
+    paths.storagePath.createDirectories()
+    paths.tempPath.createDirectories()
+}
+
 private fun runBot(config: BotRunConfig) {
     val token = config.token
     val persistService: ConfigPersistService = DefaultConfigPersistService
+
+    createDirectories(config.paths)
 
     val versioningStorage = setupStorageVersioning(paths = config.paths)
 
