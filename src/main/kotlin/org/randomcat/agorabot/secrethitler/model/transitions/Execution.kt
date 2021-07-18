@@ -6,9 +6,13 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.playerIsHitler
 
 sealed class SecretHitlerExecutionResult {
-    object GameEnds : SecretHitlerExecutionResult() {
-        val winResult
-            get() = SecretHitlerWinResult.FascistsWin
+    sealed class GameEnds : SecretHitlerExecutionResult() {
+        abstract val winResult: SecretHitlerWinResult
+
+        object HitlerKilled : GameEnds() {
+            override val winResult: SecretHitlerWinResult
+                get() = SecretHitlerWinResult.LiberalsWin
+        }
     }
 
     data class GameContinues(
@@ -22,7 +26,7 @@ fun SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending.
     require(executedPlayerNumber != ephemeralState.presidentNumber)
 
     if (globalState.roleMap.playerIsHitler(executedPlayerNumber)) {
-        return SecretHitlerExecutionResult.GameEnds
+        return SecretHitlerExecutionResult.GameEnds.HitlerKilled
     }
 
     return SecretHitlerExecutionResult.GameContinues(
