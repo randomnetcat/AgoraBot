@@ -59,6 +59,25 @@ private fun formatVotingEmbed(
         .addField(currentState.globalState.liberalPoliciesEmbedField())
         .addField(currentState.globalState.fascistPoliciesEmbedField())
         .addField(currentState.globalState.electionTrackerEmbedField())
+        .addField(
+            "Next Fascist Power",
+            run {
+                val fascistPoliciesEnacted = currentState.globalState.boardState.policiesState.fascistPoliciesEnacted
+
+                if (fascistPoliciesEnacted == currentState.globalState.configuration.fascistWinRequirement - 1) {
+                    "[Win]"
+                } else {
+                    val power =
+                        currentState
+                            .globalState
+                            .configuration
+                            .fascistPowerAt(fascistPoliciesEnacted + 1)
+
+                    power?.readableName ?: "[None]"
+                }
+            },
+            true,
+        )
         .build()
 }
 
