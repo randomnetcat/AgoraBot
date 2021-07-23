@@ -58,6 +58,11 @@ private fun formatVotingEmbed(
         )
         .addField(currentState.globalState.liberalPoliciesEmbedField())
         .addField(currentState.globalState.fascistPoliciesEmbedField())
+        .addField(
+            "Cards in Draw Deck",
+            currentState.globalState.boardState.deckState.drawDeck.policyCount.toString(),
+            true,
+        )
         .addField(currentState.globalState.electionTrackerEmbedField())
         .addField(
             "Next Fascist Power",
