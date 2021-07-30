@@ -51,6 +51,10 @@ fun citationsFeature(config: CitationsConfig): Feature {
             jda.addEventListener(object {
                 @SubscribeEvent
                 fun onMessage(event: GuildMessageReceivedEvent) {
+                    if (event.author == event.jda.selfUser) {
+                        return
+                    }
+
                     val message = event.message
                     val content = message.contentRaw
 
