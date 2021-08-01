@@ -40,6 +40,11 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
 }
 
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
 application {
     applicationName = "AgoraBot"
     mainClass.set("org.randomcat.agorabot.MainKt")
