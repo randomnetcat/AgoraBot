@@ -13,8 +13,9 @@ import java.nio.file.Path
 private val logger = LoggerFactory.getLogger("AgoraBotConfig")
 
 private fun readSendStrategyDigestObjectJson(
+    resolveUsedPath: (String) -> Path,
     digestObject: JsonObject,
-    digestFormat: DigestFormat
+    digestFormat: DigestFormat,
 ): DigestSendStrategy? {
     val sendStrategyName = (digestObject["send_strategy"] as? JsonPrimitive)?.content
     if (sendStrategyName == null) {
@@ -26,13 +27,13 @@ private fun readSendStrategyDigestObjectJson(
         "none" -> return null
 
         "ssmtp" -> {
-            val ssmtpPath = (digestObject["ssmtp_path"] as? JsonPrimitive)?.content?.let { Path.of(it) }
+            val ssmtpPath = (digestObject["ssmtp_path"] as? JsonPrimitive)?.content?.let(resolveUsedPath)
             if (ssmtpPath == null) {
                 logger.error("For ssmtp, send_strategy.ssmtp_path should exist and be a JSON primitive!")
                 return null
             }
 
-            val ssmtpConfigPath = (digestObject["ssmtp_config_path"] as? JsonPrimitive)?.content?.let { Path.of(it) }
+            val ssmtpConfigPath = (digestObject["ssmtp_config_path"] as? JsonPrimitive)?.content?.let(resolveUsedPath)
             if (ssmtpConfigPath == null) {
                 logger.error("For ssmtp, send_strategy.ssmtp_config_path should exist and be a JSON primitive!")
                 return null
@@ -61,6 +62,7 @@ fun readDigestMailConfig(digestMailConfigPath: Path, digestFormat: DigestFormat)
     val digestMailConfig = Json.parseToJsonElement(Files.readString(digestMailConfigPath, Charsets.UTF_8)).jsonObject
 
     return readSendStrategyDigestObjectJson(
+        resolveUsedPath = { digestMailConfigPath.resolveSibling(it) },
         digestObject = digestMailConfig,
         digestFormat = digestFormat,
     )
