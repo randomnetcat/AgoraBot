@@ -1,0 +1,3562 @@
+{
+  "": {
+    "name": "AgoraBot",
+    "version": "1.0-SNAPSHOT",
+    "path": "",
+    "gradle": {
+      "version": "7.0",
+      "type": "bin",
+      "url": "https://services.gradle.org/distributions/gradle-7.0-bin.zip",
+      "sha256": "eb8b89184261025b0430f5b2233701ff1377f96da1ef5e278af6ae8bac5cc305",
+      "nativeVersion": "0.22-milestone-11"
+    },
+    "dependencies": {
+      "settings": [],
+      "plugin": [
+        {
+          "id": {
+            "group": "com.github.gundy",
+            "name": "semver4j",
+            "version": "0.16.4",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "semver4j-0.16.4.jar",
+          "path": "com/github/gundy/semver4j/0.16.4",
+          "urls": [
+            "https://plugins.gradle.org/m2/com/github/gundy/semver4j/0.16.4/semver4j-0.16.4.jar"
+          ],
+          "sha256": "def9b4225fa37219e18f81d01f0e52d73dca1257a38f5475be9dd58f87736510"
+        },
+        {
+          "id": {
+            "group": "com.github.gundy",
+            "name": "semver4j",
+            "version": "0.16.4",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "semver4j-0.16.4.pom",
+          "path": "com/github/gundy/semver4j/0.16.4",
+          "urls": [
+            "https://plugins.gradle.org/m2/com/github/gundy/semver4j/0.16.4/semver4j-0.16.4.pom"
+          ],
+          "sha256": "32001db2443b339dd21f5b79ff29d1ade722d1ba080c214bde819f0f72d1604d"
+        },
+        {
+          "id": {
+            "group": "com.google.code.gson",
+            "name": "gson",
+            "version": "2.8.6",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "gson-2.8.6.jar",
+          "path": "com/google/code/gson/gson/2.8.6",
+          "urls": [
+            "https://plugins.gradle.org/m2/com/google/code/gson/gson/2.8.6/gson-2.8.6.jar"
+          ],
+          "sha256": "c8fb4839054d280b3033f800d1f5a97de2f028eb8ba2eb458ad287e536f3f25f"
+        },
+        {
+          "id": {
+            "group": "com.google.code.gson",
+            "name": "gson",
+            "version": "2.8.6",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "gson-2.8.6.pom",
+          "path": "com/google/code/gson/gson/2.8.6",
+          "urls": [
+            "https://plugins.gradle.org/m2/com/google/code/gson/gson/2.8.6/gson-2.8.6.pom"
+          ],
+          "sha256": "2174415a647332d30fda04bd1cfc708a3ecc84eaf7517f596188d8244e103911"
+        },
+        {
+          "id": {
+            "group": "com.google.code.gson",
+            "name": "gson-parent",
+            "version": "2.8.6",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "gson-parent-2.8.6.pom",
+          "path": "com/google/code/gson/gson-parent/2.8.6",
+          "urls": [
+            "https://plugins.gradle.org/m2/com/google/code/gson/gson-parent/2.8.6/gson-parent-2.8.6.pom"
+          ],
+          "sha256": "3736463859ec19267295e894940ae82a8f684413031122fe35ce7cff7e30a774"
+        },
+        {
+          "id": {
+            "group": "de.undercouch",
+            "name": "gradle-download-task",
+            "version": "4.1.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "gradle-download-task-4.1.1.jar",
+          "path": "de/undercouch/gradle-download-task/4.1.1",
+          "urls": [
+            "https://plugins.gradle.org/m2/de/undercouch/gradle-download-task/4.1.1/gradle-download-task-4.1.1.jar"
+          ],
+          "sha256": "eb08b570e408d4646705e70a949614d439ea2b11455f1652ab0330de8954dab9"
+        },
+        {
+          "id": {
+            "group": "de.undercouch",
+            "name": "gradle-download-task",
+            "version": "4.1.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "gradle-download-task-4.1.1.pom",
+          "path": "de/undercouch/gradle-download-task/4.1.1",
+          "urls": [
+            "https://plugins.gradle.org/m2/de/undercouch/gradle-download-task/4.1.1/gradle-download-task-4.1.1.pom"
+          ],
+          "sha256": "1109f1f71a54254d590337d8b9d443f9dfc08728c9c1d8335655cc1dcc88c0b9"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains",
+            "name": "annotations",
+            "version": "13.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "annotations-13.0.jar",
+          "path": "org/jetbrains/annotations/13.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+          ],
+          "sha256": "ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains",
+            "name": "annotations",
+            "version": "13.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "annotations-13.0.pom",
+          "path": "org/jetbrains/annotations/13.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/annotations/13.0/annotations-13.0.pom"
+          ],
+          "sha256": "965aeb2bedff369819bdde1bf7a0b3b89b8247dd69c88b86375d76163bb8c397"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.intellij.deps",
+            "name": "trove4j",
+            "version": "1.0.20181211",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "trove4j-1.0.20181211.jar",
+          "path": "org/jetbrains/intellij/deps/trove4j/1.0.20181211",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar"
+          ],
+          "sha256": "affb7c85a3c87bdcf69ff1dbb84de11f63dc931293934bc08cd7ab18de083601"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.intellij.deps",
+            "name": "trove4j",
+            "version": "1.0.20181211",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "trove4j-1.0.20181211.pom",
+          "path": "org/jetbrains/intellij/deps/trove4j/1.0.20181211",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.pom"
+          ],
+          "sha256": "310a6aa2d90534c32b8f46f1fc98cd0edae95dcdfca23e2847e5efa9ae0c019a"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-android-extensions",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-android-extensions-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-android-extensions/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-android-extensions/1.5.0/kotlin-android-extensions-1.5.0.jar"
+          ],
+          "sha256": "136641dc9f3d7b8f090d2767ca152d055bff51f4e19ddf32891cfde6f67a2ad1"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-android-extensions",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-android-extensions-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-android-extensions/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-android-extensions/1.5.0/kotlin-android-extensions-1.5.0.pom"
+          ],
+          "sha256": "3b1e6c1de1bf11e6522d41a1e9be78e08b9581b6cf5ea539a5d77b8abc3b6a54"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-annotation-processing-gradle",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-annotation-processing-gradle-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-annotation-processing-gradle/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/1.5.0/kotlin-annotation-processing-gradle-1.5.0.jar"
+          ],
+          "sha256": "fe6363d566889654bed94aa53c5acf9760ea1b6548949bcf4450eb61594bd3f6"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-annotation-processing-gradle",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-annotation-processing-gradle-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-annotation-processing-gradle/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/1.5.0/kotlin-annotation-processing-gradle-1.5.0.pom"
+          ],
+          "sha256": "a2508f50d385486461eff3ea62d72c0e1af5aeab6c80ee9793624104be819deb"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-build-common",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-build-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-build-common/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-common/1.5.0/kotlin-build-common-1.5.0.jar"
+          ],
+          "sha256": "4c89fc3e067066a340d4acce839702745573699460b44ac1796858d8a1dacfe6"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-build-common",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-build-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-build-common/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-build-common/1.5.0/kotlin-build-common-1.5.0.pom"
+          ],
+          "sha256": "94b35431964784c4032747a90f296380b5b34eab39589ba7e666a23185b7a61c"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-compiler-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0/kotlin-compiler-embeddable-1.5.0.jar"
+          ],
+          "sha256": "d7b85448039e468daf3b9462a172244477fa3eb890f199ec77703992f36ade44"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-compiler-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0/kotlin-compiler-embeddable-1.5.0.pom"
+          ],
+          "sha256": "db563cb627ec6d7aade8e9440f1f17e29992935d91f525e8f8f6f23776244fb5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-compiler-runner",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-compiler-runner-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-compiler-runner/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-runner/1.5.0/kotlin-compiler-runner-1.5.0.jar"
+          ],
+          "sha256": "38059a45746d49de93d15443220592ac5a18977a3a5c391603258c2eef13f67c"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-compiler-runner",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-compiler-runner-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-compiler-runner/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-compiler-runner/1.5.0/kotlin-compiler-runner-1.5.0.pom"
+          ],
+          "sha256": "0050ade2071497236d820943587bb1e4b117f464c99ae97a72a7bf7acb8f2df7"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-daemon-client",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-daemon-client-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-daemon-client/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-client/1.5.0/kotlin-daemon-client-1.5.0.jar"
+          ],
+          "sha256": "4f23fbbee4eb85067ba122047a6f44247993a8c02427ecdb41a00ea3a86a5cef"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-daemon-client",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-daemon-client-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-daemon-client/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-client/1.5.0/kotlin-daemon-client-1.5.0.pom"
+          ],
+          "sha256": "6d0e987498b968aeb99dcd9a9df62961baac827a71fee04298bf8dc18875f2d5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-daemon-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-daemon-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0/kotlin-daemon-embeddable-1.5.0.jar"
+          ],
+          "sha256": "bf32071706cf3c20580516b04d25a733c7a21db9cd9d04fc7060c00720bc91bc"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-daemon-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-daemon-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0/kotlin-daemon-embeddable-1.5.0.pom"
+          ],
+          "sha256": "4d10c9c5d24653a2fedff2ed151e6a16e929cbe9df2dedf7aead76bc36c3e7bb"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-gradle-plugin-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin/1.5.0/kotlin-gradle-plugin-1.5.0.jar"
+          ],
+          "sha256": "0f556f5d82ae4277592a9ade9717e1cb2cbf5f87bb6cab6b5526bd4478d1d50e"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-gradle-plugin-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin/1.5.0/kotlin-gradle-plugin-1.5.0.pom"
+          ],
+          "sha256": "8bdde19aed13083f1518707e6910cff840adbcb66ad3fc5865a24fe2c00cce3c"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin-api",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-gradle-plugin-api-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0/kotlin-gradle-plugin-api-1.5.0.jar"
+          ],
+          "sha256": "c6404f1eae6a2c6cc671d2de6d991b70aee7b541392ea8ecd222f27c2e355a57"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin-api",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-gradle-plugin-api-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0/kotlin-gradle-plugin-api-1.5.0.pom"
+          ],
+          "sha256": "75334406040247a5333b29f5556ea7248e5ea9befe2ab31aa3f08996806af5d8"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin-model",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-gradle-plugin-model-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin-model/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/1.5.0/kotlin-gradle-plugin-model-1.5.0.jar"
+          ],
+          "sha256": "1fdbd4fed78f1aa859e68dbbfcc45e4897a70de0018ec88709531e2ef7d055d5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin-model",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-gradle-plugin-model-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin-model/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/1.5.0/kotlin-gradle-plugin-model-1.5.0.pom"
+          ],
+          "sha256": "0728a9bf940ce7b380ae746fd2c3069579eb9874d2eb23da5a0697e5d0cef33f"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-reflect",
+            "version": "1.4.31",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-reflect-1.4.31.jar",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.jar"
+          ],
+          "sha256": "91fad0b42974a7d5811e30a61f05706e176b144235717c6de7e81e3a781028f2"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-reflect",
+            "version": "1.4.31",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-reflect-1.4.31.pom",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.pom"
+          ],
+          "sha256": "8e49bab843dd855f315c87e390c529a9ca239121d8bffb85b3acfa2f60603697"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-script-runtime",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-script-runtime-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-script-runtime/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-script-runtime/1.5.0/kotlin-script-runtime-1.5.0.jar"
+          ],
+          "sha256": "f2d45a350628bdfea25570c4c3f29198087e0f8cf53d87d928fb0da8a30c8fb7"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-script-runtime",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-script-runtime-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-script-runtime/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-script-runtime/1.5.0/kotlin-script-runtime-1.5.0.pom"
+          ],
+          "sha256": "9f7ffae32d89620d419e7f9f7d3fd0c5a7c21d307ffd1835f7004d8cae99416b"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-common",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-common/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-common/1.5.0/kotlin-scripting-common-1.5.0.jar"
+          ],
+          "sha256": "9acf9e892fc8f9d0ce7053b07090542f661e1753fc1815056045a94010203c9a"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-common",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-common/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-common/1.5.0/kotlin-scripting-common-1.5.0.pom"
+          ],
+          "sha256": "ae507333c30eedefa882a27ff524ef658f30bc22b1b4987fbe12ebea8d561c31"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-compiler-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0/kotlin-scripting-compiler-embeddable-1.5.0.jar"
+          ],
+          "sha256": "b0d7f061f5423e699c940d7a5389972eda2b4e15c8a68f8d8c9014dc3a10ebb2"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-compiler-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0/kotlin-scripting-compiler-embeddable-1.5.0.pom"
+          ],
+          "sha256": "c6683b4abef503618dbc2bb83951063e202fb690c5f983c4244f62972b5da0e4"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-impl-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-compiler-impl-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0/kotlin-scripting-compiler-impl-embeddable-1.5.0.jar"
+          ],
+          "sha256": "f9fecbf99f984826fc282b7afb7dff7990abc9e7f572741e87b56da304eb51cf"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-impl-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-compiler-impl-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0/kotlin-scripting-compiler-impl-embeddable-1.5.0.pom"
+          ],
+          "sha256": "42039f8f9c141cd0697a74a6c0422b5e240d9002dcbe3b2df5a9e85751b42bb6"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-jvm",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-jvm-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0/kotlin-scripting-jvm-1.5.0.jar"
+          ],
+          "sha256": "e9637b845793edacc219745aa3c39ed3033cde62e5d55be54715568b494ce675"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-jvm",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-jvm-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0/kotlin-scripting-jvm-1.5.0.pom"
+          ],
+          "sha256": "57f94587198b95d52e893a244c85f69740aa6b417b48115814c72d5c515be055"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-serialization",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-serialization-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-serialization/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-serialization/1.5.0/kotlin-serialization-1.5.0.jar"
+          ],
+          "sha256": "d321f78a911df58e29ed4a2d5949021dea2494afa09a9a2b7535ca5a0584e770"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-serialization",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-serialization-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-serialization/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-serialization/1.5.0/kotlin-serialization-1.5.0.pom"
+          ],
+          "sha256": "0c7389bfd7d62bdcc824092382a2da3fa8534d5a367766fc6925a81aa82ee423"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.4.31",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-1.4.31.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.jar"
+          ],
+          "sha256": "76a599d88b167e8ac90879b6daa722c6ad3452ba714c9aba19bd196544b97f1c"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.4.31",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-1.4.31.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.pom"
+          ],
+          "sha256": "8519e3e7ac5ee700527ee10488eb432f1aa106dccdde7c06c3bab258a1ddbd4e"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.4.31",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-common-1.4.31.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.jar"
+          ],
+          "sha256": "57962f44371a746b678218a0802a8712c6255206de9a69ede215e3aa4b044708"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.4.31",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-common-1.4.31.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.pom"
+          ],
+          "sha256": "1582ab130b68fcbb89b2e915573c1f99f8ba3bc68fdd451f6b362d6c53353187"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-util-io",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-util-io-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-util-io/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-io/1.5.0/kotlin-util-io-1.5.0.jar"
+          ],
+          "sha256": "a19bf658bb9a9b1a6d265c5ccb0b5fe4d360e6ccdbeca6d947b276b85abc7af6"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-util-io",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-util-io-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-util-io/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-io/1.5.0/kotlin-util-io-1.5.0.pom"
+          ],
+          "sha256": "2c0503ca00a22e59b100d8aa65a18eb490f05f793568815f9f3aa79c73a95929"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-util-klib",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-util-klib-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-util-klib/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-klib/1.5.0/kotlin-util-klib-1.5.0.jar"
+          ],
+          "sha256": "2c194c63eda753ebf395c7ffaafe2385a20577d61f9d3c891c730e41a1a3a25e"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-util-klib",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-util-klib-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-util-klib/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-util-klib/1.5.0/kotlin-util-klib-1.5.0.pom"
+          ],
+          "sha256": "9d9f0c0e9380d2ae6df6d9ebbd4cdd0cdb766096528aa4498176b77ab73b4607"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin.jvm",
+            "name": "org.jetbrains.kotlin.jvm.gradle.plugin",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "org.jetbrains.kotlin.jvm.gradle.plugin-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/1.5.0/org.jetbrains.kotlin.jvm.gradle.plugin-1.5.0.pom"
+          ],
+          "sha256": "bb78d6daf8da00c81384283ccc6a459f960602c65b8576dd49daaf65782cec47"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin.plugin.serialization",
+            "name": "org.jetbrains.kotlin.plugin.serialization.gradle.plugin",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "org.jetbrains.kotlin.plugin.serialization.gradle.plugin-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/plugin/serialization/org.jetbrains.kotlin.plugin.serialization.gradle.plugin/1.5.0",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/plugin/serialization/org.jetbrains.kotlin.plugin.serialization.gradle.plugin/1.5.0/org.jetbrains.kotlin.plugin.serialization.gradle.plugin-1.5.0.pom"
+          ],
+          "sha256": "3ba5f74577cc995c4fe5429faa5578ffe865c7df9460c210c49f52f21a0ca96f"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.3.8",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-coroutines-core-1.3.8.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8/kotlinx-coroutines-core-1.3.8.jar"
+          ],
+          "sha256": "f8c8b7485d4a575e38e5e94945539d1d4eccd3228a199e1a9aa094e8c26174ee"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.3.8",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-coroutines-core-1.3.8.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8/kotlinx-coroutines-core-1.3.8.pom"
+          ],
+          "sha256": "24ffa65bdfb7d893349cb2e78fb3714a490dd0a9c07375744bb136e9804807fd"
+        },
+        {
+          "id": {
+            "group": "org.sonatype.oss",
+            "name": "oss-parent",
+            "version": "7",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "oss-parent-7.pom",
+          "path": "org/sonatype/oss/oss-parent/7",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/sonatype/oss/oss-parent/7/oss-parent-7.pom"
+          ],
+          "sha256": "b51f8867c92b6a722499557fc3a1fdea77bdf9ef574722fe90ce436a29559454"
+        }
+      ],
+      "buildscript": [],
+      "project": [
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java",
+            "version": "1.1.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "opus-java-1.1.0.module",
+          "path": "club/minnced/opus-java/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java/1.1.0/opus-java-1.1.0.module"
+          ],
+          "sha256": "044464dcd361956bbdf603f55df37f3c433cb8b5d444007cbd5a610e05d0d1df"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java",
+            "version": "1.1.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "opus-java-1.1.0.pom",
+          "path": "club/minnced/opus-java/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java/1.1.0/opus-java-1.1.0.pom"
+          ],
+          "sha256": "36a05061cb07d75c0131608d05b071daaca06bc7dc0613a331e6c47668e2d3e2"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-api",
+            "version": "1.1.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "opus-java-api-1.1.0.jar",
+          "path": "club/minnced/opus-java-api/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.jar"
+          ],
+          "sha256": "068dd763417242be029c63d93cdcda3f02a4c43c4ae8dd929a4bf3e2f57b855d"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-api",
+            "version": "1.1.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "opus-java-api-1.1.0.module",
+          "path": "club/minnced/opus-java-api/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.module"
+          ],
+          "sha256": "825a29e1dc3b933a168780a3c72c1506be294d5704b323e5fbdb10c5933d7977"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-api",
+            "version": "1.1.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "opus-java-api-1.1.0.pom",
+          "path": "club/minnced/opus-java-api/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.pom"
+          ],
+          "sha256": "871eba461e68268a5c9dfd1b689b44fe23138893bc1894a94501bcce92926513"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-natives",
+            "version": "1.1.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "opus-java-natives-1.1.0.jar",
+          "path": "club/minnced/opus-java-natives/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.jar"
+          ],
+          "sha256": "5206ccd297d5ed7aa1296c10a012301f54f21a406093b76e018aea518dfbf091"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-natives",
+            "version": "1.1.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "opus-java-natives-1.1.0.module",
+          "path": "club/minnced/opus-java-natives/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.module"
+          ],
+          "sha256": "975915ffcc92dba48c3e238a008409764e84751895f1636255708b762fb917fb"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-natives",
+            "version": "1.1.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "opus-java-natives-1.1.0.pom",
+          "path": "club/minnced/opus-java-natives/1.1.0",
+          "urls": [
+            "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.pom"
+          ],
+          "sha256": "3c254fd755bbcd7ac682eb05aacf8dbc840feaf4fd3fa0607e6190a23d528423"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml",
+            "name": "oss-parent",
+            "version": "38",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "oss-parent-38.pom",
+          "path": "com/fasterxml/oss-parent/38",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/oss-parent/38/oss-parent-38.pom"
+          ],
+          "sha256": "c83f8f45dfdca8d0b6b3661c60b3f84780f671b12e06f91ad5d1c1a1d1f966e8"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson",
+            "name": "jackson-base",
+            "version": "2.10.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jackson-base-2.10.1.pom",
+          "path": "com/fasterxml/jackson/jackson-base/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.10.1/jackson-base-2.10.1.pom"
+          ],
+          "sha256": "7549f209bc484ceead1b4304f97b4f7e2e5b5ce9804527d0d97170dc5177ae2f"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson",
+            "name": "jackson-bom",
+            "version": "2.10.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jackson-bom-2.10.1.pom",
+          "path": "com/fasterxml/jackson/jackson-bom/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-bom/2.10.1/jackson-bom-2.10.1.pom"
+          ],
+          "sha256": "1fdda1c1be6a2e4ac6f0c30bdff0bbc9d02d62470a80823025c17abb6972d5e4"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson",
+            "name": "jackson-parent",
+            "version": "2.10",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jackson-parent-2.10.pom",
+          "path": "com/fasterxml/jackson/jackson-parent/2.10",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-parent/2.10/jackson-parent-2.10.pom"
+          ],
+          "sha256": "a50db80829c4f897c6d0e7e95472cbb43b0ebece135a68e39c27b8a6fe33e481"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-annotations",
+            "version": "2.10.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "jackson-annotations-2.10.1.jar",
+          "path": "com/fasterxml/jackson/core/jackson-annotations/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.1/jackson-annotations-2.10.1.jar"
+          ],
+          "sha256": "673f8ae16becea4fa937404b3a851417faf42df3bbc592028bbe2bfe0cc9d8cb"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-annotations",
+            "version": "2.10.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jackson-annotations-2.10.1.pom",
+          "path": "com/fasterxml/jackson/core/jackson-annotations/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.1/jackson-annotations-2.10.1.pom"
+          ],
+          "sha256": "ece51103667e8811f0ff7458986af2171862e54b9813c1708cf937904487f95c"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-core",
+            "version": "2.10.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "jackson-core-2.10.1.jar",
+          "path": "com/fasterxml/jackson/core/jackson-core/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.1/jackson-core-2.10.1.jar"
+          ],
+          "sha256": "79bffbdcd349f69a5ac252e2b4096131704386af4fa14d95395ea9a0e423cf33"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-core",
+            "version": "2.10.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jackson-core-2.10.1.pom",
+          "path": "com/fasterxml/jackson/core/jackson-core/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.1/jackson-core-2.10.1.pom"
+          ],
+          "sha256": "1179090b720b25a9e42664302f0334a2240b30c7280b422425e4f4519e5b2cfe"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-databind",
+            "version": "2.10.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "jackson-databind-2.10.1.jar",
+          "path": "com/fasterxml/jackson/core/jackson-databind/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.1/jackson-databind-2.10.1.jar"
+          ],
+          "sha256": "2d23f47001492233565adf5a34f225f2ae89564cee08024873ec36b7842ede46"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-databind",
+            "version": "2.10.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jackson-databind-2.10.1.pom",
+          "path": "com/fasterxml/jackson/core/jackson-databind/2.10.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.1/jackson-databind-2.10.1.pom"
+          ],
+          "sha256": "38695065e3f520b05bbd8ea5982e5b6b5bd9f8562967b83dacb7d07ab08c6ae7"
+        },
+        {
+          "id": {
+            "group": "com.github.ajalt.clikt",
+            "name": "clikt",
+            "version": "3.1.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "clikt-3.1.0.jar",
+          "path": "com/github/ajalt/clikt/clikt/3.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.1.0/clikt-3.1.0.jar"
+          ],
+          "sha256": "43f3f5b8d31a635b9777ab025523fe192328353a867cd7bd43cd7a76567cd8b9"
+        },
+        {
+          "id": {
+            "group": "com.github.ajalt.clikt",
+            "name": "clikt",
+            "version": "3.1.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "clikt-3.1.0.module",
+          "path": "com/github/ajalt/clikt/clikt/3.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.1.0/clikt-3.1.0.module"
+          ],
+          "sha256": "4477041e907a665d2c8cf89ba8afebc1ec7f14f835e87ae01732185c5fc7159a"
+        },
+        {
+          "id": {
+            "group": "com.github.ajalt.clikt",
+            "name": "clikt",
+            "version": "3.1.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "clikt-3.1.0.pom",
+          "path": "com/github/ajalt/clikt/clikt/3.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.1.0/clikt-3.1.0.pom"
+          ],
+          "sha256": "167376db7fbe86b61236019b149248c2d3952b38ccdcb0187c2efdfa63b8504a"
+        },
+        {
+          "id": {
+            "group": "com.github.ajalt.clikt",
+            "name": "clikt-jvm",
+            "version": "3.1.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "clikt-jvm-3.1.0.jar",
+          "path": "com/github/ajalt/clikt/clikt-jvm/3.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.1.0/clikt-jvm-3.1.0.jar"
+          ],
+          "sha256": "6b576ab1c6eeb4727535e7412242cff4a79689e950c6a2db94041637f51aeaa7"
+        },
+        {
+          "id": {
+            "group": "com.github.ajalt.clikt",
+            "name": "clikt-jvm",
+            "version": "3.1.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "clikt-jvm-3.1.0.module",
+          "path": "com/github/ajalt/clikt/clikt-jvm/3.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.1.0/clikt-jvm-3.1.0.module"
+          ],
+          "sha256": "2395c32f0874ecfbb5868e4883f1b13ae35a2acc3c2e827dbaa926d9506edae3"
+        },
+        {
+          "id": {
+            "group": "com.github.ajalt.clikt",
+            "name": "clikt-jvm",
+            "version": "3.1.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "clikt-jvm-3.1.0.pom",
+          "path": "com/github/ajalt/clikt/clikt-jvm/3.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.1.0/clikt-jvm-3.1.0.pom"
+          ],
+          "sha256": "129bee8de1422dc1370a057ea2fbe94f98317fc688c91396fdf2711b9dc28ae7"
+        },
+        {
+          "id": {
+            "group": "com.google.code.findbugs",
+            "name": "jsr305",
+            "version": "3.0.2",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "jsr305-3.0.2.jar",
+          "path": "com/google/code/findbugs/jsr305/3.0.2",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+          ],
+          "sha256": "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7"
+        },
+        {
+          "id": {
+            "group": "com.google.code.findbugs",
+            "name": "jsr305",
+            "version": "3.0.2",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jsr305-3.0.2.pom",
+          "path": "com/google/code/findbugs/jsr305/3.0.2",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom"
+          ],
+          "sha256": "19889dbdf1b254b2601a5ee645b8147a974644882297684c798afe5d63d78dfe"
+        },
+        {
+          "id": {
+            "group": "com.neovisionaries",
+            "name": "nv-websocket-client",
+            "version": "2.14",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "nv-websocket-client-2.14.jar",
+          "path": "com/neovisionaries/nv-websocket-client/2.14",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/neovisionaries/nv-websocket-client/2.14/nv-websocket-client-2.14.jar"
+          ],
+          "sha256": "eed0fb6f5ef5db17d087039f1e829cfe827363b2863265258a96f0ed323313b7"
+        },
+        {
+          "id": {
+            "group": "com.neovisionaries",
+            "name": "nv-websocket-client",
+            "version": "2.14",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "nv-websocket-client-2.14.pom",
+          "path": "com/neovisionaries/nv-websocket-client/2.14",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/neovisionaries/nv-websocket-client/2.14/nv-websocket-client-2.14.pom"
+          ],
+          "sha256": "571b4b81691210af47d34b57ed4c3f2df0797e42f5e4a56d79035f475970d009"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okhttp3",
+            "name": "okhttp",
+            "version": "3.13.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "okhttp-3.13.0.jar",
+          "path": "com/squareup/okhttp3/okhttp/3.13.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/3.13.0/okhttp-3.13.0.jar"
+          ],
+          "sha256": "75d44c91a48cb93f624db0138b135d408e74fdb470956603214bce6d0611d598"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okhttp3",
+            "name": "okhttp",
+            "version": "3.13.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "okhttp-3.13.0.pom",
+          "path": "com/squareup/okhttp3/okhttp/3.13.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/3.13.0/okhttp-3.13.0.pom"
+          ],
+          "sha256": "f56dd68b5b7bbcc3fe9444144c5bf77dc8737f391e9f27212e0e8e584ce582e5"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okhttp3",
+            "name": "parent",
+            "version": "3.13.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "parent-3.13.0.pom",
+          "path": "com/squareup/okhttp3/parent/3.13.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/parent/3.13.0/parent-3.13.0.pom"
+          ],
+          "sha256": "bc16bcf27949ed7d0fa94dded35dc92b03325b2418e9cf650d947eeaf936fff7"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okio",
+            "name": "okio",
+            "version": "1.17.2",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "okio-1.17.2.jar",
+          "path": "com/squareup/okio/okio/1.17.2",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar"
+          ],
+          "sha256": "f80ce42d2ffac47ad4c47e1d6f980d604d247ceb1a886705cf4581ab0c9fe2b8"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okio",
+            "name": "okio",
+            "version": "1.17.2",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "okio-1.17.2.pom",
+          "path": "com/squareup/okio/okio/1.17.2",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.pom"
+          ],
+          "sha256": "cd57f75443ab6a714b203da51994ee64ed0e919fea81f04e4f4b5324e4bb03f0"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okio",
+            "name": "okio-parent",
+            "version": "1.17.2",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "okio-parent-1.17.2.pom",
+          "path": "com/squareup/okio/okio-parent/1.17.2",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-parent/1.17.2/okio-parent-1.17.2.pom"
+          ],
+          "sha256": "e81f40146f2a0eb394b10fa3a175c85ab9fbe757aa418aa44d4b760efe16f024"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-buffer",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-buffer-4.1.59.Final.jar",
+          "path": "io/netty/netty-buffer/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.59.Final/netty-buffer-4.1.59.Final.jar"
+          ],
+          "sha256": "6a1b3b6b12a5686df8ef6780211c42fe5a4a5ad0cbf779ff5216d826b2e77564"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-buffer",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-buffer-4.1.59.Final.pom",
+          "path": "io/netty/netty-buffer/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.1.59.Final/netty-buffer-4.1.59.Final.pom"
+          ],
+          "sha256": "d90221098c60ebbda96d02d586430f9d635edaf474c2353b746aa3a2d32dbb29"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-codec",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-codec-4.1.59.Final.jar",
+          "path": "io/netty/netty-codec/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.59.Final/netty-codec-4.1.59.Final.jar"
+          ],
+          "sha256": "7f65a27aed141fef0e1601dc6e7172f0d337ca5bdce0162b60a5b07be4929547"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-codec",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-codec-4.1.59.Final.pom",
+          "path": "io/netty/netty-codec/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-codec/4.1.59.Final/netty-codec-4.1.59.Final.pom"
+          ],
+          "sha256": "198e29d91b27e2470d86a12a579a5b51c58b880ba8475ea2092d6a6a68316f04"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-codec-http",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-codec-http-4.1.59.Final.jar",
+          "path": "io/netty/netty-codec-http/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.59.Final/netty-codec-http-4.1.59.Final.jar"
+          ],
+          "sha256": "79cfb3a2bfe87f5f0f3a969bab783724eeee78d1fecef2fe841beddf947336b7"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-codec-http",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-codec-http-4.1.59.Final.pom",
+          "path": "io/netty/netty-codec-http/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.1.59.Final/netty-codec-http-4.1.59.Final.pom"
+          ],
+          "sha256": "49a78bf89c4dc26b3e2f1ef99adf3fe4f5a6f0fa43c4bfcf22e79a9114cc5993"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-codec-socks",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-codec-socks-4.1.59.Final.jar",
+          "path": "io/netty/netty-codec-socks/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.1.59.Final/netty-codec-socks-4.1.59.Final.jar"
+          ],
+          "sha256": "ad3e7e58c5130bcfcab9d9a337a389b7e957de1ed468e43ad412eab917270631"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-codec-socks",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-codec-socks-4.1.59.Final.pom",
+          "path": "io/netty/netty-codec-socks/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.1.59.Final/netty-codec-socks-4.1.59.Final.pom"
+          ],
+          "sha256": "8e746801b2f2ed0721f73c946d5fadc0b235afb1f437a1837af36b611cbb2b83"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-common",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-common-4.1.59.Final.jar",
+          "path": "io/netty/netty-common/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-common/4.1.59.Final/netty-common-4.1.59.Final.jar"
+          ],
+          "sha256": "f7f4e5b9e8cb6db6ddfee42505f4b7f5facbcbd3a7b7067abd9db49925189a75"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-common",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-common-4.1.59.Final.pom",
+          "path": "io/netty/netty-common/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-common/4.1.59.Final/netty-common-4.1.59.Final.pom"
+          ],
+          "sha256": "72e28ba9eee971a871681b6cfc5a16ac8199c55844c177673471c92d69701c33"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-handler",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-handler-4.1.59.Final.jar",
+          "path": "io/netty/netty-handler/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.59.Final/netty-handler-4.1.59.Final.jar"
+          ],
+          "sha256": "86a191b9fe80ba6af8f670db8c04b84bcf74e9b6a8001d74020668579bf966db"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-handler",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-handler-4.1.59.Final.pom",
+          "path": "io/netty/netty-handler/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.1.59.Final/netty-handler-4.1.59.Final.pom"
+          ],
+          "sha256": "03684ec42ef4f061a809c471e9ec2ac9f6f2b899fd3bfa316e789eab632db5d3"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-handler-proxy",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-handler-proxy-4.1.59.Final.jar",
+          "path": "io/netty/netty-handler-proxy/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.1.59.Final/netty-handler-proxy-4.1.59.Final.jar"
+          ],
+          "sha256": "7d588f265c7fe4b34d4245c811b8a0bcda5b8d82d17ee841e1b4982e87641219"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-handler-proxy",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-handler-proxy-4.1.59.Final.pom",
+          "path": "io/netty/netty-handler-proxy/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.1.59.Final/netty-handler-proxy-4.1.59.Final.pom"
+          ],
+          "sha256": "3df8f16807c846fcd4ebf9b902cd2ddfeebdd26f768f2d6439187809de6b5349"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-parent",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-parent-4.1.59.Final.pom",
+          "path": "io/netty/netty-parent/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.1.59.Final/netty-parent-4.1.59.Final.pom"
+          ],
+          "sha256": "b1bf36f882fcc302474e9aed7b25f792a595425df14ab4f96e069cfd1b631d81"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-resolver",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-resolver-4.1.59.Final.jar",
+          "path": "io/netty/netty-resolver/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.1.59.Final/netty-resolver-4.1.59.Final.jar"
+          ],
+          "sha256": "64528c663a0d39102020a4ea0cd9b809b29ddd03592840874ea6c3e8345f5619"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-resolver",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-resolver-4.1.59.Final.pom",
+          "path": "io/netty/netty-resolver/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.1.59.Final/netty-resolver-4.1.59.Final.pom"
+          ],
+          "sha256": "aefe737d3741d6c81420ceea9bca8a7aa04d379f342e52e2646b70ce8794fb93"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-transport",
+            "version": "4.1.59.Final",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "netty-transport-4.1.59.Final.jar",
+          "path": "io/netty/netty-transport/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.59.Final/netty-transport-4.1.59.Final.jar"
+          ],
+          "sha256": "59b7b84be412683a26cfaa4c85b01ff5c5aeb38f07baeabbd8ca98f6e8b0715e"
+        },
+        {
+          "id": {
+            "group": "io.netty",
+            "name": "netty-transport",
+            "version": "4.1.59.Final",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "netty-transport-4.1.59.Final.pom",
+          "path": "io/netty/netty-transport/4.1.59.Final",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.1.59.Final/netty-transport-4.1.59.Final.pom"
+          ],
+          "sha256": "806159be5d79dd588ae8c60cb14a520a20eed2c0d66bc346dbbc27e6cae47722"
+        },
+        {
+          "id": {
+            "group": "net.dv8tion",
+            "name": "JDA",
+            "version": "4.2.1_269",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "JDA-4.2.1_269.jar",
+          "path": "net/dv8tion/JDA/4.2.1_269",
+          "urls": [
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.2.1_269/JDA-4.2.1_269.jar"
+          ],
+          "sha256": "e5e932e81377054e3d098489f47c9d42a57697663b49e954618acf8e278537a2"
+        },
+        {
+          "id": {
+            "group": "net.dv8tion",
+            "name": "JDA",
+            "version": "4.2.1_269",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "JDA-4.2.1_269.module",
+          "path": "net/dv8tion/JDA/4.2.1_269",
+          "urls": [
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.2.1_269/JDA-4.2.1_269.module"
+          ],
+          "sha256": "5abcd2fc4152b84351d1028774593ac15a16bdb802bd208130a0b2280dde663e"
+        },
+        {
+          "id": {
+            "group": "net.dv8tion",
+            "name": "JDA",
+            "version": "4.2.1_269",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "JDA-4.2.1_269.pom",
+          "path": "net/dv8tion/JDA/4.2.1_269",
+          "urls": [
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.2.1_269/JDA-4.2.1_269.pom"
+          ],
+          "sha256": "7fdb08637ef61515b159d239e6e8f7ffdc74d81ae5ee92272ab210eb3d2d0edc"
+        },
+        {
+          "id": {
+            "group": "net.engio",
+            "name": "mbassador",
+            "version": "1.3.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "mbassador-1.3.1.jar",
+          "path": "net/engio/mbassador/1.3.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/net/engio/mbassador/1.3.1/mbassador-1.3.1.jar"
+          ],
+          "sha256": "281837da768fbd5038a9bda543c69ed86f7a12598a1bacfef8968e57917b1417"
+        },
+        {
+          "id": {
+            "group": "net.engio",
+            "name": "mbassador",
+            "version": "1.3.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "mbassador-1.3.1.pom",
+          "path": "net/engio/mbassador/1.3.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/net/engio/mbassador/1.3.1/mbassador-1.3.1.pom"
+          ],
+          "sha256": "0fae3f2d377fddcba269a62b24a7028dfab0bd8b0140e92315f79fdf89aaf9ee"
+        },
+        {
+          "id": {
+            "group": "net.java.dev.jna",
+            "name": "jna",
+            "version": "4.4.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "jna-4.4.0.jar",
+          "path": "net/java/dev/jna/jna/4.4.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/net/java/dev/jna/jna/4.4.0/jna-4.4.0.jar"
+          ],
+          "sha256": "c4dadeeecaa90c8847902082aee5eb107fcf59c5d0e63a17fcaf273c0e2d2bd1"
+        },
+        {
+          "id": {
+            "group": "net.java.dev.jna",
+            "name": "jna",
+            "version": "4.4.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jna-4.4.0.pom",
+          "path": "net/java/dev/jna/jna/4.4.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/net/java/dev/jna/jna/4.4.0/jna-4.4.0.pom"
+          ],
+          "sha256": "800bb2831dda341336ea69b7beb675f159973f64dad6aaa1ad8c4fa78e5cb19b"
+        },
+        {
+          "id": {
+            "group": "net.sf.trove4j",
+            "name": "trove4j",
+            "version": "3.0.3",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "trove4j-3.0.3.jar",
+          "path": "net/sf/trove4j/trove4j/3.0.3",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3.jar"
+          ],
+          "sha256": "3c8616203d61a12a7e3487e8b34f3c198c2b5ba9e90da0c7ea32d99cd4958012"
+        },
+        {
+          "id": {
+            "group": "net.sf.trove4j",
+            "name": "trove4j",
+            "version": "3.0.3",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "trove4j-3.0.3.pom",
+          "path": "net/sf/trove4j/trove4j/3.0.3",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/net/sf/trove4j/trove4j/3.0.3/trove4j-3.0.3.pom"
+          ],
+          "sha256": "11327b94615d0bf16d4e17334902de783c2022f5e909d51fbce993a7a9d7e1d8"
+        },
+        {
+          "id": {
+            "group": "org.apache",
+            "name": "apache",
+            "version": "16",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "apache-16.pom",
+          "path": "org/apache/apache/16",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/apache/apache/16/apache-16.pom"
+          ],
+          "sha256": "9f85ff2fd7d6cb3097aa47fb419ee7f0ebe869109f98aba9f4eca3f49e74a40e"
+        },
+        {
+          "id": {
+            "group": "org.apache.commons",
+            "name": "commons-collections4",
+            "version": "4.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "commons-collections4-4.1.jar",
+          "path": "org/apache/commons/commons-collections4/4.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar"
+          ],
+          "sha256": "b1fe8b5968b57d8465425357ed2d9dc695504518bed2df5b565c4b8e68c1c8a5"
+        },
+        {
+          "id": {
+            "group": "org.apache.commons",
+            "name": "commons-collections4",
+            "version": "4.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "commons-collections4-4.1.pom",
+          "path": "org/apache/commons/commons-collections4/4.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.pom"
+          ],
+          "sha256": "c0ad42e9103537960d9a74da58ecc24dd1a37a13d1e4c48f0969be93e4018369"
+        },
+        {
+          "id": {
+            "group": "org.apache.commons",
+            "name": "commons-parent",
+            "version": "38",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "commons-parent-38.pom",
+          "path": "org/apache/commons/commons-parent/38",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/38/commons-parent-38.pom"
+          ],
+          "sha256": "558d961745ebadcc5dc391cfde7d474086d4caaee24dd3e6df931ed9f6b5b495"
+        },
+        {
+          "id": {
+            "group": "org.apiguardian",
+            "name": "apiguardian-api",
+            "version": "1.1.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "apiguardian-api-1.1.0.jar",
+          "path": "org/apiguardian/apiguardian-api/1.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.jar"
+          ],
+          "sha256": "a9aae9ff8ae3e17a2a18f79175e82b16267c246fbbd3ca9dfbbb290b08dcfdd4"
+        },
+        {
+          "id": {
+            "group": "org.apiguardian",
+            "name": "apiguardian-api",
+            "version": "1.1.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "apiguardian-api-1.1.0.pom",
+          "path": "org/apiguardian/apiguardian-api/1.1.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.pom"
+          ],
+          "sha256": "a945b9cb5cd9b77b2c711844e659c43ec070ef59d9f509fa9f4c1861b4862711"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains",
+            "name": "annotations",
+            "version": "13.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "annotations-13.0.jar",
+          "path": "org/jetbrains/annotations/13.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+          ],
+          "sha256": "ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains",
+            "name": "annotations",
+            "version": "13.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "annotations-13.0.pom",
+          "path": "org/jetbrains/annotations/13.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.pom"
+          ],
+          "sha256": "965aeb2bedff369819bdde1bf7a0b3b89b8247dd69c88b86375d76163bb8c397"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains",
+            "name": "annotations",
+            "version": "16.0.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "annotations-16.0.1.jar",
+          "path": "org/jetbrains/annotations/16.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/16.0.1/annotations-16.0.1.jar"
+          ],
+          "sha256": "b11d2523ad1e1f25a13cfccd7b4bc05b89c34647f768183ce4084345574dc9c5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains",
+            "name": "annotations",
+            "version": "16.0.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "annotations-16.0.1.pom",
+          "path": "org/jetbrains/annotations/16.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/16.0.1/annotations-16.0.1.pom"
+          ],
+          "sha256": "7680ddc26d6ae358e61972d1ae29ca2f575ad3413254e2dbb1d72dbd57ff1f9b"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.intellij.deps",
+            "name": "trove4j",
+            "version": "1.0.20181211",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "trove4j-1.0.20181211.jar",
+          "path": "org/jetbrains/intellij/deps/trove4j/1.0.20181211",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar"
+          ],
+          "sha256": "affb7c85a3c87bdcf69ff1dbb84de11f63dc931293934bc08cd7ab18de083601"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.intellij.deps",
+            "name": "trove4j",
+            "version": "1.0.20181211",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "trove4j-1.0.20181211.pom",
+          "path": "org/jetbrains/intellij/deps/trove4j/1.0.20181211",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.pom"
+          ],
+          "sha256": "310a6aa2d90534c32b8f46f1fc98cd0edae95dcdfca23e2847e5efa9ae0c019a"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-compiler-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0/kotlin-compiler-embeddable-1.5.0.jar"
+          ],
+          "sha256": "d7b85448039e468daf3b9462a172244477fa3eb890f199ec77703992f36ade44"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-compiler-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.5.0/kotlin-compiler-embeddable-1.5.0.pom"
+          ],
+          "sha256": "db563cb627ec6d7aade8e9440f1f17e29992935d91f525e8f8f6f23776244fb5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-daemon-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-daemon-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0/kotlin-daemon-embeddable-1.5.0.jar"
+          ],
+          "sha256": "bf32071706cf3c20580516b04d25a733c7a21db9cd9d04fc7060c00720bc91bc"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-daemon-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-daemon-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.5.0/kotlin-daemon-embeddable-1.5.0.pom"
+          ],
+          "sha256": "4d10c9c5d24653a2fedff2ed151e6a16e929cbe9df2dedf7aead76bc36c3e7bb"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin-api",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-gradle-plugin-api-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0/kotlin-gradle-plugin-api-1.5.0.jar"
+          ],
+          "sha256": "c6404f1eae6a2c6cc671d2de6d991b70aee7b541392ea8ecd222f27c2e355a57"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-gradle-plugin-api",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-gradle-plugin-api-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.5.0/kotlin-gradle-plugin-api-1.5.0.pom"
+          ],
+          "sha256": "75334406040247a5333b29f5556ea7248e5ea9befe2ab31aa3f08996806af5d8"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-klib-commonizer-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-klib-commonizer-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-klib-commonizer-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-klib-commonizer-embeddable/1.5.0/kotlin-klib-commonizer-embeddable-1.5.0.jar"
+          ],
+          "sha256": "98a1efd3e9660c828ba3e80e54cd17a098edec74620729115ad6ea7c5fec619c"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-klib-commonizer-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-klib-commonizer-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-klib-commonizer-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-klib-commonizer-embeddable/1.5.0/kotlin-klib-commonizer-embeddable-1.5.0.pom"
+          ],
+          "sha256": "9150e4a604bba5da1c266d92275e6092090d3966156560ec8765ca2fa23d2fd8"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-reflect",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-reflect-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.5.0/kotlin-reflect-1.5.0.jar"
+          ],
+          "sha256": "e30acc4ff74534177d1657feafb57327ede838ae17763aeaae182a9109d26157"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-reflect",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-reflect-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.5.0/kotlin-reflect-1.5.0.pom"
+          ],
+          "sha256": "c833a8024fb8a62b5639e429635d9fb358507742222405c12d4a94de1eeea22d"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-script-runtime",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-script-runtime-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-script-runtime/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/1.5.0/kotlin-script-runtime-1.5.0.jar"
+          ],
+          "sha256": "f2d45a350628bdfea25570c4c3f29198087e0f8cf53d87d928fb0da8a30c8fb7"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-script-runtime",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-script-runtime-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-script-runtime/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/1.5.0/kotlin-script-runtime-1.5.0.pom"
+          ],
+          "sha256": "9f7ffae32d89620d419e7f9f7d3fd0c5a7c21d307ffd1835f7004d8cae99416b"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-common",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-common/1.5.0/kotlin-scripting-common-1.5.0.jar"
+          ],
+          "sha256": "9acf9e892fc8f9d0ce7053b07090542f661e1753fc1815056045a94010203c9a"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-common",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-common/1.5.0/kotlin-scripting-common-1.5.0.pom"
+          ],
+          "sha256": "ae507333c30eedefa882a27ff524ef658f30bc22b1b4987fbe12ebea8d561c31"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-compiler-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0/kotlin-scripting-compiler-embeddable-1.5.0.jar"
+          ],
+          "sha256": "b0d7f061f5423e699c940d7a5389972eda2b4e15c8a68f8d8c9014dc3a10ebb2"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-compiler-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.5.0/kotlin-scripting-compiler-embeddable-1.5.0.pom"
+          ],
+          "sha256": "c6683b4abef503618dbc2bb83951063e202fb690c5f983c4244f62972b5da0e4"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-impl-embeddable",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-compiler-impl-embeddable-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0/kotlin-scripting-compiler-impl-embeddable-1.5.0.jar"
+          ],
+          "sha256": "f9fecbf99f984826fc282b7afb7dff7990abc9e7f572741e87b56da304eb51cf"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-compiler-impl-embeddable",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-compiler-impl-embeddable-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/1.5.0/kotlin-scripting-compiler-impl-embeddable-1.5.0.pom"
+          ],
+          "sha256": "42039f8f9c141cd0697a74a6c0422b5e240d9002dcbe3b2df5a9e85751b42bb6"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-jvm",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-scripting-jvm-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0/kotlin-scripting-jvm-1.5.0.jar"
+          ],
+          "sha256": "e9637b845793edacc219745aa3c39ed3033cde62e5d55be54715568b494ce675"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-scripting-jvm",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-scripting-jvm-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-scripting-jvm/1.5.0/kotlin-scripting-jvm-1.5.0.pom"
+          ],
+          "sha256": "57f94587198b95d52e893a244c85f69740aa6b417b48115814c72d5c515be055"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-serialization",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-serialization-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-serialization/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-serialization/1.5.0/kotlin-serialization-1.5.0.jar"
+          ],
+          "sha256": "d321f78a911df58e29ed4a2d5949021dea2494afa09a9a2b7535ca5a0584e770"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-serialization",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-serialization-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-serialization/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-serialization/1.5.0/kotlin-serialization-1.5.0.pom"
+          ],
+          "sha256": "3258255d781e830a3d1c24fa401de437444e471efa64db07bc5ab665cd1be2db"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.5.0/kotlin-stdlib-1.5.0.jar"
+          ],
+          "sha256": "52283996fe4067cd7330288b96ae67ecd463614dc741172c54d9d349ab6a9cd7"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.5.0/kotlin-stdlib-1.5.0.pom"
+          ],
+          "sha256": "95c92ed856dbdf768325a6f28d670a2da70a49b0da56a0751da2d1d35a7b99b5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0/kotlin-stdlib-common-1.5.0.jar"
+          ],
+          "sha256": "c14ce6720a487b5e238f1b0c30ac3ad73e45b90a40731ca0b1cfddec1a37682f"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0/kotlin-stdlib-common-1.5.0.pom"
+          ],
+          "sha256": "d3852184b2c3bd26d8681ef8fc3977c2a301153d27871f11df8e2c115de7f104"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-jdk7",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-jdk7-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.5.0/kotlin-stdlib-jdk7-1.5.0.jar"
+          ],
+          "sha256": "ac12f092f12b575c1f9e0ab5025b1e610b0fe95663e26371c16c328895711bae"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-jdk7",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-jdk7-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.5.0/kotlin-stdlib-jdk7-1.5.0.pom"
+          ],
+          "sha256": "ed3e6cd34c3d3a773da0e007bb12e164548725464e5adb61644a98fb29254ad1"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-jdk8",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-jdk8-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.5.0/kotlin-stdlib-jdk8-1.5.0.jar"
+          ],
+          "sha256": "15e6c81b9e845eefe58d51a04670bb90418046f458264ec0e61ee9bdbc1bfae7"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-jdk8",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-jdk8-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.5.0/kotlin-stdlib-jdk8-1.5.0.pom"
+          ],
+          "sha256": "d0bb3e9d3c63e1ed9b07794f856b722042705717df30510e4cce113ee2ca594d"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-test-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-test/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test/1.5.0/kotlin-test-1.5.0.jar"
+          ],
+          "sha256": "e5565f8f4b209a896ed18d7e4b5692b25184ab0a94fbf0805897711a7fb67a3b"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test",
+            "version": "1.5.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlin-test-1.5.0.module",
+          "path": "org/jetbrains/kotlin/kotlin-test/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test/1.5.0/kotlin-test-1.5.0.module"
+          ],
+          "sha256": "b844c264bab0cea573ecc41239a36bddbf9ecdf99e84436f4d9af1a7816ee7b1"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-test-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-test/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test/1.5.0/kotlin-test-1.5.0.pom"
+          ],
+          "sha256": "901f1c097247ec409b03981c9d81721cb5bf6681a82a0f15f97c382eb2332226"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-annotations-common",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-test-annotations-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-test-annotations-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-annotations-common/1.5.0/kotlin-test-annotations-common-1.5.0.jar"
+          ],
+          "sha256": "f9defbbb233e9e009901b3dde37d186b3bf06621ec4b73220ed8fd61640d2b69"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-annotations-common",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-test-annotations-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-test-annotations-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-annotations-common/1.5.0/kotlin-test-annotations-common-1.5.0.pom"
+          ],
+          "sha256": "7d111605c8cbfa4aaa357115701ba366a9bae6c144a6dcef8d771d5373968a22"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-common",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-test-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-test-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-common/1.5.0/kotlin-test-common-1.5.0.jar"
+          ],
+          "sha256": "e54f05f0bfd27e890057757385a2a5b88be3824b1bf018741502b69f4238d1b6"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-common",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-test-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-test-common/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-common/1.5.0/kotlin-test-common-1.5.0.pom"
+          ],
+          "sha256": "de9162ae2f6f4bd2a54e8ae561f1c07c0ed0d09e57812ff4eb828d89ab70d060"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-junit5",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-test-junit5-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-test-junit5/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-junit5/1.5.0/kotlin-test-junit5-1.5.0.jar"
+          ],
+          "sha256": "31a3306e13e7b2e0bd0d78c72ff51e85b6df9a58677cec70cfab7cd8095d17df"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-junit5",
+            "version": "1.5.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlin-test-junit5-1.5.0.module",
+          "path": "org/jetbrains/kotlin/kotlin-test-junit5/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-junit5/1.5.0/kotlin-test-junit5-1.5.0.module"
+          ],
+          "sha256": "2e3200c667203343124a2e5a7ff6ffac9c2e2197201abcfd7c6d07910bb2a3c1"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-test-junit5",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-test-junit5-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-test-junit5/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-test-junit5/1.5.0/kotlin-test-junit5-1.5.0.pom"
+          ],
+          "sha256": "a8991b80229c4d07ce3b20459bdbaa35bd2faa23d370d34e43a9195d48888009"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-collections-immutable",
+            "version": "0.3.4",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-collections-immutable-0.3.4.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-collections-immutable/0.3.4",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-collections-immutable/0.3.4/kotlinx-collections-immutable-0.3.4.jar"
+          ],
+          "sha256": "2457bc938f5611255c4d680ccecb571cef4492d2ab6cc3ca20a81e5fbcf79427"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-collections-immutable",
+            "version": "0.3.4",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-collections-immutable-0.3.4.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-collections-immutable/0.3.4",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-collections-immutable/0.3.4/kotlinx-collections-immutable-0.3.4.module"
+          ],
+          "sha256": "674bef7c21d74f1546034c4526a9ed8da60a874a4d5bbd7c7c3849afd8a4f6ca"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-collections-immutable",
+            "version": "0.3.4",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-collections-immutable-0.3.4.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-collections-immutable/0.3.4",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-collections-immutable/0.3.4/kotlinx-collections-immutable-0.3.4.pom"
+          ],
+          "sha256": "b99ad0060af63478f161de3f9f7c7b81a191665f44bee60141e40283369242e5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-collections-immutable-jvm",
+            "version": "0.3.4",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-collections-immutable-jvm-0.3.4.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3.4",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3.4/kotlinx-collections-immutable-jvm-0.3.4.jar"
+          ],
+          "sha256": "91d253c00c5e20e3af35604504609a475fbcee37aaeebc195e72e8aeccf7ac6e"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-collections-immutable-jvm",
+            "version": "0.3.4",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-collections-immutable-jvm-0.3.4.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3.4",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3.4/kotlinx-collections-immutable-jvm-0.3.4.module"
+          ],
+          "sha256": "4dee3a9b7af484fde63cf07680ae765ff2c466c04f22eca4a69f716c455d2f0d"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-collections-immutable-jvm",
+            "version": "0.3.4",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-collections-immutable-jvm-0.3.4.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3.4",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3.4/kotlinx-collections-immutable-jvm-0.3.4.pom"
+          ],
+          "sha256": "61cd3962afa09ae8b41d10175eefdaf499649626981482a22bb1146850fdfb45"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.3.8",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-coroutines-core-1.3.8.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8/kotlinx-coroutines-core-1.3.8.jar"
+          ],
+          "sha256": "f8c8b7485d4a575e38e5e94945539d1d4eccd3228a199e1a9aa094e8c26174ee"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.3.8",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-coroutines-core-1.3.8.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.8/kotlinx-coroutines-core-1.3.8.pom"
+          ],
+          "sha256": "24ffa65bdfb7d893349cb2e78fb3714a490dd0a9c07375744bb136e9804807fd"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-coroutines-core-1.5.0.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.jar"
+          ],
+          "sha256": "6f738012913d3d4bc18408a5011108d4744a72b6233662ee4d4dd50da9550b8d"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.5.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-coroutines-core-1.5.0.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.module"
+          ],
+          "sha256": "d8a26a896da32fb1f8c3f13fe41cb798a612a1c1ddf3a555d82ee1ff16ef13d3"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-coroutines-core-1.5.0.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.pom"
+          ],
+          "sha256": "ffc9363f7c9bc38d261c938cdb7fa45cee56894d71abb29dfbfdb70b3558d452"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core-jvm",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-coroutines-core-jvm-1.5.0.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.jar"
+          ],
+          "sha256": "78d6cc7135f84d692ff3752fcfd1fa1bbe0940d7df70652e4f1eaeec0c78afbb"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core-jvm",
+            "version": "1.5.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-coroutines-core-jvm-1.5.0.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.module"
+          ],
+          "sha256": "c885dd0281076c5843826de317e3cbcdc3d8859dbeef53ae1cfacd1b9c60f96e"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-core-jvm",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-coroutines-core-jvm-1.5.0.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.0/kotlinx-coroutines-core-jvm-1.5.0.pom"
+          ],
+          "sha256": "53622e03778df8440fc012201a35bb4bdfe40164efec612bbefcdeecb2ffc2ab"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-jdk8",
+            "version": "1.5.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-coroutines-jdk8-1.5.0.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.5.0/kotlinx-coroutines-jdk8-1.5.0.jar"
+          ],
+          "sha256": "c9fd4bc3021b26753d59921fa65598455743aeccc380c02f8af5c5f4b64dfda3"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-jdk8",
+            "version": "1.5.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-coroutines-jdk8-1.5.0.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.5.0/kotlinx-coroutines-jdk8-1.5.0.module"
+          ],
+          "sha256": "57e164cee8a899e4aae02b544c0e77b7cd62050906166d25e382e94d4e02cc94"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-coroutines-jdk8",
+            "version": "1.5.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-coroutines-jdk8-1.5.0.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.5.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.5.0/kotlinx-coroutines-jdk8-1.5.0.pom"
+          ],
+          "sha256": "80cebadef095ea9a1a6200c4961fc14440a22d5e2840878fbd42b9bf694380b4"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-core",
+            "version": "1.2.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-serialization-core-1.2.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.2.1/kotlinx-serialization-core-1.2.1.jar"
+          ],
+          "sha256": "6e9ae980f0432b79c39a6fd1ae9dc06fc477d7d140c8630780fca5801c09c8a4"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-core",
+            "version": "1.2.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-serialization-core-1.2.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.2.1/kotlinx-serialization-core-1.2.1.module"
+          ],
+          "sha256": "d9fe4f3a89919f8041fed68fa47f8cb9f33eb55ac05d3559a1e143a34c0c99ad"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-core",
+            "version": "1.2.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-serialization-core-1.2.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.2.1/kotlinx-serialization-core-1.2.1.pom"
+          ],
+          "sha256": "fdc5490d7eb3cc9249d18e768943e2266ebd1f30cc8658f194b8d941db1ca763"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-core-jvm",
+            "version": "1.2.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-serialization-core-jvm-1.2.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.2.1/kotlinx-serialization-core-jvm-1.2.1.jar"
+          ],
+          "sha256": "d977bcd4bc3b5d1846e834cb8cc247746540673544432038f5ded1e73996e5fb"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-core-jvm",
+            "version": "1.2.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-serialization-core-jvm-1.2.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.2.1/kotlinx-serialization-core-jvm-1.2.1.module"
+          ],
+          "sha256": "7f9c60fd3f2b20284db89b7dd5aa44def5037ef8daa230c8867c95e93efee6c5"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-core-jvm",
+            "version": "1.2.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-serialization-core-jvm-1.2.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.2.1/kotlinx-serialization-core-jvm-1.2.1.pom"
+          ],
+          "sha256": "8f9c39b5b58089bb0fd1a28d1ce6c7cb1a55997805eb72858ccc91c20dcad43b"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-json",
+            "version": "1.2.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-serialization-json-1.2.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.2.1/kotlinx-serialization-json-1.2.1.jar"
+          ],
+          "sha256": "dba92eec0eedd192fde0ebebdcd021f4a15b6551524f6daa2a84a017f63d954a"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-json",
+            "version": "1.2.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-serialization-json-1.2.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.2.1/kotlinx-serialization-json-1.2.1.module"
+          ],
+          "sha256": "a5c02e5bc5126d40b56c1612b10f4a1be57f89ac13c0a32fbf5d38ef0b0ba9a0"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-json",
+            "version": "1.2.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-serialization-json-1.2.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.2.1/kotlinx-serialization-json-1.2.1.pom"
+          ],
+          "sha256": "d6c089cc5f4debf18ad8d819db9a0aeebe6f73f440d391a76719662450ec57c8"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-json-jvm",
+            "version": "1.2.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlinx-serialization-json-jvm-1.2.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1/kotlinx-serialization-json-jvm-1.2.1.jar"
+          ],
+          "sha256": "95900df927130fdd57c79788bac38aba339cd12c0b0b00b9d03e99db932ed885"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-json-jvm",
+            "version": "1.2.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlinx-serialization-json-jvm-1.2.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1/kotlinx-serialization-json-jvm-1.2.1.module"
+          ],
+          "sha256": "abd3f8fefa49f0f4e3fdf5e72178500c8d6ab5e1860911d0f824521dfcaabb7b"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlinx",
+            "name": "kotlinx-serialization-json-jvm",
+            "version": "1.2.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlinx-serialization-json-jvm-1.2.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1/kotlinx-serialization-json-jvm-1.2.1.pom"
+          ],
+          "sha256": "9997c9809b62042405d1494f4ae03014b11ef9da65e939dc9d4161bbd9f6af2e"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter",
+            "version": "5.6.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "junit-jupiter-5.6.0.jar",
+          "path": "org/junit/jupiter/junit-jupiter/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter/5.6.0/junit-jupiter-5.6.0.jar"
+          ],
+          "sha256": "be452c6c1b9ddadaa7f838f038c051c8e9ad2436d44cadd2575e063f614ab10c"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter",
+            "version": "5.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-jupiter-5.6.0.module",
+          "path": "org/junit/jupiter/junit-jupiter/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter/5.6.0/junit-jupiter-5.6.0.module"
+          ],
+          "sha256": "7e50b8cda816cf4aadec8a50b831b466c6338d3e189820f45ccdc23ce0d564bf"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter",
+            "version": "5.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-jupiter-5.6.0.pom",
+          "path": "org/junit/jupiter/junit-jupiter/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter/5.6.0/junit-jupiter-5.6.0.pom"
+          ],
+          "sha256": "640950b3f8291659146f4ef9cfb4855bd6572d6395201b9c4ce5fe1d0c4fb204"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-api",
+            "version": "5.6.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "junit-jupiter-api-5.6.0.jar",
+          "path": "org/junit/jupiter/junit-jupiter-api/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.6.0/junit-jupiter-api-5.6.0.jar"
+          ],
+          "sha256": "128a9828798f978fadfcda255ba365f908e58f6c37275c9e5f671cbd660a9a33"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-api",
+            "version": "5.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-jupiter-api-5.6.0.module",
+          "path": "org/junit/jupiter/junit-jupiter-api/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.6.0/junit-jupiter-api-5.6.0.module"
+          ],
+          "sha256": "97cd25d82b490d80b4582a338546156a8f45ecaa8766484145a72b9015a2fde6"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-api",
+            "version": "5.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-jupiter-api-5.6.0.pom",
+          "path": "org/junit/jupiter/junit-jupiter-api/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-api/5.6.0/junit-jupiter-api-5.6.0.pom"
+          ],
+          "sha256": "ae3f336008d36ca6a7a416ed704c8e57dab9b598705132e4ce465b4dbcbe725a"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-engine",
+            "version": "5.6.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "junit-jupiter-engine-5.6.0.jar",
+          "path": "org/junit/jupiter/junit-jupiter-engine/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.6.0/junit-jupiter-engine-5.6.0.jar"
+          ],
+          "sha256": "670c95d2e60099ce747e2ffefd716dbed5afedd0b995949a3592d7c88e796d2d"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-engine",
+            "version": "5.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-jupiter-engine-5.6.0.module",
+          "path": "org/junit/jupiter/junit-jupiter-engine/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.6.0/junit-jupiter-engine-5.6.0.module"
+          ],
+          "sha256": "10c2179b057a9d7b768ce3f4531415a2bb9472789a0d2ba2d7728eda70f92652"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-engine",
+            "version": "5.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-jupiter-engine-5.6.0.pom",
+          "path": "org/junit/jupiter/junit-jupiter-engine/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.6.0/junit-jupiter-engine-5.6.0.pom"
+          ],
+          "sha256": "2edff9ec02336f8ccb64b79a21d54f9f327b3e20078299fe7060d8bed9838bf0"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-params",
+            "version": "5.6.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "junit-jupiter-params-5.6.0.jar",
+          "path": "org/junit/jupiter/junit-jupiter-params/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-params/5.6.0/junit-jupiter-params-5.6.0.jar"
+          ],
+          "sha256": "dadea8429e8c44774a85f67a511d3d13dab58e694b576f7fca73262484ae02c0"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-params",
+            "version": "5.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-jupiter-params-5.6.0.module",
+          "path": "org/junit/jupiter/junit-jupiter-params/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-params/5.6.0/junit-jupiter-params-5.6.0.module"
+          ],
+          "sha256": "d9248db327a72c4668e116a36d996491ddf936281bc10a99738c337676fd6c9d"
+        },
+        {
+          "id": {
+            "group": "org.junit.jupiter",
+            "name": "junit-jupiter-params",
+            "version": "5.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-jupiter-params-5.6.0.pom",
+          "path": "org/junit/jupiter/junit-jupiter-params/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-params/5.6.0/junit-jupiter-params-5.6.0.pom"
+          ],
+          "sha256": "148e123188333a04e7b9bd5108ce059fb3c62a9c17b903737f2d9be34ced9c94"
+        },
+        {
+          "id": {
+            "group": "org.junit.platform",
+            "name": "junit-platform-commons",
+            "version": "1.6.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "junit-platform-commons-1.6.0.jar",
+          "path": "org/junit/platform/junit-platform-commons/1.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.6.0/junit-platform-commons-1.6.0.jar"
+          ],
+          "sha256": "18accffaf3f1fe66daf9f13daa7d59b2ac6d06396f816a73b4d733d82d28ace6"
+        },
+        {
+          "id": {
+            "group": "org.junit.platform",
+            "name": "junit-platform-commons",
+            "version": "1.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-platform-commons-1.6.0.module",
+          "path": "org/junit/platform/junit-platform-commons/1.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.6.0/junit-platform-commons-1.6.0.module"
+          ],
+          "sha256": "16e0f6f7893159b21a156b818f32f0a4fdb909d2bdc850ed0c57582500578b4c"
+        },
+        {
+          "id": {
+            "group": "org.junit.platform",
+            "name": "junit-platform-commons",
+            "version": "1.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-platform-commons-1.6.0.pom",
+          "path": "org/junit/platform/junit-platform-commons/1.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-commons/1.6.0/junit-platform-commons-1.6.0.pom"
+          ],
+          "sha256": "5751484ae2a6f661bba84fa8c2aae7d4912c693fe25eb3e0adff4d93824c0a9c"
+        },
+        {
+          "id": {
+            "group": "org.junit.platform",
+            "name": "junit-platform-engine",
+            "version": "1.6.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "junit-platform-engine-1.6.0.jar",
+          "path": "org/junit/platform/junit-platform-engine/1.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-engine/1.6.0/junit-platform-engine-1.6.0.jar"
+          ],
+          "sha256": "7aed5424cb31a8255daecb1fcb0c173b0b64b1262e1eb2eaf87bbc7aec5e6d76"
+        },
+        {
+          "id": {
+            "group": "org.junit.platform",
+            "name": "junit-platform-engine",
+            "version": "1.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-platform-engine-1.6.0.module",
+          "path": "org/junit/platform/junit-platform-engine/1.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-engine/1.6.0/junit-platform-engine-1.6.0.module"
+          ],
+          "sha256": "9fab5f84f549fa7925289ddfe5b7dd88f30e6086a5df1de07ebf508a2df25741"
+        },
+        {
+          "id": {
+            "group": "org.junit.platform",
+            "name": "junit-platform-engine",
+            "version": "1.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-platform-engine-1.6.0.pom",
+          "path": "org/junit/platform/junit-platform-engine/1.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/platform/junit-platform-engine/1.6.0/junit-platform-engine-1.6.0.pom"
+          ],
+          "sha256": "55ed9236c3415cbe1d7b06e76f45508647ecb94bafedb99c3bf395f0913bf3d6"
+        },
+        {
+          "id": {
+            "group": "org.kitteh.irc",
+            "name": "client-lib",
+            "version": "8.0.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "client-lib-8.0.0.jar",
+          "path": "org/kitteh/irc/client-lib/8.0.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/kitteh/irc/client-lib/8.0.0/client-lib-8.0.0.jar"
+          ],
+          "sha256": "e1319327aadbcbf656560dc17803231296385a1f4da295cc29f6c7f49c14d3fe"
+        },
+        {
+          "id": {
+            "group": "org.kitteh.irc",
+            "name": "client-lib",
+            "version": "8.0.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "client-lib-8.0.0.pom",
+          "path": "org/kitteh/irc/client-lib/8.0.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/kitteh/irc/client-lib/8.0.0/client-lib-8.0.0.pom"
+          ],
+          "sha256": "a031350e6c311915fd9902c21d5be70fb76d71df775c8236323e56d9df5462de"
+        },
+        {
+          "id": {
+            "group": "org.opentest4j",
+            "name": "opentest4j",
+            "version": "1.2.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "opentest4j-1.2.0.jar",
+          "path": "org/opentest4j/opentest4j/1.2.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar"
+          ],
+          "sha256": "58812de60898d976fb81ef3b62da05c6604c18fd4a249f5044282479fc286af2"
+        },
+        {
+          "id": {
+            "group": "org.opentest4j",
+            "name": "opentest4j",
+            "version": "1.2.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "opentest4j-1.2.0.pom",
+          "path": "org/opentest4j/opentest4j/1.2.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.pom"
+          ],
+          "sha256": "a96e671816c1ff8803bdec74c9241f025bdfb277da5d2b4ee02266405936f994"
+        },
+        {
+          "id": {
+            "group": "org.randomcat",
+            "name": "kotlin-utils",
+            "version": "2.0.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-utils-2.0.1.jar",
+          "path": "org/randomcat/kotlin-utils/2.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/randomcat/kotlin-utils/2.0.1/kotlin-utils-2.0.1.jar"
+          ],
+          "sha256": "c3038db3c769364cb7f80a5c560ba9173d2627c64ce4048b173aaab0778986aa"
+        },
+        {
+          "id": {
+            "group": "org.randomcat",
+            "name": "kotlin-utils",
+            "version": "2.0.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "kotlin-utils-2.0.1.module",
+          "path": "org/randomcat/kotlin-utils/2.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/randomcat/kotlin-utils/2.0.1/kotlin-utils-2.0.1.module"
+          ],
+          "sha256": "b776ca6381677bcd068bb2acef2ca0d67c5715502e9a5d13ee102450c7975ce9"
+        },
+        {
+          "id": {
+            "group": "org.randomcat",
+            "name": "kotlin-utils",
+            "version": "2.0.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-utils-2.0.1.pom",
+          "path": "org/randomcat/kotlin-utils/2.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/randomcat/kotlin-utils/2.0.1/kotlin-utils-2.0.1.pom"
+          ],
+          "sha256": "095007cb1f4fd8c9b37a9b7f052c82e8ad5f26307ad032610dd74ef821c34d06"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-api",
+            "version": "1.7.25",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "slf4j-api-1.7.25.jar",
+          "path": "org/slf4j/slf4j-api/1.7.25",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar"
+          ],
+          "sha256": "18c4a0095d5c1da6b817592e767bb23d29dd2f560ad74df75ff3961dbde25b79"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-api",
+            "version": "1.7.25",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "slf4j-api-1.7.25.pom",
+          "path": "org/slf4j/slf4j-api/1.7.25",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.pom"
+          ],
+          "sha256": "7cd9d7a0b5d93dfd461a148891b43509cf403a9c7f9fb49060d3554df1c81e1e"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-api",
+            "version": "1.7.30",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "slf4j-api-1.7.30.jar",
+          "path": "org/slf4j/slf4j-api/1.7.30",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
+          ],
+          "sha256": "cdba07964d1bb40a0761485c6b1e8c2f8fd9eb1d19c53928ac0d7f9510105c57"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-api",
+            "version": "1.7.30",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "slf4j-api-1.7.30.pom",
+          "path": "org/slf4j/slf4j-api/1.7.30",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.pom"
+          ],
+          "sha256": "7e0747751e9b67e19dcb5206f04ea22cc03d250c422426402eadd03513f2c314"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-parent",
+            "version": "1.7.25",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "slf4j-parent-1.7.25.pom",
+          "path": "org/slf4j/slf4j-parent/1.7.25",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.25/slf4j-parent-1.7.25.pom"
+          ],
+          "sha256": "18f5c52120db036e88d6136f8839c832d074bdda95c756c6f429249d2db54ac6"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-parent",
+            "version": "1.7.30",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "slf4j-parent-1.7.30.pom",
+          "path": "org/slf4j/slf4j-parent/1.7.30",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.30/slf4j-parent-1.7.30.pom"
+          ],
+          "sha256": "11647956e48a0c5bfb3ac33f6da7e83f341002b6857efd335a505b687be34b75"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-simple",
+            "version": "1.7.30",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "slf4j-simple-1.7.30.jar",
+          "path": "org/slf4j/slf4j-simple/1.7.30",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.jar"
+          ],
+          "sha256": "8b9279cbff6b9f88594efae3cf02039b6995030eec023ed43928748c41670fee"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-simple",
+            "version": "1.7.30",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "slf4j-simple-1.7.30.pom",
+          "path": "org/slf4j/slf4j-simple/1.7.30",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.pom"
+          ],
+          "sha256": "471316b19d6769ec96b835d62ccaaea1f71a8f2ee5124f544615d577a0f0070d"
+        },
+        {
+          "id": {
+            "group": "org.sonatype.oss",
+            "name": "oss-parent",
+            "version": "7",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "oss-parent-7.pom",
+          "path": "org/sonatype/oss/oss-parent/7",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/sonatype/oss/oss-parent/7/oss-parent-7.pom"
+          ],
+          "sha256": "b51f8867c92b6a722499557fc3a1fdea77bdf9ef574722fe90ce436a29559454"
+        },
+        {
+          "id": {
+            "group": "org.sonatype.oss",
+            "name": "oss-parent",
+            "version": "9",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "oss-parent-9.pom",
+          "path": "org/sonatype/oss/oss-parent/9",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/sonatype/oss/oss-parent/9/oss-parent-9.pom"
+          ],
+          "sha256": "fb40265f982548212ff82e362e59732b2187ec6f0d80182885c14ef1f982827a"
+        }
+      ]
+    }
+  }
+}
