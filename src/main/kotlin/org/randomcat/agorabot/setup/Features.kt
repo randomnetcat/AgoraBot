@@ -4,7 +4,9 @@ import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.commands.DiscordArchiver
 import org.randomcat.agorabot.config.parsing.features.CitationsConfig
 import org.randomcat.agorabot.config.parsing.features.readCitationsConfig
+import org.randomcat.agorabot.config.parsing.features.readRuleCommandsConfig
 import org.randomcat.agorabot.features.archiveCommandsFeature
+import org.randomcat.agorabot.features.rulesCommandsFeature
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Path
 
@@ -31,4 +33,14 @@ fun setupArchiveFeature(paths: BotDataPaths): Feature {
         discordArchiver = setupArchiver(paths),
         localStorageDir = paths.archiveStorageDir(),
     )
+}
+
+fun setupRuleCommandsFeature(paths: BotDataPaths): Feature? {
+    return readRuleCommandsConfig(
+        paths.featureConfigDir().resolve("rule_commands.json"),
+    )?.let {
+        rulesCommandsFeature(
+            ruleIndexUri = it.ruleIndexUri,
+        )
+    }
 }
