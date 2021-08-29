@@ -38,9 +38,17 @@ class RuleCommand(
 
                             val randomRuleNumber = enactedRuleNumbers.random().jsonPrimitive.content
 
-                            val randomRuleTitle = ruleIndexJson.getValue("known_rules").jsonArray.single {
-                                it.jsonObject.getValue("id").jsonPrimitive.content == randomRuleNumber
-                            }.jsonObject.getValue("title").jsonPrimitive.content
+                            val randomRuleTitle =
+                                ruleIndexJson
+                                    .getValue("known_rules")
+                                    .jsonArray
+                                    .single {
+                                        it.jsonObject.getValue("id").jsonPrimitive.content == randomRuleNumber
+                                    }
+                                    .jsonObject
+                                    .getValue("title")
+                                    .jsonPrimitive
+                                    .content
 
                             respond("Selected: Rule $randomRuleNumber ($randomRuleTitle)")
                         } catch (e: Exception) {
