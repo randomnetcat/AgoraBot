@@ -36,7 +36,8 @@ class RuleCommand(
                             val ruleIndexJson = Json.parseToJsonElement(ruleIndexText).jsonObject
                             val enactedRuleNumbers = ruleIndexJson.getValue("enacted_rules").jsonArray
 
-                            val randomRuleNumber = enactedRuleNumbers.random().jsonPrimitive.content
+                            val randomRuleIndex = (0 until enactedRuleNumbers.size).random()
+                            val randomRuleNumber = enactedRuleNumbers[randomRuleIndex].jsonPrimitive.content
 
                             val randomRuleTitle =
                                 ruleIndexJson
@@ -50,7 +51,7 @@ class RuleCommand(
                                     .jsonPrimitive
                                     .content
 
-                            respond("Selected: Rule $randomRuleNumber ($randomRuleTitle)")
+                            respond("Selected index $randomRuleIndex: Rule $randomRuleNumber ($randomRuleTitle)")
                         } catch (e: Exception) {
                             logger.error("Error while trying to read index", e)
                             respond("Could not read rule index.")
