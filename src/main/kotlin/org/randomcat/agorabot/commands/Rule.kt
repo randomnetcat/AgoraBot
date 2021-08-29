@@ -36,7 +36,7 @@ class RuleCommand(
                             val ruleIndexJson = Json.parseToJsonElement(ruleIndexText).jsonObject
                             val enactedRuleNumbers = ruleIndexJson.getValue("enacted_rules").jsonArray
 
-                            val randomRuleIndex = (0 until enactedRuleNumbers.size).random()
+                            val randomRuleIndex = enactedRuleNumbers.indices.random()
                             val randomRuleNumber = enactedRuleNumbers[randomRuleIndex].jsonPrimitive.content
 
                             val randomRuleTitle =
