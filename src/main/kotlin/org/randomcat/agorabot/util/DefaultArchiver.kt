@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.MessageType
 import org.randomcat.agorabot.commands.DiscordArchiver
 import java.io.BufferedWriter
 import java.io.OutputStream
+import java.io.Writer
 import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Path
@@ -30,7 +31,7 @@ private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.U
 private fun writeMessageTextTo(
     message: Message,
     attachmentNumbers: List<BigInteger>,
-    out: BufferedWriter,
+    out: Writer,
 ) {
     val attachmentLines = attachmentNumbers.map {
         "Attachment $it"
@@ -80,7 +81,7 @@ private fun openTextWriter(textPath: Path): BufferedWriter {
 }
 
 private suspend fun receivePendingDownloads(
-    attachmentChannel: Channel<PendingAttachmentDownload>,
+    attachmentChannel: ReceiveChannel<PendingAttachmentDownload>,
     zipOut: ZipOutputStream,
 ) {
     for (pendingDownload in attachmentChannel) {
@@ -103,7 +104,7 @@ private fun completeZipFile(zipOut: ZipOutputStream, textPath: Path) {
 private suspend fun receiveMessages(
     messageChannel: ReceiveChannel<Message>,
     attachmentChannel: SendChannel<PendingAttachmentDownload>,
-    textOut: BufferedWriter,
+    textOut: Writer,
 ) {
     var currentAttachmentNumber = BigInteger.ZERO
 
