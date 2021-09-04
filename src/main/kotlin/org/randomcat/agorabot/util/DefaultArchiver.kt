@@ -1,11 +1,13 @@
 package org.randomcat.agorabot.util
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.MessageType
@@ -18,7 +20,6 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -131,49 +132,44 @@ class DefaultDiscordArchiver(
 
     private val archiveCount = AtomicReference(BigInteger.ZERO)
 
-    override fun createArchiveFromAsync(
+    override suspend fun createArchiveFrom(
         channel: MessageChannel,
-    ): CompletionStage<Result<Path>> {
+    ): Path {
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
-        // Okay to block because running on IO dispatcher
         @Suppress("BlockingMethodInNonBlockingContext")
-        return CoroutineScope(Dispatchers.IO)
-            .async {
-                val workDir = storageDir.resolve("archive-$archiveNumber")
-                Files.createDirectory(workDir)
-                val textPath = workDir.resolve("messages.txt")
+        return withContext(Dispatchers.IO) {
+            val workDir = storageDir.resolve("archive-$archiveNumber")
+            Files.createDirectory(workDir)
+            val textPath = workDir.resolve("messages.txt")
 
-                val outPath = storageDir.resolve("archive-output-$archiveNumber")
+            val outPath = storageDir.resolve("archive-output-$archiveNumber")
 
-                ZipOutputStream(Files.newOutputStream(outPath)).use { zipOut ->
-                    val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 100)
+            ZipOutputStream(Files.newOutputStream(outPath)).use { zipOut ->
+                val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 100)
 
-                    coroutineScope {
-                        launch {
-                            receivePendingDownloads(attachmentChannel, zipOut)
-                        }
-
-                        launch {
-                            openTextWriter(textPath).use { textOut ->
-                                val messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 500)
-                                receiveMessages(messageChannel, attachmentChannel, textOut)
-                            }
-                        }.also {
-                            it.invokeOnCompletion { cause ->
-                                attachmentChannel.close(cause = cause)
-                            }
-                        }
+                coroutineScope {
+                    launch {
+                        receivePendingDownloads(attachmentChannel, zipOut)
                     }
 
-                    completeZipFile(zipOut, textPath)
+                    launch {
+                        openTextWriter(textPath).use { textOut ->
+                            val messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 500)
+                            receiveMessages(messageChannel, attachmentChannel, textOut)
+                        }
+                    }.also {
+                        it.invokeOnCompletion { cause ->
+                            attachmentChannel.close(cause = cause)
+                        }
+                    }
                 }
 
-                outPath
+                completeZipFile(zipOut, textPath)
             }
-            .asCompletableFuture()
-            .thenApply { Result.success(it) }
-            .exceptionally { Result.failure(it) }
+
+            outPath
+        }
     }
 
     override val archiveExtension: String

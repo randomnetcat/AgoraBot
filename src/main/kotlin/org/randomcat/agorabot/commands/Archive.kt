@@ -1,5 +1,8 @@
 package org.randomcat.agorabot.commands
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.entities.MessageChannel
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
@@ -11,14 +14,13 @@ import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.CompletionStage
 
 private val ARCHIVE_PERMISSION = GuildScope.command("archive")
 
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
 interface DiscordArchiver {
-    fun createArchiveFromAsync(channel: MessageChannel): CompletionStage<Result<Path>>
+    suspend fun createArchiveFrom(channel: MessageChannel): Path
     val archiveExtension: String
 }
 
@@ -97,18 +99,17 @@ class ArchiveCommand(
             }
 
             try {
-                archiver
-                    .createArchiveFromAsync(targetChannel)
-                    .thenApply { path ->
-                        storeArchiveResult(path.getOrThrow())
+                CoroutineScope(Dispatchers.Default).launch {
+                    try {
+                        storeArchiveResult(archiver.createArchiveFrom(targetChannel))
 
                         statusMessage
                             .editMessage("Archive done for channel ${channelId}.")
                             .queue()
+                    } catch (t: Throwable) {
+                        markFailedWith(t)
                     }
-                    .exceptionally {
-                        markFailedWith(it)
-                    }
+                }
             } catch (e: Exception) {
                 markFailedWith(e)
             }
