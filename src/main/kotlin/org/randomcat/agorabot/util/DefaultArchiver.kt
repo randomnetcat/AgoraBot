@@ -12,18 +12,16 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.MessageType
 import org.randomcat.agorabot.commands.DiscordArchiver
-import java.io.BufferedWriter
 import java.io.OutputStream
 import java.io.Writer
 import java.math.BigInteger
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.nio.file.spi.FileSystemProvider
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
+import kotlin.io.path.*
 
 private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
 private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.UTC)
@@ -76,28 +74,27 @@ private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out
     }
 }
 
-private fun openTextWriter(textPath: Path): BufferedWriter {
-    return Files.newOutputStream(textPath, StandardOpenOption.CREATE_NEW).bufferedWriter(charset = Charsets.UTF_8)
-}
-
 private suspend fun receivePendingDownloads(
     attachmentChannel: ReceiveChannel<PendingAttachmentDownload>,
-    zipOut: ZipOutputStream,
+    attachmentsDir: Path,
 ) {
-    for (pendingDownload in attachmentChannel) {
-        val number = pendingDownload.attachmentNumber
-        val fileName = pendingDownload.attachment.fileName
+    @Suppress("BlockingMethodInNonBlockingContext")
+    withContext(Dispatchers.IO) {
+        for (pendingDownload in attachmentChannel) {
+            launch {
+                val number = pendingDownload.attachmentNumber
+                val fileName = pendingDownload.attachment.fileName
 
-        zipOut.putNextEntry(ZipEntry("attachments/attachment-${number}/${fileName}"))
-        writeAttachmentContentTo(pendingDownload.attachment, zipOut)
-    }
-}
+                val attachmentDir = attachmentsDir.resolve("attachment-$number")
+                attachmentDir.createDirectory()
 
-private fun completeZipFile(zipOut: ZipOutputStream, textPath: Path) {
-    zipOut.putNextEntry(ZipEntry("messages.txt"))
+                val outPath = attachmentDir.resolve(fileName)
 
-    Files.newInputStream(textPath).use { textIn ->
-        textIn.copyTo(zipOut)
+                outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
+                    writeAttachmentContentTo(pendingDownload.attachment, outStream)
+                }
+            }
+        }
     }
 }
 
@@ -122,55 +119,87 @@ private suspend fun receiveMessages(
     }
 }
 
+private suspend fun archiveChannel(channel: MessageChannel, basePath: Path) {
+    coroutineScope {
+        val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 10)
+
+        launch {
+            val textPath = basePath.resolve("messages.txt")
+
+            try {
+                textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
+                    receiveMessages(
+                        messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 100),
+                        attachmentChannel = attachmentChannel,
+                        textOut = textOut,
+                    )
+                }
+            } finally {
+                attachmentChannel.close()
+            }
+        }
+
+        launch {
+            val attachmentsDir = basePath.resolve("attachments")
+            attachmentsDir.createDirectory()
+
+            receivePendingDownloads(
+                attachmentChannel = attachmentChannel,
+                attachmentsDir = attachmentsDir,
+            )
+        }
+    }
+}
+
+private val ZIP_FILE_SYSTEM_PROVIDER = FileSystemProvider.installedProviders().single {
+    it.scheme.equals("jar", ignoreCase = true)
+}
+
+private val ZIP_FILE_SYSTEM_CREATE_OPTIONS = mapOf("create" to "true")
+
 class DefaultDiscordArchiver(
     private val storageDir: Path,
 ) : DiscordArchiver {
     init {
         // Clean out any old archives
         deleteRecursively(storageDir)
-        Files.createDirectories(storageDir)
+        storageDir.createDirectories()
     }
 
     private val archiveCount = AtomicReference(BigInteger.ZERO)
 
     override suspend fun createArchiveFrom(
-        channel: MessageChannel,
+        channels: List<MessageChannel>,
     ): Path {
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
+        val workDir = storageDir.resolve("archive-$archiveNumber")
+        val archivePath = workDir.resolve("generated-archive.zip")
+
         @Suppress("BlockingMethodInNonBlockingContext")
-        return withContext(Dispatchers.IO) {
-            val workDir = storageDir.resolve("archive-$archiveNumber")
-            Files.createDirectory(workDir)
-            val textPath = workDir.resolve("messages.txt")
+        withContext(Dispatchers.IO) {
+            workDir.createDirectory()
 
-            val outPath = storageDir.resolve("archive-output-$archiveNumber")
-
-            ZipOutputStream(Files.newOutputStream(outPath)).use { zipOut ->
-                val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 100)
-
+            ZIP_FILE_SYSTEM_PROVIDER.newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
                 coroutineScope {
-                    launch {
-                        receivePendingDownloads(attachmentChannel, zipOut)
-                    }
+                    for (channel in channels) {
+                        launch {
+                            val outDir = zipFs.getPath(channel.id)
+                            outDir.createDirectory()
 
-                    launch {
-                        openTextWriter(textPath).use { textOut ->
-                            val messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 500)
-                            receiveMessages(messageChannel, attachmentChannel, textOut)
-                        }
-                    }.also {
-                        it.invokeOnCompletion { cause ->
-                            attachmentChannel.close(cause = cause)
+                            archiveChannel(
+                                channel = channel,
+                                basePath = outDir,
+                            )
                         }
                     }
                 }
-
-                completeZipFile(zipOut, textPath)
             }
-
-            outPath
         }
+
+        check(archivePath.isRegularFile())
+
+        return archivePath
     }
 
     override val archiveExtension: String

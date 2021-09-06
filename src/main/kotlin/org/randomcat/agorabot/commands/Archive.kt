@@ -20,7 +20,7 @@ private val ARCHIVE_PERMISSION = GuildScope.command("archive")
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
 interface DiscordArchiver {
-    suspend fun createArchiveFrom(channel: MessageChannel): Path
+    suspend fun createArchiveFrom(channels: List<MessageChannel>): Path
     val archiveExtension: String
 }
 
@@ -101,7 +101,7 @@ class ArchiveCommand(
             try {
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
-                        storeArchiveResult(archiver.createArchiveFrom(targetChannel))
+                        storeArchiveResult(archiver.createArchiveFrom(listOf(targetChannel)))
 
                         statusMessage
                             .editMessage("Archive done for channel ${channelId}.")
