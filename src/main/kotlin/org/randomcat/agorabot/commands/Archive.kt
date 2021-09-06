@@ -39,72 +39,76 @@ class ArchiveCommand(
 
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
-            args(StringArg("channel_id"))
+            args(LiteralArg("store_locally"), RemainingStringArgs("channel_id"))
                 .requiresGuild()
-                .permissions(ARCHIVE_PERMISSION) { (channelId) ->
-                    doArchive(channelId = channelId, storeArchiveResult = { path ->
-                        currentChannel()
-                            .sendMessage("Archive for channel $channelId")
-                            .addFile(
-                                path.toFile(),
-                                "archive_${channelId}_${formatCurrentDate()}.${archiver.archiveExtension}",
-                            )
-                            .queue()
-                    })
-                }
-
-            args(StringArg("channel_id"), LiteralArg("store_locally"))
-                .requiresGuild()
-                .permissions(ARCHIVE_PERMISSION, BotScope.admin()) { (channelId) ->
-                    doArchive(channelId = channelId, storeArchiveResult = { path ->
-                        val fileName = "archive_${channelId}_${formatCurrentDate()}.${archiver.archiveExtension}"
+                .permissions(ARCHIVE_PERMISSION, BotScope.admin()) { (_, channelIds) ->
+                    doArchive(channelIds = channelIds, storeArchiveResult = { path ->
+                        val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
 
                         Files.copy(path, localStorageDir.resolve(fileName))
 
                         respond("Stored file locally at $fileName")
                     })
                 }
+
+            args(RemainingStringArgs("channel_ids"))
+                .requiresGuild()
+                .permissions(ARCHIVE_PERMISSION) { (channelIds) ->
+                    doArchive(channelIds = channelIds, storeArchiveResult = { path ->
+                        currentChannel()
+                            .sendMessage("Archive for channels $channelIds")
+                            .addFile(
+                                path.toFile(),
+                                "archive_${formatCurrentDate()}.${archiver.archiveExtension}",
+                            )
+                            .queue()
+                    })
+                }
         }
     }
 
     private fun BaseCommandExecutionReceiverGuilded.doArchive(
-        channelId: String,
+        channelIds: List<String>,
         storeArchiveResult: BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
     ) {
-        val targetChannel = currentGuildInfo().guild.getTextChannelById(channelId)
-
-        if (targetChannel == null) {
-            respond("No channel with that ID exists.")
-            return
-        }
-
         val member = currentMessageEvent().member ?: error("Member should exist because this is in a Guild")
 
-        if (
-            !member.hasPermission(targetChannel, DiscordPermission.MESSAGE_READ) ||
-            !member.hasPermission(targetChannel, DiscordPermission.MESSAGE_HISTORY)
-        ) {
-            respond("You do not have permission to read within that channel.")
-            return
+        val targetChannels = channelIds.toSet().map { id ->
+            val channel = currentGuildInfo().guild.getTextChannelById(id)
+
+            if (channel == null) {
+                respond("The channel id $id does not exist.")
+                return
+            }
+
+            if (
+                !member.hasPermission(channel, DiscordPermission.MESSAGE_READ) ||
+                !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
+            ) {
+                respond("You do not have permission to read in the channel $id.")
+                return
+            }
+
+            channel
         }
 
-        currentChannel().sendMessage("Running archive job on channel ${channelId}...").queue { statusMessage ->
+        currentChannel().sendMessage("Running archive job...").queue { statusMessage ->
             fun markFailed() {
-                statusMessage.editMessage("Archive job failed for channel ${channelId}!").queue()
+                statusMessage.editMessage("Archive job failed!").queue()
             }
 
             fun markFailedWith(e: Throwable) {
                 markFailed()
-                LOGGER.error("Error while archiving channel $channelId", e)
+                LOGGER.error("Error while archiving channels $channelIds", e)
             }
 
             try {
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
-                        storeArchiveResult(archiver.createArchiveFrom(listOf(targetChannel)))
+                        storeArchiveResult(archiver.createArchiveFrom(targetChannels))
 
                         statusMessage
-                            .editMessage("Archive done for channel ${channelId}.")
+                            .editMessage("Archive done for channel ids $channelIds.")
                             .queue()
                     } catch (t: Throwable) {
                         markFailedWith(t)
