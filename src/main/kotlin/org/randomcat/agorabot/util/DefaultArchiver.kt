@@ -1,5 +1,10 @@
 package org.randomcat.agorabot.util
 
+import jakarta.json.Json
+import jakarta.json.JsonArrayBuilder
+import jakarta.json.JsonObject
+import jakarta.json.JsonValue
+import jakarta.json.stream.JsonGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -98,24 +103,77 @@ private suspend fun receivePendingDownloads(
     }
 }
 
+private fun JsonGenerator.writeStartMessages() {
+    writeStartObject()
+    writeKey("messages")
+    writeStartObject()
+}
+
+private fun JsonGenerator.writeEndMessages() {
+    writeEnd() // End messages object
+    writeEnd() // End top-level object
+}
+
+private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List<BigInteger>) {
+    val messageObject = with(Json.createObjectBuilder()) {
+        add("author_id", message.author.id)
+        add("text", message.contentRaw)
+
+        add("instant_created", DateTimeFormatter.ISO_INSTANT.format(message.timeCreated))
+
+        message.timeEdited?.let { timeEdited ->
+            add("instant_edited", DateTimeFormatter.ISO_INSTANT.format(timeEdited))
+        }
+
+        add(
+            "attachment_numbers",
+            if (attachmentNumbers.isNotEmpty()) {
+                Json
+                    .createArrayBuilder()
+                    .apply {
+                        attachmentNumbers.forEach(this::add)
+                    }
+                    .build()
+            } else {
+                JsonObject.EMPTY_JSON_ARRAY
+            },
+        )
+
+        build()
+    }
+
+    write(
+        message.id,
+        messageObject,
+    )
+}
+
 private suspend fun receiveMessages(
     messageChannel: ReceiveChannel<Message>,
     attachmentChannel: SendChannel<PendingAttachmentDownload>,
     textOut: Writer,
+    jsonOut: Writer,
 ) {
     var currentAttachmentNumber = BigInteger.ZERO
 
-    for (message in messageChannel) {
-        if (message.type != MessageType.DEFAULT) continue
+    Json.createGenerator(jsonOut.nonClosingView()).use { jsonGenerator ->
+        jsonGenerator.writeStartMessages()
 
-        val attachmentNumbers = message.attachments.map {
-            val number = ++currentAttachmentNumber
-            attachmentChannel.send(PendingAttachmentDownload(it, number))
+        for (message in messageChannel) {
+            if (message.type != MessageType.DEFAULT) continue
 
-            number
+            val attachmentNumbers = message.attachments.map {
+                val number = ++currentAttachmentNumber
+                attachmentChannel.send(PendingAttachmentDownload(it, number))
+
+                number
+            }
+
+            writeMessageTextTo(message, attachmentNumbers, textOut)
+            jsonGenerator.writeMessage(message, attachmentNumbers)
         }
 
-        writeMessageTextTo(message, attachmentNumbers, textOut)
+        jsonGenerator.writeEndMessages()
     }
 }
 
@@ -125,14 +183,18 @@ private suspend fun archiveChannel(channel: MessageChannel, basePath: Path) {
 
         launch {
             val textPath = basePath.resolve("messages.txt")
+            val jsonPath = basePath.resolve("messages.json")
 
             try {
                 textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
-                    receiveMessages(
-                        messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 100),
-                        attachmentChannel = attachmentChannel,
-                        textOut = textOut,
-                    )
+                    jsonPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { jsonOut ->
+                        receiveMessages(
+                            messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 100),
+                            attachmentChannel = attachmentChannel,
+                            textOut = textOut,
+                            jsonOut = jsonOut,
+                        )
+                    }
                 }
             } finally {
                 attachmentChannel.close()
