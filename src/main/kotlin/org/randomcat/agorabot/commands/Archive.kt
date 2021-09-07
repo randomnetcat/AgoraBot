@@ -3,7 +3,7 @@ package org.randomcat.agorabot.commands
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.Guild
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
@@ -20,7 +20,11 @@ private val ARCHIVE_PERMISSION = GuildScope.command("archive")
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
 interface DiscordArchiver {
-    suspend fun createArchiveFrom(channels: List<MessageChannel>): Path
+    suspend fun createArchiveFrom(
+        guild: Guild,
+        channelIds: Set<String>,
+    ): Path
+
     val archiveExtension: String
 }
 
@@ -73,11 +77,13 @@ class ArchiveCommand(
     ) {
         val member = currentMessageEvent().member ?: error("Member should exist because this is in a Guild")
 
-        val targetChannels = channelIds.toSet().map { id ->
-            val channel = currentGuildInfo().guild.getTextChannelById(id)
+        val distinctChannelIds = channelIds.toSet()
+
+        for (channelId in channelIds) {
+            val channel = currentGuildInfo().guild.getTextChannelById(channelId)
 
             if (channel == null) {
-                respond("The channel id $id does not exist.")
+                respond("The channel id $channelId does not exist.")
                 return
             }
 
@@ -85,11 +91,9 @@ class ArchiveCommand(
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_READ) ||
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
             ) {
-                respond("You do not have permission to read in the channel $id.")
+                respond("You do not have permission to read in the channel $channelId.")
                 return
             }
-
-            channel
         }
 
         currentChannel().sendMessage("Running archive job...").queue { statusMessage ->
@@ -105,7 +109,12 @@ class ArchiveCommand(
             try {
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
-                        storeArchiveResult(archiver.createArchiveFrom(targetChannels))
+                        storeArchiveResult(
+                            archiver.createArchiveFrom(
+                                guild = currentGuildInfo().guild,
+                                channelIds = distinctChannelIds,
+                            ),
+                        )
 
                         statusMessage
                             .editMessage("Archive done for channel ids $channelIds.")

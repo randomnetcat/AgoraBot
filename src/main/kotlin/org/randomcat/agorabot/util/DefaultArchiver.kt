@@ -1,9 +1,7 @@
 package org.randomcat.agorabot.util
 
 import jakarta.json.Json
-import jakarta.json.JsonArrayBuilder
 import jakarta.json.JsonObject
-import jakarta.json.JsonValue
 import jakarta.json.stream.JsonGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -13,6 +11,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.MessageType
@@ -231,7 +230,8 @@ class DefaultDiscordArchiver(
     private val archiveCount = AtomicReference(BigInteger.ZERO)
 
     override suspend fun createArchiveFrom(
-        channels: List<MessageChannel>,
+        guild: Guild,
+        channelIds: Set<String>,
     ): Path {
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
@@ -244,9 +244,15 @@ class DefaultDiscordArchiver(
 
             ZIP_FILE_SYSTEM_PROVIDER.newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
                 coroutineScope {
-                    for (channel in channels) {
+                    for (channelId in channelIds) {
+                        val channel = guild.getTextChannelById(channelId)
+
+                        requireNotNull(channel) {
+                            "Invalid channel id: $channelId"
+                        }
+
                         launch {
-                            val outDir = zipFs.getPath(channel.id)
+                            val outDir = zipFs.getPath(channelId)
                             outDir.createDirectory()
 
                             archiveChannel(
