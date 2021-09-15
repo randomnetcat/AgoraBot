@@ -118,6 +118,12 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
         add("author_id", message.author.id)
         add("text", message.contentRaw)
 
+        if (message.type == MessageType.INLINE_REPLY) {
+            message.messageReference?.messageId?.let { referencedId ->
+                add("reply_to_id", referencedId)
+            }
+        }
+
         add("instant_created", DateTimeFormatter.ISO_INSTANT.format(message.timeCreated))
 
         message.timeEdited?.let { timeEdited ->
