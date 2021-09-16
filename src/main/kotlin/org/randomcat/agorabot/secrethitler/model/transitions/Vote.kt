@@ -68,7 +68,6 @@ private fun GameState.Running.With<EphemeralState.VotingOngoing>.afterElectedGov
                     discardDeck = this.globalState.boardState.deckState.discardDeck,
                 ),
             )
-            .withElectionTrackerReset()
             .withTermLimitedGovernment(this.ephemeralState.governmentMembers)
 
     val newEphemeralState = EphemeralState.PresidentPolicyChoicePending(

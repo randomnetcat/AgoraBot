@@ -112,16 +112,20 @@ fun GameState.Running.With<EphemeralState.ChancellorPolicyChoicePending>.afterCh
 
     val discardedPolicies = ephemeralState.options.policies.toPersistentList().removeAt(policyIndex)
 
-    val globalStateWithNewDeck = globalState.withDeckState(
-        SecretHitlerDeckState(
-            drawDeck = globalState.boardState.deckState.drawDeck,
-            discardDeck = globalState.boardState.deckState.discardDeck.afterDiscardingAll(discardedPolicies),
-        ).shuffledIfDrawPileSmall(
-            shuffleProvider = shuffleProvider,
-        )
-    )
-
-    return when (val enactResult = globalStateWithNewDeck.afterEnacting(policyType)) {
+    return when (
+        val enactResult =
+            globalState
+                .withDeckState(
+                    SecretHitlerDeckState(
+                        drawDeck = globalState.boardState.deckState.drawDeck,
+                        discardDeck = globalState.boardState.deckState.discardDeck.afterDiscardingAll(discardedPolicies),
+                    ).shuffledIfDrawPileSmall(
+                        shuffleProvider = shuffleProvider,
+                    ),
+                )
+                .withElectionTrackerReset()
+                .afterEnacting(policyType)
+    ) {
         is SecretHitlerEnactmentResult.GameContinues -> {
             handleGameContinuing(
                 enactResult = enactResult,
