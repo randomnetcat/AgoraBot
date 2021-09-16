@@ -156,6 +156,7 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
 private suspend fun receiveMessages(
     messageChannel: ReceiveChannel<Message>,
     attachmentChannel: SendChannel<PendingAttachmentDownload>,
+    globalDataChannel: SendChannel<ArchiveGlobalData>,
     textOut: Writer,
     jsonOut: Writer,
 ) {
@@ -174,6 +175,36 @@ private suspend fun receiveMessages(
                 number
             }
 
+            globalDataChannel.send(
+                ArchiveGlobalData.ReferencedUser(
+                    id = message.author.id,
+                ),
+            )
+
+            message.mentionedUsers.forEach {
+                globalDataChannel.send(
+                    ArchiveGlobalData.ReferencedUser(
+                        id = it.id,
+                    ),
+                )
+            }
+
+            message.mentionedRoles.forEach {
+                globalDataChannel.send(
+                    ArchiveGlobalData.ReferencedRole(
+                        id = it.id,
+                    ),
+                )
+            }
+
+            message.mentionedChannels.forEach {
+                globalDataChannel.send(
+                    ArchiveGlobalData.ReferencedChannel(
+                        id = it.id,
+                    ),
+                )
+            }
+
             writeMessageTextTo(message, attachmentNumbers, textOut)
             jsonGenerator.writeMessage(message, attachmentNumbers)
         }
@@ -182,8 +213,21 @@ private suspend fun receiveMessages(
     }
 }
 
-private suspend fun archiveChannel(channel: MessageChannel, basePath: Path) {
-    coroutineScope {
+private sealed class ArchiveGlobalData {
+    data class ReferencedUser(val id: String) : ArchiveGlobalData()
+    data class ReferencedRole(val id: String) : ArchiveGlobalData()
+    data class ReferencedChannel(val id: String) : ArchiveGlobalData()
+}
+
+private suspend fun archiveChannel(
+    channel: MessageChannel,
+    globalDataChannel: SendChannel<ArchiveGlobalData>,
+    basePath: Path,
+) {
+    @Suppress("BlockingMethodInNonBlockingContext")
+    withContext(Dispatchers.IO) {
+        globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
+
         val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 10)
 
         launch {
@@ -196,6 +240,7 @@ private suspend fun archiveChannel(channel: MessageChannel, basePath: Path) {
                         receiveMessages(
                             messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 100),
                             attachmentChannel = attachmentChannel,
+                            globalDataChannel = globalDataChannel,
                             textOut = textOut,
                             jsonOut = jsonOut,
                         )
@@ -214,6 +259,108 @@ private suspend fun archiveChannel(channel: MessageChannel, basePath: Path) {
                 attachmentChannel = attachmentChannel,
                 attachmentsDir = attachmentsDir,
             )
+        }
+    }
+}
+
+private suspend fun receiveGlobalData(
+    dataChannel: ReceiveChannel<ArchiveGlobalData>,
+    guild: Guild,
+    outPath: Path,
+) {
+    val userObjects = mutableMapOf<String, JsonObject?>()
+    val roleObjects = mutableMapOf<String, JsonObject?>()
+    val channelObjects = mutableMapOf<String, JsonObject?>()
+
+    for (data in dataChannel) {
+        when (data) {
+            is ArchiveGlobalData.ReferencedChannel -> {
+                channelObjects.computeIfAbsent(data.id) { id ->
+                    guild.getGuildChannelById(id)?.let { channel ->
+                        Json.createObjectBuilder().run {
+                            add("name", channel.name)
+
+                            build()
+                        }
+                    }
+                }
+            }
+
+            is ArchiveGlobalData.ReferencedRole -> {
+                roleObjects.computeIfAbsent(data.id) { id ->
+                    guild.getRoleById(id)?.let { role ->
+                        Json.createObjectBuilder().run {
+                            add("name", role.name)
+
+                            build()
+                        }
+                    }
+                }
+            }
+
+            is ArchiveGlobalData.ReferencedUser -> {
+                val id = data.id
+
+                // Have to suspend in the body, so computeIfAbsent is not usable
+                userObjects.getOrPut(id) {
+                    val member = runCatching { guild.retrieveMemberById(id).await() }.getOrNull()
+                    val nickname = member?.nickname
+                    val user =
+                        member?.user
+                            ?: runCatching { guild.jda.retrieveUserById(id).await() }.getOrNull()
+                            ?: return@getOrPut null
+
+                    Json.createObjectBuilder().run {
+                        add("username", user.name)
+
+                        if (nickname != null) {
+                            add("nickname", nickname)
+                        }
+
+                        build()
+                    }
+                }
+            }
+        }
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    withContext(Dispatchers.IO) {
+        outPath.bufferedWriter().use { reader ->
+            // This with close the reader, but that's fine, since close is idempotent
+            Json.createGenerator(reader).use { generator ->
+                with(generator) {
+                    writeStartObject() // start top-level
+                    writeStartObject("users")
+
+                    for ((id, userObject) in userObjects) {
+                        if (userObject != null) {
+                            write(id, userObject)
+                        }
+                    }
+
+                    writeEnd() // end users
+                    writeStartObject("roles")
+
+                    for ((id, roleObject) in roleObjects) {
+                        if (roleObject != null) {
+                            write(id, roleObject)
+                        }
+                    }
+
+                    writeEnd() // end roles
+                    writeStartObject("channels")
+
+                    for ((id, channelObject) in channelObjects) {
+                        if (channelObject != null) {
+                            write(id, channelObject)
+                        }
+                    }
+
+                    writeEnd() // end channels
+                    writeEnd() // end top-level
+                }
+            }
         }
     }
 }
@@ -250,22 +397,39 @@ class DefaultDiscordArchiver(
 
             ZIP_FILE_SYSTEM_PROVIDER.newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
                 coroutineScope {
-                    for (channelId in channelIds) {
-                        val channel = guild.getTextChannelById(channelId)
+                    val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
 
-                        requireNotNull(channel) {
-                            "Invalid channel id: $channelId"
+                    launch {
+                        receiveGlobalData(
+                            dataChannel = globalDataChannel,
+                            guild = guild,
+                            outPath = zipFs.getPath("global_data.json"),
+                        )
+                    }
+
+                    try {
+                        coroutineScope {
+                            for (channelId in channelIds) {
+                                val channel = guild.getTextChannelById(channelId)
+
+                                requireNotNull(channel) {
+                                    "Invalid channel id: $channelId"
+                                }
+
+                                launch {
+                                    val outDir = zipFs.getPath(channelId)
+                                    outDir.createDirectory()
+
+                                    archiveChannel(
+                                        channel = channel,
+                                        globalDataChannel = globalDataChannel,
+                                        basePath = outDir,
+                                    )
+                                }
+                            }
                         }
-
-                        launch {
-                            val outDir = zipFs.getPath(channelId)
-                            outDir.createDirectory()
-
-                            archiveChannel(
-                                channel = channel,
-                                basePath = outDir,
-                            )
-                        }
+                    } finally {
+                        globalDataChannel.close()
                     }
                 }
             }
