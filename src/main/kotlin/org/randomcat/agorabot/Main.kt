@@ -23,6 +23,9 @@ import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
+import org.randomcat.agorabot.setup.features.setupArchiveFeature
+import org.randomcat.agorabot.setup.features.setupCitationsConfig
+import org.randomcat.agorabot.setup.features.setupRuleCommandsFeature
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
