@@ -10,12 +10,11 @@ import org.randomcat.agorabot.features.rulesCommandsFeature
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Path
 
-private fun BotDataPaths.featureConfigDir(): Path {
-    return configPath.resolve("features")
-}
+private val BotDataPaths.featureConfigDir: Path
+    get() = configPath.resolve("features")
 
 fun setupCitationsConfig(paths: BotDataPaths): CitationsConfig? {
-    return readCitationsConfig(paths.featureConfigDir().resolve("citations.json"))
+    return readCitationsConfig(paths.featureConfigDir.resolve("citations.json"))
 }
 
 private fun BotDataPaths.archiveStorageDir(): Path {
@@ -37,7 +36,7 @@ fun setupArchiveFeature(paths: BotDataPaths): Feature {
 
 fun setupRuleCommandsFeature(paths: BotDataPaths): Feature? {
     return readRuleCommandsConfig(
-        paths.featureConfigDir().resolve("rule_commands.json"),
+        paths.featureConfigDir.resolve("rule_commands.json"),
     )?.let {
         rulesCommandsFeature(
             ruleIndexUri = it.ruleIndexUri,
