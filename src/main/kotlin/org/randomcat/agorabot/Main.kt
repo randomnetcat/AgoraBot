@@ -23,6 +23,10 @@ import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
+import org.randomcat.agorabot.setup.features.setupArchiveFeature
+import org.randomcat.agorabot.setup.features.setupCitationsConfig
+import org.randomcat.agorabot.setup.features.setupRuleCommandsFeature
+import org.randomcat.agorabot.setup.features.setupSecretHitlerFeature
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
@@ -242,6 +246,7 @@ private fun runBot(config: BotRunConfig) {
             "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
             "button_test" to buttonTestFeature(),
             "secret_hitler" to setupSecretHitlerFeature(config.paths, persistService),
+            "rule_commands" to setupRuleCommandsFeature(config.paths),
         )
 
         val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(

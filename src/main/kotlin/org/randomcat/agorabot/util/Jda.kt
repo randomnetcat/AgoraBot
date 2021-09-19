@@ -93,26 +93,6 @@ private fun MessageChannel.retrieveEarliestMessage(): RestAction<Message?> {
     }
 }
 
-fun MessageChannel.forwardHistorySequence() = sequence {
-    var lastRetrievedMessage = retrieveEarliestMessage().complete() ?: return@sequence
-    yield(lastRetrievedMessage)
-
-    while (true) {
-        val nextHistory =
-            getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).complete()
-
-        if (nextHistory.isEmpty) {
-            return@sequence
-        }
-
-        // retrievedHistory is always newest -> oldest, we want oldest -> newest
-        val nextMessages = nextHistory.retrievedHistory.asReversed()
-
-        yieldAll(nextMessages)
-        lastRetrievedMessage = nextMessages.last()
-    }
-}
-
 fun CoroutineScope.forwardHistoryChannelOf(
     discordChannel: MessageChannel,
     bufferCapacity: Int = 0,
