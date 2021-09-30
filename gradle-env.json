@@ -1683,48 +1683,78 @@
         },
         {
           "id": {
-            "group": "net.dv8tion",
-            "name": "JDA",
-            "version": "4.2.1_269",
+            "group": "jakarta.json",
+            "name": "jakarta.json-api",
+            "version": "2.0.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "JDA-4.2.1_269.jar",
-          "path": "net/dv8tion/JDA/4.2.1_269",
+          "name": "jakarta.json-api-2.0.1.jar",
+          "path": "jakarta/json/jakarta.json-api/2.0.1",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.2.1_269/JDA-4.2.1_269.jar"
+            "https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.0.1/jakarta.json-api-2.0.1.jar"
           ],
-          "sha256": "e5e932e81377054e3d098489f47c9d42a57697663b49e954618acf8e278537a2"
+          "sha256": "6152cdc29c3e99ad4bfb367d43464c9fe97ac800ddc1952b2452c5e0c21f89fd"
         },
         {
           "id": {
-            "group": "net.dv8tion",
-            "name": "JDA",
-            "version": "4.2.1_269",
-            "type": "module",
-            "extension": "module"
-          },
-          "name": "JDA-4.2.1_269.module",
-          "path": "net/dv8tion/JDA/4.2.1_269",
-          "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.2.1_269/JDA-4.2.1_269.module"
-          ],
-          "sha256": "5abcd2fc4152b84351d1028774593ac15a16bdb802bd208130a0b2280dde663e"
-        },
-        {
-          "id": {
-            "group": "net.dv8tion",
-            "name": "JDA",
-            "version": "4.2.1_269",
+            "group": "jakarta.json",
+            "name": "jakarta.json-api",
+            "version": "2.0.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "JDA-4.2.1_269.pom",
-          "path": "net/dv8tion/JDA/4.2.1_269",
+          "name": "jakarta.json-api-2.0.1.pom",
+          "path": "jakarta/json/jakarta.json-api/2.0.1",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.2.1_269/JDA-4.2.1_269.pom"
+            "https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.0.1/jakarta.json-api-2.0.1.pom"
           ],
-          "sha256": "7fdb08637ef61515b159d239e6e8f7ffdc74d81ae5ee92272ab210eb3d2d0edc"
+          "sha256": "541f6e0f45b0ecd9969c4073a37885ef62ad67a1057ddd3fb1a59e44f931384b"
+        },
+        {
+          "id": {
+            "group": "net.dv8tion",
+            "name": "JDA",
+            "version": "4.3.0_315",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "JDA-4.3.0_315.jar",
+          "path": "net/dv8tion/JDA/4.3.0_315",
+          "urls": [
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_315/JDA-4.3.0_315.jar"
+          ],
+          "sha256": "9636aa115db575e5e7fcadedde15a1890b25e676f82bf2a43ecd5510561ddb75"
+        },
+        {
+          "id": {
+            "group": "net.dv8tion",
+            "name": "JDA",
+            "version": "4.3.0_315",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "JDA-4.3.0_315.module",
+          "path": "net/dv8tion/JDA/4.3.0_315",
+          "urls": [
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_315/JDA-4.3.0_315.module"
+          ],
+          "sha256": "442007269cc4b0494d662f44bcf44d4dd67f15c40e53c4e9b1a4a829af895bda"
+        },
+        {
+          "id": {
+            "group": "net.dv8tion",
+            "name": "JDA",
+            "version": "4.3.0_315",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "JDA-4.3.0_315.pom",
+          "path": "net/dv8tion/JDA/4.3.0_315",
+          "urls": [
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_315/JDA-4.3.0_315.pom"
+          ],
+          "sha256": "02c582c43d09fba299e8eb62ee25ee296972b9ec487ecdafd175ac55f8a229d0"
         },
         {
           "id": {
@@ -1905,6 +1935,66 @@
             "https://repo.maven.apache.org/maven2/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.pom"
           ],
           "sha256": "a945b9cb5cd9b77b2c711844e659c43ec070ef59d9f509fa9f4c1861b4862711"
+        },
+        {
+          "id": {
+            "group": "org.eclipse.ee4j",
+            "name": "project",
+            "version": "1.0.6",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "project-1.0.6.pom",
+          "path": "org/eclipse/ee4j/project/1.0.6",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/eclipse/ee4j/project/1.0.6/project-1.0.6.pom"
+          ],
+          "sha256": "4e7d8329d8da7dcf30779d824241be145f27108932f5a5a24eb907677bc8d72d"
+        },
+        {
+          "id": {
+            "group": "org.glassfish",
+            "name": "jakarta.json",
+            "version": "2.0.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "jakarta.json-2.0.1.jar",
+          "path": "org/glassfish/jakarta.json/2.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/glassfish/jakarta.json/2.0.1/jakarta.json-2.0.1.jar"
+          ],
+          "sha256": "52539b39498b86ca9910b0eacc608a8c78de8db3842caa84bc87169372202cc0"
+        },
+        {
+          "id": {
+            "group": "org.glassfish",
+            "name": "jakarta.json",
+            "version": "2.0.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "jakarta.json-2.0.1.pom",
+          "path": "org/glassfish/jakarta.json/2.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/glassfish/jakarta.json/2.0.1/jakarta.json-2.0.1.pom"
+          ],
+          "sha256": "420c4ea83d6675c7f10848443051fcba7f7a4fe02f6d23d75825c8560b6a273a"
+        },
+        {
+          "id": {
+            "group": "org.glassfish",
+            "name": "json",
+            "version": "2.0.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "json-2.0.1.pom",
+          "path": "org/glassfish/json/2.0.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/glassfish/json/2.0.1/json-2.0.1.pom"
+          ],
+          "sha256": "732eb299deff64b532eed2d890cb5da1fb40147596c083eb2d71f463e0cced76"
         },
         {
           "id": {
