@@ -116,7 +116,8 @@ private fun JsonGenerator.writeEndMessages() {
 private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List<BigInteger>) {
     val messageObject = with(Json.createObjectBuilder()) {
         add("author_id", message.author.id)
-        add("text", message.contentRaw)
+        add("raw_text", message.contentRaw)
+        add("display_text", message.contentDisplay)
 
         if (message.type == MessageType.INLINE_REPLY) {
             message.messageReference?.messageId?.let { referencedId ->
