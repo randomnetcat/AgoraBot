@@ -4,7 +4,20 @@ let
   unwrappedBuild = buildGradle {
     envSpec = ./gradle-env.json;
 
-    src = ./.;
+    src = pkgs.lib.cleanSourceWith {
+      filter = pkgs.lib.cleanSourceFilter;
+      src = pkgs.lib.cleanSourceWith {
+        filter = path: type: let baseName = baseNameOf path; in !(
+          (type == "directory" && (
+            baseName == "build" ||
+            baseName == ".idea" ||
+            baseName == ".gradle"
+          )) ||
+          (pkgs.lib.hasSuffix ".iml" baseName)
+        );
+        src = ./.;
+      };
+    };
 
     gradleFlags = [ "installDist" ];
 
