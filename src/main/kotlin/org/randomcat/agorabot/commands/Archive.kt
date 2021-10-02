@@ -91,19 +91,21 @@ class ArchiveCommand(
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_READ) ||
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
             ) {
-                respond("You do not have permission to read in the channel $channelId.")
+                respond("You do not have permission to read in the channel <#$channelId>.")
                 return
             }
         }
 
-        currentChannel().sendMessage("Running archive job...").queue { statusMessage ->
+        val channelNamesString = channelIds.joinToString(", ") { "<#$it>" }
+
+        currentChannel().sendMessage("Running archive job for channels $channelNamesString...").queue { statusMessage ->
             fun markFailed() {
                 statusMessage.editMessage("Archive job failed!").queue()
             }
 
             fun markFailedWith(e: Throwable) {
                 markFailed()
-                LOGGER.error("Error while archiving channels $channelIds", e)
+                LOGGER.error("Error while archiving channels $channelNamesString", e)
             }
 
             try {
@@ -117,7 +119,7 @@ class ArchiveCommand(
                         )
 
                         statusMessage
-                            .editMessage("Archive done for channel ids $channelIds.")
+                            .editMessage("Archive done for channels $channelNamesString.")
                             .queue()
                     } catch (t: Throwable) {
                         markFailedWith(t)
