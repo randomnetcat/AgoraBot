@@ -14,7 +14,6 @@ import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
-import net.dv8tion.jda.api.entities.MessageType
 import org.randomcat.agorabot.commands.DiscordArchiver
 import java.io.OutputStream
 import java.io.Writer
@@ -115,14 +114,22 @@ private fun JsonGenerator.writeEndMessages() {
 
 private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List<BigInteger>) {
     val messageObject = with(Json.createObjectBuilder()) {
+        add("type", message.type.name)
         add("author_id", message.author.id)
         add("raw_text", message.contentRaw)
-        add("display_text", message.contentDisplay)
+        if (!message.type.isSystem) add("display_text", message.contentDisplay)
 
-        if (message.type == MessageType.INLINE_REPLY) {
-            message.messageReference?.messageId?.let { referencedId ->
-                add("reply_to_id", referencedId)
-            }
+        message.messageReference?.let {
+            add(
+                "referenced_message",
+                with(Json.createObjectBuilder()) {
+                    add("guild_id", it.guildId)
+                    add("channel_id", it.channelId)
+                    add("message_id", it.messageId)
+
+                    build()
+                }
+            )
         }
 
         add("instant_created", DateTimeFormatter.ISO_INSTANT.format(message.timeCreated))
@@ -167,8 +174,6 @@ private suspend fun receiveMessages(
         jsonGenerator.writeStartMessages()
 
         for (message in messageChannel) {
-            if (message.type != MessageType.DEFAULT) continue
-
             val attachmentNumbers = message.attachments.map {
                 val number = ++currentAttachmentNumber
                 attachmentChannel.send(PendingAttachmentDownload(it, number))
@@ -202,6 +207,14 @@ private suspend fun receiveMessages(
                 globalDataChannel.send(
                     ArchiveGlobalData.ReferencedChannel(
                         id = it.id,
+                    ),
+                )
+            }
+
+            message.messageReference?.let {
+                globalDataChannel.send(
+                    ArchiveGlobalData.ReferencedChannel(
+                        id = it.channelId,
                     ),
                 )
             }
