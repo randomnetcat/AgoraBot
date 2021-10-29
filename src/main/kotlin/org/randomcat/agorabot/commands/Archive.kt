@@ -43,30 +43,53 @@ class ArchiveCommand(
 
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
-            args(LiteralArg("store_locally"), RemainingStringArgs("channel_id"))
+            args(RemainingStringArgs("marker_or_id"))
                 .requiresGuild()
-                .permissions(ARCHIVE_PERMISSION, BotScope.admin()) { (_, channelIds) ->
-                    doArchive(channelIds = channelIds, storeArchiveResult = { path ->
-                        val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
+                .permissions(ARCHIVE_PERMISSION) { (args) ->
+                    val isStoreLocally = args.contains("store_locally")
+                    val isCategoryIds = args.contains("categories")
 
-                        Files.copy(path, localStorageDir.resolve(fileName))
+                    val rawIds = args - listOf("store_locally", "categories")
 
-                        respond("Stored file locally at $fileName")
-                    })
-                }
+                    if (isStoreLocally && !senderHasPermission(BotScope.admin())) {
+                        respond("Archives can only be stored locally by bot admins.")
+                        return@permissions
+                    }
 
-            args(RemainingStringArgs("channel_ids"))
-                .requiresGuild()
-                .permissions(ARCHIVE_PERMISSION) { (channelIds) ->
-                    doArchive(channelIds = channelIds, storeArchiveResult = { path ->
-                        currentChannel()
-                            .sendMessage("Archive for channels $channelIds")
-                            .addFile(
-                                path.toFile(),
-                                "archive_${formatCurrentDate()}.${archiver.archiveExtension}",
-                            )
-                            .queue()
-                    })
+                    val channelIds = if (isCategoryIds) {
+                        val categories =
+                            rawIds.mapNotNull { id ->
+                                currentGuildInfo().guild.getCategoryById(id).also {
+                                    if (it == null) {
+                                        respond("Unable to find category by id $it")
+                                        return@permissions
+                                    }
+                                }
+                            }
+
+                        categories.flatMap { it.textChannels }.map { it.id }
+                    } else {
+                        rawIds
+                    }
+
+                    doArchive(
+                        channelIds = channelIds.distinct(),
+                        storeArchiveResult = { path ->
+                            if (isStoreLocally) {
+                                val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
+                                Files.copy(path, localStorageDir.resolve(fileName))
+                                respond("Stored file locally at $fileName")
+                            } else {
+                                currentChannel()
+                                    .sendMessage("Archive for channels $channelIds")
+                                    .addFile(
+                                        path.toFile(),
+                                        "archive_${formatCurrentDate()}.${archiver.archiveExtension}",
+                                    )
+                                    .queue()
+                            }
+                        },
+                    )
                 }
         }
     }
@@ -91,19 +114,21 @@ class ArchiveCommand(
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_READ) ||
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
             ) {
-                respond("You do not have permission to read in the channel $channelId.")
+                respond("You do not have permission to read in the channel <#$channelId>.")
                 return
             }
         }
 
-        currentChannel().sendMessage("Running archive job...").queue { statusMessage ->
+        val channelNamesString = channelIds.joinToString(", ") { "<#$it>" }
+
+        currentChannel().sendMessage("Running archive job for channels $channelNamesString...").queue { statusMessage ->
             fun markFailed() {
                 statusMessage.editMessage("Archive job failed!").queue()
             }
 
             fun markFailedWith(e: Throwable) {
                 markFailed()
-                LOGGER.error("Error while archiving channels $channelIds", e)
+                LOGGER.error("Error while archiving channels $channelNamesString", e)
             }
 
             try {
@@ -117,7 +142,7 @@ class ArchiveCommand(
                         )
 
                         statusMessage
-                            .editMessage("Archive done for channel ids $channelIds.")
+                            .editMessage("Archive done for channels $channelNamesString.")
                             .queue()
                     } catch (t: Throwable) {
                         markFailedWith(t)
