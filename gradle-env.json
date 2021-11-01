@@ -1715,46 +1715,46 @@
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "4.3.0_315",
+            "version": "4.3.0_339",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "JDA-4.3.0_315.jar",
-          "path": "net/dv8tion/JDA/4.3.0_315",
+          "name": "JDA-4.3.0_339.jar",
+          "path": "net/dv8tion/JDA/4.3.0_339",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_315/JDA-4.3.0_315.jar"
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_339/JDA-4.3.0_339.jar"
           ],
-          "sha256": "9636aa115db575e5e7fcadedde15a1890b25e676f82bf2a43ecd5510561ddb75"
+          "sha256": "aba52e8f0581e93ee3e96b4e61cfa92ea7fbb9334f6e438a1c8d0bac67b8ddd3"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "4.3.0_315",
+            "version": "4.3.0_339",
             "type": "module",
             "extension": "module"
           },
-          "name": "JDA-4.3.0_315.module",
-          "path": "net/dv8tion/JDA/4.3.0_315",
+          "name": "JDA-4.3.0_339.module",
+          "path": "net/dv8tion/JDA/4.3.0_339",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_315/JDA-4.3.0_315.module"
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_339/JDA-4.3.0_339.module"
           ],
-          "sha256": "442007269cc4b0494d662f44bcf44d4dd67f15c40e53c4e9b1a4a829af895bda"
+          "sha256": "869be8e912191a3347ad0c834aa55d970737fccef6731a90925bd32c7d0cc4ac"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "4.3.0_315",
+            "version": "4.3.0_339",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "JDA-4.3.0_315.pom",
-          "path": "net/dv8tion/JDA/4.3.0_315",
+          "name": "JDA-4.3.0_339.pom",
+          "path": "net/dv8tion/JDA/4.3.0_339",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_315/JDA-4.3.0_315.pom"
+            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_339/JDA-4.3.0_339.pom"
           ],
-          "sha256": "02c582c43d09fba299e8eb62ee25ee296972b9ec487ecdafd175ac55f8a229d0"
+          "sha256": "afd3d0cf00cd3192df7ce2b880cbbd72e762d4435a47204f26a087087f7180f0"
         },
         {
           "id": {
