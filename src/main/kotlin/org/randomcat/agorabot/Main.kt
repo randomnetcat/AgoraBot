@@ -175,6 +175,8 @@ private fun runBot(config: BotRunConfig) {
 
     val startupMessageStrategy = setupStartupMessageStrategy(config.paths)
 
+    logger.info("Setting up JDA")
+
     val jda =
         JDABuilder
             .createDefault(
@@ -187,7 +189,11 @@ private fun runBot(config: BotRunConfig) {
             .setEventManager(AnnotatedEventManager())
             .build()
 
+    logger.info("Waiting for JDA to be ready...")
+
     jda.awaitReady()
+
+    logger.info("JDA ready")
 
     try {
         val relayConnectedEndpointMap: RelayConnectedEndpointMap?
@@ -195,6 +201,8 @@ private fun runBot(config: BotRunConfig) {
 
         when (ircSetupResult) {
             is IrcSetupResult.Connected -> {
+                logger.info("Connecting to relay endpoints...")
+
                 relayConnectedEndpointMap = connectToRelayEndpoints(
                     endpointsConfig = ircSetupResult.config.relayConfig.endpointsConfig,
                     context = RelayConnectionContext(
@@ -208,9 +216,13 @@ private fun runBot(config: BotRunConfig) {
                     relayConnectedEndpointMap = relayConnectedEndpointMap,
                     relayEntriesConfig = ircSetupResult.config.relayConfig.relayEntriesConfig,
                 )
+
+                logger.info("Relay endpoints initialized")
             }
 
             else -> {
+                logger.info("IRC endpoints not available, not connecting")
+
                 relayConnectedEndpointMap = null
                 commandOutputMapping = CommandOutputMapping.empty()
             }
@@ -297,12 +309,18 @@ private fun runBot(config: BotRunConfig) {
 
         delayedRegistryReference.set(commandRegistry)
 
+        logger.info("Adding JDA event listeners")
+
+        logger.info("Adding command listener...")
+
         jda.addEventListener(
             BotListener(
                 MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
                 commandRegistry,
             ),
         )
+
+        logger.info("Adding button listener..")
 
         jda.addEventListener(BotButtonListener { event ->
             val id = ButtonRequestId(event.componentId)
@@ -340,8 +358,11 @@ private fun runBot(config: BotRunConfig) {
             }
         })
 
+        logger.info("Added JDA event listeners")
 
         if (ircSetupResult is IrcSetupResult.Connected) {
+            logger.info("Initializing relay between relay endpoints...")
+
             val clientMap = ircSetupResult.clients
 
             try {
@@ -352,6 +373,8 @@ private fun runBot(config: BotRunConfig) {
                         commandRegistry = commandRegistry,
                     )
                 }
+
+                logger.info("Relay initialized.")
             } catch (e: Exception) {
                 for (client in clientMap.clients) {
                     client.shutdown("Exception during connection setup")
