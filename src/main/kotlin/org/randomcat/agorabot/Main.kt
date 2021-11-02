@@ -441,6 +441,21 @@ private class AgoraBotCommand : CliktCommand() {
     }
 }
 
+private fun javaWorkarounds() {
+    // Workaround for JDK-8274349
+    // https://bugs.openjdk.java.net/browse/JDK-8274349
+
+    // Workaround code from https://github.com/DV8FromTheWorld/JDA/issues/1858#issuecomment-942066283
+
+    val cores = Runtime.getRuntime().availableProcessors()
+
+    if (cores <= 1) {
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "1")
+    }
+}
+
 fun main(args: Array<String>) {
+    javaWorkarounds()
+
     return AgoraBotCommand().main(args)
 }
