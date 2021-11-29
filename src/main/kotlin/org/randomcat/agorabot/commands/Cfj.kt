@@ -60,6 +60,32 @@ private fun BaseCommandExecutionReceiver.respondFourFactor() {
     respond(fourFactorsResponse)
 }
 
+private const val POORLY_WORDED_LOTS = 5
+
+private fun randomShouldRespondPoorlyWorded(): Boolean {
+    return Random.nextInt(POORLY_WORDED_LOTS) == 0
+}
+
+private val WORD_BOUNDARY_REGEX = Regex("\\b+")
+private val EXCLUDED_WORDS = setOf("a", "an", "the", "it", "this", "but", "and", "or", "is", "was", "are")
+
+private fun formatResponse(statement: String, response: String, usePoorlyWorded: Boolean): String {
+    fun makeBasicResponse() = "\"$statement\" judged $response."
+
+    return if (usePoorlyWorded) {
+        val allParts = statement.split(WORD_BOUNDARY_REGEX).filter { it.isNotBlank() }.map { it.lowercase() }
+        val reasonableParts = allParts.toSet() - EXCLUDED_WORDS
+
+        if (reasonableParts.isNotEmpty()) {
+            "The ${reasonableParts.random()} rule is badly worded, but \"$statement\" judged $response"
+        } else {
+            makeBasicResponse()
+        }
+    } else {
+        makeBasicResponse()
+    }
+}
+
 class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
@@ -77,7 +103,15 @@ class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 }
 
                 val statement = statementParts.joinToString(" ")
-                respond("\"$statement\" judged ${randomResponse()}.")
+                val response = randomResponse()
+
+                respond(
+                    formatResponse(
+                        statement = statement,
+                        response = response,
+                        usePoorlyWorded = randomShouldRespondPoorlyWorded(),
+                    ),
+                )
             }
         }
     }
