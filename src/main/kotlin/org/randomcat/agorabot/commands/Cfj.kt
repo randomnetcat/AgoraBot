@@ -23,7 +23,7 @@ private val UNLIKELY_RESPONSES = listOf(
     "RUDE AND GROSS",
 )
 
-private val MODERATE_RESOPONSES = listOf(
+private val MODERATE_RESPONSES = listOf(
     "DISMISS",
     "IRRELEVANT",
 )
@@ -33,7 +33,7 @@ private val LIKELY_RESPONSES = listOf(
     "FALSE",
 )
 
-private val RESPONSES = LIKELY_RESPONSES.repeated(10) + MODERATE_RESOPONSES.repeated(2) + UNLIKELY_RESPONSES
+private val RESPONSES = LIKELY_RESPONSES.repeated(10) + MODERATE_RESPONSES.repeated(2) + UNLIKELY_RESPONSES
 
 private fun randomShouldFourFactor(): Boolean {
     return Random.nextInt(FOUR_FACTORS_LOTS) == 0
