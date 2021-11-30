@@ -59,6 +59,7 @@ interface GuildPrefixMap {
 interface MutableGuildPrefixMap : GuildPrefixMap {
     fun addPrefixForGuild(guildId: String, prefix: String)
     fun removePrefixForGuild(guildId: String, prefix: String)
+    fun clearPrefixesForGuild(guildId: String)
 }
 
 class GlobalPrefixCommandParser(private val prefix: String) : CommandParser {

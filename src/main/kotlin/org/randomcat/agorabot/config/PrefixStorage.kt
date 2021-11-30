@@ -58,6 +58,12 @@ class JsonPrefixMap(
         }
     }
 
+    override fun clearPrefixesForGuild(guildId: String) {
+        storage.updateValue { oldMap ->
+            oldMap.put(guildId, persistentListOf())
+        }
+    }
+
     override fun prefixesForGuild(guildId: String): List<String> {
         return storage.getValue().getOrDefault(guildId, defaultList)
     }
