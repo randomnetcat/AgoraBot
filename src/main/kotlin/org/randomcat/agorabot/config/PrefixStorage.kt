@@ -47,7 +47,7 @@ class JsonPrefixMap(
             val old = oldMap.getOrDefault(guildId, defaultList)
             // Put the longest prefixes first, so if we have overlapping prefixes--say "please"
             // and "please please", both "please cfj" and "please please cfj" work as expected
-            oldMap.put(guildId, old.add(prefix).sortedByDescending { it.length }.toPersistentList())
+            oldMap.put(guildId, old.add(prefix).mutate { mutator -> mutator.sortByDescending { it.length } })
         }
     }
 
@@ -55,6 +55,12 @@ class JsonPrefixMap(
         storage.updateValue { oldMap ->
             val old = oldMap.getOrDefault(guildId, defaultList)
             oldMap.put(guildId, old.removeAll { it == prefix })
+        }
+    }
+
+    override fun clearPrefixesForGuild(guildId: String) {
+        storage.updateValue { oldMap ->
+            oldMap.put(guildId, persistentListOf())
         }
     }
 

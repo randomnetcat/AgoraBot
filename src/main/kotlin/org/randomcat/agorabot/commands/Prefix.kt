@@ -75,6 +75,13 @@ class PrefixCommand(
                     respond("The prefix has been removed.")
                 }
             }
+
+            subcommand("clear") {
+                noArgs().requiresGuild().permissions(GuildScope.command("prefix").action("set")) { _ ->
+                    prefixMap.clearPrefixesForGuild(currentGuildInfo().guildId)
+                    respond("All prefixes have been removed. You can still @mention the bot to run commands.")
+                }
+            }
         }
     }
 }

@@ -31,5 +31,5 @@ let
 in
   pkgs.writeShellScriptBin "AgoraBot" ''
     export JAVA_HOME=${pkgs.lib.escapeShellArg "${pkgs.jdk.home}"}
-    ${pkgs.lib.escapeShellArg "${unwrappedBuild}/bin/AgoraBot"} "$@"
+    exec ${pkgs.lib.escapeShellArg "${unwrappedBuild}/bin/AgoraBot"} "$@"
   ''

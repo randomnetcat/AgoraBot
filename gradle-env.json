@@ -482,31 +482,31 @@
           "id": {
             "group": "org.jetbrains.kotlin",
             "name": "kotlin-reflect",
-            "version": "1.4.31",
+            "version": "1.5.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlin-reflect-1.4.31.jar",
-          "path": "org/jetbrains/kotlin/kotlin-reflect/1.4.31",
+          "name": "kotlin-reflect-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.5.0",
           "urls": [
-            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.jar"
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.5.0/kotlin-reflect-1.5.0.jar"
           ],
-          "sha256": "91fad0b42974a7d5811e30a61f05706e176b144235717c6de7e81e3a781028f2"
+          "sha256": "e30acc4ff74534177d1657feafb57327ede838ae17763aeaae182a9109d26157"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlin",
             "name": "kotlin-reflect",
-            "version": "1.4.31",
+            "version": "1.5.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlin-reflect-1.4.31.pom",
-          "path": "org/jetbrains/kotlin/kotlin-reflect/1.4.31",
+          "name": "kotlin-reflect-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.5.0",
           "urls": [
-            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.pom"
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.5.0/kotlin-reflect-1.5.0.pom"
           ],
-          "sha256": "8e49bab843dd855f315c87e390c529a9ca239121d8bffb85b3acfa2f60603697"
+          "sha256": "c833a8024fb8a62b5639e429635d9fb358507742222405c12d4a94de1eeea22d"
         },
         {
           "id": {
@@ -692,61 +692,61 @@
           "id": {
             "group": "org.jetbrains.kotlin",
             "name": "kotlin-stdlib",
-            "version": "1.4.31",
+            "version": "1.5.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlin-stdlib-1.4.31.jar",
-          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.4.31",
+          "name": "kotlin-stdlib-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.5.0",
           "urls": [
-            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.jar"
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.5.0/kotlin-stdlib-1.5.0.jar"
           ],
-          "sha256": "76a599d88b167e8ac90879b6daa722c6ad3452ba714c9aba19bd196544b97f1c"
+          "sha256": "52283996fe4067cd7330288b96ae67ecd463614dc741172c54d9d349ab6a9cd7"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlin",
             "name": "kotlin-stdlib",
-            "version": "1.4.31",
+            "version": "1.5.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlin-stdlib-1.4.31.pom",
-          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.4.31",
+          "name": "kotlin-stdlib-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.5.0",
           "urls": [
-            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.pom"
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.5.0/kotlin-stdlib-1.5.0.pom"
           ],
-          "sha256": "8519e3e7ac5ee700527ee10488eb432f1aa106dccdde7c06c3bab258a1ddbd4e"
+          "sha256": "95c92ed856dbdf768325a6f28d670a2da70a49b0da56a0751da2d1d35a7b99b5"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlin",
             "name": "kotlin-stdlib-common",
-            "version": "1.4.31",
+            "version": "1.5.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlin-stdlib-common-1.4.31.jar",
-          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31",
+          "name": "kotlin-stdlib-common-1.5.0.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0",
           "urls": [
-            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.jar"
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0/kotlin-stdlib-common-1.5.0.jar"
           ],
-          "sha256": "57962f44371a746b678218a0802a8712c6255206de9a69ede215e3aa4b044708"
+          "sha256": "c14ce6720a487b5e238f1b0c30ac3ad73e45b90a40731ca0b1cfddec1a37682f"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlin",
             "name": "kotlin-stdlib-common",
-            "version": "1.4.31",
+            "version": "1.5.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlin-stdlib-common-1.4.31.pom",
-          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31",
+          "name": "kotlin-stdlib-common-1.5.0.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0",
           "urls": [
-            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.pom"
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.5.0/kotlin-stdlib-common-1.5.0.pom"
           ],
-          "sha256": "1582ab130b68fcbb89b2e915573c1f99f8ba3bc68fdd451f6b362d6c53353187"
+          "sha256": "d3852184b2c3bd26d8681ef8fc3977c2a301153d27871f11df8e2c115de7f104"
         },
         {
           "id": {
@@ -884,7 +884,98 @@
           "sha256": "b51f8867c92b6a722499557fc3a1fdea77bdf9ef574722fe90ce436a29559454"
         }
       ],
-      "buildscript": [],
+      "buildscript": [
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-reflect",
+            "version": "1.4.31",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-reflect-1.4.31.jar",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.jar"
+          ],
+          "sha256": "91fad0b42974a7d5811e30a61f05706e176b144235717c6de7e81e3a781028f2"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-reflect",
+            "version": "1.4.31",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-reflect-1.4.31.pom",
+          "path": "org/jetbrains/kotlin/kotlin-reflect/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.pom"
+          ],
+          "sha256": "8e49bab843dd855f315c87e390c529a9ca239121d8bffb85b3acfa2f60603697"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.4.31",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-1.4.31.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.jar"
+          ],
+          "sha256": "76a599d88b167e8ac90879b6daa722c6ad3452ba714c9aba19bd196544b97f1c"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.4.31",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-1.4.31.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.pom"
+          ],
+          "sha256": "8519e3e7ac5ee700527ee10488eb432f1aa106dccdde7c06c3bab258a1ddbd4e"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.4.31",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-common-1.4.31.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.jar"
+          ],
+          "sha256": "57962f44371a746b678218a0802a8712c6255206de9a69ede215e3aa4b044708"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.4.31",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-common-1.4.31.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31",
+          "urls": [
+            "https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.pom"
+          ],
+          "sha256": "1582ab130b68fcbb89b2e915573c1f99f8ba3bc68fdd451f6b362d6c53353187"
+        }
+      ],
       "project": [
         {
           "id": {
@@ -897,9 +988,10 @@
           "name": "opus-java-1.1.0.module",
           "path": "club/minnced/opus-java/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.0/opus-java-1.1.0.module",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java/1.1.0/opus-java-1.1.0.module"
           ],
-          "sha256": "044464dcd361956bbdf603f55df37f3c433cb8b5d444007cbd5a610e05d0d1df"
+          "sha256": "f7c697e5339d54bd54ef212b9fd4dd3f4be594d7572b2128555619fd53fa0f48"
         },
         {
           "id": {
@@ -912,9 +1004,10 @@
           "name": "opus-java-1.1.0.pom",
           "path": "club/minnced/opus-java/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.0/opus-java-1.1.0.pom",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java/1.1.0/opus-java-1.1.0.pom"
           ],
-          "sha256": "36a05061cb07d75c0131608d05b071daaca06bc7dc0613a331e6c47668e2d3e2"
+          "sha256": "bb5ed45ce9c1e8d68115e64487c899380441814a5ba98718d884fe9c8826321e"
         },
         {
           "id": {
@@ -927,6 +1020,7 @@
           "name": "opus-java-api-1.1.0.jar",
           "path": "club/minnced/opus-java-api/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.jar",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.jar"
           ],
           "sha256": "068dd763417242be029c63d93cdcda3f02a4c43c4ae8dd929a4bf3e2f57b855d"
@@ -942,9 +1036,10 @@
           "name": "opus-java-api-1.1.0.module",
           "path": "club/minnced/opus-java-api/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.module",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.module"
           ],
-          "sha256": "825a29e1dc3b933a168780a3c72c1506be294d5704b323e5fbdb10c5933d7977"
+          "sha256": "3d237ad6af3a4174eab9e18cc55a9e8baeefd7659529146f035f53bd00b9b607"
         },
         {
           "id": {
@@ -957,9 +1052,10 @@
           "name": "opus-java-api-1.1.0.pom",
           "path": "club/minnced/opus-java-api/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.pom",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.pom"
           ],
-          "sha256": "871eba461e68268a5c9dfd1b689b44fe23138893bc1894a94501bcce92926513"
+          "sha256": "4219674a4d3c5f850117c828fea1dee3cf497f63a5d510b98251e23a6852ec11"
         },
         {
           "id": {
@@ -972,6 +1068,7 @@
           "name": "opus-java-natives-1.1.0.jar",
           "path": "club/minnced/opus-java-natives/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.jar",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.jar"
           ],
           "sha256": "5206ccd297d5ed7aa1296c10a012301f54f21a406093b76e018aea518dfbf091"
@@ -987,9 +1084,10 @@
           "name": "opus-java-natives-1.1.0.module",
           "path": "club/minnced/opus-java-natives/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.module",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.module"
           ],
-          "sha256": "975915ffcc92dba48c3e238a008409764e84751895f1636255708b762fb917fb"
+          "sha256": "5edc431139ac0cf83e637eba2d6a4afc8b7e46bddd5bc1a014f383286e98055f"
         },
         {
           "id": {
@@ -1002,9 +1100,10 @@
           "name": "opus-java-natives-1.1.0.pom",
           "path": "club/minnced/opus-java-natives/1.1.0",
           "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.pom",
             "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.pom"
           ],
-          "sha256": "3c254fd755bbcd7ac682eb05aacf8dbc840feaf4fd3fa0607e6190a23d528423"
+          "sha256": "fc8730a994b08749bc2b5bebaa0ab856b070a25a39d15babfcca0b28f0f2cb58"
         },
         {
           "id": {
@@ -3120,6 +3219,36 @@
             "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.2.1/kotlinx-serialization-json-jvm-1.2.1.pom"
           ],
           "sha256": "9997c9809b62042405d1494f4ae03014b11ef9da65e939dc9d4161bbd9f6af2e"
+        },
+        {
+          "id": {
+            "group": "org.junit",
+            "name": "junit-bom",
+            "version": "5.6.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "junit-bom-5.6.0.module",
+          "path": "org/junit/junit-bom/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.6.0/junit-bom-5.6.0.module"
+          ],
+          "sha256": "269715f105d5c8183e9f5742ddfa2f5db16a53dbf06db4c9ebfeca04b8483b3c"
+        },
+        {
+          "id": {
+            "group": "org.junit",
+            "name": "junit-bom",
+            "version": "5.6.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "junit-bom-5.6.0.pom",
+          "path": "org/junit/junit-bom/5.6.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.6.0/junit-bom-5.6.0.pom"
+          ],
+          "sha256": "22a3c0736304a8230dfeeb866fc81b4163d06789bfbe810ecc0fe680fba550f0"
         },
         {
           "id": {
