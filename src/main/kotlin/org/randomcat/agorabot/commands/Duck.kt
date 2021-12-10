@@ -16,8 +16,8 @@ class DuckCommand(
             subcommand("start") {
                 noArgs().requiresDiscord {
                     val listeningSpec = ListeningSpec(
-                        channelId = currentChannel().id,
-                        userId = currentMessageEvent().author.id,
+                        channelId = currentChannel.id,
+                        userId = currentMessageEvent.author.id,
                     )
 
                     addListener(listeningSpec)

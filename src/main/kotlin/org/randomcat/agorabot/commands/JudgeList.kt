@@ -43,12 +43,12 @@ private val EDIT_PERMISSION = GuildScope.command("judge_list").action("edit")
 private const val STATE_KEY = "judge_list.state"
 
 private fun BaseCommandExecutionReceiverGuilded.getJudgeListState(): JudgeListState {
-    return currentGuildInfo().guildState.get<JudgeListStateDto>(STATE_KEY)?.build()
+    return currentGuildInfo.guildState.get<JudgeListStateDto>(STATE_KEY)?.build()
         ?: JudgeListState.default()
 }
 
 private fun BaseCommandExecutionReceiverGuilded.updateJudgeListState(block: (JudgeListState) -> JudgeListState) {
-    currentGuildInfo().guildState.update<JudgeListStateDto>(STATE_KEY) { old ->
+    currentGuildInfo.guildState.update<JudgeListStateDto>(STATE_KEY) { old ->
         JudgeListStateDto.from(block(old?.build() ?: JudgeListState.default()))
     }
 }

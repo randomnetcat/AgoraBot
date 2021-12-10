@@ -253,24 +253,27 @@ interface BaseCommandExecutionReceiver {
 
 @CommandDslMarker
 interface BaseCommandExecutionReceiverDiscord : BaseCommandExecutionReceiver {
-    fun currentGuildInfo(): GuildInfo?
-
-    fun currentMessageEvent(): MessageReceivedEvent
+    val currentGuildInfo: GuildInfo?
+    val currentMessageEvent: MessageReceivedEvent
 
     fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration): String
 }
 
-fun BaseCommandExecutionReceiverDiscord.currentJda(): JDA = currentMessageEvent().jda
+val BaseCommandExecutionReceiverDiscord.currentJda: JDA
+    get() = currentMessageEvent.jda
 
-fun BaseCommandExecutionReceiverDiscord.currentChannel(): MessageChannel = currentMessageEvent().channel
-fun BaseCommandExecutionReceiverDiscord.currentChannelId(): String = currentChannel().id
+val BaseCommandExecutionReceiverDiscord.currentChannel: MessageChannel
+    get() = currentMessageEvent.channel
+
+val BaseCommandExecutionReceiverDiscord.currentChannelId: String
+    get() = currentChannel.id
 
 fun BaseCommandExecutionReceiverDiscord.botHasPermission(permission: DiscordPermission): Boolean {
-    return currentGuildInfo()?.guild?.selfMember?.hasPermission(permission) ?: false
+    return currentGuildInfo?.guild?.selfMember?.hasPermission(permission) ?: false
 }
 
 interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiverDiscord {
-    override fun currentGuildInfo(): GuildInfo
+    override val currentGuildInfo: GuildInfo
 }
 
 
@@ -311,12 +314,14 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         source: CommandEventSource,
         invocation: CommandInvocation,
     ) : ExecutionReceiverImpl(strategy, source, invocation), BaseCommandExecutionReceiverDiscord {
-        override fun currentMessageEvent() = (source as CommandEventSource.Discord).event
+        override val currentMessageEvent
+            get() = (source as CommandEventSource.Discord).event
 
-        override fun currentGuildInfo(): GuildInfo? {
-            val event = currentMessageEvent()
-            return if (event.isFromGuild) GuildInfo(event, strategy) else null
-        }
+        override val currentGuildInfo: GuildInfo?
+            get() {
+                val event = currentMessageEvent
+                return if (event.isFromGuild) GuildInfo(event, strategy) else null
+            }
 
         override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration): String {
             return strategy
@@ -333,9 +338,10 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         source: CommandEventSource,
         invocation: CommandInvocation,
     ) : ExecutionReceiverDiscordImpl(strategy, source, invocation), BaseCommandExecutionReceiverGuilded {
-        override fun currentGuildInfo(): GuildInfo {
-            return super.currentGuildInfo() ?: error("Being in a guild should have already been enforced")
-        }
+        override val currentGuildInfo: GuildInfo
+            get() {
+                return super.currentGuildInfo ?: error("Being in a guild should have already been enforced")
+            }
     }
 
     override fun invoke(source: CommandEventSource, invocation: CommandInvocation) {

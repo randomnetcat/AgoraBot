@@ -46,7 +46,7 @@ class ReactionRolesCommand(
         emoteString: String,
         crossinline block: (GuildInfo, reactionStorageName: String) -> Unit,
     ) {
-        val guildInfo = currentGuildInfo()
+        val guildInfo = currentGuildInfo
 
         guildInfo.guild.retrieveEmoteStorageName(emoteString).queue { reactionStorageName ->
             if (reactionStorageName != null) {

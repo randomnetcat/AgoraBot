@@ -11,9 +11,9 @@ class StopCommand(
     override fun BaseCommandImplReceiver.impl() {
         noArgs().requiresDiscord().permissions(BotScope.admin()) {
             try {
-                writeChannelFun(currentChannel().id)
+                writeChannelFun(currentChannel.id)
             } finally {
-                currentJda().shutdownNow()
+                currentJda.shutdownNow()
                 exitProcess(0)
             }
         }

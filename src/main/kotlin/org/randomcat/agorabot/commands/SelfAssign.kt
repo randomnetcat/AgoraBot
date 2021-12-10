@@ -30,7 +30,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         roleName: String,
         crossinline block: (GuildInfo, Role) -> Unit,
     ) {
-        val guildInfo = currentGuildInfo()
+        val guildInfo = currentGuildInfo
 
         val role = guildInfo.resolveRole(roleName) ?: run {
             respond("Could not find a role by that name.")
@@ -72,7 +72,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     }
 
     private fun BaseCommandExecutionReceiverGuilded.handleListRequest() {
-        val assignableRoles = currentGuildInfo().assignableRoles()
+        val assignableRoles = currentGuildInfo.assignableRoles()
 
         if (assignableRoles.isEmpty()) {
             respond("No roles are self-assignable.")

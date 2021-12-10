@@ -15,7 +15,7 @@ class PermissionsCommand(
         stringPath: String,
         newState: BotPermissionState,
     ) {
-        val guildId = currentGuildInfo().guildId
+        val guildId = currentGuildInfo.guildId
 
         check(senderHasPermission(MANAGE_GUILD_PERMISSIONS_PERMISSION))
 
@@ -89,7 +89,7 @@ class PermissionsCommand(
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
                 ) { (roleString, stringPath) ->
-                    val guildInfo = currentGuildInfo()
+                    val guildInfo = currentGuildInfo
 
                     val role = guildInfo.resolveRole(roleString)
                     if (role == null) {
