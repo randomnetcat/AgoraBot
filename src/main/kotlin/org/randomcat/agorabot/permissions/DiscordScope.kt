@@ -6,11 +6,11 @@ private const val DISCORD_PERMISSION_SCOPE = "discord"
 
 object DiscordScope {
     fun permission(permission: DiscordPermission) = object : BotPermission {
-        override val path: PermissionScopedPath
-            get() = PermissionScopedPath(
-                scope = DISCORD_PERMISSION_SCOPE,
-                basePath = PermissionPath(listOf(permission.name)),
-            )
+        private val path = PermissionPath(listOf(permission.name))
+
+        override fun readable(): String {
+            return formatScopedPermission(scope = DISCORD_PERMISSION_SCOPE, path = path)
+        }
 
         override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
             return when (userContext) {

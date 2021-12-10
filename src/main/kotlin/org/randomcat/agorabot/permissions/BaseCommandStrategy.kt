@@ -42,8 +42,7 @@ fun makePermissionsStrategy(
             permission: BotPermission,
         ) {
             source.tryRespondWithText(
-                "Could not execute due to lack of `${permission.path.scope}` " +
-                        "permission `${permission.path.basePath.joinToString()}`"
+                "Could not execute due to lack of permission `${permission.readable()}`"
             )
         }
 
