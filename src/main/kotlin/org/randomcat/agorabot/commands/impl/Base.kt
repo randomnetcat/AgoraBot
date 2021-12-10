@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands.impl
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
@@ -268,8 +269,20 @@ val BaseCommandExecutionReceiverDiscord.currentChannel: MessageChannel
 val BaseCommandExecutionReceiverDiscord.currentChannelId: String
     get() = currentChannel.id
 
+val BaseCommandExecutionReceiverDiscord.currentGuild: Guild?
+    get() = currentGuildInfo?.guild
+
+val BaseCommandExecutionReceiverGuilded.currentGuild: Guild
+    get() = currentGuildInfo.guild
+
+val BaseCommandExecutionReceiverDiscord.currentGuildId: String?
+    get() = currentGuildInfo?.guildId
+
+val BaseCommandExecutionReceiverGuilded.currentGuildId: String
+    get() = currentGuildInfo.guildId
+
 fun BaseCommandExecutionReceiverDiscord.botHasPermission(permission: DiscordPermission): Boolean {
-    return currentGuildInfo?.guild?.selfMember?.hasPermission(permission) ?: false
+    return currentGuild?.selfMember?.hasPermission(permission) ?: false
 }
 
 interface BaseCommandExecutionReceiverGuilded : BaseCommandExecutionReceiverDiscord {

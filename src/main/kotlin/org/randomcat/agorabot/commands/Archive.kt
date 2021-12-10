@@ -59,7 +59,7 @@ class ArchiveCommand(
                     val channelIds = if (isCategoryIds) {
                         val categories =
                             rawIds.mapNotNull { id ->
-                                currentGuildInfo.guild.getCategoryById(id).also {
+                                currentGuild.getCategoryById(id).also {
                                     if (it == null) {
                                         respond("Unable to find category by id $it")
                                         return@permissions
@@ -103,7 +103,7 @@ class ArchiveCommand(
         val distinctChannelIds = channelIds.toSet()
 
         for (channelId in channelIds) {
-            val channel = currentGuildInfo.guild.getTextChannelById(channelId)
+            val channel = currentGuild.getTextChannelById(channelId)
 
             if (channel == null) {
                 respond("The channel id $channelId does not exist.")
@@ -136,7 +136,7 @@ class ArchiveCommand(
                     try {
                         storeArchiveResult(
                             archiver.createArchiveFrom(
-                                guild = currentGuildInfo.guild,
+                                guild = currentGuild,
                                 channelIds = distinctChannelIds,
                             ),
                         )

@@ -21,9 +21,7 @@ class PrefixCommand(
         subcommands {
             subcommand("list") {
                 noArgs().requiresGuild() {
-                    val guildId = currentGuildInfo.guildId
-
-                    val prefixes = prefixMap.prefixesForGuild(guildId).joinToString { "`${it}`" }
+                    val prefixes = prefixMap.prefixesForGuild(currentGuildId).joinToString { "`${it}`" }
                     respond("The following prefixes can be used: ${prefixes}")
                 }
             }

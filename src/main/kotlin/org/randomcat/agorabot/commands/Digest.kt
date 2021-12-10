@@ -167,5 +167,5 @@ class DigestCommand(
     }
 
     private fun BaseCommandExecutionReceiverGuilded.currentDigest() =
-        digestMap.digestForGuild(currentGuildInfo.guildId)
+        digestMap.digestForGuild(currentGuildId)
 }
