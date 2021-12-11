@@ -9,8 +9,31 @@ plugins {
 group = "org.randomcat"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "13"
+
+        kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
+    }
+
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+    }
+
+    tasks.findByName("test")?.run {
+        this as Test
+
+        useJUnitPlatform()
+
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
+    }
 }
 
 dependencies {
@@ -20,6 +43,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines)
 
     // Other
+    implementation(projects.util)
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)
@@ -36,26 +60,7 @@ dependencies {
     testImplementation(libs.junit)
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "13"
-
-    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
-}
-
-tasks.withType<AbstractArchiveTask>().configureEach {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
-}
-
 application {
     applicationName = "AgoraBot"
     mainClass.set("org.randomcat.agorabot.MainKt")
-}
-
-tasks.test {
-    useJUnitPlatform()
-
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
 }
