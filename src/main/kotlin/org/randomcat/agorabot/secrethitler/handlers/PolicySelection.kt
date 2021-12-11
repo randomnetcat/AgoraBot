@@ -28,7 +28,7 @@ private inline fun sendPolicySelectionMessage(
         recipient = recipientName,
         gameId = gameId,
         message = MessageBuilder()
-            .setEmbed(
+            .setEmbeds(
                 EmbedBuilder()
                     .appendDescription(description)
                     .also { builder ->

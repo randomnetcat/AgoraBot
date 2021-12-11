@@ -158,7 +158,7 @@ private fun queueVoteMessageUpdate(
         ) {
             override fun newMessageData(): Message {
                 return MessageBuilder(targetMessage)
-                    .setEmbed(
+                    .setEmbeds(
                         formatVotingEmbed(
                             context = context,
                             currentState = currentState,

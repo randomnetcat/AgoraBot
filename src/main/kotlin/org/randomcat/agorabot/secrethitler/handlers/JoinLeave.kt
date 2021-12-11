@@ -45,7 +45,7 @@ private class JoinMessageUpdateAction(
 ) {
     override fun newMessageData(): Message {
         return MessageBuilder(targetMessage)
-            .setEmbed(
+            .setEmbeds(
                 formatSecretHitlerJoinMessageEmbed(
                     context = context,
                     state = state,

@@ -21,7 +21,7 @@ private fun sendBasicElectionNotification(
 
     context.sendGameMessage(
         MessageBuilder()
-            .setEmbed(
+            .setEmbeds(
                 EmbedBuilder()
                     .setTitle(title)
                     .appendDescription(description)
