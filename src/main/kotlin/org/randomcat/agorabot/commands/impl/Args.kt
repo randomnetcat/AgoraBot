@@ -47,9 +47,11 @@ fun IntArg(name: String) = object : BaseCommandArgument<BigInteger>(name) {
     }
 }
 
+const val LITERAL_ARG_TYPE = "literal"
+
 fun LiteralArg(name: String) = object : BaseCommandArgument<Unit>(name) {
     override val type: String
-        get() = "literal"
+        get() = LITERAL_ARG_TYPE
 
     override fun parse(arguments: UnparsedCommandArgs): CommandArgumentParseResult<Unit, ReadableCommandArgumentParseError> {
         val args = arguments.args

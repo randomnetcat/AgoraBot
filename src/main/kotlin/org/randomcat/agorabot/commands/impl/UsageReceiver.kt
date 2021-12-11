@@ -10,12 +10,16 @@ private fun CommandArgumentUsage.Count.symbol(): String {
     }
 }
 
-private fun formatArgumentUsage(usage: CommandArgumentUsage): String {
-    return "${usage.name ?: "_"}${usage.type?.let { ": $it" } ?: ""}${usage.count.symbol()}"
+private fun formatArgumentUsageWrapped(usage: CommandArgumentUsage): String {
+    return if (usage.type == LITERAL_ARG_TYPE && usage.count == CommandArgumentUsage.Count.ONCE && usage.name != null) {
+        usage.name
+    } else {
+        "[${usage.name ?: "_"}${usage.type?.let { ": $it" } ?: ""}${usage.count.symbol()}]"
+    }
 }
 
 private fun formatArgumentUsages(usages: Iterable<CommandArgumentUsage>): String {
-    return usages.joinToString(" ") { "[${formatArgumentUsage(it)}]" }
+    return usages.joinToString(" ") { formatArgumentUsageWrapped(it) }
 }
 
 private fun formatArgumentSelection(options: List<String>): String {
