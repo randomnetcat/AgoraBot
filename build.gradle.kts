@@ -21,19 +21,19 @@ repositories {
 dependencies {
     // Updated with Kotlin version
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2")
 
     // Other
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.4")
     implementation("net.dv8tion:JDA:4.3.0_339")
     implementation("org.kitteh.irc:client-lib:8.0.0")
-    implementation("com.github.ajalt.clikt:clikt:3.1.0")
+    implementation("com.github.ajalt.clikt:clikt:3.3.0")
     implementation("org.randomcat:kotlin-utils:2.0.1")
     implementation("jakarta.json:jakarta.json-api:2.0.1")
 
     runtimeOnly("org.glassfish:jakarta.json:2.0.1")
-    runtimeOnly("org.slf4j:slf4j-simple:1.7.30")
+    runtimeOnly("org.slf4j:slf4j-simple:1.7.32")
 
     // Testing
     testImplementation(kotlin("test"))

@@ -1454,91 +1454,91 @@
           "id": {
             "group": "com.github.ajalt.clikt",
             "name": "clikt",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "clikt-3.1.0.jar",
-          "path": "com/github/ajalt/clikt/clikt/3.1.0",
+          "name": "clikt-3.3.0.jar",
+          "path": "com/github/ajalt/clikt/clikt/3.3.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.1.0/clikt-3.1.0.jar"
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.3.0/clikt-3.3.0.jar"
           ],
-          "sha256": "43f3f5b8d31a635b9777ab025523fe192328353a867cd7bd43cd7a76567cd8b9"
+          "sha256": "5a670541a718d36cf4bca609b66b2e5e4a171233a862ef07bca220746c5cab57"
         },
         {
           "id": {
             "group": "com.github.ajalt.clikt",
             "name": "clikt",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "type": "module",
             "extension": "module"
           },
-          "name": "clikt-3.1.0.module",
-          "path": "com/github/ajalt/clikt/clikt/3.1.0",
+          "name": "clikt-3.3.0.module",
+          "path": "com/github/ajalt/clikt/clikt/3.3.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.1.0/clikt-3.1.0.module"
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.3.0/clikt-3.3.0.module"
           ],
-          "sha256": "4477041e907a665d2c8cf89ba8afebc1ec7f14f835e87ae01732185c5fc7159a"
+          "sha256": "248f35668c128ef09a25ff8488eccf0ce8aa9794249884621ebb49e0f6277e23"
         },
         {
           "id": {
             "group": "com.github.ajalt.clikt",
             "name": "clikt",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "clikt-3.1.0.pom",
-          "path": "com/github/ajalt/clikt/clikt/3.1.0",
+          "name": "clikt-3.3.0.pom",
+          "path": "com/github/ajalt/clikt/clikt/3.3.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.1.0/clikt-3.1.0.pom"
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt/3.3.0/clikt-3.3.0.pom"
           ],
-          "sha256": "167376db7fbe86b61236019b149248c2d3952b38ccdcb0187c2efdfa63b8504a"
+          "sha256": "458d0aa41fd42d5255cd3bf2795db270c6cb88f5cd13624de3b03dc1f21a86bd"
         },
         {
           "id": {
             "group": "com.github.ajalt.clikt",
             "name": "clikt-jvm",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "clikt-jvm-3.1.0.jar",
-          "path": "com/github/ajalt/clikt/clikt-jvm/3.1.0",
+          "name": "clikt-jvm-3.3.0.jar",
+          "path": "com/github/ajalt/clikt/clikt-jvm/3.3.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.1.0/clikt-jvm-3.1.0.jar"
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.3.0/clikt-jvm-3.3.0.jar"
           ],
-          "sha256": "6b576ab1c6eeb4727535e7412242cff4a79689e950c6a2db94041637f51aeaa7"
+          "sha256": "f492a4e7f77e6e0343c4b4f5d73e70fc19b0b7b95dc7f930a579c4ded6066207"
         },
         {
           "id": {
             "group": "com.github.ajalt.clikt",
             "name": "clikt-jvm",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "type": "module",
             "extension": "module"
           },
-          "name": "clikt-jvm-3.1.0.module",
-          "path": "com/github/ajalt/clikt/clikt-jvm/3.1.0",
+          "name": "clikt-jvm-3.3.0.module",
+          "path": "com/github/ajalt/clikt/clikt-jvm/3.3.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.1.0/clikt-jvm-3.1.0.module"
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.3.0/clikt-jvm-3.3.0.module"
           ],
-          "sha256": "2395c32f0874ecfbb5868e4883f1b13ae35a2acc3c2e827dbaa926d9506edae3"
+          "sha256": "3debb1ebce5d829ce47f83c3bbeeb4e31145852fc32025e08ea67e629e0763c7"
         },
         {
           "id": {
             "group": "com.github.ajalt.clikt",
             "name": "clikt-jvm",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "clikt-jvm-3.1.0.pom",
-          "path": "com/github/ajalt/clikt/clikt-jvm/3.1.0",
+          "name": "clikt-jvm-3.3.0.pom",
+          "path": "com/github/ajalt/clikt/clikt-jvm/3.3.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.1.0/clikt-jvm-3.1.0.pom"
+            "https://repo.maven.apache.org/maven2/com/github/ajalt/clikt/clikt-jvm/3.3.0/clikt-jvm-3.3.0.pom"
           ],
-          "sha256": "129bee8de1422dc1370a057ea2fbe94f98317fc688c91396fdf2711b9dc28ae7"
+          "sha256": "59df5e8cdedad38a969d9030ec69a31109f47df6f467b1274528c6e0e1d932ca"
         },
         {
           "id": {
@@ -3329,181 +3329,181 @@
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-core",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlinx-serialization-core-1.3.0.jar",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.0",
+          "name": "kotlinx-serialization-core-1.3.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.0/kotlinx-serialization-core-1.3.0.jar"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.1/kotlinx-serialization-core-1.3.1.jar"
           ],
-          "sha256": "b8f1d19287cedf80101307ef35c175011e89b67de879fb3f0f13eabaf24312b1"
+          "sha256": "ba2acc21324640290114579f1c536079d10e31279a611e43ed3dd08d0712803e"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-core",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "module",
             "extension": "module"
           },
-          "name": "kotlinx-serialization-core-1.3.0.module",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.0",
+          "name": "kotlinx-serialization-core-1.3.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.0/kotlinx-serialization-core-1.3.0.module"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.1/kotlinx-serialization-core-1.3.1.module"
           ],
-          "sha256": "eee1db1a4255a99015777e358b27a100aeacf2db03eb4e65cf4a24f083a67425"
+          "sha256": "0e22972aa504c872e1f080eb2aa4c12c9f4a8345c22fbcb6166ce0a3aab6bc24"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-core",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlinx-serialization-core-1.3.0.pom",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.0",
+          "name": "kotlinx-serialization-core-1.3.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.0/kotlinx-serialization-core-1.3.0.pom"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core/1.3.1/kotlinx-serialization-core-1.3.1.pom"
           ],
-          "sha256": "f7df91add81e23b28c21b2b30e3afdd7bd73bbbb0cb34bf158e9f5829ec471d6"
+          "sha256": "54231e961476cae2ae684173a67ec5dba5046ab03beb9ca5686a41cc709ecba5"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-core-jvm",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlinx-serialization-core-jvm-1.3.0.jar",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.0",
+          "name": "kotlinx-serialization-core-jvm-1.3.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.0/kotlinx-serialization-core-jvm-1.3.0.jar"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.1/kotlinx-serialization-core-jvm-1.3.1.jar"
           ],
-          "sha256": "afe1e0bba630753c35771503137282990e45f0ff1195363d682f2245fa4c1a61"
+          "sha256": "98f5799abe9b37092d3a7f6c601949bd259f55476e140bb8c814b2e35a5fa90e"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-core-jvm",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "module",
             "extension": "module"
           },
-          "name": "kotlinx-serialization-core-jvm-1.3.0.module",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.0",
+          "name": "kotlinx-serialization-core-jvm-1.3.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.0/kotlinx-serialization-core-jvm-1.3.0.module"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.1/kotlinx-serialization-core-jvm-1.3.1.module"
           ],
-          "sha256": "81cc41f35b4a07849308f3f0ce555e983c206d5a47646defdd2e106f4fb4b5a2"
+          "sha256": "9f8c5cfb58b86d22c6da19c6c3807bd5101c0d1bcf414ebee55aa84035ec47ee"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-core-jvm",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlinx-serialization-core-jvm-1.3.0.pom",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.0",
+          "name": "kotlinx-serialization-core-jvm-1.3.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.0/kotlinx-serialization-core-jvm-1.3.0.pom"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.3.1/kotlinx-serialization-core-jvm-1.3.1.pom"
           ],
-          "sha256": "0e55731f20a72252eb5a32222cca2cbb91b00a5180086b98de7e09006b96f090"
+          "sha256": "0f0a4d21cb6f6d4460554d9b0cc8487ae73412d09032171fe0e588c106b34132"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-json",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlinx-serialization-json-1.3.0.jar",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.0",
+          "name": "kotlinx-serialization-json-1.3.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.0/kotlinx-serialization-json-1.3.0.jar"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.1/kotlinx-serialization-json-1.3.1.jar"
           ],
-          "sha256": "04f7d0380a40f6608216095d8d8c90eb2a8d917a73ae187d532f5c32d82d4339"
+          "sha256": "237ea0ce779e576eb0bde2efb7a4734df46ad6908a56eb2f78a4b90724c7cb56"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-json",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "module",
             "extension": "module"
           },
-          "name": "kotlinx-serialization-json-1.3.0.module",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.0",
+          "name": "kotlinx-serialization-json-1.3.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.0/kotlinx-serialization-json-1.3.0.module"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.1/kotlinx-serialization-json-1.3.1.module"
           ],
-          "sha256": "53dd3bb04ea32b08212834b69b0eb1b23251f91ff8ec1e14d6bca2ea98604ada"
+          "sha256": "b792fa2e662b26a9a95ef993339725141515cd8063bda66eaf499051fad485b7"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-json",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlinx-serialization-json-1.3.0.pom",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.0",
+          "name": "kotlinx-serialization-json-1.3.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.0/kotlinx-serialization-json-1.3.0.pom"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json/1.3.1/kotlinx-serialization-json-1.3.1.pom"
           ],
-          "sha256": "4f1e0294f2d9c2ff8ed0e5b0778c99234f9979beecc8d138b9662eed4d7d6d3a"
+          "sha256": "60696839c34cacb08d01d9c695b088dd9ee3ff67c41fbaef3b1804e1e8bc1f2c"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-json-jvm",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "kotlinx-serialization-json-jvm-1.3.0.jar",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.0",
+          "name": "kotlinx-serialization-json-jvm-1.3.1.jar",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.0/kotlinx-serialization-json-jvm-1.3.0.jar"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.1/kotlinx-serialization-json-jvm-1.3.1.jar"
           ],
-          "sha256": "b1b5b3f9f44d8536d7717533c52ee82f34a948c0782b34416507e375594316cb"
+          "sha256": "ed418e4aa82b3c92065f42db6a525895de31555b5ebc340d44dd219ae3d6c64f"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-json-jvm",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "module",
             "extension": "module"
           },
-          "name": "kotlinx-serialization-json-jvm-1.3.0.module",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.0",
+          "name": "kotlinx-serialization-json-jvm-1.3.1.module",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.0/kotlinx-serialization-json-jvm-1.3.0.module"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.1/kotlinx-serialization-json-jvm-1.3.1.module"
           ],
-          "sha256": "4252c245d93a8b4a00fe0f8d81ba32bfb5dd010d44b13e18180507e6d239fbb4"
+          "sha256": "c4a7a2208703a73bd6dce1f0496b209eac9a3f7c43c2a19c330cb3a1594f7d88"
         },
         {
           "id": {
             "group": "org.jetbrains.kotlinx",
             "name": "kotlinx-serialization-json-jvm",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "kotlinx-serialization-json-jvm-1.3.0.pom",
-          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.0",
+          "name": "kotlinx-serialization-json-jvm-1.3.1.pom",
+          "path": "org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.0/kotlinx-serialization-json-jvm-1.3.0.pom"
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.3.1/kotlinx-serialization-json-jvm-1.3.1.pom"
           ],
-          "sha256": "3e40b74e45dc648c3bf77d88683cb30e6dfd8bb7d1d7d3e111a5436c6d2e8cc7"
+          "sha256": "39854c1fc3acec5d5c703f626b9f603f0c3247921fa327fb933f95cc0aba20ae"
         },
         {
           "id": {
@@ -3944,31 +3944,31 @@
           "id": {
             "group": "org.slf4j",
             "name": "slf4j-api",
-            "version": "1.7.30",
+            "version": "1.7.32",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "slf4j-api-1.7.30.jar",
-          "path": "org/slf4j/slf4j-api/1.7.30",
+          "name": "slf4j-api-1.7.32.jar",
+          "path": "org/slf4j/slf4j-api/1.7.32",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
           ],
-          "sha256": "cdba07964d1bb40a0761485c6b1e8c2f8fd9eb1d19c53928ac0d7f9510105c57"
+          "sha256": "3624f8474c1af46d75f98bc097d7864a323c81b3808aa43689a6e1c601c027be"
         },
         {
           "id": {
             "group": "org.slf4j",
             "name": "slf4j-api",
-            "version": "1.7.30",
+            "version": "1.7.32",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "slf4j-api-1.7.30.pom",
-          "path": "org/slf4j/slf4j-api/1.7.30",
+          "name": "slf4j-api-1.7.32.pom",
+          "path": "org/slf4j/slf4j-api/1.7.32",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.pom"
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.pom"
           ],
-          "sha256": "7e0747751e9b67e19dcb5206f04ea22cc03d250c422426402eadd03513f2c314"
+          "sha256": "001cde5b3c6ba91070425cfe9f2e695e4aeb8bc290a2d4cd96531127ab244fe5"
         },
         {
           "id": {
@@ -3989,46 +3989,46 @@
           "id": {
             "group": "org.slf4j",
             "name": "slf4j-parent",
-            "version": "1.7.30",
+            "version": "1.7.32",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "slf4j-parent-1.7.30.pom",
-          "path": "org/slf4j/slf4j-parent/1.7.30",
+          "name": "slf4j-parent-1.7.32.pom",
+          "path": "org/slf4j/slf4j-parent/1.7.32",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.30/slf4j-parent-1.7.30.pom"
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.32/slf4j-parent-1.7.32.pom"
           ],
-          "sha256": "11647956e48a0c5bfb3ac33f6da7e83f341002b6857efd335a505b687be34b75"
+          "sha256": "5ab349d0f4c7bc08ed0ef1f4d9386cb1940a2f4d6f152150e16dbbecc0b83c70"
         },
         {
           "id": {
             "group": "org.slf4j",
             "name": "slf4j-simple",
-            "version": "1.7.30",
+            "version": "1.7.32",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "slf4j-simple-1.7.30.jar",
-          "path": "org/slf4j/slf4j-simple/1.7.30",
+          "name": "slf4j-simple-1.7.32.jar",
+          "path": "org/slf4j/slf4j-simple/1.7.32",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.jar"
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.32/slf4j-simple-1.7.32.jar"
           ],
-          "sha256": "8b9279cbff6b9f88594efae3cf02039b6995030eec023ed43928748c41670fee"
+          "sha256": "d2fdd7b73ca2019a2062d145a0d86179a58f98c8c3e35ca7c735a27b3b5621c3"
         },
         {
           "id": {
             "group": "org.slf4j",
             "name": "slf4j-simple",
-            "version": "1.7.30",
+            "version": "1.7.32",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "slf4j-simple-1.7.30.pom",
-          "path": "org/slf4j/slf4j-simple/1.7.30",
+          "name": "slf4j-simple-1.7.32.pom",
+          "path": "org/slf4j/slf4j-simple/1.7.32",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.pom"
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.32/slf4j-simple-1.7.32.pom"
           ],
-          "sha256": "471316b19d6769ec96b835d62ccaaea1f71a8f2ee5124f544615d577a0f0070d"
+          "sha256": "5554e6192d00ffba117d24fdf870488f9d03900047e8bab55e00ee83382f41d8"
         },
         {
           "id": {
