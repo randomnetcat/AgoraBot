@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.0"
-    kotlin("plugin.serialization") version "1.6.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     application
 }
 
@@ -16,24 +16,24 @@ repositories {
 dependencies {
     // Updated with Kotlin version
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines)
 
     // Other
-    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.4")
-    implementation("net.dv8tion:JDA:5.0.0-alpha.2")
-    implementation("org.kitteh.irc:client-lib:8.0.0")
-    implementation("com.github.ajalt.clikt:clikt:3.3.0")
-    implementation("org.randomcat:kotlin-utils:2.0.1")
-    implementation("jakarta.json:jakarta.json-api:2.0.1")
+    implementation(libs.kotlinx.collectionsImmutable)
+    implementation(libs.jda)
+    implementation(libs.kitteh)
+    implementation(libs.clikt)
+    implementation(libs.kotlinUtils)
+    implementation(libs.jakarta.json.api)
 
-    runtimeOnly("org.glassfish:jakarta.json:2.0.1")
-    runtimeOnly("org.slf4j:slf4j-simple:1.7.32")
+    runtimeOnly(libs.jakarta.json.runtime)
+    runtimeOnly(libs.slf4j.simple)
 
     // Testing
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit5"))
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter", version = "5.5.2")
+    testImplementation(libs.junit)
 }
 
 tasks.withType<KotlinCompile> {
