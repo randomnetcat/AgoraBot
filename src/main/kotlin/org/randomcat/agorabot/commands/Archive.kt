@@ -111,7 +111,7 @@ class ArchiveCommand(
             }
 
             if (
-                !member.hasPermission(channel, DiscordPermission.MESSAGE_READ) ||
+                !member.hasPermission(channel, DiscordPermission.VIEW_CHANNEL) ||
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
             ) {
                 respond("You do not have permission to read in the channel <#$channelId>.")

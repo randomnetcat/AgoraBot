@@ -3,7 +3,7 @@ package org.randomcat.agorabot.features
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureContext
@@ -30,7 +30,7 @@ fun duckFeature() = object : Feature {
     override fun registerListenersTo(jda: JDA) {
         jda.addEventListener(object {
             @SubscribeEvent
-            fun onMessage(event: GuildMessageReceivedEvent) {
+            fun onMessage(event: MessageReceivedEvent) {
                 if (!event.message.isFromGuild) return
 
                 val currentListening = listening.get()

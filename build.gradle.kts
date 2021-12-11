@@ -11,11 +11,6 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-
-    maven {
-        name = "m2-dv8tion"
-        url = uri("https://m2.dv8tion.net/releases")
-    }
 }
 
 dependencies {
@@ -26,7 +21,7 @@ dependencies {
 
     // Other
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.4")
-    implementation("net.dv8tion:JDA:4.3.0_339")
+    implementation("net.dv8tion:JDA:5.0.0-alpha.2")
     implementation("org.kitteh.irc:client-lib:8.0.0")
     implementation("com.github.ajalt.clikt:clikt:3.3.0")
     implementation("org.randomcat:kotlin-utils:2.0.1")

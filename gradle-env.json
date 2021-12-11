@@ -1176,129 +1176,136 @@
           "id": {
             "group": "club.minnced",
             "name": "opus-java",
-            "version": "1.1.0",
-            "type": "module",
-            "extension": "module"
+            "version": "1.1.1",
+            "type": "jar",
+            "extension": "jar"
           },
-          "name": "opus-java-1.1.0.module",
-          "path": "club/minnced/opus-java/1.1.0",
+          "name": "opus-java-1.1.1.jar",
+          "path": "club/minnced/opus-java/1.1.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.0/opus-java-1.1.0.module",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java/1.1.0/opus-java-1.1.0.module"
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.1/opus-java-1.1.1.jar"
           ],
-          "sha256": "f7c697e5339d54bd54ef212b9fd4dd3f4be594d7572b2128555619fd53fa0f48"
+          "sha256": "85b93eb42198eb63613b16e5ba5d761397aa9140147cc8415b996f8833344cbd"
         },
         {
           "id": {
             "group": "club.minnced",
             "name": "opus-java",
-            "version": "1.1.0",
-            "type": "pom",
-            "extension": "pom"
-          },
-          "name": "opus-java-1.1.0.pom",
-          "path": "club/minnced/opus-java/1.1.0",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.0/opus-java-1.1.0.pom",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java/1.1.0/opus-java-1.1.0.pom"
-          ],
-          "sha256": "bb5ed45ce9c1e8d68115e64487c899380441814a5ba98718d884fe9c8826321e"
-        },
-        {
-          "id": {
-            "group": "club.minnced",
-            "name": "opus-java-api",
-            "version": "1.1.0",
-            "type": "jar",
-            "extension": "jar"
-          },
-          "name": "opus-java-api-1.1.0.jar",
-          "path": "club/minnced/opus-java-api/1.1.0",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.jar",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.jar"
-          ],
-          "sha256": "e5c6d6fed258c9413b851a7ab94eea87e62c39f65ae4d4b8e6f07132c8c71b63"
-        },
-        {
-          "id": {
-            "group": "club.minnced",
-            "name": "opus-java-api",
-            "version": "1.1.0",
+            "version": "1.1.1",
             "type": "module",
             "extension": "module"
           },
-          "name": "opus-java-api-1.1.0.module",
-          "path": "club/minnced/opus-java-api/1.1.0",
+          "name": "opus-java-1.1.1.module",
+          "path": "club/minnced/opus-java/1.1.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.module",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.module"
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.1/opus-java-1.1.1.module"
           ],
-          "sha256": "3d237ad6af3a4174eab9e18cc55a9e8baeefd7659529146f035f53bd00b9b607"
+          "sha256": "833b0f70496a70388d5efe1c9cb2928ce1fca61a2cf09ba000efe07ed94ba310"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java",
+            "version": "1.1.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "opus-java-1.1.1.pom",
+          "path": "club/minnced/opus-java/1.1.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java/1.1.1/opus-java-1.1.1.pom"
+          ],
+          "sha256": "2088b206196b0e0ed5b39eea643131916c7d06e914861e7ec89b54482827c85d"
         },
         {
           "id": {
             "group": "club.minnced",
             "name": "opus-java-api",
-            "version": "1.1.0",
-            "type": "pom",
-            "extension": "pom"
-          },
-          "name": "opus-java-api-1.1.0.pom",
-          "path": "club/minnced/opus-java-api/1.1.0",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.pom",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java-api/1.1.0/opus-java-api-1.1.0.pom"
-          ],
-          "sha256": "4219674a4d3c5f850117c828fea1dee3cf497f63a5d510b98251e23a6852ec11"
-        },
-        {
-          "id": {
-            "group": "club.minnced",
-            "name": "opus-java-natives",
-            "version": "1.1.0",
+            "version": "1.1.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "opus-java-natives-1.1.0.jar",
-          "path": "club/minnced/opus-java-natives/1.1.0",
+          "name": "opus-java-api-1.1.1.jar",
+          "path": "club/minnced/opus-java-api/1.1.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.jar",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.jar"
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.1/opus-java-api-1.1.1.jar"
           ],
-          "sha256": "634643b3d2623d5171d51cd1ac877cf31d712338eb1eb332899e03ad74a60b18"
+          "sha256": "7cd818482722cd2809b14aaed1856f084838f90493b69d1b819868c778466cfb"
         },
         {
           "id": {
             "group": "club.minnced",
-            "name": "opus-java-natives",
-            "version": "1.1.0",
+            "name": "opus-java-api",
+            "version": "1.1.1",
             "type": "module",
             "extension": "module"
           },
-          "name": "opus-java-natives-1.1.0.module",
-          "path": "club/minnced/opus-java-natives/1.1.0",
+          "name": "opus-java-api-1.1.1.module",
+          "path": "club/minnced/opus-java-api/1.1.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.module",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.module"
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.1/opus-java-api-1.1.1.module"
           ],
-          "sha256": "5edc431139ac0cf83e637eba2d6a4afc8b7e46bddd5bc1a014f383286e98055f"
+          "sha256": "f35f6f2676e183995df3590da2836b96d3a785e2d8e6ac997a8a3cb86acc7bd9"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-api",
+            "version": "1.1.1",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "opus-java-api-1.1.1.pom",
+          "path": "club/minnced/opus-java-api/1.1.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-api/1.1.1/opus-java-api-1.1.1.pom"
+          ],
+          "sha256": "2a9564afc9ec682728cccceb55e15a3dc2e0d6d9ab009052921f6cc3eea10302"
         },
         {
           "id": {
             "group": "club.minnced",
             "name": "opus-java-natives",
-            "version": "1.1.0",
+            "version": "1.1.1",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "opus-java-natives-1.1.1.jar",
+          "path": "club/minnced/opus-java-natives/1.1.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.1/opus-java-natives-1.1.1.jar"
+          ],
+          "sha256": "d38fa7629a8705b89a9fc266209224147f0efdfbf9be8e5a688583cf2175f5c3"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-natives",
+            "version": "1.1.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "opus-java-natives-1.1.1.module",
+          "path": "club/minnced/opus-java-natives/1.1.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.1/opus-java-natives-1.1.1.module"
+          ],
+          "sha256": "ceedb8099d0f1c89a2818bd1a3d0023ee8d8461e056eb7ad136841dfed7ba4f1"
+        },
+        {
+          "id": {
+            "group": "club.minnced",
+            "name": "opus-java-natives",
+            "version": "1.1.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "opus-java-natives-1.1.0.pom",
-          "path": "club/minnced/opus-java-natives/1.1.0",
+          "name": "opus-java-natives-1.1.1.pom",
+          "path": "club/minnced/opus-java-natives/1.1.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.pom",
-            "https://m2.dv8tion.net/releases/club/minnced/opus-java-natives/1.1.0/opus-java-natives-1.1.0.pom"
+            "https://repo.maven.apache.org/maven2/club/minnced/opus-java-natives/1.1.1/opus-java-natives-1.1.1.pom"
           ],
-          "sha256": "fc8730a994b08749bc2b5bebaa0ab856b070a25a39d15babfcca0b28f0f2cb58"
+          "sha256": "c4f394c6497e6428628eec786521e7512ddb3344edb186397e2276914035da0c"
         },
         {
           "id": {
@@ -2009,46 +2016,46 @@
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "4.3.0_339",
+            "version": "5.0.0-alpha.2",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "JDA-4.3.0_339.jar",
-          "path": "net/dv8tion/JDA/4.3.0_339",
+          "name": "JDA-5.0.0-alpha.2.jar",
+          "path": "net/dv8tion/JDA/5.0.0-alpha.2",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_339/JDA-4.3.0_339.jar"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.2/JDA-5.0.0-alpha.2.jar"
           ],
-          "sha256": "aba52e8f0581e93ee3e96b4e61cfa92ea7fbb9334f6e438a1c8d0bac67b8ddd3"
+          "sha256": "4b6e782c9c09adf6c4235574708da5e2d3d4c0d90662ee822073301410fec641"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "4.3.0_339",
+            "version": "5.0.0-alpha.2",
             "type": "module",
             "extension": "module"
           },
-          "name": "JDA-4.3.0_339.module",
-          "path": "net/dv8tion/JDA/4.3.0_339",
+          "name": "JDA-5.0.0-alpha.2.module",
+          "path": "net/dv8tion/JDA/5.0.0-alpha.2",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_339/JDA-4.3.0_339.module"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.2/JDA-5.0.0-alpha.2.module"
           ],
-          "sha256": "869be8e912191a3347ad0c834aa55d970737fccef6731a90925bd32c7d0cc4ac"
+          "sha256": "ed3924f3144cf7166c12d192324d6170860ce6a51c96280a1ac1bed08fffb14b"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "4.3.0_339",
+            "version": "5.0.0-alpha.2",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "JDA-4.3.0_339.pom",
-          "path": "net/dv8tion/JDA/4.3.0_339",
+          "name": "JDA-5.0.0-alpha.2.pom",
+          "path": "net/dv8tion/JDA/5.0.0-alpha.2",
           "urls": [
-            "https://m2.dv8tion.net/releases/net/dv8tion/JDA/4.3.0_339/JDA-4.3.0_339.pom"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.2/JDA-5.0.0-alpha.2.pom"
           ],
-          "sha256": "afd3d0cf00cd3192df7ce2b880cbbd72e762d4435a47204f26a087087f7180f0"
+          "sha256": "65a22a883b99cfa1057774616f70c9a3bb8d82ad839020bc58a787327bd57956"
         },
         {
           "id": {

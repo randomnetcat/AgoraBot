@@ -2,16 +2,16 @@ package org.randomcat.agorabot.reactionroles
 
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Role
-import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent
-import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent
+import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.util.DiscordPermission
 
 fun reactionRolesListener(reactionRolesMap: ReactionRolesMap): Any {
     return object {
         private inline fun withResolvedRoleFor(
-            event: GenericGuildMessageReactionEvent,
+            event: GenericMessageReactionEvent,
             crossinline block: (Role, Member) -> Unit,
         ) {
             val guild = event.guild
@@ -37,14 +37,18 @@ fun reactionRolesListener(reactionRolesMap: ReactionRolesMap): Any {
         }
 
         @SubscribeEvent
-        operator fun invoke(event: GuildMessageReactionAddEvent) {
+        operator fun invoke(event: MessageReactionAddEvent) {
+            if (!event.isFromGuild) return
+
             withResolvedRoleFor(event) { role, member ->
                 member.guild.addRoleToMember(member, role).queue()
             }
         }
 
         @SubscribeEvent
-        operator fun invoke(event: GuildMessageReactionRemoveEvent) {
+        operator fun invoke(event: MessageReactionRemoveEvent) {
+            if (!event.isFromGuild) return
+
             withResolvedRoleFor(event) { role, member ->
                 member.guild.removeRoleFromMember(member, role).queue()
             }

@@ -3,7 +3,7 @@ package org.randomcat.agorabot.irc
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.util.DiscordMessage
@@ -25,7 +25,7 @@ private fun addDiscordRelay(
         }
 
         @SubscribeEvent
-        fun onMessage(event: GuildMessageReceivedEvent) {
+        fun onMessage(event: MessageReceivedEvent) {
             if (event.channel.id != channelId) return
             if (event.author.id == event.jda.selfUser.id) return
 
