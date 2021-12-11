@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureContext
@@ -50,7 +50,7 @@ fun citationsFeature(config: CitationsConfig): Feature {
 
             jda.addEventListener(object {
                 @SubscribeEvent
-                fun onMessage(event: GuildMessageReceivedEvent) {
+                fun onMessage(event: MessageReceivedEvent) {
                     if (event.author == event.jda.selfUser) {
                         return
                     }

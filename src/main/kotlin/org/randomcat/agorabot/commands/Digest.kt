@@ -66,7 +66,7 @@ class DigestCommand(
     private val digestAddedReaction: String?,
 ) : BaseCommand(strategy) {
     private fun BaseCommandExecutionReceiverGuilded.getMessageOrError(id: String): Message? {
-        val msgResult = currentChannel().retrieveMessageById(id).mapToResult().complete()
+        val msgResult = currentChannel.retrieveMessageById(id).mapToResult().complete()
 
         if (msgResult.isFailure) {
             respond("Unable to find message $id in *this* channel.")
@@ -167,5 +167,5 @@ class DigestCommand(
     }
 
     private fun BaseCommandExecutionReceiverGuilded.currentDigest() =
-        digestMap.digestForGuild(currentGuildInfo().guildId)
+        digestMap.digestForGuild(currentGuildId)
 }

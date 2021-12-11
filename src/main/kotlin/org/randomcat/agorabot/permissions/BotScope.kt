@@ -6,12 +6,12 @@ data class BotScopeActionPermission(
     private val commandName: String,
     private val actionName: String,
 ) : BotPermission {
-    override val path = PermissionScopedPath(
-        scope = BOT_PERMISSION_SCOPE,
-        basePath = PermissionPath(listOf(commandName, actionName))
-    )
-
+    private val actionPath = PermissionPath(listOf(commandName, actionName))
     private val commandPath = PermissionPath(listOf(commandName))
+
+    override fun readable(): String {
+        return formatScopedPermission(scope = BOT_PERMISSION_SCOPE, path = actionPath)
+    }
 
     override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
         return when (userContext) {
@@ -21,7 +21,7 @@ data class BotScopeActionPermission(
                 val user = userContext.user
 
                 return botContext.isBotAdmin(userId = user.id) ||
-                        botContext.checkGlobalPath(userId = user.id, path.basePath)
+                        botContext.checkGlobalPath(userId = user.id, actionPath)
                             .mapDeferred { botContext.checkGlobalPath(userId = user.id, commandPath) }
                             .isAllowed()
             }
@@ -30,10 +30,11 @@ data class BotScopeActionPermission(
 }
 
 data class BotScopeCommandPermission(private val commandName: String) : BotPermission {
-    override val path = PermissionScopedPath(
-        scope = BOT_PERMISSION_SCOPE,
-        basePath = PermissionPath(listOf(commandName))
-    )
+    private val commandPath = PermissionPath(listOf(commandName))
+
+    override fun readable(): String {
+        return formatScopedPermission(scope = BOT_PERMISSION_SCOPE, path = commandPath)
+    }
 
     fun action(actionName: String) = BotScopeActionPermission(
         commandName = commandName,
@@ -48,7 +49,7 @@ data class BotScopeCommandPermission(private val commandName: String) : BotPermi
                 val user = userContext.user
 
                 return botContext.isBotAdmin(userId = user.id) ||
-                        botContext.checkGlobalPath(userId = user.id, path.basePath).isAllowed()
+                        botContext.checkGlobalPath(userId = user.id, commandPath).isAllowed()
             }
         }
     }
@@ -58,10 +59,9 @@ object BotScope {
     fun command(commandName: String) = BotScopeCommandPermission(commandName)
 
     fun admin() = object : BotPermission {
-        override val path = PermissionScopedPath(
-            scope = BOT_PERMISSION_SCOPE,
-            basePath = PermissionPath(listOf("admin"))
-        )
+        override fun readable(): String {
+            return "bot admin"
+        }
 
         override fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean {
             return when (userContext) {

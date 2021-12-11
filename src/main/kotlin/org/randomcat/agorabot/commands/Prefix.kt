@@ -21,9 +21,7 @@ class PrefixCommand(
         subcommands {
             subcommand("list") {
                 noArgs().requiresGuild() {
-                    val guildId = currentGuildInfo().guildId
-
-                    val prefixes = prefixMap.prefixesForGuild(guildId).joinToString { "`${it}`" }
+                    val prefixes = prefixMap.prefixesForGuild(currentGuildId).joinToString { "`${it}`" }
                     respond("The following prefixes can be used: ${prefixes}")
                 }
             }
@@ -35,7 +33,7 @@ class PrefixCommand(
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
                 ) { (newPrefix) ->
-                    val guildId = currentGuildInfo().guildId
+                    val guildId = currentGuildInfo.guildId
 
                     if (newPrefix.isBlank()) {
                         respond("The prefix cannot be empty. Stop it.")
@@ -64,7 +62,7 @@ class PrefixCommand(
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
                 ) { (newPrefix) ->
-                    val guildId = currentGuildInfo().guildId
+                    val guildId = currentGuildInfo.guildId
 
                     if (!prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
                         respond("That's not a prefix.")
@@ -78,7 +76,7 @@ class PrefixCommand(
 
             subcommand("clear") {
                 noArgs().requiresGuild().permissions(GuildScope.command("prefix").action("set")) { _ ->
-                    prefixMap.clearPrefixesForGuild(currentGuildInfo().guildId)
+                    prefixMap.clearPrefixesForGuild(currentGuildInfo.guildId)
                     respond("All prefixes have been removed. You can still @mention the bot to run commands.")
                 }
             }

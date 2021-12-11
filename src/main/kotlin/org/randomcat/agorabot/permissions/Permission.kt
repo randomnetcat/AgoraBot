@@ -75,14 +75,15 @@ data class PermissionScopedPath(
     init {
         require(!scope.contains(PERMISSION_PATH_SEPARATOR))
     }
-
-    val baseParts get() = basePath.parts
 }
 
 interface BotPermission {
-    val path: PermissionScopedPath
-
+    fun readable(): String
     fun isSatisfied(botContext: BotPermissionContext, userContext: UserPermissionContext): Boolean
+}
+
+fun formatScopedPermission(scope: String, path: PermissionPath): String {
+    return path.parts.joinToString(".", prefix = "$scope:")
 }
 
 @JvmInline

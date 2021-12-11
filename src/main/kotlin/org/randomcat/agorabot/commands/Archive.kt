@@ -59,7 +59,7 @@ class ArchiveCommand(
                     val channelIds = if (isCategoryIds) {
                         val categories =
                             rawIds.mapNotNull { id ->
-                                currentGuildInfo().guild.getCategoryById(id).also {
+                                currentGuild.getCategoryById(id).also {
                                     if (it == null) {
                                         respond("Unable to find category by id $it")
                                         return@permissions
@@ -80,7 +80,7 @@ class ArchiveCommand(
                                 Files.copy(path, localStorageDir.resolve(fileName))
                                 respond("Stored file locally at $fileName")
                             } else {
-                                currentChannel()
+                                currentChannel
                                     .sendMessage("Archive for channels $channelIds")
                                     .addFile(
                                         path.toFile(),
@@ -98,12 +98,12 @@ class ArchiveCommand(
         channelIds: List<String>,
         storeArchiveResult: BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
     ) {
-        val member = currentMessageEvent().member ?: error("Member should exist because this is in a Guild")
+        val member = currentMessageEvent.member ?: error("Member should exist because this is in a Guild")
 
         val distinctChannelIds = channelIds.toSet()
 
         for (channelId in channelIds) {
-            val channel = currentGuildInfo().guild.getTextChannelById(channelId)
+            val channel = currentGuild.getTextChannelById(channelId)
 
             if (channel == null) {
                 respond("The channel id $channelId does not exist.")
@@ -111,7 +111,7 @@ class ArchiveCommand(
             }
 
             if (
-                !member.hasPermission(channel, DiscordPermission.MESSAGE_READ) ||
+                !member.hasPermission(channel, DiscordPermission.VIEW_CHANNEL) ||
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
             ) {
                 respond("You do not have permission to read in the channel <#$channelId>.")
@@ -121,7 +121,7 @@ class ArchiveCommand(
 
         val channelNamesString = channelIds.joinToString(", ") { "<#$it>" }
 
-        currentChannel().sendMessage("Running archive job for channels $channelNamesString...").queue { statusMessage ->
+        currentChannel.sendMessage("Running archive job for channels $channelNamesString...").queue { statusMessage ->
             fun markFailed() {
                 statusMessage.editMessage("Archive job failed!").queue()
             }
@@ -136,7 +136,7 @@ class ArchiveCommand(
                     try {
                         storeArchiveResult(
                             archiver.createArchiveFrom(
-                                guild = currentGuildInfo().guild,
+                                guild = currentGuild,
                                 channelIds = distinctChannelIds,
                             ),
                         )
