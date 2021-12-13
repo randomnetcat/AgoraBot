@@ -304,7 +304,7 @@ private fun runBot(config: BotRunConfig) {
 
                 commandRegistry.addCommands(feature.commandsInContext(featureContext))
 
-                val requestedListeners = feature.query(JdaListenerTag, featureContext)
+                val requestedListeners = feature.query(JdaListenerTag)
                 if (requestedListeners is FeatureQueryResult.Found) {
                     jda.addEventListener(*requestedListeners.value.toTypedArray())
                 }

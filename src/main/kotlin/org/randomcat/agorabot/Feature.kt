@@ -34,7 +34,7 @@ sealed class FeatureQueryResult<out T> {
 }
 
 interface Feature {
-    fun <T> query(tag: FeatureElementTag<T>, context: FeatureContext): FeatureQueryResult<T>
+    fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T>
 
     fun commandsInContext(context: FeatureContext): Map<String, Command>
 
@@ -43,7 +43,7 @@ interface Feature {
     companion object {
         fun ofCommands(block: (context: FeatureContext) -> Map<String, Command>): Feature {
             return object : Feature {
-                override fun <T> query(tag: FeatureElementTag<T>, context: FeatureContext): FeatureQueryResult<T> {
+                override fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     return FeatureQueryResult.NotFound
                 }
 
@@ -56,7 +56,7 @@ interface Feature {
 }
 
 abstract class AbstractFeature : Feature {
-    override fun <T> query(tag: FeatureElementTag<T>, context: FeatureContext): FeatureQueryResult<T> {
+    override fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T> {
         if (tag is JdaListenerTag) return tag.result(jdaListeners())
 
         return FeatureQueryResult.NotFound
