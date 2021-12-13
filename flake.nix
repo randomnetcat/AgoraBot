@@ -13,6 +13,7 @@
   outputs = { self, nixpkgs, flake-utils, ... }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages."${system}";
+      jdk = pkgs.javaPackages.compiler.openjdk17;
     in
     rec {
       packages = {
@@ -39,7 +40,7 @@
 
               gradleFlags = [ "installDist" ];
 
-              buildJdk = pkgs.jdk11;
+              buildJdk = jdk;
 
               installPhase = ''
                 mkdir -p  -- "$out"
@@ -48,7 +49,7 @@
            };
          in
          pkgs.writeShellScriptBin "AgoraBot" ''
-           export JAVA_HOME=${pkgs.lib.escapeShellArg "${pkgs.jdk.home}"}
+           export JAVA_HOME=${pkgs.lib.escapeShellArg "${jdk.home}"}
            exec ${pkgs.lib.escapeShellArg "${unwrappedBuild}/bin/AgoraBot"} "$@"
          '';
       };
