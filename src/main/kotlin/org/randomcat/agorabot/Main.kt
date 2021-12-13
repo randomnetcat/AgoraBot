@@ -116,6 +116,7 @@ private fun createDirectories(paths: BotDataPaths) {
 }
 
 object JdaListenerTag : FeatureElementTag<List<Any>>
+object ButtonDataTag : FeatureElementTag<FeatureButtonData>
 
 private fun runBot(config: BotRunConfig) {
     val token = config.token
@@ -262,12 +263,15 @@ private fun runBot(config: BotRunConfig) {
         )
 
         val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
-            features.mapNotNull { it.second?.buttonData() }.mapNotNull {
-                when (it) {
-                    is FeatureButtonData.NoButtons -> null
-                    is FeatureButtonData.RegisterHandlers -> it.handlerMap
-                }
-            },
+            features
+                .mapNotNull { it.second?.query(ButtonDataTag) }
+                .filterIsInstance<FeatureQueryResult.Found<FeatureButtonData>>()
+                .mapNotNull {
+                    when (it.value) {
+                        is FeatureButtonData.NoButtons -> null
+                        is FeatureButtonData.RegisterHandlers -> it.value.handlerMap
+                    }
+                },
         )
 
         val buttonRequestDataMap = setupButtonDataMap(

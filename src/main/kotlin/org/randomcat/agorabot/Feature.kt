@@ -38,8 +38,6 @@ interface Feature {
 
     fun commandsInContext(context: FeatureContext): Map<String, Command>
 
-    fun buttonData(): FeatureButtonData = FeatureButtonData.NoButtons
-
     companion object {
         fun ofCommands(block: (context: FeatureContext) -> Map<String, Command>): Feature {
             return object : Feature {
@@ -58,6 +56,7 @@ interface Feature {
 abstract class AbstractFeature : Feature {
     override fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T> {
         if (tag is JdaListenerTag) return tag.result(jdaListeners())
+        if (tag is ButtonDataTag) return tag.result(buttonData())
 
         return FeatureQueryResult.NotFound
     }
@@ -66,5 +65,5 @@ abstract class AbstractFeature : Feature {
         return listOf()
     }
 
-    override fun buttonData(): FeatureButtonData = FeatureButtonData.NoButtons
+    protected open fun buttonData(): FeatureButtonData = FeatureButtonData.NoButtons
 }
