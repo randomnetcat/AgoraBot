@@ -10,13 +10,21 @@ group = "org.randomcat"
 version = "1.0-SNAPSHOT"
 
 allprojects {
+    afterEvaluate {
+        kotlin {
+            jvmToolchain {
+                this as JavaToolchainSpec
+
+                languageVersion.set(JavaLanguageVersion.of(17))
+            }
+        }
+    }
+
     repositories {
         mavenCentral()
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "13"
-
         kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 
