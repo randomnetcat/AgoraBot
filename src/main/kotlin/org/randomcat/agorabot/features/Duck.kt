@@ -2,10 +2,9 @@ package org.randomcat.agorabot.features
 
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
-import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.AbstractFeature
 import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.commands.DuckCommand
 import org.randomcat.agorabot.listener.Command
@@ -24,11 +23,11 @@ private val RESPONSES = listOf(
     "Alright.",
 )
 
-fun duckFeature() = object : Feature {
+fun duckFeature() = object : AbstractFeature() {
     private val listening = AtomicReference<PersistentSet<DuckCommand.ListeningSpec>>(persistentSetOf())
 
-    override fun registerListenersTo(jda: JDA) {
-        jda.addEventListener(object {
+    override fun jdaListeners(): List<Any> {
+        return listOf(object {
             @SubscribeEvent
             fun onMessage(event: MessageReceivedEvent) {
                 if (!event.message.isFromGuild) return

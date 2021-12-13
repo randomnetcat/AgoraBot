@@ -36,3 +36,15 @@ interface Feature {
         }
     }
 }
+
+abstract class AbstractFeature : Feature {
+    final override fun registerListenersTo(jda: JDA) {
+        jda.addEventListener(*jdaListeners().toTypedArray())
+    }
+
+    protected open fun jdaListeners(): List<Any> {
+        return listOf()
+    }
+
+    override fun buttonData(): FeatureButtonData = FeatureButtonData.NoButtons
+}
