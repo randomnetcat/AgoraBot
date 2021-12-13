@@ -1,11 +1,9 @@
 package org.randomcat.agorabot
 
-import net.dv8tion.jda.api.JDA
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
-import kotlin.reflect.KClass
 
 interface FeatureContext {
     // The strategy that should be used for commands if there is no specific other need for a specific command.
@@ -39,7 +37,6 @@ interface Feature {
     fun <T> query(tag: FeatureElementTag<T>, context: FeatureContext): FeatureQueryResult<T>
 
     fun commandsInContext(context: FeatureContext): Map<String, Command>
-    fun registerListenersTo(jda: JDA) {}
 
     fun buttonData(): FeatureButtonData = FeatureButtonData.NoButtons
 
@@ -60,11 +57,9 @@ interface Feature {
 
 abstract class AbstractFeature : Feature {
     override fun <T> query(tag: FeatureElementTag<T>, context: FeatureContext): FeatureQueryResult<T> {
-        return FeatureQueryResult.NotFound
-    }
+        if (tag is JdaListenerTag) return tag.result(jdaListeners())
 
-    final override fun registerListenersTo(jda: JDA) {
-        jda.addEventListener(*jdaListeners().toTypedArray())
+        return FeatureQueryResult.NotFound
     }
 
     protected open fun jdaListeners(): List<Any> {

@@ -115,6 +115,8 @@ private fun createDirectories(paths: BotDataPaths) {
     paths.tempPath.createDirectories()
 }
 
+object JdaListenerTag : FeatureElementTag<List<Any>>
+
 private fun runBot(config: BotRunConfig) {
     val token = config.token
     val persistService: ConfigPersistService = DefaultConfigPersistService
@@ -301,7 +303,11 @@ private fun runBot(config: BotRunConfig) {
                 logger.info("Registering feature $name")
 
                 commandRegistry.addCommands(feature.commandsInContext(featureContext))
-                feature.registerListenersTo(jda)
+
+                val requestedListeners = feature.query(JdaListenerTag, featureContext)
+                if (requestedListeners is FeatureQueryResult.Found) {
+                    jda.addEventListener(*requestedListeners.value.toTypedArray())
+                }
             } else {
                 logger.info("Not registering feature $name because it is not available.")
             }
