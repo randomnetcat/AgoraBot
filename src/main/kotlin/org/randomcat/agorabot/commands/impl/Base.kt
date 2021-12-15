@@ -385,7 +385,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                         },
                         discordBaseReceiver = simpleInvokingPendingExecutionReceiver { exec ->
                             exec(
-                                ExecutionReceiverGuildedImpl(
+                                ExecutionReceiverDiscordImpl(
                                     strategy = strategy,
                                     source = source,
                                     invocation = invocation,
