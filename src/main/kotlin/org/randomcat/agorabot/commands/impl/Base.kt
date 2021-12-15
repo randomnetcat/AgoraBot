@@ -204,7 +204,12 @@ private constructor(
             baseReceiver = discordBaseReceiver,
             discordBaseReceiver = discordBaseReceiver,
             guildedBaseReceiver = guildedBaseReceiver,
-            state = state,
+            state = state.copy(
+                discordRequirement = state
+                    .discordRequirement
+                    .takeIf { it != DiscordRequirement.NONE }
+                    ?: DiscordRequirement.DISCORD,
+            ),
         )
     }
 
