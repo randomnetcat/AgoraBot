@@ -152,33 +152,3 @@ fun <A, AE, B, BE, C, CE, D, DE, Ctx> ADR<Ctx>.args(
     c: CAP<C, CE>,
     d: CAP<D, DE>,
 ) = argsRaw(listOf(a, b, c, d)) { CommandArgs4(it[0] as A, it[1] as B, it[2] as C, it[3] as D) }
-
-fun <Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.noArgs(
-    block: R.(CommandArgs0) -> Unit,
-) = noArgs().execute { block(it.context.receiver, it.arg) }
-
-fun <A, AE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
-    a: CAP<A, AE>,
-    block: R.(CommandArgs1<A>) -> Unit,
-) = args(a).execute { block(it.context.receiver, it.arg) }
-
-fun <A, AE, B, BE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
-    a: CAP<A, AE>,
-    b: CAP<B, BE>,
-    block: R.(CommandArgs2<A, B>) -> Unit,
-) = args(a, b).execute { block(it.context.receiver, it.arg) }
-
-fun <A, AE, B, BE, C, CE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
-    a: CAP<A, AE>,
-    b: CAP<B, BE>,
-    c: CAP<C, CE>,
-    block: R.(CommandArgs3<A, B, C>) -> Unit,
-) = args(a, b, c).execute { block(it.context.receiver, it.arg) }
-
-fun <A, AE, B, BE, C, CE, D, DE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
-    a: CAP<A, AE>,
-    b: CAP<B, BE>,
-    c: CAP<C, CE>,
-    d: CAP<D, DE>,
-    block: R.(CommandArgs4<A, B, C, D>) -> Unit,
-) = args(a, b, c, d).execute { block(it.context.receiver, it.arg) }
