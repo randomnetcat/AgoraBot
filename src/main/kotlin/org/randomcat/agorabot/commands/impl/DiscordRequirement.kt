@@ -50,8 +50,10 @@ interface ButtonsStrategy {
     fun storeButtonRequestAndGetId(descriptor: ButtonRequestDescriptor, expiry: Instant): ButtonRequestId
 }
 
-fun BaseCommandExecutionReceiverRequiring<ButtonsRequirement>.newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration) =
-    requirement().newButtonId(descriptor, expiryDuration)
+fun BaseCommandExecutionReceiverRequiring<ButtonsRequirement>.newButtonId(
+    descriptor: ButtonRequestDescriptor,
+    expiryDuration: java.time.Duration,
+) = requirement().newButtonId(descriptor, expiryDuration)
 
 interface DiscordExtensionPartsRequirement : ButtonsRequirement, PermissionsAccessRequirement
 interface ExtendedDiscordRequirement : BaseCommandDiscordRequirement, DiscordExtensionPartsRequirement

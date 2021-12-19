@@ -10,7 +10,8 @@ interface PermissionsAccessRequirement {
 
             return RequirementResult.Success(
                 object : PermissionsAccessRequirement {
-                    override val userPermissionContext: UserPermissionContext = userPermissionContextForSource(context.source)
+                    override val userPermissionContext: UserPermissionContext =
+                        userPermissionContextForSource(context.source)
 
                     override fun senderHasPermission(permission: BotPermission): Boolean {
                         return permission.isSatisfied(strategy.permissionContext, userPermissionContext)
