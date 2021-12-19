@@ -6,7 +6,7 @@ import kotlin.system.exitProcess
 
 class HaltCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
-        noArgs().requiresDiscord().permissions(BotScope.admin()) {
+        noArgs().requires(InDiscordSimple).permissions(BotScope.admin()) {
             currentJda.shutdownNow()
             exitProcess(0)
         }

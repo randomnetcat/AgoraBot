@@ -44,7 +44,7 @@ class ArchiveCommand(
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             args(RemainingStringArgs("marker_or_id"))
-                .requiresGuild()
+                .requires(InGuild)
                 .permissions(ARCHIVE_PERMISSION) { (args) ->
                     val isStoreLocally = args.contains("store_locally")
                     val isCategoryIds = args.contains("categories")

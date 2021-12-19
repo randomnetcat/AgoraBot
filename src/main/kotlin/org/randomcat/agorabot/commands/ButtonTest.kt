@@ -16,7 +16,7 @@ class ButtonTestCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     object FailureRequest : ButtonRequestDescriptor
 
     override fun BaseCommandImplReceiver.impl() {
-        noArgs().requiresDiscord() {
+        noArgs().requires(InDiscord) {
             val successId = newButtonId(
                 descriptor = SuccessRequest,
                 expiryDuration = Duration.ofMinutes(1),

@@ -14,7 +14,7 @@ class DuckCommand(
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("start") {
-                noArgs().requiresDiscord {
+                noArgs().requires(InDiscordSimple) {
                     val listeningSpec = ListeningSpec(
                         channelId = currentChannel.id,
                         userId = currentMessageEvent.author.id,

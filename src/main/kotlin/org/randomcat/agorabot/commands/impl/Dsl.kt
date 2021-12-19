@@ -2,40 +2,93 @@
 
 package org.randomcat.agorabot.commands.impl
 
+import kotlin.reflect.KClass
+
 private typealias CAP<T, E> = CommandArgumentParser<T, E>
 
 @DslMarker
 annotation class CommandDslMarker
 
-/**
- * @param Extension a marker for use by extension functions
- */
-@CommandDslMarker
-interface ExtendableArgumentPendingExecutionReceiver<out ExecutionReceiver, out Arg, out Extension> {
-    operator fun invoke(block: ExecutionReceiver.(arg: Arg) -> Unit)
+interface PendingInvocation<out Arg> {
+    fun execute(block: (Arg) -> Unit)
 }
 
-typealias ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg> = ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Arg, Any?>
+interface WithContext<out Context> {
+    val context: Context
+}
 
-inline fun <ExecutionReceiver, Arg> simpleInvokingPendingExecutionReceiver(
-    crossinline handler: (ExecutionReceiver.(Arg) -> Unit) -> Unit,
-): ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg> {
-    return object : ArgumentPendingExecutionReceiver<ExecutionReceiver, Arg> {
-        override fun invoke(block: ExecutionReceiver.(arg: Arg) -> Unit) {
-            handler(block)
+data class ContextAndArg<out Context, out Arg>(
+    override val context: Context,
+    val arg: Arg,
+) : WithContext<Context>
+
+interface CommandDependencyProvider {
+    fun tryFindDependency(markerClass: KClass<*>): Any?
+}
+
+sealed class PrependResult {
+    object ContinueExecution : PrependResult()
+    object StopExecution : PrependResult()
+}
+
+inline fun <Arg> PendingInvocation<Arg>.prepend(crossinline prependBlock: (Arg) -> PrependResult): PendingInvocation<Arg> {
+    val baseInvocation = this
+
+    return object : PendingInvocation<Arg> {
+        override fun execute(block: (Arg) -> Unit) {
+            baseInvocation.execute { arg ->
+                @Suppress("UNUSED_VARIABLE")
+                val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
+                    is PrependResult.ContinueExecution -> {
+                        block(arg)
+                    }
+
+                    is PrependResult.StopExecution -> {}
+                }
+            }
         }
     }
 }
 
-object NullPendingExecutionReceiver : ArgumentPendingExecutionReceiver<Nothing, Nothing> {
-    override operator fun invoke(block: Nothing.(arg: Nothing) -> Unit) {}
+sealed class PrependTransformResult<out NewArg> {
+    data class ContinueExecution<NewArg>(val newArg: NewArg) : PrependTransformResult<NewArg>()
+    object StopExecution : PrependTransformResult<Nothing>()
+}
+
+inline fun <Arg, NewArg> PendingInvocation<Arg>.prependTransform(crossinline prependBlock: (Arg) -> PrependTransformResult<NewArg>): PendingInvocation<NewArg> {
+    val baseInvocation = this
+
+    return object : PendingInvocation<NewArg> {
+        override fun execute(block: (NewArg) -> Unit) {
+            baseInvocation.execute { arg ->
+                @Suppress("UNUSED_VARIABLE")
+                val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
+                    is PrependTransformResult.ContinueExecution -> {
+                        block(prependResult.newArg)
+                    }
+
+                    is PrependTransformResult.StopExecution -> {}
+                }
+            }
+        }
+    }
+}
+
+inline fun <Arg, NewArg> PendingInvocation<Arg>.prependAlwaysTransform(crossinline transform: (Arg) -> NewArg): PendingInvocation<NewArg> {
+    val baseInvocation = this
+
+    return object : PendingInvocation<NewArg> {
+        override fun execute(block: (NewArg) -> Unit) {
+            return baseInvocation.execute { block(transform(it)) }
+        }
+    }
 }
 
 /**
  * @param ArgsExtend a type marker for extension functions
  */
 @CommandDslMarker
-interface ArgumentDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> {
+interface ArgumentDescriptionReceiver<out Context> {
     /**
      * Specifies an argument set with arguments from [parsers] and that can optionally be executed by [exec].
      *
@@ -44,12 +97,12 @@ interface ArgumentDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> {
     fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend>
+    ): PendingInvocation<ContextAndArg<Context, R>>
 
     /**
      * Indicates that the first [argsRaw] call in [block] that has parameters that match the input should be invoked.
      */
-    fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit)
+    fun matchFirst(block: ArgumentMultiDescriptionReceiver<Context>.() -> Unit)
 }
 
 /**
@@ -57,80 +110,75 @@ interface ArgumentDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> {
  * called multiple times.
  */
 @CommandDslMarker
-interface ArgumentMultiDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> :
-    ArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>
+interface ArgumentMultiDescriptionReceiver<out Context> : ArgumentDescriptionReceiver<Context>
 
 @CommandDslMarker
-interface SubcommandsArgumentDescriptionReceiver<out ExecutionReceiver, out ArgsExtend> :
-    ArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
+interface SubcommandsArgumentDescriptionReceiver<out Context> : ArgumentDescriptionReceiver<Context> {
     fun subcommand(
         name: String,
-        block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit,
+        block: SubcommandsArgumentDescriptionReceiver<Context>.() -> Unit,
     )
 }
 
 @CommandDslMarker
-interface TopLevelArgumentDescriptionReceiver<out ExecutionReceiver, ArgsExtend> :
-    ArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
-    fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit)
+interface TopLevelArgumentDescriptionReceiver<out Context> : ArgumentDescriptionReceiver<Context> {
+    fun subcommands(block: SubcommandsArgumentDescriptionReceiver<Context>.() -> Unit)
 }
 
 // In order to avoid repeating the full name a lot
-private typealias ADR<Exec, ArgsExtend> = ArgumentDescriptionReceiver<Exec, ArgsExtend>
+private typealias ADR<Ctx> = ArgumentDescriptionReceiver<Ctx>
 
-private typealias CmdExecBlock<ExecutionReceiver, Args> = ExecutionReceiver.(Args) -> Unit
-
-fun <Rec, Ext> ADR<Rec, Ext>.noArgs(
+fun <Ctx> ADR<Ctx>.noArgs(
 ) = argsRaw<Nothing, Nothing, CommandArgs0>(emptyList()) { CommandArgs0 }
 
-fun <Rec, Ext> ADR<Rec, Ext>.noArgs(
-    block: CmdExecBlock<Rec, CommandArgs0>,
-) = noArgs().invoke(block)
-
-fun <A, AE, Rec, Ext> ADR<Rec, Ext>.args(
+fun <A, AE, Ctx> ADR<Ctx>.args(
     a: CAP<A, AE>,
 ) = argsRaw(listOf(a)) { CommandArgs1(it[0] as A) }
 
-fun <A, AE, Rec, Ext> ADR<Rec, Ext>.args(
-    a: CAP<A, AE>,
-    block: CmdExecBlock<Rec, CommandArgs1<A>>,
-) = args(a).invoke(block)
-
-fun <A, AE, B, BE, Rec, Ext> ADR<Rec, Ext>.args(
+fun <A, AE, B, BE, Ctx> ADR<Ctx>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
 ) = argsRaw(listOf(a, b)) { CommandArgs2(it[0] as A, it[1] as B) }
 
-fun <A, AE, B, BE, Rec, Ext> ADR<Rec, Ext>.args(
-    a: CAP<A, AE>,
-    b: CAP<B, BE>,
-    block: CmdExecBlock<Rec, CommandArgs2<A, B>>,
-) = args(a, b).invoke(block)
-
-fun <A, AE, B, BE, C, CE, Rec, Ext> ADR<Rec, Ext>.args(
+fun <A, AE, B, BE, C, CE, Ctx> ADR<Ctx>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
 ) = argsRaw(listOf(a, b, c)) { CommandArgs3(it[0] as A, it[1] as B, it[2] as C) }
 
-fun <A, AE, B, BE, C, CE, Rec, Ext> ADR<Rec, Ext>.args(
-    a: CAP<A, AE>,
-    b: CAP<B, BE>,
-    c: CAP<C, CE>,
-    block: CmdExecBlock<Rec, CommandArgs3<A, B, C>>,
-) = args(a, b, c).invoke(block)
-
-fun <A, AE, B, BE, C, CE, D, DE, Rec, Ext> ADR<Rec, Ext>.args(
+fun <A, AE, B, BE, C, CE, D, DE, Ctx> ADR<Ctx>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
     d: CAP<D, DE>,
 ) = argsRaw(listOf(a, b, c, d)) { CommandArgs4(it[0] as A, it[1] as B, it[2] as C, it[3] as D) }
 
-fun <A, AE, B, BE, C, CE, D, DE, Rec, Ext> ADR<Rec, Ext>.args(
+fun <Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.noArgs(
+    block: R.(CommandArgs0) -> Unit,
+) = noArgs().execute { block(it.context.receiver, it.arg) }
+
+fun <A, AE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
+    a: CAP<A, AE>,
+    block: R.(CommandArgs1<A>) -> Unit,
+) = args(a).execute { block(it.context.receiver, it.arg) }
+
+fun <A, AE, B, BE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
+    a: CAP<A, AE>,
+    b: CAP<B, BE>,
+    block: R.(CommandArgs2<A, B>) -> Unit,
+) = args(a, b).execute { block(it.context.receiver, it.arg) }
+
+fun <A, AE, B, BE, C, CE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
+    a: CAP<A, AE>,
+    b: CAP<B, BE>,
+    c: CAP<C, CE>,
+    block: R.(CommandArgs3<A, B, C>) -> Unit,
+) = args(a, b, c).execute { block(it.context.receiver, it.arg) }
+
+fun <A, AE, B, BE, C, CE, D, DE, Ctx, R> ADR<ContextAndReceiver<Ctx, R>>.args(
     a: CAP<A, AE>,
     b: CAP<B, BE>,
     c: CAP<C, CE>,
     d: CAP<D, DE>,
-    block: CmdExecBlock<Rec, CommandArgs4<A, B, C, D>>,
-) = args(a, b, c, d).invoke(block)
+    block: R.(CommandArgs4<A, B, C, D>) -> Unit,
+) = args(a, b, c, d).execute { block(it.context.receiver, it.arg) }

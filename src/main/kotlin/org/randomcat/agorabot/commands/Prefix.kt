@@ -20,7 +20,7 @@ class PrefixCommand(
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("list") {
-                noArgs().requiresGuild() {
+                noArgs().requires(InGuildSimple) {
                     val prefixes = prefixMap.prefixesForGuild(currentGuildId).joinToString { "`${it}`" }
                     respond("The following prefixes can be used: ${prefixes}")
                 }
@@ -29,7 +29,8 @@ class PrefixCommand(
             subcommand("add") {
                 args(
                     StringArg("new_prefix"),
-                ).requiresGuild(
+                ).requires(
+                    InGuildSimple
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
                 ) { (newPrefix) ->
@@ -58,7 +59,8 @@ class PrefixCommand(
             subcommand("remove") {
                 args(
                     StringArg("prefix"),
-                ).requiresGuild(
+                ).requires(
+                    InGuildSimple
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
                 ) { (newPrefix) ->
@@ -75,7 +77,7 @@ class PrefixCommand(
             }
 
             subcommand("clear") {
-                noArgs().requiresGuild().permissions(GuildScope.command("prefix").action("set")) { _ ->
+                noArgs().requires(InGuildSimple).permissions(GuildScope.command("prefix").action("set")) { _ ->
                     prefixMap.clearPrefixesForGuild(currentGuildInfo.guildId)
                     respond("All prefixes have been removed. You can still @mention the bot to run commands.")
                 }

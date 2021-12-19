@@ -42,13 +42,13 @@ private val EDIT_PERMISSION = GuildScope.command("judge_list").action("edit")
 
 private const val STATE_KEY = "judge_list.state"
 
-private fun BaseCommandExecutionReceiverGuilded.getJudgeListState(): JudgeListState {
-    return currentGuildInfo.guildState.get<JudgeListStateDto>(STATE_KEY)?.build()
+private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.getJudgeListState(): JudgeListState {
+    return currentGuildState.get<JudgeListStateDto>(STATE_KEY)?.build()
         ?: JudgeListState.default()
 }
 
-private fun BaseCommandExecutionReceiverGuilded.updateJudgeListState(block: (JudgeListState) -> JudgeListState) {
-    currentGuildInfo.guildState.update<JudgeListStateDto>(STATE_KEY) { old ->
+private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.updateJudgeListState(block: (JudgeListState) -> JudgeListState) {
+    currentGuildState.update<JudgeListStateDto>(STATE_KEY) { old ->
         JudgeListStateDto.from(block(old?.build() ?: JudgeListState.default()))
     }
 }
@@ -57,7 +57,7 @@ class JudgeListCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
         subcommands {
             subcommand("add") {
-                args(StringArg("name")).requiresGuild().permissions(EDIT_PERMISSION) { (name) ->
+                args(StringArg("name")).requires(InGuild).permissions(EDIT_PERMISSION) { (name) ->
                     updateJudgeListState { oldState ->
                         JudgeListState(judgeNames = oldState.judgeNames.toPersistentList().add(name))
                     }
@@ -67,7 +67,7 @@ class JudgeListCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             }
 
             subcommand("remove") {
-                args(StringArg("name")).requiresGuild().permissions(EDIT_PERMISSION) { (name) ->
+                args(StringArg("name")).requires(InGuild).permissions(EDIT_PERMISSION) { (name) ->
                     var removedAny: Boolean? = null
 
                     updateJudgeListState { oldState ->
@@ -87,7 +87,7 @@ class JudgeListCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             }
 
             subcommand("list") {
-                noArgs().requiresGuild() {
+                noArgs().requires(InGuild) {
                     val judgeNames = getJudgeListState().judgeNames
 
                     if (judgeNames.isNotEmpty()) {
@@ -99,7 +99,7 @@ class JudgeListCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
             }
 
             subcommand("choose") {
-                noArgs().requiresGuild() {
+                noArgs().requires(InGuild) {
                     val judgeNames = getJudgeListState().judgeNames
 
                     if (judgeNames.isNotEmpty()) {
