@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.permissions
 
-import org.randomcat.agorabot.commands.impl.BaseCommandPermissionsStrategy
+import org.randomcat.agorabot.commands.impl.PermissionsStrategy
 import org.randomcat.agorabot.config.PermissionsConfig
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
@@ -10,7 +10,7 @@ fun makePermissionsStrategy(
     permissionsConfig: PermissionsConfig,
     botMap: PermissionMap,
     guildMap: GuildPermissionMap,
-): BaseCommandPermissionsStrategy {
+): PermissionsStrategy {
     val botPermissionContext = object : BotPermissionContext {
         override fun isBotAdmin(userId: String): Boolean {
             return permissionsConfig.botAdmins.contains(userId)
@@ -35,7 +35,7 @@ fun makePermissionsStrategy(
         }
     }
 
-    return object : BaseCommandPermissionsStrategy {
+    return object : PermissionsStrategy {
         override fun onPermissionsError(
             source: CommandEventSource,
             invocation: CommandInvocation,

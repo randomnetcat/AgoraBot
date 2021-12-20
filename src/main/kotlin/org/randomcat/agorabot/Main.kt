@@ -17,6 +17,8 @@ import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
+import org.randomcat.agorabot.config.GuildState
+import org.randomcat.agorabot.config.GuildStateMap
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.createDirectories
+import kotlin.reflect.KClass
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
@@ -94,19 +97,39 @@ private fun ircAndDiscordMapping(
     )
 }
 
+private fun makeGuildStateStrategy(guildStateMap: GuildStateMap): GuildStateStrategy {
+    return object : GuildStateStrategy {
+        override fun guildStateFor(guildId: String): GuildState {
+            return guildStateMap.stateForGuild(guildId)
+        }
+    }
+}
+
+private fun makeButtonStrategy(buttonMap: ButtonRequestDataMap): ButtonsStrategy {
+    return object : ButtonsStrategy {
+        override fun storeButtonRequestAndGetId(
+            descriptor: ButtonRequestDescriptor,
+            expiry: Instant,
+        ): ButtonRequestId {
+            return buttonMap.putRequest(
+                ButtonRequestData(
+                    descriptor = descriptor,
+                    expiry = expiry,
+                ),
+            )
+        }
+    }
+}
+
 private fun makeBaseCommandStrategy(
     outputStrategy: BaseCommandOutputStrategy,
-    guildStateStrategy: BaseCommandGuildStateStrategy,
-    permissionsStrategy: BaseCommandPermissionsStrategy,
-    buttonStrategy: BaseCommandButtonStrategy,
+    dependencyStrategy: BaseCommandDependencyStrategy,
 ): BaseCommandStrategy {
     return object :
         BaseCommandStrategy,
         BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
         BaseCommandOutputStrategy by outputStrategy,
-        BaseCommandPermissionsStrategy by permissionsStrategy,
-        BaseCommandGuildStateStrategy by guildStateStrategy,
-        BaseCommandButtonStrategy by buttonStrategy {}
+        BaseCommandDependencyStrategy by dependencyStrategy {}
 }
 
 private fun createDirectories(paths: BotDataPaths) {
@@ -280,15 +303,29 @@ private fun runBot(config: BotRunConfig) {
             persistService = persistService,
         )
 
+        val guildStateStrategy = makeGuildStateStrategy(guildStateMap)
+
+        val permissionsStrategy = makePermissionsStrategy(
+            permissionsConfig = permissionsConfig,
+            botMap = botPermissionMap,
+            guildMap = guildPermissionMap
+        )
+
+        val buttonsStrategy = makeButtonStrategy(buttonRequestDataMap)
+
         val commandStrategy = makeBaseCommandStrategy(
             BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
-            BaseCommandGuildStateStrategy.fromMap(guildStateMap),
-            makePermissionsStrategy(
-                permissionsConfig = permissionsConfig,
-                botMap = botPermissionMap,
-                guildMap = guildPermissionMap
-            ),
-            BaseCommandButtonStrategy.fromMap(buttonRequestDataMap = buttonRequestDataMap),
+            object : BaseCommandDependencyStrategy {
+                override fun tryFindDependency(markerClass: KClass<*>): Any? {
+                    return when (markerClass) {
+                        PermissionsStrategyDependency::class -> permissionsStrategy
+                        ButtonsStrategyDependency::class -> buttonsStrategy
+                        GuildStateStrategyDependency::class -> guildStateStrategy
+
+                        else -> null
+                    }
+                }
+            },
         )
 
         val featureContext = object : FeatureContext {

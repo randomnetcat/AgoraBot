@@ -6,19 +6,12 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import org.randomcat.agorabot.buttons.ButtonRequestData
-import org.randomcat.agorabot.buttons.ButtonRequestDataMap
-import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
-import org.randomcat.agorabot.buttons.ButtonRequestId
-import org.randomcat.agorabot.config.GuildState
-import org.randomcat.agorabot.config.GuildStateMap
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText
 import org.randomcat.agorabot.util.DiscordPermission
 import org.randomcat.agorabot.util.resolveRoleString
-import java.time.Instant
 import kotlin.reflect.KClass
 import org.randomcat.agorabot.commands.impl.args as doArgs
 import org.randomcat.agorabot.commands.impl.noArgs as doNoArgs
@@ -71,46 +64,14 @@ interface BaseCommandOutputStrategy {
     )
 }
 
-interface BaseCommandPermissionsStrategy : PermissionsStrategy
-
-interface BaseCommandGuildStateStrategy : GuildStateStrategy {
-    companion object {
-        fun fromMap(guildStateMap: GuildStateMap): BaseCommandGuildStateStrategy {
-            return object : BaseCommandGuildStateStrategy {
-                override fun guildStateFor(guildId: String): GuildState {
-                    return guildStateMap.stateForGuild(guildId)
-                }
-            }
-        }
-    }
-}
-
-interface BaseCommandButtonStrategy : ButtonsStrategy {
-    companion object {
-        fun fromMap(buttonRequestDataMap: ButtonRequestDataMap): BaseCommandButtonStrategy {
-            return object : BaseCommandButtonStrategy {
-                override fun storeButtonRequestAndGetId(
-                    descriptor: ButtonRequestDescriptor,
-                    expiry: Instant,
-                ): ButtonRequestId {
-                    return buttonRequestDataMap.putRequest(
-                        ButtonRequestData(
-                            descriptor = descriptor,
-                            expiry = expiry,
-                        ),
-                    )
-                }
-            }
-        }
-    }
+interface BaseCommandDependencyStrategy {
+    fun tryFindDependency(markerClass: KClass<*>): Any?
 }
 
 interface BaseCommandStrategy :
     BaseCommandArgumentStrategy,
     BaseCommandOutputStrategy,
-    BaseCommandPermissionsStrategy,
-    BaseCommandGuildStateStrategy,
-    BaseCommandButtonStrategy
+    BaseCommandDependencyStrategy
 
 interface BaseCommandContext : CommandDependencyProvider {
     val source: CommandEventSource
@@ -313,24 +274,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                                                 get() = theInvocation
 
                                             override fun tryFindDependency(markerClass: KClass<*>): Any? {
-                                                return when (markerClass) {
-                                                    PermissionsStrategyDependency::class -> {
-                                                        val out: PermissionsStrategy = strategy
-                                                        out
-                                                    }
-
-                                                    ButtonsStrategyDependency::class -> {
-                                                        val out: ButtonsStrategy = strategy
-                                                        out
-                                                    }
-
-                                                    GuildStateStrategyDependency::class -> {
-                                                        val out: GuildStateStrategy = strategy
-                                                        out
-                                                    }
-
-                                                    else -> null
-                                                }
+                                                return strategy.tryFindDependency(markerClass)
                                             }
                                         },
                                         receiver = ExecutionReceiverImpl(
