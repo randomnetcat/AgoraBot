@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import org.randomcat.agorabot.AbstractFeature
 import org.randomcat.agorabot.FeatureContext
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.DuckCommand
 import org.randomcat.agorabot.listener.Command
 import java.util.concurrent.atomic.AtomicReference
@@ -23,7 +25,7 @@ private val RESPONSES = listOf(
     "Alright.",
 )
 
-fun duckFeature() = object : AbstractFeature() {
+private val duckFeature = object : AbstractFeature() {
     private val listening = AtomicReference<PersistentSet<DuckCommand.ListeningSpec>>(persistentSetOf())
 
     override fun jdaListeners(): List<Any> {
@@ -63,3 +65,6 @@ fun duckFeature() = object : AbstractFeature() {
         )
     }
 }
+
+@FeatureSourceFactory
+fun duckFactory() = FeatureSource.ofConstant("duck", duckFeature)

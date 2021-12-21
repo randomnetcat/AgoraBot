@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
+import io.github.classgraph.ClassGraph
 import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -25,14 +26,12 @@ import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
-import org.randomcat.agorabot.setup.features.setupArchiveFeature
-import org.randomcat.agorabot.setup.features.setupCitationsConfig
-import org.randomcat.agorabot.setup.features.setupRuleCommandsFeature
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.createDirectories
 import kotlin.reflect.KClass
+import kotlin.reflect.jvm.kotlinFunction
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
@@ -197,8 +196,6 @@ private fun runBot(config: BotRunConfig) {
 
     val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
 
-    val citationsConfig = setupCitationsConfig(config.paths)
-
     val startupMessageStrategy = setupStartupMessageStrategy(config.paths)
 
     logger.info("Setting up JDA")
@@ -258,36 +255,72 @@ private fun runBot(config: BotRunConfig) {
 
         val commandRegistry = MutableMapCommandRegistry(emptyMap())
 
-        val features = listOfNotNull(
+        val foundFeatureSources = ClassGraph().enableAllInfo().scan().use { scanResult ->
+            scanResult.getClassesWithMethodAnnotation(FeatureSourceFactory::class.java).flatMap { classInfo ->
+                classInfo
+                    .methodInfo
+                    .asSequence()
+                    .filter { it.hasAnnotation(FeatureSourceFactory::class.java) }
+                    .mapNotNull { it.loadClassAndGetMethod().kotlinFunction }
+                    .map { it.call() as FeatureSource }
+            }
+        }
+
+        val extraFeatureSources = listOf(
             "bot_admin_commands" to adminCommandsFeature(
                 writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
             ),
-            "archive" to setupArchiveFeature(config.paths),
-            "copyright_commands" to copyrightCommandsFeature(),
             "digest" to digestFeature(
                 digestMap = digestSetupResult.digestMap,
                 sendStrategy = digestSetupResult.digestSendStrategy,
                 format = digestSetupResult.digestFormat,
             ),
-            "duck" to duckFeature(),
             "help" to helpCommandsFeature(suppressedCommands = listOf("permissions")),
             "permissions_commands" to permissionsCommandsFeature(
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
             ),
             "prefix_commands" to prefixCommandsFeature(prefixMap),
-            "random_commands" to randomCommandsFeature(),
-            "judge_list_commands" to judgeListCommandsFeature(),
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
-            "self_assign_roles" to selfAssignCommandsFeature(),
-            "citations" to if (citationsConfig != null) citationsFeature(citationsConfig) else null,
-            "button_test" to buttonTestFeature(),
-            "rule_commands" to setupRuleCommandsFeature(config.paths),
-        )
+        ).map { FeatureSource.ofConstant(it.first, it.second) }
+
+        val featureSetupContext = FeatureSetupContext(paths = config.paths)
+
+        val featureMap = mutableMapOf<String, Feature>()
+
+        for (source in foundFeatureSources + extraFeatureSources) {
+            val name = source.featureName
+
+            if (featureMap.containsKey(name)) {
+                logger.warn("Found multiple features with name {}. Skipping subsequent feature...", name)
+                continue
+            }
+
+            logger.info("Configuring feature {}...", name)
+
+            val featureConfig = try {
+                source.readConfig(featureSetupContext)
+            } catch (e: Exception) {
+                logger.error("Error while configuring feature $name", e)
+                continue
+            }
+
+            logger.info("Configuration for feature {}: {}", name, featureConfig)
+            logger.info("Creating feature {}...", name)
+
+            val feature = try {
+                source.createFeature(featureConfig)
+            } catch (e: Exception) {
+                logger.error("Error while setting up feature $name", e)
+                continue
+            }
+
+            featureMap[name] = feature
+        }
 
         val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
-            features
-                .mapNotNull { it.second?.query(ButtonDataTag) }
+            featureMap.values
+                .map { it.query(ButtonDataTag) }
                 .filterIsInstance<FeatureQueryResult.Found<FeatureButtonData>>()
                 .mapNotNull {
                     when (it.value) {
@@ -339,18 +372,14 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
-        for ((name, feature) in features) {
-            if (feature != null) {
-                logger.info("Registering feature $name")
+        for ((name, feature) in featureMap) {
+            logger.info("Registering feature $name")
 
-                commandRegistry.addCommands(feature.commandsInContext(featureContext))
+            commandRegistry.addCommands(feature.commandsInContext(featureContext))
 
-                val requestedListeners = feature.query(JdaListenerTag)
-                if (requestedListeners is FeatureQueryResult.Found) {
-                    jda.addEventListener(*requestedListeners.value.toTypedArray())
-                }
-            } else {
-                logger.info("Not registering feature $name because it is not available.")
+            val requestedListeners = feature.query(JdaListenerTag)
+            if (requestedListeners is FeatureQueryResult.Found) {
+                jda.addEventListener(*requestedListeners.value.toTypedArray())
             }
         }
 

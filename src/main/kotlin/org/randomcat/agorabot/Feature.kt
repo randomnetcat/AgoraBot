@@ -4,6 +4,7 @@ import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
+import org.randomcat.agorabot.setup.BotDataPaths
 
 interface FeatureContext {
     // The strategy that should be used for commands if there is no specific other need for a specific command.
@@ -32,6 +33,38 @@ sealed class FeatureQueryResult<out T> {
     data class Found<T>(val value: T) : FeatureQueryResult<T>()
     object NotFound : FeatureQueryResult<Nothing>()
 }
+
+data class FeatureSetupContext(
+    val paths: BotDataPaths,
+)
+
+interface FeatureSource {
+    companion object {
+        fun ofConstant(name: String, feature: Feature): FeatureSource {
+            return object : FeatureSource {
+                override val featureName: String
+                    get() = name
+
+                override fun readConfig(context: FeatureSetupContext): Any? {
+                    return Unit
+                }
+
+                override fun createFeature(config: Any?): Feature {
+                    return feature
+                }
+            }
+        }
+    }
+
+    val featureName: String
+
+    // The config object is returned for introspection (logging), but must be passed exactly into createFeature.
+    fun readConfig(context: FeatureSetupContext): Any?
+    fun createFeature(config: Any?): Feature
+}
+
+@Retention(AnnotationRetention.RUNTIME)
+annotation class FeatureSourceFactory(val enable: Boolean = true)
 
 interface Feature {
     fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T>
