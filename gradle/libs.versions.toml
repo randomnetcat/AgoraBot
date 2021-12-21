@@ -18,3 +18,4 @@ jakarta-json-api = { group = "jakarta.json", name = "jakarta.json-api", version.
 jakarta-json-runtime = { group = "org.glassfish", name = "jakarta.json", version.ref = "jakarta-json" }
 slf4j-simple = { group = "org.slf4j", name ="slf4j-simple", version = "1.7.32" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version = "5.5.2" }
+classgraph = { group = "io.github.classgraph", name = "classgraph", version = "4.8.138" }

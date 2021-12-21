@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.clikt)
     implementation(libs.kotlinUtils)
     implementation(libs.jakarta.json.api)
+    implementation(libs.classgraph)
 
     runtimeOnly(libs.jakarta.json.runtime)
     runtimeOnly(libs.slf4j.simple)
