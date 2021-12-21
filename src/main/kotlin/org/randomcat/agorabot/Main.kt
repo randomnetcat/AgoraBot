@@ -318,9 +318,22 @@ private fun runBot(config: BotRunConfig) {
             featureMap[name] = feature
         }
 
+        lateinit var commandStrategy: BaseCommandStrategy
+
+        val featureContext = object : FeatureContext {
+            override val defaultCommandStrategy: BaseCommandStrategy
+                get() = commandStrategy
+
+            override fun commandRegistry(): QueryableCommandRegistry {
+                return checkNotNull(delayedRegistryReference.get()) {
+                    "Attempt to access command registry that is not yet ready"
+                }
+            }
+        }
+
         val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
             featureMap.values
-                .map { it.query(ButtonDataTag) }
+                .map { it.query(featureContext, ButtonDataTag) }
                 .filterIsInstance<FeatureQueryResult.Found<FeatureButtonData>>()
                 .mapNotNull {
                     when (it.value) {
@@ -346,7 +359,7 @@ private fun runBot(config: BotRunConfig) {
 
         val buttonsStrategy = makeButtonStrategy(buttonRequestDataMap)
 
-        val commandStrategy = makeBaseCommandStrategy(
+        commandStrategy = makeBaseCommandStrategy(
             BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
             object : BaseCommandDependencyStrategy {
                 override fun tryFindDependency(markerClass: KClass<*>): Any? {
@@ -361,23 +374,12 @@ private fun runBot(config: BotRunConfig) {
             },
         )
 
-        val featureContext = object : FeatureContext {
-            override val defaultCommandStrategy: BaseCommandStrategy
-                get() = commandStrategy
-
-            override fun commandRegistry(): QueryableCommandRegistry {
-                return checkNotNull(delayedRegistryReference.get()) {
-                    "Attempt to access command registry that is not yet ready"
-                }
-            }
-        }
-
         for ((name, feature) in featureMap) {
             logger.info("Registering feature $name")
 
             commandRegistry.addCommands(feature.commandsInContext(featureContext))
 
-            val requestedListeners = feature.query(JdaListenerTag)
+            val requestedListeners = feature.query(featureContext, JdaListenerTag)
             if (requestedListeners is FeatureQueryResult.Found) {
                 jda.addEventListener(*requestedListeners.value.toTypedArray())
             }

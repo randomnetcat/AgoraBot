@@ -67,14 +67,14 @@ interface FeatureSource {
 annotation class FeatureSourceFactory(val enable: Boolean = true)
 
 interface Feature {
-    fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T>
+    fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T>
 
     fun commandsInContext(context: FeatureContext): Map<String, Command>
 
     companion object {
         fun ofCommands(block: (context: FeatureContext) -> Map<String, Command>): Feature {
             return object : Feature {
-                override fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     return FeatureQueryResult.NotFound
                 }
 
@@ -87,7 +87,7 @@ interface Feature {
 }
 
 abstract class AbstractFeature : Feature {
-    override fun <T> query(tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+    override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
         if (tag is JdaListenerTag) return tag.result(jdaListeners())
         if (tag is ButtonDataTag) return tag.result(buttonData())
 
