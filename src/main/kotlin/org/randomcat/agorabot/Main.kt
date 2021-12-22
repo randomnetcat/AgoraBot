@@ -329,6 +329,23 @@ private fun runBot(config: BotRunConfig) {
                     "Attempt to access command registry that is not yet ready"
                 }
             }
+
+            override fun <T> queryAll(tag: FeatureElementTag<T>): Map<String, T> {
+                return featureMap
+                    .mapValues { (_, v) ->
+                        v.query(this, tag)
+                    }
+                    .filterValues { v -> v is FeatureQueryResult.Found }
+                    .mapValues { (_, v) -> (v as FeatureQueryResult.Found).value }
+            }
+
+            override fun <T> tryQueryAll(tag: FeatureElementTag<T>): Map<String, Result<FeatureQueryResult<T>>> {
+                return featureMap.mapValues { (_, v) ->
+                    runCatching {
+                        v.query(this, tag)
+                    }
+                }
+            }
         }
 
         val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(

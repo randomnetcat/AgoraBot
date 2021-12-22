@@ -13,6 +13,26 @@ interface FeatureContext {
     // Returns the global command registry. This should not be invoked during registration, only after commands
     // have started executing.
     fun commandRegistry(): QueryableCommandRegistry
+
+    /**
+     * Runs a query on all available features (including the one calling this). Returns a map from feature names to the
+     * successful query results (features which do not return a result are not included).
+     *
+     * Care must be taken to ensure queries are not recursive.
+     *
+     * Exceptions in queries are propagated to the caller.
+     */
+    fun <T> queryAll(tag: FeatureElementTag<T>): Map<String, T>
+
+    /**
+     * Attempts to run a query on all available features (including the one calling this). Returns a map from feature
+     * names to the query results.
+     *
+     * Care must be taken to ensure queries are not recursive.
+     *
+     * Exceptions in queries are caught and returned as failed Results.
+     */
+    fun <T> tryQueryAll(tag: FeatureElementTag<T>): Map<String, Result<FeatureQueryResult<T>>>
 }
 
 sealed class FeatureButtonData {
