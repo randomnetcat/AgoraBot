@@ -137,6 +137,43 @@ private fun createDirectories(paths: BotDataPaths) {
     paths.tempPath.createDirectories()
 }
 
+private fun buildFeaturesMap(
+    featureSources: Iterable<FeatureSource>,
+    featureSetupContext: FeatureSetupContext,
+): Map<String, Feature> {
+    return buildMap {
+        for (source in featureSources) {
+            val name = source.featureName
+
+            if (containsKey(name)) {
+                logger.warn("Found multiple features with name {}. Skipping subsequent feature...", name)
+                continue
+            }
+
+            logger.info("Configuring feature {}...", name)
+
+            val featureConfig = try {
+                source.readConfig(featureSetupContext)
+            } catch (e: Exception) {
+                logger.error("Error while configuring feature $name", e)
+                continue
+            }
+
+            logger.info("Configuration for feature {}: {}", name, featureConfig)
+            logger.info("Creating feature {}...", name)
+
+            val feature = try {
+                source.createFeature(featureConfig)
+            } catch (e: Exception) {
+                logger.error("Error while setting up feature $name", e)
+                continue
+            }
+
+            put(name, feature)
+        }
+    }
+}
+
 object JdaListenerTag : FeatureElementTag<List<Any>>
 object ButtonDataTag : FeatureElementTag<FeatureButtonData>
 
@@ -284,39 +321,10 @@ private fun runBot(config: BotRunConfig) {
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
-        val featureSetupContext = FeatureSetupContext(paths = config.paths)
-
-        val featureMap = mutableMapOf<String, Feature>()
-
-        for (source in foundFeatureSources + extraFeatureSources) {
-            val name = source.featureName
-
-            if (featureMap.containsKey(name)) {
-                logger.warn("Found multiple features with name {}. Skipping subsequent feature...", name)
-                continue
-            }
-
-            logger.info("Configuring feature {}...", name)
-
-            val featureConfig = try {
-                source.readConfig(featureSetupContext)
-            } catch (e: Exception) {
-                logger.error("Error while configuring feature $name", e)
-                continue
-            }
-
-            logger.info("Configuration for feature {}: {}", name, featureConfig)
-            logger.info("Creating feature {}...", name)
-
-            val feature = try {
-                source.createFeature(featureConfig)
-            } catch (e: Exception) {
-                logger.error("Error while setting up feature $name", e)
-                continue
-            }
-
-            featureMap[name] = feature
-        }
+        val featureMap = buildFeaturesMap(
+            featureSources = foundFeatureSources + extraFeatureSources,
+            featureSetupContext = FeatureSetupContext(paths = config.paths),
+        )
 
         lateinit var commandStrategy: BaseCommandStrategy
 
