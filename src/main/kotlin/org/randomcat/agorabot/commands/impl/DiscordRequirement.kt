@@ -26,7 +26,7 @@ object InDiscordSimple : RequirementSet<BaseCommandContext, BaseCommandDiscordRe
 interface ButtonsRequirement {
     companion object {
         fun create(context: BaseCommandContext): RequirementResult<ButtonsRequirement> {
-            val strategy = context.tryFindDependency(ButtonsStrategyDependency::class) as ButtonsStrategy
+            val strategy = context.tryFindDependency(ButtonsStrategyTag) as ButtonsStrategy
 
             return RequirementResult.Success(object : ButtonsRequirement {
                 override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
@@ -44,7 +44,7 @@ interface ButtonsRequirement {
     fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration): String
 }
 
-interface ButtonsStrategyDependency
+object ButtonsStrategyTag
 
 interface ButtonsStrategy {
     fun storeButtonRequestAndGetId(descriptor: ButtonRequestDescriptor, expiry: Instant): ButtonRequestId

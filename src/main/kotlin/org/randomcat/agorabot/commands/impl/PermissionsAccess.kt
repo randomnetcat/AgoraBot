@@ -6,7 +6,7 @@ import org.randomcat.agorabot.permissions.UserPermissionContext
 interface PermissionsAccessRequirement {
     companion object {
         fun create(context: BaseCommandContext): RequirementResult<PermissionsAccessRequirement> {
-            val strategy = context.tryFindDependency(PermissionsStrategyDependency::class) as PermissionsStrategy
+            val strategy = context.tryFindDependency(PermissionsStrategyTag) as PermissionsStrategy
 
             return RequirementResult.Success(
                 object : PermissionsAccessRequirement {

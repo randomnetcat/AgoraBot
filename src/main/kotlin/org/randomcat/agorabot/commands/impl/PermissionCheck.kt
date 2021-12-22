@@ -19,7 +19,7 @@ fun userPermissionContextForSource(source: CommandEventSource): UserPermissionCo
     }
 }
 
-interface PermissionsStrategyDependency
+object PermissionsStrategyTag
 
 interface PermissionsStrategy {
     fun onPermissionsError(source: CommandEventSource, invocation: CommandInvocation, permission: BotPermission)
@@ -30,7 +30,7 @@ fun <Arg : WithContext<BaseCommandContext>> PendingInvocation<Arg>.permissions(
     vararg newPermissions: BotPermission,
 ) = prepend { arg ->
     val context = arg.context
-    val strategy = context.tryFindDependency(PermissionsStrategyDependency::class) as PermissionsStrategy
+    val strategy = context.tryFindDependency(PermissionsStrategyTag) as PermissionsStrategy
 
     val source = context.source
     val botContext = strategy.permissionContext

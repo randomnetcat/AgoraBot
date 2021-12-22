@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.createDirectories
-import kotlin.reflect.KClass
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.system.exitProcess
 
@@ -387,11 +386,11 @@ private fun runBot(config: BotRunConfig) {
         commandStrategy = makeBaseCommandStrategy(
             BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
             object : BaseCommandDependencyStrategy {
-                override fun tryFindDependency(markerClass: KClass<*>): Any? {
-                    return when (markerClass) {
-                        PermissionsStrategyDependency::class -> permissionsStrategy
-                        ButtonsStrategyDependency::class -> buttonsStrategy
-                        GuildStateStrategyDependency::class -> guildStateStrategy
+                override fun tryFindDependency(tag: Any): Any? {
+                    return when (tag) {
+                        is PermissionsStrategyTag -> permissionsStrategy
+                        is ButtonsStrategyTag -> buttonsStrategy
+                        is GuildStateStrategyTag -> guildStateStrategy
 
                         else -> null
                     }

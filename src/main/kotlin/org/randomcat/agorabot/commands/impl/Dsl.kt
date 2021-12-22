@@ -2,8 +2,6 @@
 
 package org.randomcat.agorabot.commands.impl
 
-import kotlin.reflect.KClass
-
 private typealias CAP<T, E> = CommandArgumentParser<T, E>
 
 @DslMarker
@@ -23,7 +21,7 @@ data class ContextAndArg<out Context, out Arg>(
 ) : WithContext<Context>
 
 interface CommandDependencyProvider {
-    fun tryFindDependency(markerClass: KClass<*>): Any?
+    fun tryFindDependency(tag: Any): Any?
 }
 
 sealed class PrependResult {

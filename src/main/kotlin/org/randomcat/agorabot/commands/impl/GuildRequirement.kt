@@ -22,7 +22,7 @@ object InGuildSimple : RequirementSet<BaseCommandContext, BaseCommandGuildRequir
     }
 }
 
-interface GuildStateStrategyDependency
+object GuildStateStrategyTag
 
 interface GuildStateStrategy {
     fun guildStateFor(guildId: String): GuildState
@@ -31,7 +31,7 @@ interface GuildStateStrategy {
 interface GuildStateRequirement {
     companion object {
         fun create(context: BaseCommandContext): RequirementResult<GuildStateRequirement> {
-            val strategy = context.tryFindDependency(GuildStateStrategyDependency::class) as GuildStateStrategy
+            val strategy = context.tryFindDependency(GuildStateStrategyTag) as GuildStateStrategy
 
             return RequirementResult.Success(
                 object : GuildStateRequirement {

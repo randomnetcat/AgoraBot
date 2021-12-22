@@ -12,7 +12,6 @@ import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText
 import org.randomcat.agorabot.util.DiscordPermission
 import org.randomcat.agorabot.util.resolveRoleString
-import kotlin.reflect.KClass
 import org.randomcat.agorabot.commands.impl.args as doArgs
 import org.randomcat.agorabot.commands.impl.noArgs as doNoArgs
 
@@ -65,7 +64,7 @@ interface BaseCommandOutputStrategy {
 }
 
 interface BaseCommandDependencyStrategy {
-    fun tryFindDependency(markerClass: KClass<*>): Any?
+    fun tryFindDependency(tag: Any): Any?
 }
 
 interface BaseCommandStrategy :
@@ -273,8 +272,8 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                                             override val invocation: CommandInvocation
                                                 get() = theInvocation
 
-                                            override fun tryFindDependency(markerClass: KClass<*>): Any? {
-                                                return strategy.tryFindDependency(markerClass)
+                                            override fun tryFindDependency(tag: Any): Any? {
+                                                return strategy.tryFindDependency(tag)
                                             }
                                         },
                                         receiver = ExecutionReceiverImpl(
