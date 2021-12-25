@@ -18,7 +18,10 @@ import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
-import org.randomcat.agorabot.features.*
+import org.randomcat.agorabot.features.adminCommandsFeature
+import org.randomcat.agorabot.features.permissionsCommandsFeature
+import org.randomcat.agorabot.features.prefixCommandsFeature
+import org.randomcat.agorabot.features.reactionRolesFeature
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
@@ -196,15 +199,6 @@ private fun runBot(config: BotRunConfig) {
     val botPermissionMap = permissionsSetupResult.botMap
     val guildPermissionMap = permissionsSetupResult.guildMap
 
-    val digestSetupResult = setupDigest(
-        paths = config.paths,
-        persistService = persistService,
-    )
-
-    if (digestSetupResult.digestSendStrategy == null) {
-        logger.warn("Unable to setup digest sending! Check for errors above.")
-    }
-
     val guildStateMap = setupGuildStateMap(config.paths, persistService)
 
     val ircSetupResult = setupIrcClient(config.paths)
@@ -308,11 +302,6 @@ private fun runBot(config: BotRunConfig) {
         val extraFeatureSources = listOf(
             "bot_admin_commands" to adminCommandsFeature(
                 writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
-            ),
-            "digest" to digestFeature(
-                digestMap = digestSetupResult.digestMap,
-                sendStrategy = digestSetupResult.digestSendStrategy,
-                format = digestSetupResult.digestFormat,
             ),
             "permissions_commands" to permissionsCommandsFeature(
                 botPermissionMap = botPermissionMap,
