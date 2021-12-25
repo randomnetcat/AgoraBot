@@ -4,7 +4,7 @@ import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import java.util.concurrent.atomic.AtomicReference
 
-class AtomicLoadOnceMap<K, V : Any> {
+class AtomicLoadOnceMap<K, V> {
     private class LoadOnceValue<V>(init: () -> V) {
         val value by lazy(LazyThreadSafetyMode.SYNCHRONIZED, init)
     }
@@ -14,10 +14,14 @@ class AtomicLoadOnceMap<K, V : Any> {
     fun getOrPut(key: K, initOnce: () -> V): V {
         run {
             val origMap = data.get()
-            val loadOnceValue = origMap[key]
 
-            // This null test is safe because V is constrained to derive from Any (and is therefore non-nullable).
-            if (loadOnceValue != null) return loadOnceValue.value
+            // getOrElse is not atomic, but origMap is immutable, so that's fine.
+            // If the key is not in the map, getOrElse will return from the run block, so the below updateAndGet
+            // call will run. If it is in the map, getOrElse will return the LoadOnceValue, and the lazy value will
+            // be read, and the standard library will handle thread-safely invoking the callable exactly once.
+            return origMap.getOrElse(key) {
+                return@run
+            }.value
         }
 
         return data.updateAndGet {
