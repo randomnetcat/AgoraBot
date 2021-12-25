@@ -9,6 +9,7 @@ import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.DuckCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.listener.Command
 import java.util.concurrent.atomic.AtomicReference
 

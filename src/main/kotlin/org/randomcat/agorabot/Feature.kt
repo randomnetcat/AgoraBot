@@ -1,15 +1,11 @@
 package org.randomcat.agorabot
 
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
-import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
 import org.randomcat.agorabot.setup.BotDataPaths
 
 interface FeatureContext {
-    // The strategy that should be used for commands if there is no specific other need for a specific command.
-    val defaultCommandStrategy: BaseCommandStrategy
-
     // Returns the global command registry. This should not be invoked during registration, only after commands
     // have started executing.
     fun commandRegistry(): QueryableCommandRegistry
@@ -33,6 +29,22 @@ interface FeatureContext {
      * Exceptions in queries are caught and returned as failed Results.
      */
     fun <T> tryQueryAll(tag: FeatureElementTag<T>): Map<String, Result<FeatureQueryResult<T>>>
+}
+
+/**
+ * Runs a query on all available features. If a single query is successful, returns its value. Otherwise, throws an
+ * Exception.
+ *
+ * Exceptions thrown by queries are ignored, and such queries are considered unsuccessful.
+ */
+fun <T> FeatureContext.queryExpectOne(tag: FeatureElementTag<T>): T {
+    return tryQueryAll(tag)
+        .values
+        .filter { it.isSuccess }
+        .map { it.getOrThrow() }
+        .filterIsInstance<FeatureQueryResult.Found<T>>()
+        .single()
+        .value
 }
 
 sealed class FeatureButtonData {

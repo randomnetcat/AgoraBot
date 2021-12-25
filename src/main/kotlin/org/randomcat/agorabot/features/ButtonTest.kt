@@ -4,6 +4,7 @@ import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.withType
 import org.randomcat.agorabot.commands.ButtonTestCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.listener.Command
 
 private val buttonTestFeature = object : AbstractFeature() {

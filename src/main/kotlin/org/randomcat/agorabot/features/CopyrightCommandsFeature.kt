@@ -4,6 +4,7 @@ import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.CopyrightCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 
 @FeatureSourceFactory
 fun copyrightCommandsFactory() = FeatureSource.ofConstant("copyright_commands", Feature.ofCommands { context ->

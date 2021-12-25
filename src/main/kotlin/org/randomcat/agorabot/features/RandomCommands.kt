@@ -7,6 +7,7 @@ import org.randomcat.agorabot.commands.CfjCommand
 import org.randomcat.agorabot.commands.ChooseCommand
 import org.randomcat.agorabot.commands.RngCommand
 import org.randomcat.agorabot.commands.RollCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 
 @FeatureSourceFactory
 fun randomFactory() = FeatureSource.ofConstant("random_commands", Feature.ofCommands { context ->

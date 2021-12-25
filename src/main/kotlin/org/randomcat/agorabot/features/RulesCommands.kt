@@ -5,6 +5,7 @@ import org.randomcat.agorabot.FeatureSetupContext
 import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.RuleCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.config.parsing.features.RuleCommandsConfig
 import org.randomcat.agorabot.config.parsing.features.readRuleCommandsConfig
 import org.randomcat.agorabot.setup.features.featureConfigDir

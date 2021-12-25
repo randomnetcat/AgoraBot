@@ -304,6 +304,8 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
+        lateinit var commandStrategy: BaseCommandStrategy
+
         val extraFeatureSources = listOf(
             "bot_admin_commands" to adminCommandsFeature(
                 writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
@@ -320,6 +322,12 @@ private fun runBot(config: BotRunConfig) {
             ),
             "prefix_commands" to prefixCommandsFeature(prefixMap),
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
+            "command_strategy_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is BaseCommandStrategyTag) return tag.result(commandStrategy)
+                    return FeatureQueryResult.NotFound
+                }
+            }
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
@@ -327,12 +335,7 @@ private fun runBot(config: BotRunConfig) {
             featureSetupContext = FeatureSetupContext(paths = config.paths),
         )
 
-        lateinit var commandStrategy: BaseCommandStrategy
-
         val featureContext = object : FeatureContext {
-            override val defaultCommandStrategy: BaseCommandStrategy
-                get() = commandStrategy
-
             override fun commandRegistry(): QueryableCommandRegistry {
                 return checkNotNull(delayedRegistryReference.get()) {
                     "Attempt to access command registry that is not yet ready"

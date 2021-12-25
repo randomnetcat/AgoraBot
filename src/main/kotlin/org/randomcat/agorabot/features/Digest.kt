@@ -3,6 +3,7 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.AbstractFeature
 import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.commands.DigestCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.GuildMutableDigestMap

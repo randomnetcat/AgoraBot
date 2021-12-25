@@ -6,6 +6,7 @@ import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.ArchiveCommand
 import org.randomcat.agorabot.commands.DiscordArchiver
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Path

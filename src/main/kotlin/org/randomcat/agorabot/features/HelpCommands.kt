@@ -3,6 +3,7 @@ package org.randomcat.agorabot.features
 import kotlinx.collections.immutable.toImmutableList
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.commands.HelpCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 
 fun helpCommandsFeature(
     suppressedCommands: List<String>,

@@ -3,6 +3,7 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.commands.PermissionsCommand
 import org.randomcat.agorabot.commands.SudoCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.permissions.MutableGuildPermissionMap
 import org.randomcat.agorabot.permissions.MutablePermissionMap
 
