@@ -298,6 +298,7 @@ private fun runBot(config: BotRunConfig) {
                     .asSequence()
                     .filter { it.hasAnnotation(FeatureSourceFactory::class.java) }
                     .mapNotNull { it.loadClassAndGetMethod().kotlinFunction }
+                    .onEach { logger.info("Reflectively found feature function: $it") }
                     .map { it.call() as FeatureSource }
             }
         }
