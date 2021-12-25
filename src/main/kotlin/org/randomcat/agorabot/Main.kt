@@ -17,10 +17,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.config.ConfigPersistService
-import org.randomcat.agorabot.config.DefaultConfigPersistService
-import org.randomcat.agorabot.config.GuildState
-import org.randomcat.agorabot.config.GuildStateMap
+import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.*
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
@@ -328,7 +325,13 @@ private fun runBot(config: BotRunConfig) {
                     if (tag is BaseCommandStrategyTag) return tag.result(commandStrategy)
                     return FeatureQueryResult.NotFound
                 }
-            }
+            },
+            "config_persist_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is ConfigPersistServiceTag) return tag.result(persistService)
+                    return FeatureQueryResult.NotFound
+                }
+            },
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
