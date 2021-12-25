@@ -13,7 +13,7 @@ fun reactionRolesFeature(reactionRolesMap: MutableReactionRolesMap) = object : A
         return mapOf("reactionroles" to ReactionRolesCommand(context.defaultCommandStrategy, reactionRolesMap))
     }
 
-    override fun jdaListeners(): List<Any> {
+    override fun jdaListeners(context: FeatureContext): List<Any> {
         return listOf(reactionRolesListener(reactionRolesMap))
     }
 }

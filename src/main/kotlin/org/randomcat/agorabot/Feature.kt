@@ -120,7 +120,7 @@ interface Feature {
 
 abstract class AbstractFeature : Feature {
     override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-        if (tag is JdaListenerTag) return tag.result(jdaListeners())
+        if (tag is JdaListenerTag) return tag.result(jdaListeners(context))
         if (tag is ButtonDataTag) return tag.result(buttonData())
         if (tag is BotCommandListTag) return tag.result(commandsInContext(context))
 
@@ -129,7 +129,7 @@ abstract class AbstractFeature : Feature {
 
     protected abstract fun commandsInContext(context: FeatureContext): Map<String, Command>
 
-    protected open fun jdaListeners(): List<Any> {
+    protected open fun jdaListeners(context: FeatureContext): List<Any> {
         return listOf()
     }
 

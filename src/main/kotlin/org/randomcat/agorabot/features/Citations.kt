@@ -45,7 +45,7 @@ private fun citationsFeature(config: CitationsConfig): Feature {
             return emptyMap()
         }
 
-        override fun jdaListeners(): List<Any> {
+        override fun jdaListeners(context: FeatureContext): List<Any> {
             if (config.ruleUrlPattern == null && config.cfjUrlPattern == null) return emptyList()
 
             return listOf(object {

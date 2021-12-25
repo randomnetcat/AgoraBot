@@ -29,7 +29,7 @@ private val RESPONSES = listOf(
 private val duckFeature = object : AbstractFeature() {
     private val listening = AtomicReference<PersistentSet<DuckCommand.ListeningSpec>>(persistentSetOf())
 
-    override fun jdaListeners(): List<Any> {
+    override fun jdaListeners(context: FeatureContext): List<Any> {
         return listOf(object {
             @SubscribeEvent
             fun onMessage(event: MessageReceivedEvent) {
