@@ -6,6 +6,15 @@ import org.randomcat.agorabot.setup.BotDataPaths
 
 interface FeatureContext {
     /**
+     * Inserts or retrieves from the cache, using the provided object as a cache key. If an object equal to the key
+     * already exists in the cache, it is returned (no type verification is performed). Otherwise, [producer] is invoked
+     * to produce a new value, which is stored in the cache and returned.
+     *
+     * Cache accesses are thread-safe. Recursive accesses to the cache are permitted.
+     */
+    fun <T> cache(cacheKey: Any, producer: () -> T): T
+
+    /**
      * Runs a query on all available features (including the one calling this). Returns a map from feature names to the
      * successful query results (features which do not return a result are not included).
      *

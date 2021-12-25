@@ -27,6 +27,7 @@ import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
+import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
@@ -336,6 +337,14 @@ private fun runBot(config: BotRunConfig) {
         )
 
         val featureContext = object : FeatureContext {
+            private val cacheMap = AtomicLoadOnceMap<Any, Any?>()
+
+            override fun <T> cache(cacheKey: Any, producer: () -> T): T {
+                // Caller guarantees type safety.
+                @Suppress("UNCHECKED_CAST")
+                return cacheMap.getOrPut(cacheKey, producer) as T
+            }
+
             override fun <T> queryAll(tag: FeatureElementTag<T>): Map<String, T> {
                 return featureMap
                     .mapValues { (_, v) ->
