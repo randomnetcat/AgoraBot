@@ -175,6 +175,7 @@ private fun buildFeaturesMap(
 
 object JdaListenerTag : FeatureElementTag<List<Any>>
 object ButtonDataTag : FeatureElementTag<FeatureButtonData>
+object BotCommandListTag : FeatureElementTag<Map<String, Command>>
 
 private fun runBot(config: BotRunConfig) {
     val token = config.token
@@ -402,7 +403,14 @@ private fun runBot(config: BotRunConfig) {
         for ((name, feature) in featureMap) {
             logger.info("Registering feature $name")
 
-            commandRegistry.addCommands(feature.commandsInContext(featureContext))
+            @Suppress("UNUSED_VARIABLE")
+            val ensureExhaustive = when (val commandQueryResult = feature.query(featureContext, BotCommandListTag)) {
+                is FeatureQueryResult.Found -> {
+                    commandRegistry.addCommands(commandQueryResult.value)
+                }
+
+                FeatureQueryResult.NotFound -> {}
+            }
 
             val requestedListeners = feature.query(featureContext, JdaListenerTag)
             if (requestedListeners is FeatureQueryResult.Found) {

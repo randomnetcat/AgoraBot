@@ -89,17 +89,13 @@ annotation class FeatureSourceFactory(val enable: Boolean = true)
 interface Feature {
     fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T>
 
-    fun commandsInContext(context: FeatureContext): Map<String, Command>
-
     companion object {
         fun ofCommands(block: (context: FeatureContext) -> Map<String, Command>): Feature {
             return object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                    return FeatureQueryResult.NotFound
-                }
+                    if (tag is BotCommandListTag) return tag.result(block(context))
 
-                override fun commandsInContext(context: FeatureContext): Map<String, Command> {
-                    return block(context)
+                    return FeatureQueryResult.NotFound
                 }
             }
         }
@@ -110,9 +106,12 @@ abstract class AbstractFeature : Feature {
     override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
         if (tag is JdaListenerTag) return tag.result(jdaListeners())
         if (tag is ButtonDataTag) return tag.result(buttonData())
+        if (tag is BotCommandListTag) return tag.result(commandsInContext(context))
 
         return FeatureQueryResult.NotFound
     }
+
+    protected abstract fun commandsInContext(context: FeatureContext): Map<String, Command>
 
     protected open fun jdaListeners(): List<Any> {
         return listOf()
