@@ -2,14 +2,9 @@ package org.randomcat.agorabot
 
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.listener.Command
-import org.randomcat.agorabot.listener.QueryableCommandRegistry
 import org.randomcat.agorabot.setup.BotDataPaths
 
 interface FeatureContext {
-    // Returns the global command registry. This should not be invoked during registration, only after commands
-    // have started executing.
-    fun commandRegistry(): QueryableCommandRegistry
-
     /**
      * Runs a query on all available features (including the one calling this). Returns a map from feature names to the
      * successful query results (features which do not return a result are not included).

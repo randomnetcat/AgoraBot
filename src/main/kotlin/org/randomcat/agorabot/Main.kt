@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
+import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.DefaultConfigPersistService
@@ -315,7 +316,6 @@ private fun runBot(config: BotRunConfig) {
                 sendStrategy = digestSetupResult.digestSendStrategy,
                 format = digestSetupResult.digestFormat,
             ),
-            "help" to helpCommandsFeature(suppressedCommands = listOf("permissions")),
             "permissions_commands" to permissionsCommandsFeature(
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
@@ -336,12 +336,6 @@ private fun runBot(config: BotRunConfig) {
         )
 
         val featureContext = object : FeatureContext {
-            override fun commandRegistry(): QueryableCommandRegistry {
-                return checkNotNull(delayedRegistryReference.get()) {
-                    "Attempt to access command registry that is not yet ready"
-                }
-            }
-
             override fun <T> queryAll(tag: FeatureElementTag<T>): Map<String, T> {
                 return featureMap
                     .mapValues { (_, v) ->
@@ -420,6 +414,18 @@ private fun runBot(config: BotRunConfig) {
                 jda.addEventListener(*requestedListeners.value.toTypedArray())
             }
         }
+
+        logger.info("Registering help command...")
+
+        commandRegistry.addCommand("help", HelpCommand(
+            strategy = featureContext.defaultCommandStrategy,
+            registryFun = {
+                checkNotNull(delayedRegistryReference.get()) {
+                    "Attempt to access command registry that is not yet ready"
+                }
+            },
+            suppressedCommands = listOf("permissions"),
+        ))
 
         delayedRegistryReference.set(commandRegistry)
 
