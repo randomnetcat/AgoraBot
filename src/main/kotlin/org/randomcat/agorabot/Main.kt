@@ -20,7 +20,6 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.adminCommandsFeature
 import org.randomcat.agorabot.features.permissionsCommandsFeature
-import org.randomcat.agorabot.features.prefixCommandsFeature
 import org.randomcat.agorabot.features.reactionRolesFeature
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
@@ -307,7 +306,6 @@ private fun runBot(config: BotRunConfig) {
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
             ),
-            "prefix_commands" to prefixCommandsFeature(prefixMap),
             "reaction_roles" to reactionRolesFeature(reactionRolesMap),
             "command_strategy_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
@@ -321,6 +319,12 @@ private fun runBot(config: BotRunConfig) {
                     return FeatureQueryResult.NotFound
                 }
             },
+            "prefix_storage_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is PrefixStorageTag) return tag.result(prefixMap)
+                    return FeatureQueryResult.NotFound
+                }
+            }
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
