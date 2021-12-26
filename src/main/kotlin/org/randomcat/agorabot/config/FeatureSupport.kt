@@ -19,3 +19,8 @@ object GuildStateStorageTag : FeatureElementTag<GuildStateMap>
 
 val FeatureContext.guildStateMap
     get() = queryExpectOne(GuildStateStorageTag)
+
+object VersioningStorageTag : FeatureElementTag<VersioningStorage>
+
+val FeatureContext.versioningStorage
+    get() = queryExpectOne(VersioningStorageTag)

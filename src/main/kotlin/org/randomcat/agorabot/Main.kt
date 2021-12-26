@@ -326,6 +326,12 @@ private fun runBot(config: BotRunConfig) {
                     return FeatureQueryResult.NotFound
                 }
             },
+            "versioning_storage_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is VersioningStorageTag) return tag.result(versioningStorage)
+                    return FeatureQueryResult.NotFound
+                }
+            }
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
