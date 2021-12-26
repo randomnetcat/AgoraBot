@@ -184,12 +184,6 @@ private fun runBot(config: BotRunConfig) {
 
     val versioningStorage = setupStorageVersioning(paths = config.paths)
 
-    val prefixMap = setupPrefixStorage(
-        paths = config.paths,
-        versioningStorage = versioningStorage,
-        persistService = persistService,
-    )
-
     val permissionsSetupResult = setupPermissions(paths = config.paths, persistService = persistService)
 
     val permissionsConfig = permissionsSetupResult.config
@@ -311,12 +305,6 @@ private fun runBot(config: BotRunConfig) {
             "config_persist_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is ConfigPersistServiceTag) return tag.result(persistService)
-                    return FeatureQueryResult.NotFound
-                }
-            },
-            "prefix_storage_provider" to object : Feature {
-                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                    if (tag is PrefixStorageTag) return tag.result(prefixMap)
                     return FeatureQueryResult.NotFound
                 }
             },
@@ -447,7 +435,7 @@ private fun runBot(config: BotRunConfig) {
 
         jda.addEventListener(
             BotListener(
-                MentionPrefixCommandParser(GuildPrefixCommandParser(prefixMap)),
+                MentionPrefixCommandParser(GuildPrefixCommandParser(featureContext.prefixMap)),
                 commandRegistry,
             ),
         )
