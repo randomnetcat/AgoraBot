@@ -20,11 +20,9 @@ import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.adminCommandsFeature
 import org.randomcat.agorabot.features.permissionsCommandsFeature
-import org.randomcat.agorabot.features.reactionRolesFeature
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
-import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.slf4j.LoggerFactory
@@ -223,8 +221,6 @@ private fun runBot(config: BotRunConfig) {
         }
     }
 
-    val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
-
     val startupMessageStrategy = setupStartupMessageStrategy(config.paths)
 
     logger.info("Setting up JDA")
@@ -306,7 +302,6 @@ private fun runBot(config: BotRunConfig) {
                 botPermissionMap = botPermissionMap,
                 guildPermissionMap = guildPermissionMap,
             ),
-            "reaction_roles" to reactionRolesFeature(reactionRolesMap),
             "command_strategy_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is BaseCommandStrategyTag) return tag.result(commandStrategy)
