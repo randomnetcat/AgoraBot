@@ -38,14 +38,14 @@ fun archiveCommandsFactory() = object : FeatureSource {
     }
 
     override fun createFeature(config: Any?): Feature {
-        val typedConfig = config as ArchiveCommandsConfig
+        config as ArchiveCommandsConfig
 
         return Feature.ofCommands { context ->
             mapOf(
                 "archive" to ArchiveCommand(
                     strategy = context.defaultCommandStrategy,
-                    archiver = typedConfig.archiver,
-                    localStorageDir = typedConfig.localStorageDir,
+                    archiver = config.archiver,
+                    localStorageDir = config.localStorageDir,
                 )
             )
         }

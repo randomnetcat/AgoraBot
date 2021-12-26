@@ -28,8 +28,8 @@ fun prefixStorageFactory() = object : FeatureSource {
     }
 
     override fun createFeature(config: Any?): Feature {
-        val typedConfig = config as PrefixStorageConfig
-        val prefixStoragePath = typedConfig.prefixStoragePath
+        config as PrefixStorageConfig
+        val prefixStoragePath = config.prefixStoragePath
 
         return object : Feature {
             override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
