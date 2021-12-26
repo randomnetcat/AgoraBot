@@ -324,7 +324,13 @@ private fun runBot(config: BotRunConfig) {
                     if (tag is PrefixStorageTag) return tag.result(prefixMap)
                     return FeatureQueryResult.NotFound
                 }
-            }
+            },
+            "guild_state_storage_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is GuildStateStorageTag) return tag.result(guildStateMap)
+                    return FeatureQueryResult.NotFound
+                }
+            },
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(

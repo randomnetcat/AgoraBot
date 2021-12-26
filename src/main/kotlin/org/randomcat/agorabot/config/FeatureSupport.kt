@@ -14,3 +14,8 @@ object PrefixStorageTag : FeatureElementTag<MutableGuildPrefixMap>
 
 val FeatureContext.prefixMap
     get() = queryExpectOne(PrefixStorageTag)
+
+object GuildStateStorageTag : FeatureElementTag<GuildStateMap>
+
+val FeatureContext.guildStateMap
+    get() = queryExpectOne(GuildStateStorageTag)
