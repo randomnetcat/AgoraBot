@@ -3,10 +3,10 @@ package org.randomcat.agorabot.features
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
+import org.randomcat.agorabot.AbstractFeature
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.config.parsing.features.CitationsConfig
@@ -40,15 +40,15 @@ private fun enqueueResponse(message: Message, name: String, citationUri: URI) {
 }
 
 fun citationsFeature(config: CitationsConfig): Feature {
-    return object : Feature {
+    return object : AbstractFeature() {
         override fun commandsInContext(context: FeatureContext): Map<String, Command> {
             return emptyMap()
         }
 
-        override fun registerListenersTo(jda: JDA) {
-            if (config.ruleUrlPattern == null && config.cfjUrlPattern == null) return // Nothing to do
+        override fun jdaListeners(): List<Any> {
+            if (config.ruleUrlPattern == null && config.cfjUrlPattern == null) return emptyList()
 
-            jda.addEventListener(object {
+            return listOf(object {
                 @SubscribeEvent
                 fun onMessage(event: MessageReceivedEvent) {
                     if (event.author == event.jda.selfUser) {

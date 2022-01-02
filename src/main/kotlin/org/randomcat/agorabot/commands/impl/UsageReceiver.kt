@@ -10,12 +10,16 @@ private fun CommandArgumentUsage.Count.symbol(): String {
     }
 }
 
-private fun formatArgumentUsage(usage: CommandArgumentUsage): String {
-    return "${usage.name ?: "_"}${usage.type?.let { ": $it" } ?: ""}${usage.count.symbol()}"
+private fun formatArgumentUsageWrapped(usage: CommandArgumentUsage): String {
+    return if (usage.type == LITERAL_ARG_TYPE && usage.count == CommandArgumentUsage.Count.ONCE && usage.name != null) {
+        usage.name
+    } else {
+        "[${usage.name ?: "_"}${usage.type?.let { ": $it" } ?: ""}${usage.count.symbol()}]"
+    }
 }
 
 private fun formatArgumentUsages(usages: Iterable<CommandArgumentUsage>): String {
-    return usages.joinToString(" ") { "[${formatArgumentUsage(it)}]" }
+    return usages.joinToString(" ") { formatArgumentUsageWrapped(it) }
 }
 
 private fun formatArgumentSelection(options: List<String>): String {
@@ -31,20 +35,20 @@ private fun formatArgumentSelection(options: List<String>): String {
     }
 }
 
-private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>(
-    private val receiver: ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Nothing, ArgsExtend>,
-) : ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
+private class MatchFirstUsageArgumentDescriptionReceiver(
+    private val receiver: PendingInvocation<Nothing>,
+) : ArgumentMultiDescriptionReceiver<Nothing> {
     private val options = mutableListOf<String>()
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend> {
+    ): PendingInvocation<Nothing> {
         options += formatArgumentUsages(parsers.map { it.usage() })
         return receiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         block()
     }
 
@@ -53,29 +57,29 @@ private class MatchFirstUsageArgumentDescriptionReceiver<ExecutionReceiver, Args
     }
 }
 
-private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>(
-    private val receiver: ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Nothing, ArgsExtend>,
-) : SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
+private class UsageSubcommandsArgumentDescriptionReceiver(
+    private val receiver: PendingInvocation<Nothing>,
+) : SubcommandsArgumentDescriptionReceiver<Nothing> {
     private val checker = SubcommandsReceiverChecker()
     private var options: PersistentList<String> = persistentListOf()
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend> {
+    ): PendingInvocation<Nothing> {
         checker.checkArgsRaw()
         options = persistentListOf(formatArgumentUsages(parsers.map { it.usage() }))
         return receiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         checker.checkMatchFirst()
         options = MatchFirstUsageArgumentDescriptionReceiver(receiver).apply(block).options().toPersistentList()
     }
 
     override fun subcommand(
         name: String,
-        block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit,
+        block: SubcommandsArgumentDescriptionReceiver<Nothing>.() -> Unit,
     ) {
         checker.checkSubcommand(subcommand = name)
 
@@ -101,28 +105,28 @@ private class UsageSubcommandsArgumentDescriptionReceiver<ExecutionReceiver, Arg
     }
 }
 
-class UsageTopLevelArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>(
-    private val receiver: ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, Nothing, ArgsExtend>,
-) : TopLevelArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend> {
+class UsageTopLevelArgumentDescriptionReceiver(
+    private val receiver: PendingInvocation<Nothing>,
+) : TopLevelArgumentDescriptionReceiver<Nothing> {
     private var usageValue: String? = null
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
-    ): ExtendableArgumentPendingExecutionReceiver<ExecutionReceiver, R, ArgsExtend> {
+    ): PendingInvocation<Nothing> {
         check(usageValue == null)
         usageValue = formatArgumentUsages(parsers.map { it.usage() })
         return receiver
     }
 
-    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
+    override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         check(usageValue == null)
         usageValue = formatArgumentSelection(
             MatchFirstUsageArgumentDescriptionReceiver(receiver).apply(block).options()
         )
     }
 
-    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<ExecutionReceiver, ArgsExtend>.() -> Unit) {
+    override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<Nothing>.() -> Unit) {
         check(usageValue == null)
 
         usageValue = formatArgumentSelection(

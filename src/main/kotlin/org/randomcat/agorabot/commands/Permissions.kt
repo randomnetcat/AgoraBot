@@ -10,7 +10,7 @@ class PermissionsCommand(
     private val botMap: MutablePermissionMap,
     private val guildMap: MutableGuildPermissionMap,
 ) : BaseCommand(strategy) {
-    private fun BaseCommandExecutionReceiverGuilded.handleGuildSetState(
+    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleGuildSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,
@@ -37,7 +37,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun BaseCommandExecutionReceiver.handleBotSetState(
+    private fun BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>.handleBotSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,
@@ -60,7 +60,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun SubcommandsArgumentDescriptionReceiver<BaseCommandExecutionReceiver, BaseCommandExecutionReceiverMarker>.guildSubcommand(
+    private fun SubcommandsArgumentDescriptionReceiver<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>>.guildSubcommand(
         name: String,
         state: BotPermissionState,
     ) {
@@ -69,7 +69,8 @@ class PermissionsCommand(
                 args(
                     StringArg("user_id"),
                     StringArg("permission_path")
-                ).requiresGuild(
+                ).requires(
+                    InGuild
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
                 ) { (userId, stringPath) ->
@@ -85,7 +86,8 @@ class PermissionsCommand(
                 args(
                     StringArg("role_descriptor"),
                     StringArg("permission_path")
-                ).requiresGuild(
+                ).requires(
+                    InGuild
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
                 ) { (roleString, stringPath) ->
@@ -107,7 +109,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun SubcommandsArgumentDescriptionReceiver<BaseCommandExecutionReceiver, PermissionsExtensionMarker>.botSubcommand(
+    private fun SubcommandsArgumentDescriptionReceiver<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>>.botSubcommand(
         name: String,
         state: BotPermissionState,
     ) {
@@ -115,6 +117,8 @@ class PermissionsCommand(
             args(
                 StringArg("user_id"),
                 StringArg("permission_path")
+            ).requires(
+                InDiscord,
             ).permissions(
                 BotScope.admin(),
             ) { (userId, stringPath) ->

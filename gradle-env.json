@@ -4,11 +4,11 @@
     "version": "1.0-SNAPSHOT",
     "path": "",
     "gradle": {
-      "version": "7.0",
+      "version": "7.3.1",
       "type": "bin",
-      "url": "https://services.gradle.org/distributions/gradle-7.0-bin.zip",
-      "sha256": "eb8b89184261025b0430f5b2233701ff1377f96da1ef5e278af6ae8bac5cc305",
-      "nativeVersion": "0.22-milestone-11"
+      "url": "https://services.gradle.org/distributions/gradle-7.3.1-bin.zip",
+      "sha256": "9afb3ca688fc12c761a0e9e4321e4d24e977a4a8916c8a768b1fe05ddb4d6b66",
+      "nativeVersion": "0.22-milestone-21"
     },
     "dependencies": {
       "settings": [],

@@ -52,11 +52,12 @@ private fun retrieveMessagesBetween(beginInclusive: Message, endInclusive: Messa
     }
 }
 
-private fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.digestAction() = requiresGuild()
+private fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.digestAction() =
+    requires(InGuildSimple)
 
-private fun <Arg> BaseCommandPendingExecutionReceiver<Arg>.digestAction(
+private fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.digestAction(
     block: BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
-) = digestAction().invoke(block)
+) = digestAction().execute { block(it.receiver, it.arg) }
 
 class DigestCommand(
     strategy: BaseCommandStrategy,

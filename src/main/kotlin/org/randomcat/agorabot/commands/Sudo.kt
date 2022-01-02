@@ -12,7 +12,7 @@ class SudoCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 respond("You are now root.")
             }
 
-            args(RemainingStringArgs("command")) {
+            args(RemainingStringArgs("command")).requires(PermissionsAccess) {
                 if (senderHasPermission(PERMISSION)) {
                     respond("Done.")
                 } else {

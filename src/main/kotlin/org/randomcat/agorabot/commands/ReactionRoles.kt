@@ -79,7 +79,8 @@ class ReactionRolesCommand(
                     StringArg("message"),
                     StringArg("emote"),
                     StringArg("role"),
-                ).requiresGuild(
+                ).requires(
+                    InGuild
                 ).permissions(
                     REACTION_ROLES_MANAGE_PERMISSION,
                 ) { (messageId, emoteString, roleString) ->
@@ -103,7 +104,8 @@ class ReactionRolesCommand(
                 args(
                     StringArg("message"),
                     StringArg("emote"),
-                ).requiresGuild(
+                ).requires(
+                    InGuild
                 ).permissions(
                     REACTION_ROLES_MANAGE_PERMISSION,
                 ) { (messageId, emoteString) ->

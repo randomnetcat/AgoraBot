@@ -1,7 +1,6 @@
 package org.randomcat.agorabot.features
 
-import net.dv8tion.jda.api.JDA
-import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.AbstractFeature
 import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.commands.DigestCommand
 import org.randomcat.agorabot.digest.DigestFormat
@@ -17,7 +16,7 @@ fun digestFeature(
     digestMap: GuildMutableDigestMap,
     sendStrategy: DigestSendStrategy?,
     format: DigestFormat,
-) = object : Feature {
+) = object : AbstractFeature() {
     override fun commandsInContext(context: FeatureContext): Map<String, Command> {
         return mapOf(
             "digest" to DigestCommand(
@@ -30,8 +29,8 @@ fun digestFeature(
         )
     }
 
-    override fun registerListenersTo(jda: JDA) {
-        jda.addEventListener(
+    override fun jdaListeners(): List<Any> {
+        return listOf(
             digestEmoteListener(
                 digestMap = digestMap,
                 targetEmoji = DIGEST_ADD_EMOTE,
