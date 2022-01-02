@@ -35,7 +35,7 @@
                 };
               };
 
-              gradleFlags = [ "installDist" ];
+              gradleFlags = [ "installDist" "--no-watch-fs" ];
 
               buildJdk = jdk;
 
