@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.interactions.Interaction
-import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.AbstractFeature
 import org.randomcat.agorabot.FeatureButtonData
 import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.buttons.*
@@ -125,7 +125,7 @@ private object NullMessageContext : SecretHitlerMessageContext {
 fun secretHitlerFeature(
     repository: SecretHitlerRepository,
     impersonationMap: SecretHitlerMutableImpersonationMap?,
-) = object : Feature {
+) = object : AbstractFeature() {
     private val nameContext = NameContextImpl(impersonationMap)
 
     private fun makeMessageContext(jda: JDA, gameMessageChannelId: String?): SecretHitlerMessageContext {

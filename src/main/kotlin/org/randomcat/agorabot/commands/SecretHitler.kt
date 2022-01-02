@@ -19,7 +19,7 @@ private val MANAGE_PERMISSION = GuildScope.command("secret_hitler").action("mana
 private val IMPERSONATE_PERMISSION = BotScope.command("secret_hitler").action("impersonate")
 
 private fun makeContext(
-    commandReceiver: BaseCommandExecutionReceiverGuilded,
+    commandReceiver: BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>,
     nameContext: SecretHitlerNameContext,
     messageContext: SecretHitlerMessageContext,
 ): SecretHitlerCommandContext {
@@ -48,7 +48,7 @@ class SecretHitlerCommand(
     private val nameContext: SecretHitlerNameContext,
     private val makeMessageContext: (currentChannel: MessageChannel) -> SecretHitlerMessageContext,
 ) : BaseCommand(strategy) {
-    private val BaseCommandExecutionReceiverGuilded.context: SecretHitlerCommandContext
+    private val BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>.context: SecretHitlerCommandContext
         get() = makeContext(
             commandReceiver = this,
             nameContext = nameContext,
@@ -61,7 +61,7 @@ class SecretHitlerCommand(
                 subcommand("impersonate") {
                     subcommand("set_name") {
                         args(StringArg("name"))
-                            .requiresGuild()
+                            .requires(InGuildSimple)
                             .permissions(IMPERSONATE_PERMISSION) { (name) ->
                                 impersonationMap.setNameForId(userId = currentMessageEvent.author.id, newName = name)
                                 respond("Done.")
@@ -70,7 +70,7 @@ class SecretHitlerCommand(
 
                     subcommand("restore_name") {
                         noArgs()
-                            .requiresGuild()
+                            .requires(InGuildSimple)
                             .permissions(IMPERSONATE_PERMISSION) {
                                 impersonationMap.clearNameForId(currentMessageEvent.author.id)
                                 respond("Done.")
@@ -79,7 +79,7 @@ class SecretHitlerCommand(
 
                     subcommand("receive_dms") {
                         args(RemainingStringArgs("names"))
-                            .requiresGuild()
+                            .requires(InGuildSimple)
                             .permissions(IMPERSONATE_PERMISSION) { (names) ->
                                 val userId = currentMessageEvent.author.id
 
@@ -93,7 +93,7 @@ class SecretHitlerCommand(
 
                     subcommand("restore_dms") {
                         args(StringArg("name"))
-                            .requiresGuild()
+                            .requires(InGuildSimple)
                             .permissions(IMPERSONATE_PERMISSION) { (name) ->
                                 impersonationMap.clearDmUsersForName(name)
                             }
@@ -102,7 +102,7 @@ class SecretHitlerCommand(
             }
 
             subcommand("create") {
-                noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
+                noArgs().requires(InGuild).permissions(MANAGE_PERMISSION) {
                     val state = SecretHitlerGameState.Joining()
                     val gameId = repository.gameList.createGame(state)
                     val assignSucceeded = repository.channelGameMap.tryPutGameForChannelId(currentChannel.id, gameId)
@@ -121,7 +121,7 @@ class SecretHitlerCommand(
             }
 
             subcommand("abort") {
-                noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
+                noArgs().requires(InGuildSimple).permissions(MANAGE_PERMISSION) {
                     val abortedGame = repository.channelGameMap.removeGameForChannelId(currentChannel.id)
 
                     if (abortedGame != null) {
@@ -134,7 +134,7 @@ class SecretHitlerCommand(
             }
 
             subcommand("start") {
-                noArgs().requiresGuild().permissions(MANAGE_PERMISSION) {
+                noArgs().requires(InGuild).permissions(MANAGE_PERMISSION) {
                     val gameId = repository.channelGameMap.gameByChannelId(currentChannel.id)
                     if (gameId == null) {
                         respond("No game is running in this channel.")
@@ -150,17 +150,17 @@ class SecretHitlerCommand(
             }
 
             subcommand("resend") {
-                noArgs().requiresGuild() {
+                noArgs().requires(InGuild) {
                     val gameId = repository.channelGameMap.gameByChannelId(currentChannelId)
                     if (gameId == null) {
                         respond("No game is running in this channel.")
-                        return@requiresGuild
+                        return@requires
                     }
 
                     val gameState = repository.gameList.gameById(gameId)
                     if (gameState == null) {
                         respond("That game no longer exists.")
-                        return@requiresGuild
+                        return@requires
                     }
 
                     @Suppress("UNUSED_VARIABLE")
