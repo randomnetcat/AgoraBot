@@ -10,29 +10,26 @@
     url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, ... }:
     let
-      pkgs = nixpkgs.legacyPackages."${system}";
-      jdk = pkgs.javaPackages.compiler.openjdk17;
-    in
-    rec {
-      packages = {
-        AgoraBot =
+      overlay = final: prev: {
+        randomcat.agorabot =
           let
-            buildGradle = pkgs.callPackage ./gradle-env.nix {};
+            jdk = final.javaPackages.compiler.openjdk17;
+            buildGradle = final.callPackage ./gradle-env.nix {};
             unwrappedBuild = buildGradle {
               envSpec = ./gradle-env.json;
 
-              src = pkgs.lib.cleanSourceWith {
-                filter = pkgs.lib.cleanSourceFilter;
-                src = pkgs.lib.cleanSourceWith {
+              src = final.lib.cleanSourceWith {
+                filter = final.lib.cleanSourceFilter;
+                src = final.lib.cleanSourceWith {
                   filter = path: type: let baseName = baseNameOf path; in !(
                     (type == "directory" && (
                       baseName == "build" ||
                       baseName == ".idea" ||
                       baseName == ".gradle"
                     )) ||
-                    (pkgs.lib.hasSuffix ".iml" baseName)
+                    (final.lib.hasSuffix ".iml" baseName)
                   );
                   src = ./.;
                 };
@@ -48,22 +45,32 @@
               '';
            };
          in
-         pkgs.writeShellScriptBin "AgoraBot" ''
-           export JAVA_HOME=${pkgs.lib.escapeShellArg "${jdk.home}"}
-           exec ${pkgs.lib.escapeShellArg "${unwrappedBuild}/bin/AgoraBot"} "$@"
+         final.writeShellScriptBin "AgoraBot" ''
+           export JAVA_HOME=${final.lib.escapeShellArg "${jdk.home}"}
+           exec ${final.lib.escapeShellArg "${unwrappedBuild}/bin/AgoraBot"} "$@"
          '';
       };
-
-      defaultPackage = packages.AgoraBot;
-
-      apps = {
-        AgoraBot = {
-          type = "app";
-          program = "${packages.AgoraBot}/bin/AgoraBot";
+    in
+    { inherit overlay; } //
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs { inherit system; overlays = [ overlay ]; };
+      in
+      rec {
+        packages = {
+          AgoraBot = pkgs.randomcat.agorabot;
         };
-      };
 
-      defaultApp = apps.AgoraBot;
-    }
-  );
+        defaultPackage = packages.AgoraBot;
+
+        apps = {
+          AgoraBot = {
+            type = "app";
+            program = "${packages.AgoraBot}/bin/AgoraBot";
+          };
+        };
+
+        defaultApp = apps.AgoraBot;
+      }
+    );
 }
