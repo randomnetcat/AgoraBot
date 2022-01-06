@@ -51,6 +51,16 @@ fun <T> FeatureContext.queryExpectOne(tag: FeatureElementTag<T>): T {
         .value
 }
 
+fun <T> FeatureContext.tryQueryExpectOne(tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+    val results = tryQueryAll(tag)
+        .values
+        .filter { it.isSuccess }
+        .map { it.getOrThrow() }
+        .filterIsInstance<FeatureQueryResult.Found<T>>()
+
+    return if (results.size == 1) results.single() else FeatureQueryResult.NotFound
+}
+
 sealed class FeatureButtonData {
     object NoButtons : FeatureButtonData()
     data class RegisterHandlers(val handlerMap: ButtonHandlerMap) : FeatureButtonData()
