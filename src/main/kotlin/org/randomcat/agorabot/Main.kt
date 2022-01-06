@@ -18,7 +18,7 @@ import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
-import org.randomcat.agorabot.features.adminCommandsFeature
+import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.permissions.BotPermissionMapTag
@@ -288,9 +288,6 @@ private fun runBot(config: BotRunConfig) {
         lateinit var commandStrategy: BaseCommandStrategy
 
         val extraFeatureSources = listOf(
-            "bot_admin_commands" to adminCommandsFeature(
-                writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
-            ),
             "command_strategy_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is BaseCommandStrategyTag) return tag.result(commandStrategy)
@@ -315,7 +312,13 @@ private fun runBot(config: BotRunConfig) {
                     if (tag is GuildPermissionMapTag) return tag.result(guildPermissionMap)
                     return FeatureQueryResult.NotFound
                 }
-            }
+            },
+            "startup_message_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is StartupMessageStrategyTag) return tag.result(startupMessageStrategy)
+                    return FeatureQueryResult.NotFound
+                }
+            },
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
