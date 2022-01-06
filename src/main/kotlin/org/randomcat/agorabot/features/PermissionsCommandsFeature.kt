@@ -1,24 +1,24 @@
 package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.PermissionsCommand
 import org.randomcat.agorabot.commands.SudoCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.permissions.MutableGuildPermissionMap
-import org.randomcat.agorabot.permissions.MutablePermissionMap
+import org.randomcat.agorabot.permissions.botPermissionMap
+import org.randomcat.agorabot.permissions.guildPermissionMap
 
-fun permissionsCommandsFeature(
-    botPermissionMap: MutablePermissionMap,
-    guildPermissionMap: MutableGuildPermissionMap,
-) = Feature.ofCommands { context ->
+@FeatureSourceFactory
+fun permissionsCommandsFactory() = FeatureSource.ofConstant("permissions_commands", Feature.ofCommands { context ->
     val commandStrategy = context.defaultCommandStrategy
 
     mapOf(
         "permissions" to PermissionsCommand(
             commandStrategy,
-            botMap = botPermissionMap,
-            guildMap = guildPermissionMap,
+            botMap = context.botPermissionMap,
+            guildMap = context.guildPermissionMap,
         ),
         "sudo" to SudoCommand(commandStrategy),
     )
-}
+})

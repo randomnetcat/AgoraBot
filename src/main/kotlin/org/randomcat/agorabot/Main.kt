@@ -19,9 +19,10 @@ import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.adminCommandsFeature
-import org.randomcat.agorabot.features.permissionsCommandsFeature
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
+import org.randomcat.agorabot.permissions.BotPermissionMapTag
+import org.randomcat.agorabot.permissions.GuildPermissionMapTag
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
@@ -290,10 +291,6 @@ private fun runBot(config: BotRunConfig) {
             "bot_admin_commands" to adminCommandsFeature(
                 writeHammertimeChannelFun = { startupMessageStrategy.writeChannel(channelId = it) },
             ),
-            "permissions_commands" to permissionsCommandsFeature(
-                botPermissionMap = botPermissionMap,
-                guildPermissionMap = guildPermissionMap,
-            ),
             "command_strategy_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is BaseCommandStrategyTag) return tag.result(commandStrategy)
@@ -312,6 +309,13 @@ private fun runBot(config: BotRunConfig) {
                     return FeatureQueryResult.NotFound
                 }
             },
+            "permissions_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is BotPermissionMapTag) return tag.result(botPermissionMap)
+                    if (tag is GuildPermissionMapTag) return tag.result(guildPermissionMap)
+                    return FeatureQueryResult.NotFound
+                }
+            }
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
