@@ -8,10 +8,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.MessageChannel
-import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
 
@@ -36,6 +33,18 @@ fun Guild.resolveRoleString(roleString: String): Role? {
     if (byId != null) return byId
 
     val byName = getRolesByName(cleanRoleString, /*ignoreCase=*/ true)
+    if (byName.size == 1) return byName.single()
+
+    return null
+}
+
+fun Guild.resolveTextChannelString(channelString: String): TextChannel? {
+    val cleanChannelString = channelString.removePrefix("#").lowercase()
+
+    val byId = cleanChannelString.asSnowflakeOrNull()?.let { getTextChannelById(it) }
+    if (byId != null) return byId
+
+    val byName = getTextChannelsByName(cleanChannelString, true)
     if (byName.size == 1) return byName.single()
 
     return null
