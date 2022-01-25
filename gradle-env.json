@@ -1699,6 +1699,36 @@
         },
         {
           "id": {
+            "group": "io.github.classgraph",
+            "name": "classgraph",
+            "version": "4.8.138",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "classgraph-4.8.138.jar",
+          "path": "io/github/classgraph/classgraph/4.8.138",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/github/classgraph/classgraph/4.8.138/classgraph-4.8.138.jar"
+          ],
+          "sha256": "272ffa06f76c8ed227d36ddbba1e5bbd1c7754c6541197b948a3a5c59d724bad"
+        },
+        {
+          "id": {
+            "group": "io.github.classgraph",
+            "name": "classgraph",
+            "version": "4.8.138",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "classgraph-4.8.138.pom",
+          "path": "io/github/classgraph/classgraph/4.8.138",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/io/github/classgraph/classgraph/4.8.138/classgraph-4.8.138.pom"
+          ],
+          "sha256": "1049cf5607610c0c38d432ede3a7cb11398edc14aad883aaddf8f03f09ef73b9"
+        },
+        {
+          "id": {
             "group": "io.netty",
             "name": "netty-buffer",
             "version": "4.1.59.Final",
