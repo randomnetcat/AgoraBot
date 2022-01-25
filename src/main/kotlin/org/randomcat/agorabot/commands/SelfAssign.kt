@@ -16,14 +16,14 @@ fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandEx
     requires(InGuild)
 
 fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.selfAssignAction(
-    block: BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.(Arg) -> Unit,
+    block: suspend BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.(Arg) -> Unit,
 ) = selfAssignAction().execute { block(it.receiver, it.arg) }
 
 fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.selfAssignAdminAction() =
     selfAssignAction().permissions(MANAGE_SELFASSIGN_PERMISSION)
 
 fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.selfAssignAdminAction(
-    block: BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.(Arg) -> Unit,
+    block: suspend BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.(Arg) -> Unit,
 ) = selfAssignAdminAction().execute { block(it.receiver, it.arg) }
 
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {

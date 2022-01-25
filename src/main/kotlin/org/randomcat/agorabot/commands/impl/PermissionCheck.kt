@@ -49,7 +49,7 @@ fun <Arg : WithContext<BaseCommandContext>> PendingInvocation<Arg>.permissions(
 @JvmName("permissions")
 inline fun <Context : BaseCommandContext, Receiver, Arg> PendingInvocation<ContextReceiverArg<Context, Receiver, Arg>>.permissions(
     vararg newPermissions: BotPermission,
-    crossinline block: Receiver.(Arg) -> Unit,
+    crossinline block: suspend Receiver.(Arg) -> Unit,
 ) {
     return permissions(*newPermissions).execute { block(it.receiver, it.arg) }
 }

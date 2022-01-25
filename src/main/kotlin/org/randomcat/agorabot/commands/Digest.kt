@@ -56,7 +56,7 @@ private fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseC
     requires(InGuildSimple)
 
 private fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.digestAction(
-    block: BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
+    block: suspend BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
 ) = digestAction().execute { block(it.receiver, it.arg) }
 
 class DigestCommand(

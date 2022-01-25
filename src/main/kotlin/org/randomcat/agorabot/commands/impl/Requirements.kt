@@ -52,7 +52,7 @@ fun <Context, Arg, OutRequirement> PendingInvocation<ContextReceiverArg<Context,
 
 fun <Context, Arg, OutRequirement> PendingInvocation<ContextReceiverArg<Context, BaseCommandExecutionReceiver, Arg>>.requires(
     set: RequirementSet<Context, OutRequirement>,
-    block: BaseCommandExecutionReceiverRequiring<OutRequirement>.(Arg) -> Unit,
+    block: suspend BaseCommandExecutionReceiverRequiring<OutRequirement>.(Arg) -> Unit,
 ) {
     return requires(set).execute { block(it.receiver, it.arg) }
 }
