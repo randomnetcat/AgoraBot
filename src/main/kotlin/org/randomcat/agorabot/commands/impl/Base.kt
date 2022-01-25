@@ -67,10 +67,15 @@ interface BaseCommandDependencyStrategy {
     fun tryFindDependency(tag: Any): Any?
 }
 
+interface BaseCommandExecutionStrategy {
+    fun executeCommandBlock(block: suspend () -> Unit)
+}
+
 interface BaseCommandStrategy :
     BaseCommandArgumentStrategy,
     BaseCommandOutputStrategy,
-    BaseCommandDependencyStrategy
+    BaseCommandDependencyStrategy,
+    BaseCommandExecutionStrategy
 
 interface BaseCommandContext : CommandDependencyProvider {
     val source: CommandEventSource
@@ -153,7 +158,7 @@ fun BaseCommandExecutionReceiverDiscord.botHasPermission(permission: DiscordPerm
 }
 
 private val nullPendingInvocation = object : PendingInvocation<Nothing> {
-    override fun execute(block: (Nothing) -> Unit) {
+    override fun execute(block: suspend (Nothing) -> Unit) {
         // Do nothing.
     }
 }
@@ -261,30 +266,32 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                 ): PendingInvocation<ContextAndArg<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>, Arg>> {
                     return object :
                         PendingInvocation<ContextAndArg<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>, Arg>> {
-                        override fun execute(block: (ContextAndArg<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>, Arg>) -> Unit) {
-                            block(
-                                ContextAndArg(
-                                    context = ContextAndReceiver(
-                                        context = object : BaseCommandContext {
-                                            override val source: CommandEventSource
-                                                get() = theSource
+                        override fun execute(block: suspend (ContextAndArg<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>, Arg>) -> Unit) {
+                            strategy.executeCommandBlock {
+                                block(
+                                    ContextAndArg(
+                                        context = ContextAndReceiver(
+                                            context = object : BaseCommandContext {
+                                                override val source: CommandEventSource
+                                                    get() = theSource
 
-                                            override val invocation: CommandInvocation
-                                                get() = theInvocation
+                                                override val invocation: CommandInvocation
+                                                    get() = theInvocation
 
-                                            override fun tryFindDependency(tag: Any): Any? {
-                                                return strategy.tryFindDependency(tag)
-                                            }
-                                        },
-                                        receiver = ExecutionReceiverImpl(
-                                            strategy = strategy,
-                                            source = source,
-                                            invocation = invocation,
-                                        )
+                                                override fun tryFindDependency(tag: Any): Any? {
+                                                    return strategy.tryFindDependency(tag)
+                                                }
+                                            },
+                                            receiver = ExecutionReceiverImpl(
+                                                strategy = strategy,
+                                                source = source,
+                                                invocation = invocation,
+                                            )
+                                        ),
+                                        arg = mapParsed(results),
                                     ),
-                                    arg = mapParsed(results),
-                                ),
-                            )
+                                )
+                            }
                         }
                     }
                 }

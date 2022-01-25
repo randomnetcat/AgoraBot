@@ -8,7 +8,7 @@ private typealias CAP<T, E> = CommandArgumentParser<T, E>
 annotation class CommandDslMarker
 
 interface PendingInvocation<out Arg> {
-    fun execute(block: (Arg) -> Unit)
+    fun execute(block: suspend (Arg) -> Unit)
 }
 
 interface WithContext<out Context> {
@@ -33,7 +33,7 @@ inline fun <Arg> PendingInvocation<Arg>.prepend(crossinline prependBlock: (Arg) 
     val baseInvocation = this
 
     return object : PendingInvocation<Arg> {
-        override fun execute(block: (Arg) -> Unit) {
+        override fun execute(block: suspend (Arg) -> Unit) {
             baseInvocation.execute { arg ->
                 @Suppress("UNUSED_VARIABLE")
                 val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
@@ -57,7 +57,7 @@ inline fun <Arg, NewArg> PendingInvocation<Arg>.prependTransform(crossinline pre
     val baseInvocation = this
 
     return object : PendingInvocation<NewArg> {
-        override fun execute(block: (NewArg) -> Unit) {
+        override fun execute(block: suspend (NewArg) -> Unit) {
             baseInvocation.execute { arg ->
                 @Suppress("UNUSED_VARIABLE")
                 val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
@@ -76,7 +76,7 @@ inline fun <Arg, NewArg> PendingInvocation<Arg>.prependAlwaysTransform(crossinli
     val baseInvocation = this
 
     return object : PendingInvocation<NewArg> {
-        override fun execute(block: (NewArg) -> Unit) {
+        override fun execute(block: suspend (NewArg) -> Unit) {
             return baseInvocation.execute { block(transform(it)) }
         }
     }

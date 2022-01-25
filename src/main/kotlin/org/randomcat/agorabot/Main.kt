@@ -9,6 +9,9 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.classgraph.ClassGraph
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
@@ -122,12 +125,14 @@ private fun makeButtonStrategy(buttonMap: ButtonRequestDataMap): ButtonsStrategy
 private fun makeBaseCommandStrategy(
     outputStrategy: BaseCommandOutputStrategy,
     dependencyStrategy: BaseCommandDependencyStrategy,
+    executionStrategy: BaseCommandExecutionStrategy,
 ): BaseCommandStrategy {
     return object :
         BaseCommandStrategy,
         BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
         BaseCommandOutputStrategy by outputStrategy,
-        BaseCommandDependencyStrategy by dependencyStrategy {}
+        BaseCommandDependencyStrategy by dependencyStrategy,
+        BaseCommandExecutionStrategy by executionStrategy {}
 }
 
 private fun createDirectories(paths: BotDataPaths) {
@@ -394,6 +399,21 @@ private fun runBot(config: BotRunConfig) {
                     }
                 }
             },
+            object : BaseCommandExecutionStrategy {
+                override fun executeCommandBlock(block: suspend () -> Unit) {
+                    try {
+                        CoroutineScope(Dispatchers.Default).launch {
+                            try {
+                                block()
+                            } catch (e: Exception) {
+                                logger.error("Exception during command execution", e)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        logger.error("Failed to schedule command execution", e)
+                    }
+                }
+            }
         )
 
         for ((name, feature) in featureMap) {
