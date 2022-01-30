@@ -1,39 +1,16 @@
 package org.randomcat.agorabot.permissions
 
 import org.randomcat.agorabot.commands.impl.PermissionsStrategy
-import org.randomcat.agorabot.config.PermissionsConfig
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText
 
 fun makePermissionsStrategy(
-    permissionsConfig: PermissionsConfig,
-    botMap: PermissionMap,
-    guildMap: GuildPermissionMap,
+    permissionsContext: BotPermissionContext,
 ): PermissionsStrategy {
-    val botPermissionContext = object : BotPermissionContext {
-        override fun isBotAdmin(userId: String): Boolean {
-            return permissionsConfig.botAdmins.contains(userId)
-        }
-
-        override fun checkGlobalPath(userId: String, path: PermissionPath): BotPermissionState {
-            return botMap.stateForUser(path = path, userId = userId) ?: BotPermissionState.DEFER
-        }
-
-        override fun checkUserGuildPath(guildId: String, userId: String, path: PermissionPath): BotPermissionState {
-            return guildMap
-                .mapForGuild(guildId = guildId)
-                .stateForUser(path = path, userId = userId)
-                ?: BotPermissionState.DEFER
-        }
-
-        override fun checkRoleGuildPath(guildId: String, roleId: String, path: PermissionPath): BotPermissionState {
-            return guildMap
-                .mapForGuild(guildId = guildId)
-                .stateForRole(path = path, roleId = roleId)
-                ?: BotPermissionState.DEFER
-        }
-    }
+    // Unambiguous name
+    @Suppress("UnnecessaryVariable")
+    val thePermissionsContext = permissionsContext
 
     return object : PermissionsStrategy {
         override fun onPermissionsError(
@@ -47,6 +24,6 @@ fun makePermissionsStrategy(
         }
 
         override val permissionContext: BotPermissionContext
-            get() = botPermissionContext
+            get() = thePermissionsContext
     }
 }

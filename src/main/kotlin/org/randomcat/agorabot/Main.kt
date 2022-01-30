@@ -24,8 +24,6 @@ import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
-import org.randomcat.agorabot.permissions.BotPermissionMapTag
-import org.randomcat.agorabot.permissions.GuildPermissionMapTag
 import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
@@ -188,12 +186,6 @@ private fun runBot(config: BotRunConfig) {
 
     createDirectories(config.paths)
 
-    val permissionsSetupResult = setupPermissions(paths = config.paths, persistService = persistService)
-
-    val permissionsConfig = permissionsSetupResult.config
-    val botPermissionMap = permissionsSetupResult.botMap
-    val guildPermissionMap = permissionsSetupResult.guildMap
-
     val guildStateMap = setupGuildStateMap(config.paths, persistService)
 
     val ircSetupResult = setupIrcClient(config.paths)
@@ -311,13 +303,6 @@ private fun runBot(config: BotRunConfig) {
                     return FeatureQueryResult.NotFound
                 }
             },
-            "permissions_provider" to object : Feature {
-                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                    if (tag is BotPermissionMapTag) return tag.result(botPermissionMap)
-                    if (tag is GuildPermissionMapTag) return tag.result(guildPermissionMap)
-                    return FeatureQueryResult.NotFound
-                }
-            },
             "startup_message_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is StartupMessageStrategyTag) return tag.result(startupMessageStrategy)
@@ -360,12 +345,6 @@ private fun runBot(config: BotRunConfig) {
 
         val guildStateStrategy = makeGuildStateStrategy(guildStateMap)
 
-        val permissionsStrategy = makePermissionsStrategy(
-            permissionsConfig = permissionsConfig,
-            botMap = botPermissionMap,
-            guildMap = guildPermissionMap
-        )
-
         val buttonsStrategy = makeButtonStrategy(featureContext.buttonRequestDataMap)
 
         commandStrategy = makeBaseCommandStrategy(
@@ -373,7 +352,9 @@ private fun runBot(config: BotRunConfig) {
             object : BaseCommandDependencyStrategy {
                 override fun tryFindDependency(tag: Any): Any? {
                     return when (tag) {
-                        is PermissionsStrategyTag -> permissionsStrategy
+                        is PermissionsStrategyTag -> makePermissionsStrategy(
+                            permissionsContext = featureContext.botPermissionContext,
+                        )
                         is ButtonsStrategyTag -> buttonsStrategy
                         is GuildStateStrategyTag -> guildStateStrategy
 
