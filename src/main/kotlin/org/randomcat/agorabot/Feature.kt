@@ -80,6 +80,17 @@ sealed class FeatureQueryResult<out T> {
     object NotFound : FeatureQueryResult<Nothing>()
 }
 
+inline fun <R, T : R> FeatureQueryResult<T>.valueOrElse(block: () -> R): R {
+    return when (this) {
+        is FeatureQueryResult.Found -> value
+        is FeatureQueryResult.NotFound -> block()
+    }
+}
+
+fun <T> FeatureQueryResult<T>.valueOrNull(): T? {
+    return valueOrElse { null }
+}
+
 data class FeatureSetupContext(
     val paths: BotDataPaths,
 )

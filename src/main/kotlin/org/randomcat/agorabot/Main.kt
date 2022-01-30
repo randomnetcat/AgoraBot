@@ -24,7 +24,6 @@ import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
-import org.randomcat.agorabot.permissions.makePermissionsStrategy
 import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.slf4j.LoggerFactory
@@ -96,30 +95,6 @@ private fun ircAndDiscordMapping(
     )
 }
 
-private fun makeGuildStateStrategy(guildStateMap: GuildStateMap): GuildStateStrategy {
-    return object : GuildStateStrategy {
-        override fun guildStateFor(guildId: String): GuildState {
-            return guildStateMap.stateForGuild(guildId)
-        }
-    }
-}
-
-private fun makeButtonStrategy(buttonMap: ButtonRequestDataMap): ButtonsStrategy {
-    return object : ButtonsStrategy {
-        override fun storeButtonRequestAndGetId(
-            descriptor: ButtonRequestDescriptor,
-            expiry: Instant,
-        ): ButtonRequestId {
-            return buttonMap.putRequest(
-                ButtonRequestData(
-                    descriptor = descriptor,
-                    expiry = expiry,
-                ),
-            )
-        }
-    }
-}
-
 private fun makeBaseCommandStrategy(
     outputStrategy: BaseCommandOutputStrategy,
     dependencyStrategy: BaseCommandDependencyStrategy,
@@ -179,6 +154,8 @@ private fun buildFeaturesMap(
 object JdaListenerTag : FeatureElementTag<List<Any>>
 object ButtonDataTag : FeatureElementTag<FeatureButtonData>
 object BotCommandListTag : FeatureElementTag<Map<String, Command>>
+
+data class BaseCommandDependencyTag(val baseTag: Any?) : FeatureElementTag<Any?>
 
 private fun runBot(config: BotRunConfig) {
     val token = config.token
@@ -335,21 +312,11 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
-        val buttonsStrategy = makeButtonStrategy(featureContext.buttonRequestDataMap)
-
         commandStrategy = makeBaseCommandStrategy(
             BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
             object : BaseCommandDependencyStrategy {
                 override fun tryFindDependency(tag: Any): Any? {
-                    return when (tag) {
-                        is PermissionsStrategyTag -> makePermissionsStrategy(
-                            permissionsContext = featureContext.botPermissionContext,
-                        )
-                        is ButtonsStrategyTag -> buttonsStrategy
-                        is GuildStateStrategyTag -> makeGuildStateStrategy(featureContext.guildStateMap)
-
-                        else -> null
-                    }
+                    return featureContext.tryQueryExpectOne(BaseCommandDependencyTag(baseTag = tag)).valueOrNull()
                 }
             },
             object : BaseCommandExecutionStrategy {
