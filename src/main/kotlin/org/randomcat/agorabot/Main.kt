@@ -17,7 +17,10 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.config.*
+import org.randomcat.agorabot.config.CommandOutputMappingTag
+import org.randomcat.agorabot.config.buttonHandlerMap
+import org.randomcat.agorabot.config.buttonRequestDataMap
+import org.randomcat.agorabot.config.prefixMap
 import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
@@ -143,7 +146,6 @@ data class BaseCommandDependencyTag(val baseTag: Any?) : FeatureElementTag<Any?>
 
 private fun runBot(config: BotRunConfig) {
     val token = config.token
-    val persistService: ConfigPersistService = DefaultConfigPersistService
 
     createDirectories(config.paths)
 
@@ -245,12 +247,6 @@ private fun runBot(config: BotRunConfig) {
             "command_output_mapping_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is CommandOutputMappingTag) return tag.result(commandOutputMapping)
-                    return FeatureQueryResult.NotFound
-                }
-            },
-            "config_persist_provider" to object : Feature {
-                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                    if (tag is ConfigPersistServiceTag) return tag.result(persistService)
                     return FeatureQueryResult.NotFound
                 }
             },
