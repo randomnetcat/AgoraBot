@@ -16,6 +16,7 @@ clikt = { group = "com.github.ajalt.clikt", name = "clikt", version = "3.3.0" }
 kotlinUtils = { group = "org.randomcat", name = "kotlin-utils", version = "2.0.1" }
 jakarta-json-api = { group = "jakarta.json", name = "jakarta.json-api", version.ref = "jakarta-json" }
 jakarta-json-runtime = { group = "org.glassfish", name = "jakarta.json", version.ref = "jakarta-json" }
+slf4j-api = { group = "org.slf4j", name ="slf4j-api", version = "1.7.32" }
 slf4j-simple = { group = "org.slf4j", name ="slf4j-simple", version = "1.7.32" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version = "5.5.2" }
 classgraph = { group = "io.github.classgraph", name = "classgraph", version = "4.8.138" }
