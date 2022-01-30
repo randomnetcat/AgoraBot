@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.commands.impl
 
-class SubcommandsReceiverChecker {
+internal class SubcommandsReceiverChecker {
     enum class State {
         EMPTY, IMPLEMENTATION, SUBCOMMANDS
     }
@@ -35,7 +35,7 @@ class SubcommandsReceiverChecker {
     }
 }
 
-class ParseOnceFlag {
+internal class ParseOnceFlag {
     private var isParsing: Boolean = false
 
     fun beginParsing() {
