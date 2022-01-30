@@ -5,6 +5,7 @@ import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.SelfAssignCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.ofCommands
 
 @FeatureSourceFactory
 fun selfAssignCommandsFactory() = FeatureSource.ofConstant("self_assign_commands", Feature.ofCommands { context ->

@@ -6,6 +6,7 @@ import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.PrefixCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.config.prefixMap
+import org.randomcat.agorabot.ofCommands
 
 @FeatureSourceFactory
 fun prefixCommandsFactory() = FeatureSource.ofConstant("prefix_commands", Feature.ofCommands { context ->

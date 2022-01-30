@@ -52,6 +52,9 @@ dependencies {
 
     // Other
     implementation(projects.util)
+    implementation(projects.core.config)
+    implementation(projects.core.feature)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)

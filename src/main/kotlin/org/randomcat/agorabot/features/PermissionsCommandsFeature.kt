@@ -6,6 +6,7 @@ import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.PermissionsCommand
 import org.randomcat.agorabot.commands.SudoCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.ofCommands
 import org.randomcat.agorabot.permissions.botPermissionMap
 import org.randomcat.agorabot.permissions.guildPermissionMap
 

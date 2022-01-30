@@ -1,9 +1,6 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.Feature
-import org.randomcat.agorabot.FeatureSetupContext
-import org.randomcat.agorabot.FeatureSource
-import org.randomcat.agorabot.FeatureSourceFactory
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.RuleCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.config.parsing.features.RuleCommandsConfig
