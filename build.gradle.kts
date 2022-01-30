@@ -52,6 +52,7 @@ dependencies {
 
     // Other
     implementation(projects.util)
+    implementation(projects.core.command)
     implementation(projects.core.config)
     implementation(projects.core.feature)
 
