@@ -11,7 +11,7 @@ version = "1.0-SNAPSHOT"
 
 allprojects {
     afterEvaluate {
-        kotlin {
+        extensions.findByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)?.run {
             jvmToolchain {
                 this as JavaToolchainSpec
 
