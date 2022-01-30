@@ -56,6 +56,7 @@ dependencies {
     implementation(projects.core.config)
     implementation(projects.core.feature)
     implementation(projects.baseCommand.api)
+    implementation(projects.baseCommand.requirements.discord)
 
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)

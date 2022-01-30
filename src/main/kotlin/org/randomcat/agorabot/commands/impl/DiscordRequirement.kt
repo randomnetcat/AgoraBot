@@ -1,27 +1,9 @@
 package org.randomcat.agorabot.commands.impl
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.ButtonRequestId
-import org.randomcat.agorabot.listener.CommandEventSource
-import org.randomcat.agorabot.listener.tryRespondWithText
 import java.time.Duration
 import java.time.Instant
-
-object InDiscordSimple : RequirementSet<BaseCommandContext, BaseCommandDiscordRequirement> {
-    override fun create(context: BaseCommandContext): RequirementResult<BaseCommandDiscordRequirement> {
-        val source = context.source
-
-        if (source !is CommandEventSource.Discord) {
-            source.tryRespondWithText("This command can only be run on Discord.")
-            return RequirementResult.Failure
-        }
-
-        return RequirementResult.Success(object : BaseCommandDiscordRequirement {
-            override val currentMessageEvent: MessageReceivedEvent = source.event
-        })
-    }
-}
 
 interface ButtonsRequirement {
     companion object {

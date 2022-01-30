@@ -25,10 +25,6 @@ class GuildInfo(
     fun resolveRole(roleString: String): Role? = guild.resolveRoleString(roleString)
 }
 
-interface BaseCommandDiscordRequirement {
-    val currentMessageEvent: MessageReceivedEvent
-}
-
 interface BaseCommandGuildRequirement : BaseCommandDiscordRequirement
 
 typealias BaseCommandExecutionReceiverDiscord = BaseCommandExecutionReceiverRequiring<BaseCommandDiscordRequirement>
