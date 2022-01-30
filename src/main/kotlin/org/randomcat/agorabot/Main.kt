@@ -186,8 +186,6 @@ private fun runBot(config: BotRunConfig) {
 
     createDirectories(config.paths)
 
-    val guildStateMap = setupGuildStateMap(config.paths, persistService)
-
     val ircSetupResult = setupIrcClient(config.paths)
 
     run {
@@ -297,12 +295,6 @@ private fun runBot(config: BotRunConfig) {
                     return FeatureQueryResult.NotFound
                 }
             },
-            "guild_state_storage_provider" to object : Feature {
-                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                    if (tag is GuildStateStorageTag) return tag.result(guildStateMap)
-                    return FeatureQueryResult.NotFound
-                }
-            },
             "startup_message_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                     if (tag is StartupMessageStrategyTag) return tag.result(startupMessageStrategy)
@@ -343,8 +335,6 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
-        val guildStateStrategy = makeGuildStateStrategy(guildStateMap)
-
         val buttonsStrategy = makeButtonStrategy(featureContext.buttonRequestDataMap)
 
         commandStrategy = makeBaseCommandStrategy(
@@ -356,7 +346,7 @@ private fun runBot(config: BotRunConfig) {
                             permissionsContext = featureContext.botPermissionContext,
                         )
                         is ButtonsStrategyTag -> buttonsStrategy
-                        is GuildStateStrategyTag -> guildStateStrategy
+                        is GuildStateStrategyTag -> makeGuildStateStrategy(featureContext.guildStateMap)
 
                         else -> null
                     }
