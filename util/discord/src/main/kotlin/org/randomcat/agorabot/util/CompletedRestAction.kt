@@ -70,7 +70,7 @@ class CompletedRestAction<T> private constructor(private val jda: JDA, private v
     }
 
     override fun setCheck(checks: BooleanSupplier?): RestAction<T> {
-        // Nothing to do - no request will be sent. Sanctioned by CompletedRestAction in current JDA version.
+        // Nothing to do - no request will be sent. Sanctioned by org.randomcat.agorabot.util.CompletedRestAction in current JDA version.
         return this
     }
 
