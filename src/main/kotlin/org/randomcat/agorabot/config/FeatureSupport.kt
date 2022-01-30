@@ -44,3 +44,8 @@ object BotPermissionContextTag : FeatureElementTag<BotPermissionContext>
 
 val FeatureContext.botPermissionContext
     get() = queryExpectOne(BotPermissionContextTag)
+
+object CommandOutputMappingTag : FeatureElementTag<CommandOutputMapping>
+
+val FeatureContext.commandOutputMapping
+    get() = queryExpectOne(CommandOutputMappingTag)

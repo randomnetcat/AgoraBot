@@ -9,9 +9,6 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.classgraph.ClassGraph
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
@@ -19,7 +16,7 @@ import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.HelpCommand
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.config.*
 import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
@@ -93,19 +90,6 @@ private fun ircAndDiscordMapping(
             ircToDiscordMap[key]?.flatMap { it() } ?: emptyList()
         },
     )
-}
-
-private fun makeBaseCommandStrategy(
-    outputStrategy: BaseCommandOutputStrategy,
-    dependencyStrategy: BaseCommandDependencyStrategy,
-    executionStrategy: BaseCommandExecutionStrategy,
-): BaseCommandStrategy {
-    return object :
-        BaseCommandStrategy,
-        BaseCommandArgumentStrategy by BaseCommandDefaultArgumentStrategy,
-        BaseCommandOutputStrategy by outputStrategy,
-        BaseCommandDependencyStrategy by dependencyStrategy,
-        BaseCommandExecutionStrategy by executionStrategy {}
 }
 
 private fun createDirectories(paths: BotDataPaths) {
@@ -257,12 +241,10 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
-        lateinit var commandStrategy: BaseCommandStrategy
-
         val extraFeatureSources = listOf(
-            "command_strategy_provider" to object : Feature {
+            "command_output_mapping_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                    if (tag is BaseCommandStrategyTag) return tag.result(commandStrategy)
+                    if (tag is CommandOutputMappingTag) return tag.result(commandOutputMapping)
                     return FeatureQueryResult.NotFound
                 }
             },
@@ -311,30 +293,6 @@ private fun runBot(config: BotRunConfig) {
                 }
             }
         }
-
-        commandStrategy = makeBaseCommandStrategy(
-            BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
-            object : BaseCommandDependencyStrategy {
-                override fun tryFindDependency(tag: Any): Any? {
-                    return featureContext.tryQueryExpectOne(BaseCommandDependencyTag(baseTag = tag)).valueOrNull()
-                }
-            },
-            object : BaseCommandExecutionStrategy {
-                override fun executeCommandBlock(block: suspend () -> Unit) {
-                    try {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            try {
-                                block()
-                            } catch (e: Exception) {
-                                logger.error("Exception during command execution", e)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        logger.error("Failed to schedule command execution", e)
-                    }
-                }
-            }
-        )
 
         for ((name, feature) in featureMap) {
             logger.info("Registering feature $name")
