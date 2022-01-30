@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.config
 
-import org.randomcat.agorabot.FeatureContext
-import org.randomcat.agorabot.FeatureElementTag
+import org.randomcat.agorabot.*
+import org.randomcat.agorabot.buttons.ButtonHandlerMap
+import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
-import org.randomcat.agorabot.queryExpectOne
 
 object ConfigPersistServiceTag : FeatureElementTag<ConfigPersistService>
 
@@ -24,3 +24,17 @@ object VersioningStorageTag : FeatureElementTag<VersioningStorage>
 
 val FeatureContext.versioningStorage
     get() = queryExpectOne(VersioningStorageTag)
+
+object ButtonRequestDataMapTag : FeatureElementTag<ButtonRequestDataMap>
+
+val FeatureContext.buttonRequestDataMap
+    get() = queryExpectOne(ButtonRequestDataMapTag)
+
+private object ButtonHandlerMapCacheKey
+
+val FeatureContext.buttonHandlerMap
+    get() = cache(ButtonHandlerMapCacheKey) {
+        ButtonHandlerMap.mergeDisjointHandlers(
+            queryAll(ButtonDataTag).values.filterIsInstance<FeatureButtonData.RegisterHandlers>().map { it.handlerMap },
+        )
+    }

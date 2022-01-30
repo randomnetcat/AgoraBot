@@ -358,24 +358,6 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
-        val buttonHandlerMap = ButtonHandlerMap.mergeDisjointHandlers(
-            featureMap.values
-                .map { it.query(featureContext, ButtonDataTag) }
-                .filterIsInstance<FeatureQueryResult.Found<FeatureButtonData>>()
-                .mapNotNull {
-                    when (it.value) {
-                        is FeatureButtonData.NoButtons -> null
-                        is FeatureButtonData.RegisterHandlers -> it.value.handlerMap
-                    }
-                },
-        )
-
-        val buttonRequestDataMap = setupButtonDataMap(
-            paths = config.paths,
-            buttonRequestTypes = buttonHandlerMap.handledClasses,
-            persistService = persistService,
-        )
-
         val guildStateStrategy = makeGuildStateStrategy(guildStateMap)
 
         val permissionsStrategy = makePermissionsStrategy(
@@ -384,7 +366,7 @@ private fun runBot(config: BotRunConfig) {
             guildMap = guildPermissionMap
         )
 
-        val buttonsStrategy = makeButtonStrategy(buttonRequestDataMap)
+        val buttonsStrategy = makeButtonStrategy(featureContext.buttonRequestDataMap)
 
         commandStrategy = makeBaseCommandStrategy(
             BaseCommandOutputStrategyByOutputMapping(commandOutputMapping),
@@ -461,39 +443,45 @@ private fun runBot(config: BotRunConfig) {
 
         logger.info("Adding button listener..")
 
-        jda.addEventListener(BotButtonListener { event ->
-            val id = ButtonRequestId(event.componentId)
+        jda.addEventListener(run {
+            val buttonHandlerMap = featureContext.buttonHandlerMap
+            val buttonRequestDataMap = featureContext.buttonRequestDataMap
 
-            val requestDescriptor = buttonRequestDataMap.tryGetRequestById(
-                id = id,
-                timeForExpirationCheck = Instant.now(),
-            )
+            BotButtonListener { event ->
+                val id = ButtonRequestId(event.componentId)
 
-            if (requestDescriptor != null) {
-                @Suppress("UNCHECKED_CAST")
-                val handler =
-                    buttonHandlerMap.tryGetHandler(requestDescriptor::class) as ButtonHandler<ButtonRequestDescriptor>?
+                val requestDescriptor = buttonRequestDataMap.tryGetRequestById(
+                    id = id,
+                    timeForExpirationCheck = Instant.now(),
+                )
 
-                if (handler != null) {
-                    // Unambiguous names
-                    val theEvent = event
-                    val theDataMap = buttonRequestDataMap
+                if (requestDescriptor != null) {
 
-                    handler(
-                        object : ButtonHandlerContext {
-                            override val event: ButtonClickEvent
-                                get() = theEvent
+                    @Suppress("UNCHECKED_CAST")
+                    val handler =
+                        buttonHandlerMap.tryGetHandler(requestDescriptor::class) as ButtonHandler<ButtonRequestDescriptor>?
 
-                            override val buttonRequestDataMap: ButtonRequestDataMap
-                                get() = theDataMap
-                        },
-                        requestDescriptor,
-                    )
+                    if (handler != null) {
+                        // Unambiguous names
+                        val theEvent = event
+                        val theDataMap = buttonRequestDataMap
+
+                        handler(
+                            object : ButtonHandlerContext {
+                                override val event: ButtonClickEvent
+                                    get() = theEvent
+
+                                override val buttonRequestDataMap: ButtonRequestDataMap
+                                    get() = theDataMap
+                            },
+                            requestDescriptor,
+                        )
+                    } else {
+                        event.reply("Unknown button type. That feature may be disabled.").setEphemeral(true).queue()
+                    }
                 } else {
-                    event.reply("Unknown button type. That feature may be disabled.").setEphemeral(true).queue()
+                    event.reply("Unknown button request. That button may have expired.").setEphemeral(true).queue()
                 }
-            } else {
-                event.reply("Unknown button request. That button may have expired.").setEphemeral(true).queue()
             }
         })
 
