@@ -18,6 +18,14 @@ allprojects {
                 languageVersion.set(JavaLanguageVersion.of(17))
             }
         }
+
+        tasks.findByName("jar")?.run {
+            this as Jar
+
+            if (path != ":") {
+                archiveBaseName.set("agorabot-" + path.removePrefix(":").replace(":", "-"))
+            }
+        }
     }
 
     repositories {
