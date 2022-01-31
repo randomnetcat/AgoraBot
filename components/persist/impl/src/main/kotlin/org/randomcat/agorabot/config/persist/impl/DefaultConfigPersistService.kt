@@ -1,6 +1,6 @@
-package org.randomcat.agorabot.config.impl
+package org.randomcat.agorabot.config.persist.impl
 
-import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit

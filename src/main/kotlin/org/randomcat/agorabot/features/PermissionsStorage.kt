@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.config.configPersistService
+import org.randomcat.agorabot.config.persist.feature.configPersistService
 import org.randomcat.agorabot.permissions.BotPermissionMapTag
 import org.randomcat.agorabot.permissions.GuildPermissionMapTag
 import org.randomcat.agorabot.permissions.JsonGuildPermissionMap

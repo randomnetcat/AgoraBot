@@ -7,6 +7,7 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import java.nio.file.Files
 import java.nio.file.Path

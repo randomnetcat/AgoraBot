@@ -3,7 +3,7 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.DigestCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.config.configPersistService
+import org.randomcat.agorabot.config.persist.feature.configPersistService
 import org.randomcat.agorabot.config.readDigestMailConfig
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.listener.Command

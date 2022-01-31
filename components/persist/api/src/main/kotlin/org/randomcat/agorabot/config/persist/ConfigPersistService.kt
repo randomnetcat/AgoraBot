@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.config
+package org.randomcat.agorabot.config.persist
 
 interface ConfigPersistService {
     /**

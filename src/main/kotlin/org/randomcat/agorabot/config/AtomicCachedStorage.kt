@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.config
 
+import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.util.doUpdateAndExtract
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.*

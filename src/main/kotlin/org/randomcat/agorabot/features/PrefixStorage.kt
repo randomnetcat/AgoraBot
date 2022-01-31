@@ -2,6 +2,7 @@ package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.config.*
+import org.randomcat.agorabot.config.persist.feature.configPersistService
 import org.randomcat.agorabot.setup.BotDataPaths
 import java.nio.file.Path
 

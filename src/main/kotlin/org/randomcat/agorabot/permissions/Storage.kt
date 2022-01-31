@@ -8,8 +8,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.AtomicCachedStorage
-import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.StorageStrategy
+import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import java.nio.file.Files
 import java.nio.file.Path

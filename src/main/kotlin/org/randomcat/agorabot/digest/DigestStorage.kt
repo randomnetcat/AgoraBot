@@ -11,7 +11,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
-import org.randomcat.agorabot.config.ConfigPersistService
+import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.randomcat.agorabot.util.updateAndMap
 import org.randomcat.agorabot.util.withTempFile

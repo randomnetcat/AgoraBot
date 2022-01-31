@@ -9,7 +9,7 @@ import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.JsonButtonRequestDataMap
 import org.randomcat.agorabot.config.ButtonRequestDataMapTag
 import org.randomcat.agorabot.config.buttonHandlerMap
-import org.randomcat.agorabot.config.configPersistService
+import org.randomcat.agorabot.config.persist.feature.configPersistService
 import java.nio.file.Path
 import java.time.Clock
 import kotlin.reflect.KClass
