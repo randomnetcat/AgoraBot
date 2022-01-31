@@ -1,6 +1,9 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.commands.base.RemainingStringArgs
 import org.randomcat.agorabot.util.DISCORD_MAX_MESSAGE_LENGTH
 import java.math.BigInteger
 import kotlin.random.Random

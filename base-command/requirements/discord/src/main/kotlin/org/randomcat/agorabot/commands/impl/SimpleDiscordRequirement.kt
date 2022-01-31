@@ -1,6 +1,9 @@
 package org.randomcat.agorabot.commands.impl
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.commands.base.BaseCommandContext
+import org.randomcat.agorabot.commands.base.RequirementResult
+import org.randomcat.agorabot.commands.base.RequirementSet
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.tryRespondWithText
 

@@ -5,7 +5,12 @@ import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Button
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.commands.base.requires
+import org.randomcat.agorabot.commands.impl.InDiscord
+import org.randomcat.agorabot.commands.impl.newButtonId
 import java.time.Duration
 
 class ButtonTestCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {

@@ -4,7 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.impl.BaseCommandDefaultArgumentStrategy
+import org.randomcat.agorabot.commands.impl.BaseCommandOutputStrategyByOutputMapping
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.config.commandOutputMapping
 import org.slf4j.LoggerFactory
 

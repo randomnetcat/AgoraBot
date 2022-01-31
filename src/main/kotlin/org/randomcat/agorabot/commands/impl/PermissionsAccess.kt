@@ -1,5 +1,9 @@
 package org.randomcat.agorabot.commands.impl
 
+import org.randomcat.agorabot.commands.base.BaseCommandContext
+import org.randomcat.agorabot.commands.base.BaseCommandExecutionReceiverRequiring
+import org.randomcat.agorabot.commands.base.RequirementResult
+import org.randomcat.agorabot.commands.base.RequirementSet
 import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.UserPermissionContext
 

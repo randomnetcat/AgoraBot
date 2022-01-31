@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands.impl
 import net.dv8tion.jda.api.entities.Message
 import org.randomcat.agorabot.CommandOutputMapping
 import org.randomcat.agorabot.CommandOutputSink
+import org.randomcat.agorabot.commands.base.BaseCommandOutputStrategy
 import org.randomcat.agorabot.irc.sendSplitMultiLineMessage
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation

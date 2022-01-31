@@ -5,7 +5,11 @@ import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.serialization.Serializable
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.impl.ExtendedGuildRequirement
+import org.randomcat.agorabot.commands.impl.InGuild
+import org.randomcat.agorabot.commands.impl.currentGuildState
+import org.randomcat.agorabot.commands.impl.permissions
 import org.randomcat.agorabot.config.get
 import org.randomcat.agorabot.config.update
 import org.randomcat.agorabot.permissions.GuildScope

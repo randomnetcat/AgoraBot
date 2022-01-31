@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base
 
 /**
  * Returns [parseResult] if [parseResult] should be considered a successful parse, otherwise returns null.

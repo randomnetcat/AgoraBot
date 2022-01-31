@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base
 
 sealed class RequirementResult<out T> {
     data class Success<T>(val requirement: T) : RequirementResult<T>()

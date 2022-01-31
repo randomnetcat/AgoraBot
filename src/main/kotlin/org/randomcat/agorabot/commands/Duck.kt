@@ -1,6 +1,12 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.commands.base.requires
+import org.randomcat.agorabot.commands.impl.InDiscordSimple
+import org.randomcat.agorabot.commands.impl.currentChannel
+import org.randomcat.agorabot.commands.impl.currentMessageEvent
 
 class DuckCommand(
     strategy: BaseCommandStrategy,

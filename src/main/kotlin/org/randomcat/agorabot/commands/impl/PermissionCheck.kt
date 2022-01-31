@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.commands.impl
 
+import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.permissions.BotPermission

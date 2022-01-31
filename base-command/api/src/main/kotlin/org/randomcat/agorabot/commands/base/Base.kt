@@ -1,11 +1,11 @@
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base
 
 import net.dv8tion.jda.api.entities.Message
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
-import org.randomcat.agorabot.commands.impl.args as doArgs
-import org.randomcat.agorabot.commands.impl.noArgs as doNoArgs
+import org.randomcat.agorabot.commands.base.args as doArgs
+import org.randomcat.agorabot.commands.base.noArgs as doNoArgs
 
 data class ContextReceiverArg<Context, Recevier, Arg>(
     override val context: Context,

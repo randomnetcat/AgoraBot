@@ -1,6 +1,6 @@
 @file:Suppress("UNCHECKED_CAST", "USELESS_CAST")
 
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base
 
 private typealias CAP<T, E> = CommandArgumentParser<T, E>
 

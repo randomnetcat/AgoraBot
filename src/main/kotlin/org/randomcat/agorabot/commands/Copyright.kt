@@ -1,9 +1,8 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.commands.impl.BaseCommand
-import org.randomcat.agorabot.commands.impl.BaseCommandImplReceiver
-import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
-import org.randomcat.agorabot.commands.impl.noArgs
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
 
 private val libraryLicenses = mapOf(
     "SLF4J" to """

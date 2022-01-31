@@ -5,6 +5,9 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.randomcat.agorabot.commands.base.BaseCommandArgumentStrategy
+import org.randomcat.agorabot.commands.base.BaseCommandExecutionReceiverRequiring
+import org.randomcat.agorabot.commands.base.NO_ARGUMENTS
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText

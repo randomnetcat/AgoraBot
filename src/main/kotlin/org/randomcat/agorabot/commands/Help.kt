@@ -3,7 +3,7 @@ package org.randomcat.agorabot.commands
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.MessageBuilder
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
 

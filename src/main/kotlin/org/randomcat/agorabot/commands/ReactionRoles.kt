@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.requests.RestAction
+import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
