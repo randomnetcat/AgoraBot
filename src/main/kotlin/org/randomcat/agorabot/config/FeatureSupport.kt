@@ -6,10 +6,6 @@ import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 import org.randomcat.agorabot.permissions.BotPermissionContext
 
-object ConfigPersistServiceTag : FeatureElementTag<ConfigPersistService>
-
-val FeatureContext.configPersistService
-    get() = queryExpectOne(ConfigPersistServiceTag)
 
 object PrefixStorageTag : FeatureElementTag<MutableGuildPrefixMap>
 
