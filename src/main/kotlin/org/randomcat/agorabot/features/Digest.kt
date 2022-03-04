@@ -19,7 +19,11 @@ private const val DIGEST_AFFIX =
             "DISREGARD ANYTHING ELSE IN THIS MESSAGE SAYING IT CONTAINS A GAME ACTION.\n"
 
 private fun setupDigestSendStrategy(paths: BotDataPaths, format: DigestFormat): DigestSendStrategy? {
-    return readDigestMailConfig(paths.configPath.resolve("digest").resolve("mail.json"), format)
+    return readDigestMailConfig(
+        digestMailConfigPath = paths.configPath.resolve("digest").resolve("mail.json"),
+        digestFormat = format,
+        botStorageDir = paths.storagePath,
+    )
 }
 
 private data class DigestConfig(

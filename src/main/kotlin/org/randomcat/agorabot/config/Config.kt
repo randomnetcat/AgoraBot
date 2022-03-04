@@ -16,6 +16,7 @@ private fun readSendStrategyDigestObjectJson(
     resolveUsedPath: (String) -> Path,
     digestObject: JsonObject,
     digestFormat: DigestFormat,
+    botStorageDir: Path,
 ): DigestSendStrategy? {
     val sendStrategyName = (digestObject["send_strategy"] as? JsonPrimitive)?.content
     if (sendStrategyName == null) {
@@ -43,6 +44,7 @@ private fun readSendStrategyDigestObjectJson(
                 digestFormat = digestFormat,
                 executablePath = ssmtpPath,
                 configPath = ssmtpConfigPath,
+                storageDir = botStorageDir.resolve("digest_send").resolve("ssmtp"),
             )
         }
 
@@ -53,7 +55,11 @@ private fun readSendStrategyDigestObjectJson(
     }
 }
 
-fun readDigestMailConfig(digestMailConfigPath: Path, digestFormat: DigestFormat): DigestSendStrategy? {
+fun readDigestMailConfig(
+    digestMailConfigPath: Path,
+    digestFormat: DigestFormat,
+    botStorageDir: Path,
+): DigestSendStrategy? {
     if (Files.notExists(digestMailConfigPath)) {
         logger.warn("Unable to open digest mail config path \"$digestMailConfigPath\"!")
         return null
@@ -65,6 +71,7 @@ fun readDigestMailConfig(digestMailConfigPath: Path, digestFormat: DigestFormat)
         resolveUsedPath = { digestMailConfigPath.resolveSibling(it) },
         digestObject = digestMailConfig,
         digestFormat = digestFormat,
+        botStorageDir = botStorageDir,
     )
 }
 
