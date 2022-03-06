@@ -7,13 +7,14 @@ import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
 import org.randomcat.agorabot.digest.SsmtpDigestSendStrategy
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
 private val logger = LoggerFactory.getLogger("AgoraBotConfig")
 
 private fun readSendStrategyDigestObjectJson(
-    resolveUsedPath: (String) -> Path,
+    resolveUsedPath: (String) -> File,
     digestObject: JsonObject,
     digestFormat: DigestFormat,
     botStorageDir: Path,
@@ -44,7 +45,7 @@ private fun readSendStrategyDigestObjectJson(
                 digestFormat = digestFormat,
                 executablePath = ssmtpPath,
                 configPath = ssmtpConfigPath,
-                storageDir = botStorageDir.resolve("digest_send").resolve("ssmtp"),
+                storageDir = botStorageDir.resolve("digest_send").resolve("ssmtp").toFile(),
             )
         }
 
@@ -67,8 +68,10 @@ fun readDigestMailConfig(
 
     val digestMailConfig = Json.parseToJsonElement(Files.readString(digestMailConfigPath, Charsets.UTF_8)).jsonObject
 
+    val configPathAsFile = digestMailConfigPath.toFile()
+
     return readSendStrategyDigestObjectJson(
-        resolveUsedPath = { digestMailConfigPath.resolveSibling(it) },
+        resolveUsedPath = { configPathAsFile.resolveSibling(it) },
         digestObject = digestMailConfig,
         digestFormat = digestFormat,
         botStorageDir = botStorageDir,

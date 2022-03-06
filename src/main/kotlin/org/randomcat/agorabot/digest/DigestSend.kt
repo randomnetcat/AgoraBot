@@ -1,12 +1,14 @@
 package org.randomcat.agorabot.digest
 
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.io.InputStream
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import kotlin.io.path.outputStream
 
 interface DigestSendStrategy {
     fun sendDigest(digest: Digest, destination: String)
@@ -17,19 +19,71 @@ private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-SS"
 
 private val logger = LoggerFactory.getLogger("DigestSend")
 
-data class SsmtpDigestSendStrategy(
-    private val digestFormat: DigestFormat,
-    private val executablePath: Path,
-    private val configPath: Path,
-    private val storageDir: Path,
-) : DigestSendStrategy {
-    init {
-        Files.createDirectories(storageDir)
-    }
+abstract class CommandDigestSendStrategy : DigestSendStrategy {
+    // Use File here because these files need to be normal operating system files in order to pass them to processes.
+    abstract val executablePath: File
+    abstract val storageDir: File
 
-    override fun sendDigest(digest: Digest, destination: String) {
+    final override fun sendDigest(digest: Digest, destination: String) {
+        // Ensure that all usages are consistent
+        val storageDir = storageDir
+        val executablePath = executablePath
+
         val now = Instant.now()
 
+        Files.createDirectories(storageDir.toPath())
+
+        val outputLogDir = Files.createTempDirectory(
+            storageDir.toPath(),
+            DATE_TIME_FORMAT.format(now),
+        ).toFile()
+
+        val stdinFile = outputLogDir.resolve("stdin")
+
+        createStdinStream(digest, destination, now).use { stdinStream ->
+            stdinFile.toPath().outputStream(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use { fileStream ->
+                stdinStream.copyTo(fileStream)
+            }
+        }
+
+        val builder = ProcessBuilder(
+            buildList {
+                add(executablePath.absolutePath)
+                addAll(commandArguments(digest, destination))
+            },
+        ).apply {
+            redirectInput(stdinFile)
+            redirectOutput(outputLogDir.resolve("stdout"))
+            redirectError(outputLogDir.resolve("stderr"))
+
+            environment().clear()
+        }
+
+        logger.info("Sending digest to $destination.")
+        logger.info("Executing send command: ${builder.command()}. Standard stream outputs are logged in $outputLogDir.")
+
+        val terminatedProcess = builder.start().onExit().get()
+        logger.info("Exit status: ${terminatedProcess.exitValue()}")
+    }
+
+    protected abstract fun createStdinStream(digest: Digest, destination: String, now: Instant): InputStream
+    protected abstract fun commandArguments(digest: Digest, destination: String): List<String>
+}
+
+data class SsmtpDigestSendStrategy(
+    private val digestFormat: DigestFormat,
+    override val executablePath: File,
+    private val configPath: File,
+    override val storageDir: File,
+) : CommandDigestSendStrategy() {
+    override fun commandArguments(digest: Digest, destination: String): List<String> = listOf(
+        "-C${configPath.absolutePath}",
+        "-FAgoraBot",
+        "-fAgoraBot",
+        destination,
+    )
+
+    override fun createStdinStream(digest: Digest, destination: String, now: Instant): InputStream {
         val subject = "Discord digest ${DATE_FORMAT.format(now)}"
         val content = digestFormat.format(digest)
 
@@ -41,34 +95,6 @@ data class SsmtpDigestSendStrategy(
                     "\n\n" +
                     content
 
-        val outputLogDir = Files.createTempDirectory(
-            storageDir,
-            DATE_TIME_FORMAT.format(now),
-        )
-
-        val stdinFile = outputLogDir.resolve("stdin")
-
-        Files.writeString(stdinFile,
-            messageText,
-            Charsets.UTF_8,
-            StandardOpenOption.CREATE_NEW,
-            StandardOpenOption.TRUNCATE_EXISTING)
-
-        val builder = ProcessBuilder(
-            executablePath.toAbsolutePath().toString(),
-            "-C${configPath.toAbsolutePath()}",
-            "-FAgoraBot",
-            "-fAgoraBot",
-            destination
-        )
-            .redirectInput(ProcessBuilder.Redirect.from(stdinFile.toFile()))
-            .redirectOutput(ProcessBuilder.Redirect.to(outputLogDir.resolve("stdout").toFile()))
-            .redirectError(ProcessBuilder.Redirect.to(outputLogDir.resolve("stderr").toFile()))
-
-        logger.info("Sending digest to $destination.")
-        logger.info("Executing SSMTP command: ${builder.command()}. Standard stream outputs are logged in $outputLogDir.")
-
-        val terminatedProcess = builder.start().onExit().get()
-        logger.info("Exit status: ${terminatedProcess.exitValue()}")
+        return messageText.byteInputStream(Charsets.UTF_8)
     }
 }
