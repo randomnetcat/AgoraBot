@@ -2,6 +2,10 @@ package org.randomcat.agorabot.config
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
@@ -13,45 +17,40 @@ import java.nio.file.Path
 
 private val logger = LoggerFactory.getLogger("AgoraBotConfig")
 
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+@JsonClassDiscriminator("send_strategy")
+private sealed class DigestSendStrategyDto {
+    @Serializable
+    @SerialName("none")
+    object None : DigestSendStrategyDto()
+
+    @Serializable
+    @SerialName("ssmtp")
+    data class Ssmtp(
+        @SerialName("ssmtp_path")
+        val ssmtpPathString: String,
+        @SerialName("ssmtp_config_path")
+        val configPathString: String,
+    ) : DigestSendStrategyDto()
+}
+
 private fun readSendStrategyDigestObjectJson(
     resolveUsedPath: (String) -> File,
-    digestObject: JsonObject,
+    configText: String,
     digestFormat: DigestFormat,
     botStorageDir: Path,
 ): DigestSendStrategy? {
-    val sendStrategyName = (digestObject["send_strategy"] as? JsonPrimitive)?.content
-    if (sendStrategyName == null) {
-        logger.error("Digest object should contain send_strategy and be a JSON primitive!")
-        return null
-    }
+    return when (val config = Json.decodeFromString<DigestSendStrategyDto>(configText)) {
+        is DigestSendStrategyDto.None -> null
 
-    when (sendStrategyName) {
-        "none" -> return null
-
-        "ssmtp" -> {
-            val ssmtpPath = (digestObject["ssmtp_path"] as? JsonPrimitive)?.content?.let(resolveUsedPath)
-            if (ssmtpPath == null) {
-                logger.error("For ssmtp, send_strategy.ssmtp_path should exist and be a JSON primitive!")
-                return null
-            }
-
-            val ssmtpConfigPath = (digestObject["ssmtp_config_path"] as? JsonPrimitive)?.content?.let(resolveUsedPath)
-            if (ssmtpConfigPath == null) {
-                logger.error("For ssmtp, send_strategy.ssmtp_config_path should exist and be a JSON primitive!")
-                return null
-            }
-
+        is DigestSendStrategyDto.Ssmtp -> {
             return SsmtpDigestSendStrategy(
                 digestFormat = digestFormat,
-                executablePath = ssmtpPath,
-                configPath = ssmtpConfigPath,
+                executablePath = resolveUsedPath(config.ssmtpPathString),
+                configPath = resolveUsedPath(config.configPathString),
                 storageDir = botStorageDir.resolve("digest_send").resolve("ssmtp").toFile(),
             )
-        }
-
-        else -> {
-            logger.error("Unrecognized send_strategy \"$sendStrategyName\"!")
-            return null
         }
     }
 }
@@ -66,16 +65,19 @@ fun readDigestMailConfig(
         return null
     }
 
-    val digestMailConfig = Json.parseToJsonElement(Files.readString(digestMailConfigPath, Charsets.UTF_8)).jsonObject
-
     val configPathAsFile = digestMailConfigPath.toFile()
 
-    return readSendStrategyDigestObjectJson(
-        resolveUsedPath = { configPathAsFile.resolveSibling(it) },
-        digestObject = digestMailConfig,
-        digestFormat = digestFormat,
-        botStorageDir = botStorageDir,
-    )
+    return try {
+        readSendStrategyDigestObjectJson(
+            resolveUsedPath = { configPathAsFile.resolveSibling(it) },
+            configText = Files.readString(digestMailConfigPath, Charsets.UTF_8),
+            digestFormat = digestFormat,
+            botStorageDir = botStorageDir,
+        )
+    } catch (e: Exception) {
+        logger.error("Unable to parse digest mail config", e)
+        null
+    }
 }
 
 data class PermissionsConfig(
