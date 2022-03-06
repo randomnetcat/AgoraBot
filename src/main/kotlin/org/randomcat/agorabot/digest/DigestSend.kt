@@ -70,6 +70,24 @@ abstract class CommandDigestSendStrategy : DigestSendStrategy {
     protected abstract fun commandArguments(digest: Digest, destination: String): List<String>
 }
 
+private fun formatMimeMessage(
+    digest: Digest,
+    format: DigestFormat,
+    destination: String,
+    now: Instant,
+): String {
+    val subject = "Discord digest ${DATE_FORMAT.format(now)}"
+    val content = format.format(digest)
+
+    return """
+        |To: $destination
+        |From: AgoraBot <some.nonexistent.email@randomcat.org>
+        |Subject: $subject
+        |MIME-Version: 1.0
+        |Content-Type: text/plain; charset=utf-8
+    """.trimMargin("|") + "\n\n" + content
+}
+
 data class SsmtpDigestSendStrategy(
     private val digestFormat: DigestFormat,
     override val executablePath: File,
@@ -84,17 +102,35 @@ data class SsmtpDigestSendStrategy(
     )
 
     override fun createStdinStream(digest: Digest, destination: String, now: Instant): InputStream {
-        val subject = "Discord digest ${DATE_FORMAT.format(now)}"
-        val content = digestFormat.format(digest)
+        return formatMimeMessage(
+            digest,
+            digestFormat,
+            destination,
+            now,
+        ).byteInputStream(Charsets.UTF_8)
+    }
+}
 
-        val messageText =
-            "To: $destination\n" +
-                    "Subject: $subject\n" +
-                    "MIME-Version: 1.0\n" +
-                    "Content-Type: text/plain; charset=utf-8" +
-                    "\n\n" +
-                    content
 
-        return messageText.byteInputStream(Charsets.UTF_8)
+data class MsmtpDigestSendStrategy(
+    private val digestFormat: DigestFormat,
+    override val executablePath: File,
+    private val configPath: File,
+    override val storageDir: File,
+) : CommandDigestSendStrategy() {
+    private val arguments = listOf(
+        "-t",
+        "--file=${configPath.absolutePath}"
+    )
+
+    override fun commandArguments(digest: Digest, destination: String): List<String> = arguments
+
+    override fun createStdinStream(digest: Digest, destination: String, now: Instant): InputStream {
+        return formatMimeMessage(
+            digest,
+            digestFormat,
+            destination,
+            now,
+        ).byteInputStream(Charsets.UTF_8)
     }
 }
