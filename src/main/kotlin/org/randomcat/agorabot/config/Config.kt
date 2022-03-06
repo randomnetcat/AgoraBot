@@ -65,7 +65,7 @@ fun readDigestMailConfig(
         return null
     }
 
-    val configPathAsFile = digestMailConfigPath.toFile()
+    val configPathAsFile = digestMailConfigPath.toAbsolutePath().toFile()
 
     return try {
         readSendStrategyDigestObjectJson(
