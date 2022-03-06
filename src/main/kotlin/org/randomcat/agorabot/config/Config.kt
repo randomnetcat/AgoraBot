@@ -9,6 +9,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import org.randomcat.agorabot.digest.DigestFormat
 import org.randomcat.agorabot.digest.DigestSendStrategy
+import org.randomcat.agorabot.digest.MsmtpDigestSendStrategy
 import org.randomcat.agorabot.digest.SsmtpDigestSendStrategy
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -33,6 +34,15 @@ private sealed class DigestSendStrategyDto {
         @SerialName("ssmtp_config_path")
         val configPathString: String,
     ) : DigestSendStrategyDto()
+
+    @Serializable
+    @SerialName("msmtp")
+    data class Msmtp(
+        @SerialName("msmtp_path")
+        val msmtpPathString: String,
+        @SerialName("msmtp_config_path")
+        val configPathString: String,
+    ) : DigestSendStrategyDto()
 }
 
 private fun readSendStrategyDigestObjectJson(
@@ -50,6 +60,15 @@ private fun readSendStrategyDigestObjectJson(
                 executablePath = resolveUsedPath(config.ssmtpPathString),
                 configPath = resolveUsedPath(config.configPathString),
                 storageDir = botStorageDir.resolve("digest_send").resolve("ssmtp").toFile(),
+            )
+        }
+
+        is DigestSendStrategyDto.Msmtp -> {
+            return MsmtpDigestSendStrategy(
+                digestFormat = digestFormat,
+                executablePath = resolveUsedPath(config.msmtpPathString),
+                configPath = resolveUsedPath(config.configPathString),
+                storageDir = botStorageDir.resolve("digest_send").resolve("msmtp").toFile(),
             )
         }
     }
