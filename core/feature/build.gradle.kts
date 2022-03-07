@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.core.config)
+    api(projects.core.config)
 }
