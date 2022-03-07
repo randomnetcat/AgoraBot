@@ -9,9 +9,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import org.randomcat.agorabot.config.SchedulableAtomicCachedStorage
-import org.randomcat.agorabot.config.StorageStrategy
 import org.randomcat.agorabot.config.persist.ConfigPersistService
+import org.randomcat.agorabot.config.persist.SchedulableAtomicCachedStorage
+import org.randomcat.agorabot.config.persist.StorageStrategy
 import java.nio.file.Path
 import java.time.Clock
 import java.time.Duration
