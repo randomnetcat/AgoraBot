@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
     implementation(projects.util.common)
-    implementation(libs.jda)
+    api(libs.jda)
     implementation(libs.kotlinx.coroutines)
 }
