@@ -44,11 +44,6 @@ class SanctifyCommand(
                     return@requires
                 }
 
-                if (sourceThread.messageCount > MESSAGE_LIMIT) {
-                    respond("Threads with more than $MESSAGE_LIMIT messages are not supported.")
-                    return@requires
-                }
-
                 val state = currentGuildState.get<SanctifyStateDto>(STATE_KEY)
 
                 if (state == null) {
@@ -67,8 +62,14 @@ class SanctifyCommand(
                     return@requires
                 }
 
-                // There should be less than LIMIT messages, so taking the LIMIT most recent and reversing is fine.
-                val messages = sourceThread.iterableHistory.take(MESSAGE_LIMIT).asReversed()
+                // Reverse means that the history will go earliest -> latest.
+                // Take 1 extra message so that we can check if the limit was violated
+                val messages = sourceThread.iterableHistory.reverse().take(MESSAGE_LIMIT + 1)
+
+                if (messages.size > MESSAGE_LIMIT) {
+                    respond("Threads with more than $MESSAGE_LIMIT messages are not supported.")
+                    return@requires
+                }
 
                 val targetThread = targetChannel.createThreadChannel("Sanctified: " + sourceThread.name).await()
 
