@@ -1,10 +1,10 @@
-package org.randomcat.agorabot.features
+package org.randomcat.agorabot.permissions.feature.impl
 
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.config.BotPermissionContextTag
-import org.randomcat.agorabot.config.PermissionsConfig
-import org.randomcat.agorabot.config.readPermissionsConfig
 import org.randomcat.agorabot.permissions.*
+import org.randomcat.agorabot.permissions.feature.BotPermissionContextTag
+import org.randomcat.agorabot.permissions.feature.botPermissionMap
+import org.randomcat.agorabot.permissions.feature.guildPermissionMap
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("PermissionsContextFeature")

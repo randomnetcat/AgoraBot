@@ -3,12 +3,12 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.impl.PermissionsStrategy
 import org.randomcat.agorabot.commands.impl.PermissionsStrategyTag
-import org.randomcat.agorabot.config.botPermissionContext
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText
 import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
+import org.randomcat.agorabot.permissions.feature.botPermissionContext
 
 private object PermissionsStrategyCacheKey
 

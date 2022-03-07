@@ -1,11 +1,11 @@
-package org.randomcat.agorabot.features
+package org.randomcat.agorabot.permissions.feature.impl
 
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.config.persist.feature.configPersistService
-import org.randomcat.agorabot.permissions.BotPermissionMapTag
-import org.randomcat.agorabot.permissions.GuildPermissionMapTag
 import org.randomcat.agorabot.permissions.JsonGuildPermissionMap
 import org.randomcat.agorabot.permissions.JsonPermissionMap
+import org.randomcat.agorabot.permissions.feature.BotPermissionMapTag
+import org.randomcat.agorabot.permissions.feature.GuildPermissionMapTag
 import java.nio.file.Path
 
 private data class PermissionsStorageConfig(

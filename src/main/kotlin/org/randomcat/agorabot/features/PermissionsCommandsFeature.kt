@@ -7,8 +7,8 @@ import org.randomcat.agorabot.commands.PermissionsCommand
 import org.randomcat.agorabot.commands.SudoCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.ofCommands
-import org.randomcat.agorabot.permissions.botPermissionMap
-import org.randomcat.agorabot.permissions.guildPermissionMap
+import org.randomcat.agorabot.permissions.feature.botPermissionMap
+import org.randomcat.agorabot.permissions.feature.guildPermissionMap
 
 @FeatureSourceFactory
 fun permissionsCommandsFactory() = FeatureSource.ofConstant("permissions_commands", Feature.ofCommands { context ->

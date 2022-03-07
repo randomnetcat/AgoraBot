@@ -65,8 +65,12 @@ dependencies {
     implementation(projects.core.feature)
     implementation(projects.baseCommand.api)
     implementation(projects.baseCommand.requirements.discord)
+
     implementation(projects.components.persist.feature.api)
     runtimeOnly(projects.components.persist.feature.impl)
+
+    implementation(projects.components.permissions.feature.api)
+    runtimeOnly(projects.components.permissions.feature.impl)
 
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)

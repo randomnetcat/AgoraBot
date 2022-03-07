@@ -4,7 +4,6 @@ import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
-import org.randomcat.agorabot.permissions.BotPermissionContext
 
 
 object PrefixStorageTag : FeatureElementTag<MutableGuildPrefixMap>
@@ -35,11 +34,6 @@ val FeatureContext.buttonHandlerMap
             queryAll(ButtonDataTag).values.filterIsInstance<FeatureButtonData.RegisterHandlers>().map { it.handlerMap },
         )
     }
-
-object BotPermissionContextTag : FeatureElementTag<BotPermissionContext>
-
-val FeatureContext.botPermissionContext
-    get() = queryExpectOne(BotPermissionContextTag)
 
 object CommandOutputMappingTag : FeatureElementTag<CommandOutputMapping>
 
