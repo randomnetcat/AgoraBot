@@ -2046,46 +2046,46 @@
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "5.0.0-alpha.2",
+            "version": "5.0.0-alpha.9",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "JDA-5.0.0-alpha.2.jar",
-          "path": "net/dv8tion/JDA/5.0.0-alpha.2",
+          "name": "JDA-5.0.0-alpha.9.jar",
+          "path": "net/dv8tion/JDA/5.0.0-alpha.9",
           "urls": [
-            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.2/JDA-5.0.0-alpha.2.jar"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.9/JDA-5.0.0-alpha.9.jar"
           ],
-          "sha256": "4b6e782c9c09adf6c4235574708da5e2d3d4c0d90662ee822073301410fec641"
+          "sha256": "ef3bbddb15e7c5933bdda9e9d76de59d8f3504e9b19c315a836f478b0d8cfc96"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "5.0.0-alpha.2",
+            "version": "5.0.0-alpha.9",
             "type": "module",
             "extension": "module"
           },
-          "name": "JDA-5.0.0-alpha.2.module",
-          "path": "net/dv8tion/JDA/5.0.0-alpha.2",
+          "name": "JDA-5.0.0-alpha.9.module",
+          "path": "net/dv8tion/JDA/5.0.0-alpha.9",
           "urls": [
-            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.2/JDA-5.0.0-alpha.2.module"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.9/JDA-5.0.0-alpha.9.module"
           ],
-          "sha256": "ed3924f3144cf7166c12d192324d6170860ce6a51c96280a1ac1bed08fffb14b"
+          "sha256": "9eb9159f81bedbcbb6dd5287b66b6695bb17350b8025bf0f4dbe7692a8c8902b"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "5.0.0-alpha.2",
+            "version": "5.0.0-alpha.9",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "JDA-5.0.0-alpha.2.pom",
-          "path": "net/dv8tion/JDA/5.0.0-alpha.2",
+          "name": "JDA-5.0.0-alpha.9.pom",
+          "path": "net/dv8tion/JDA/5.0.0-alpha.9",
           "urls": [
-            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.2/JDA-5.0.0-alpha.2.pom"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.9/JDA-5.0.0-alpha.9.pom"
           ],
-          "sha256": "65a22a883b99cfa1057774616f70c9a3bb8d82ad839020bc58a787327bd57956"
+          "sha256": "84c26f068b13510be2a4483c00ac589d03a07420d5024141bf4513940193cae6"
         },
         {
           "id": {
