@@ -22,6 +22,8 @@ private sealed class SanctifyStateDto {
     data class V0(val targetChannelId: String) : SanctifyStateDto()
 }
 
+private const val MESSAGE_LIMIT = 20
+
 class SanctifyCommand(
     strategy: BaseCommandStrategy,
 ) : BaseCommand(strategy) {
@@ -42,8 +44,8 @@ class SanctifyCommand(
                     return@requires
                 }
 
-                if (sourceThread.messageCount > 50) {
-                    respond("Threads with more than 50 messages are not supported.")
+                if (sourceThread.messageCount > MESSAGE_LIMIT) {
+                    respond("Threads with more than $MESSAGE_LIMIT messages are not supported.")
                     return@requires
                 }
 
@@ -65,8 +67,8 @@ class SanctifyCommand(
                     return@requires
                 }
 
-                // There should be less than 50 messages, so taking the 50 most recent and reversing is fine.
-                val messages = sourceThread.iterableHistory.take(50).asReversed()
+                // There should be less than LIMIT messages, so taking the LIMIT most recent and reversing is fine.
+                val messages = sourceThread.iterableHistory.take(MESSAGE_LIMIT).asReversed()
 
                 val targetThread = targetChannel.createThreadChannel("Sanctified: " + sourceThread.name).await()
 
