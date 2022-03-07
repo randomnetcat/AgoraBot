@@ -3,5 +3,4 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.core.feature)
 }
