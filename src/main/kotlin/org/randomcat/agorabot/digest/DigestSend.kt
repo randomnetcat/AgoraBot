@@ -15,7 +15,7 @@ interface DigestSendStrategy {
 }
 
 private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
-private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-SS").withZone(ZoneOffset.UTC)
+private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneOffset.UTC)
 
 private val logger = LoggerFactory.getLogger("DigestSend")
 
