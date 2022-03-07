@@ -2,12 +2,12 @@ package org.randomcat.agorabot.buttons
 
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import org.randomcat.util.requireDistinct
 import kotlin.reflect.KClass
 
 interface ButtonHandlerContext {
-    val event: ButtonClickEvent
+    val event: ButtonInteractionEvent
     val buttonRequestDataMap: ButtonRequestDataMap
 }
 

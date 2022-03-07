@@ -2,7 +2,7 @@
 
 package org.randomcat.agorabot.listener
 
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
@@ -40,9 +40,9 @@ class BotEmoteListener(private val handler: (MessageReactionAddEvent) -> Unit) {
     }
 }
 
-class BotButtonListener(private val handler: (event: ButtonClickEvent) -> Unit) {
+class BotButtonListener(private val handler: (event: ButtonInteractionEvent) -> Unit) {
     @SubscribeEvent
-    fun onButtonClick(event: ButtonClickEvent) {
+    fun onButtonClick(event: ButtonInteractionEvent) {
         handler(event)
     }
 }

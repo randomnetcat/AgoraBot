@@ -11,7 +11,7 @@ import io.github.classgraph.ClassGraph
 import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
@@ -360,7 +360,7 @@ private fun runBot(config: BotRunConfig) {
 
                         handler(
                             object : ButtonHandlerContext {
-                                override val event: ButtonClickEvent
+                                override val event: ButtonInteractionEvent
                                     get() = theEvent
 
                                 override val buttonRequestDataMap: ButtonRequestDataMap
