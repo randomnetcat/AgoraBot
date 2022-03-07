@@ -1,6 +1,8 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
+import org.randomcat.agorabot.commands.base.requirements.permissions.senderHasPermission
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.*
 

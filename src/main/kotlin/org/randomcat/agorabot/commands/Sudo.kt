@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
-import org.randomcat.agorabot.commands.impl.PermissionsAccess
-import org.randomcat.agorabot.commands.impl.permissions
-import org.randomcat.agorabot.commands.impl.senderHasPermission
+import org.randomcat.agorabot.commands.base.requirements.permissions.PermissionsAccess
+import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
+import org.randomcat.agorabot.commands.base.requirements.permissions.senderHasPermission
 import org.randomcat.agorabot.permissions.BotScope
 
 private val PERMISSION = BotScope.command("sudo")

@@ -2,6 +2,7 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Role
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.config.get
 import org.randomcat.agorabot.config.update

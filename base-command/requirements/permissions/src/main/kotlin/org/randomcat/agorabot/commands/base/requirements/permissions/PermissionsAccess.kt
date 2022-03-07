@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base.requirements.permissions
 
 import org.randomcat.agorabot.commands.base.BaseCommandContext
 import org.randomcat.agorabot.commands.base.BaseCommandExecutionReceiverRequiring

@@ -1,8 +1,8 @@
 package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.commands.impl.PermissionsStrategy
-import org.randomcat.agorabot.commands.impl.PermissionsStrategyTag
+import org.randomcat.agorabot.commands.base.requirements.permissions.PermissionsStrategy
+import org.randomcat.agorabot.commands.base.requirements.permissions.PermissionsStrategyTag
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText
