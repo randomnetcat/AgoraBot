@@ -1,12 +1,8 @@
 package org.randomcat.agorabot
 
-import org.randomcat.agorabot.buttons.ButtonHandlerMap
+import org.randomcat.agorabot.buttons.feature.ButtonDataTag
+import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.listener.Command
-
-sealed class FeatureButtonData {
-    object NoButtons : FeatureButtonData()
-    data class RegisterHandlers(val handlerMap: ButtonHandlerMap) : FeatureButtonData()
-}
 
 abstract class AbstractFeature : Feature {
     override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {

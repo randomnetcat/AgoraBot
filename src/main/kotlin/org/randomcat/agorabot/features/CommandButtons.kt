@@ -5,9 +5,9 @@ import org.randomcat.agorabot.buttons.ButtonRequestData
 import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.ButtonRequestId
+import org.randomcat.agorabot.buttons.feature.buttonRequestDataMap
 import org.randomcat.agorabot.commands.impl.ButtonsStrategy
 import org.randomcat.agorabot.commands.impl.ButtonsStrategyTag
-import org.randomcat.agorabot.config.buttonRequestDataMap
 import java.time.Instant
 
 private object ButtonStrategyCacheKey

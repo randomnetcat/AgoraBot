@@ -6,7 +6,7 @@ import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.ReactionRolesCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.config.guildStateMap
+import org.randomcat.agorabot.guild_state.feature.guildStateMap
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.reactionroles.reactionRolesListener

@@ -2,6 +2,7 @@ package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
+import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.buttons.withType
 import org.randomcat.agorabot.commands.ButtonTestCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy

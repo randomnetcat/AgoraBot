@@ -76,6 +76,9 @@ dependencies {
     implementation(projects.components.guildState.feature.api)
     runtimeOnly(projects.components.guildState.feature.impl)
 
+    implementation(projects.components.buttons.feature.api)
+    runtimeOnly(projects.components.buttons.feature.impl)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)

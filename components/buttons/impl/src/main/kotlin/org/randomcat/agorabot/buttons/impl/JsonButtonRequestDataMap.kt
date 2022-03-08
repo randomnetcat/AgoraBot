@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.buttons
+package org.randomcat.agorabot.buttons.impl
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.mutate
@@ -9,6 +9,10 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.randomcat.agorabot.buttons.ButtonRequestData
+import org.randomcat.agorabot.buttons.ButtonRequestDataMap
+import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
+import org.randomcat.agorabot.buttons.ButtonRequestId
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.config.persist.SchedulableAtomicCachedStorage
 import org.randomcat.agorabot.config.persist.StorageStrategy
@@ -17,23 +21,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-
-interface ButtonRequestDescriptor
-
-const val BUTTON_INVALID_ID_RAW = "INVALID_BUTTON"
-
-@JvmInline
-value class ButtonRequestId(val raw: String)
-
-data class ButtonRequestData(
-    val descriptor: ButtonRequestDescriptor,
-    val expiry: Instant,
-)
-
-interface ButtonRequestDataMap {
-    fun tryGetRequestById(id: ButtonRequestId, timeForExpirationCheck: Instant): ButtonRequestDescriptor?
-    fun putRequest(data: ButtonRequestData): ButtonRequestId
-}
 
 @Serializable
 private data class ButtonRequestDataDto(

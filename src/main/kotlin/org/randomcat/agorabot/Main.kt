@@ -15,11 +15,11 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
+import org.randomcat.agorabot.buttons.feature.buttonHandlerMap
+import org.randomcat.agorabot.buttons.feature.buttonRequestDataMap
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.config.CommandOutputMappingTag
-import org.randomcat.agorabot.config.buttonHandlerMap
-import org.randomcat.agorabot.config.buttonRequestDataMap
 import org.randomcat.agorabot.config.prefixMap
 import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
@@ -139,7 +139,6 @@ private fun buildFeaturesMap(
 }
 
 object JdaListenerTag : FeatureElementTag<List<Any>>
-object ButtonDataTag : FeatureElementTag<FeatureButtonData>
 object BotCommandListTag : FeatureElementTag<Map<String, Command>>
 
 data class BaseCommandDependencyTag(val baseTag: Any?) : FeatureElementTag<Any?>
