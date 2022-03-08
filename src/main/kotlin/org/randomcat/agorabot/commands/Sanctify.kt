@@ -4,10 +4,10 @@ import kotlinx.coroutines.future.await
 import kotlinx.serialization.Serializable
 import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuild
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.currentGuildState
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
-import org.randomcat.agorabot.commands.impl.InGuild
-import org.randomcat.agorabot.commands.impl.currentGuild
-import org.randomcat.agorabot.commands.impl.currentGuildState
 import org.randomcat.agorabot.guild_state.get
 import org.randomcat.agorabot.guild_state.set
 import org.randomcat.agorabot.permissions.GuildScope

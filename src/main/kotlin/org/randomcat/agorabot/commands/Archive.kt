@@ -5,9 +5,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.entities.Guild
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
+import org.randomcat.agorabot.commands.base.requirements.discord.currentChannel
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuild
+import org.randomcat.agorabot.commands.base.requirements.discord.currentMessageEvent
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.base.requirements.permissions.senderHasPermission
-import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission

@@ -1,6 +1,9 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.*
+import org.randomcat.agorabot.AbstractFeature
+import org.randomcat.agorabot.FeatureContext
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.buttons.withType

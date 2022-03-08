@@ -1,27 +1,10 @@
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base.requirements.discord_ext
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandGuildRequirement
+import org.randomcat.agorabot.commands.base.requirements.discord.InGuildSimple
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildId
 import org.randomcat.agorabot.guild_state.GuildState
-import org.randomcat.agorabot.listener.CommandEventSource
-import org.randomcat.agorabot.listener.tryRespondWithText
-
-private const val NEED_GUILD_ERROR_MSG = "This command can only be run in a Guild."
-
-object InGuildSimple : RequirementSet<BaseCommandContext, BaseCommandGuildRequirement> {
-    override fun create(context: BaseCommandContext): RequirementResult<BaseCommandGuildRequirement> {
-        val source = context.source
-
-        if (source !is CommandEventSource.Discord || !source.event.isFromGuild) {
-            source.tryRespondWithText(NEED_GUILD_ERROR_MSG)
-            return RequirementResult.Failure
-        }
-
-        return RequirementResult.Success(object : BaseCommandGuildRequirement {
-            override val currentMessageEvent: MessageReceivedEvent = source.event
-        })
-    }
-}
 
 object GuildStateStrategyTag
 
@@ -61,7 +44,7 @@ object InGuild : RequirementSet<BaseCommandContext, ExtendedGuildRequirement> {
             context,
             InGuildSimple::create,
             InDiscord::create,
-            GuildStateRequirement::create,
+            GuildStateRequirement.Companion::create,
         ) {
             object :
                 ExtendedGuildRequirement,

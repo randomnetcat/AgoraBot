@@ -65,6 +65,7 @@ dependencies {
     implementation(projects.core.feature)
     implementation(projects.baseCommand.api)
     implementation(projects.baseCommand.requirements.discord)
+    implementation(projects.baseCommand.requirements.discordExt)
     implementation(projects.baseCommand.requirements.permissions)
 
     implementation(projects.components.persist.feature.api)

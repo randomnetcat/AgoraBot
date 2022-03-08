@@ -3,10 +3,10 @@ package org.randomcat.agorabot.commands
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.commands.base.*
-import org.randomcat.agorabot.commands.impl.BaseCommandExecutionReceiverGuilded
-import org.randomcat.agorabot.commands.impl.InGuildSimple
-import org.randomcat.agorabot.commands.impl.currentChannel
-import org.randomcat.agorabot.commands.impl.currentGuildId
+import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
+import org.randomcat.agorabot.commands.base.requirements.discord.InGuildSimple
+import org.randomcat.agorabot.commands.base.requirements.discord.currentChannel
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildId
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.util.CompletedRestAction
 import org.randomcat.agorabot.util.JDA_HISTORY_MAX_RETRIEVE_LIMIT

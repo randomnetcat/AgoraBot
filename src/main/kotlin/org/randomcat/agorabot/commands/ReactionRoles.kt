@@ -6,11 +6,11 @@ import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
+import org.randomcat.agorabot.commands.base.requirements.discord.GuildInfo
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildInfo
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
-import org.randomcat.agorabot.commands.impl.BaseCommandExecutionReceiverGuilded
-import org.randomcat.agorabot.commands.impl.GuildInfo
-import org.randomcat.agorabot.commands.impl.InGuild
-import org.randomcat.agorabot.commands.impl.currentGuildInfo
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
 import org.randomcat.agorabot.reactionroles.storageName

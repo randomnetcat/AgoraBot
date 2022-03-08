@@ -1,9 +1,13 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildInfo
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedDiscordRequirement
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedGuildRequirement
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InDiscord
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.base.requirements.permissions.senderHasPermission
-import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.*
 
 private val MANAGE_GUILD_PERMISSIONS_PERMISSION = GuildScope.command("permissions").action("manage")

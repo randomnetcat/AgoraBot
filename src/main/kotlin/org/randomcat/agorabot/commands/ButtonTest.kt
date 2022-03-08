@@ -8,9 +8,9 @@ import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.commands.base.BaseCommand
 import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
 import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InDiscord
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.newButtonId
 import org.randomcat.agorabot.commands.base.requires
-import org.randomcat.agorabot.commands.impl.InDiscord
-import org.randomcat.agorabot.commands.impl.newButtonId
 import java.time.Duration
 
 class ButtonTestCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {

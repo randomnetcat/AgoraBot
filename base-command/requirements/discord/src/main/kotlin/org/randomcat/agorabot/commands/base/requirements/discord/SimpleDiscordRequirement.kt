@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.commands.impl
+package org.randomcat.agorabot.commands.base.requirements.discord
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.base.BaseCommandContext

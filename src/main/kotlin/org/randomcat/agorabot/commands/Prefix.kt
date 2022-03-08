@@ -1,10 +1,10 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.InGuildSimple
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildId
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildInfo
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
-import org.randomcat.agorabot.commands.impl.InGuildSimple
-import org.randomcat.agorabot.commands.impl.currentGuildId
-import org.randomcat.agorabot.commands.impl.currentGuildInfo
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 import org.randomcat.agorabot.permissions.GuildScope
 
