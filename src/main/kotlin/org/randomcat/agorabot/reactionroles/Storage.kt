@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.reactionroles
 
 import net.dv8tion.jda.api.entities.MessageReaction
-import org.randomcat.agorabot.config.GuildState
-import org.randomcat.agorabot.config.get
-import org.randomcat.agorabot.config.update
+import org.randomcat.agorabot.guild_state.GuildState
+import org.randomcat.agorabot.guild_state.get
+import org.randomcat.agorabot.guild_state.update
 
 interface ReactionRolesMap {
     fun roleIdFor(guildId: String, messageId: String, reactionName: String): String?

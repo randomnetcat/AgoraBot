@@ -5,16 +5,10 @@ import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.ButtonRequestDataMap
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 
-
 object PrefixStorageTag : FeatureElementTag<MutableGuildPrefixMap>
 
 val FeatureContext.prefixMap
     get() = queryExpectOne(PrefixStorageTag)
-
-object GuildStateStorageTag : FeatureElementTag<GuildStateMap>
-
-val FeatureContext.guildStateMap
-    get() = queryExpectOne(GuildStateStorageTag)
 
 object VersioningStorageTag : FeatureElementTag<VersioningStorage>
 

@@ -10,8 +10,8 @@ import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.impl.ExtendedGuildRequirement
 import org.randomcat.agorabot.commands.impl.InGuild
 import org.randomcat.agorabot.commands.impl.currentGuildState
-import org.randomcat.agorabot.config.get
-import org.randomcat.agorabot.config.update
+import org.randomcat.agorabot.guild_state.get
+import org.randomcat.agorabot.guild_state.update
 import org.randomcat.agorabot.permissions.GuildScope
 
 private data class JudgeListState(val judgeNames: ImmutableList<String>) {

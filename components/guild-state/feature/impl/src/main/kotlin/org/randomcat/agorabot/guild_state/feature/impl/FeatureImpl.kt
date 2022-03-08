@@ -1,9 +1,9 @@
-package org.randomcat.agorabot.features
+package org.randomcat.agorabot.guild_state.feature.impl
 
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.config.GuildStateStorageTag
-import org.randomcat.agorabot.config.JsonGuildStateMap
 import org.randomcat.agorabot.config.persist.feature.configPersistService
+import org.randomcat.agorabot.guild_state.feature.GuildStateStorageTag
+import org.randomcat.agorabot.guild_state.impl.JsonGuildStateMap
 import java.nio.file.Path
 
 private data class GuildStateStorageConfig(

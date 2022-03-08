@@ -3,9 +3,9 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.impl.GuildStateStrategy
 import org.randomcat.agorabot.commands.impl.GuildStateStrategyTag
-import org.randomcat.agorabot.config.GuildState
-import org.randomcat.agorabot.config.GuildStateMap
-import org.randomcat.agorabot.config.guildStateMap
+import org.randomcat.agorabot.guild_state.GuildState
+import org.randomcat.agorabot.guild_state.GuildStateMap
+import org.randomcat.agorabot.guild_state.feature.guildStateMap
 
 private object GuildStateStrategyCacheKey
 

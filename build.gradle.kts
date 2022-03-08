@@ -73,6 +73,9 @@ dependencies {
     implementation(projects.components.permissions.feature.api)
     runtimeOnly(projects.components.permissions.feature.impl)
 
+    implementation(projects.components.guildState.feature.api)
+    runtimeOnly(projects.components.guildState.feature.impl)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)

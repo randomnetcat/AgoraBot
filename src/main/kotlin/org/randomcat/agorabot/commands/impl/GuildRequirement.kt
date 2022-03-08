@@ -2,7 +2,7 @@ package org.randomcat.agorabot.commands.impl
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import org.randomcat.agorabot.commands.base.*
-import org.randomcat.agorabot.config.GuildState
+import org.randomcat.agorabot.guild_state.GuildState
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.tryRespondWithText
 

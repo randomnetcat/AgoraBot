@@ -4,8 +4,8 @@ import net.dv8tion.jda.api.entities.Role
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.config.get
-import org.randomcat.agorabot.config.update
+import org.randomcat.agorabot.guild_state.get
+import org.randomcat.agorabot.guild_state.update
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
 

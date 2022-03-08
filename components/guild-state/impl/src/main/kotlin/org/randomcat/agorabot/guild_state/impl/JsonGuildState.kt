@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.config
+package org.randomcat.agorabot.guild_state.impl
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -10,61 +10,11 @@ import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.persist.AtomicCachedStorage
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.config.persist.StorageStrategy
+import org.randomcat.agorabot.guild_state.GuildState
+import org.randomcat.agorabot.guild_state.GuildStateMap
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import java.nio.file.Files
 import java.nio.file.Path
-
-interface GuildState {
-    fun getStrings(keys: List<String>): List<String?>
-    fun getString(key: String): String? = getStrings(listOf(key)).single()
-
-    fun setStrings(keys: List<String>, values: List<String>)
-    fun setString(key: String, value: String) = setStrings(listOf(key), listOf(value))
-
-    fun updateStrings(keys: List<String>, mapper: (old: List<String?>) -> List<String>)
-
-    fun updateString(key: String, mapper: (old: String?) -> String) = updateStrings(listOf(key)) { values ->
-        listOf(mapper(values.single()))
-    }
-}
-
-inline fun <reified T> GuildState.get(key: String): T? {
-    return getString(key)?.let { Json.decodeFromString<T>(it) }
-}
-
-inline fun <reified T> GuildState.getMany(keys: List<String>): List<T?> {
-    return getStrings(keys).map { str -> str?.let { Json.decodeFromString<T>(it) } }
-}
-
-inline fun <reified T> GuildState.set(key: String, value: T) {
-    setString(key, Json.encodeToString<T>(value))
-}
-
-inline fun <reified T> GuildState.setMany(keys: List<String>, values: List<T>) {
-    setStrings(keys, values.map { Json.encodeToString<T>(it) })
-}
-
-inline fun <reified T> GuildState.update(key: String, crossinline mapper: (old: T?) -> T) {
-    updateString(key) { oldString ->
-        Json.encodeToString<T>(mapper(oldString?.let { Json.decodeFromString<T>(it) }))
-    }
-}
-
-inline fun <reified T> GuildState.updateMany(keys: List<String>, crossinline mapper: (old: List<T?>) -> List<T>) {
-    updateStrings(keys) { oldStrings ->
-        mapper(
-            oldStrings.map { oldString ->
-                oldString?.let { Json.decodeFromString<T>(it) }
-            }
-        ).map {
-            Json.encodeToString<T>(it)
-        }
-    }
-}
-
-interface GuildStateMap {
-    fun stateForGuild(guildId: String): GuildState
-}
 
 class JsonGuildState(private val storagePath: Path) : GuildState {
     private object StrategyImpl : StorageStrategy<PersistentMap<String, String>> {
