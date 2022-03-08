@@ -12,6 +12,7 @@ import org.randomcat.agorabot.config.get
 import org.randomcat.agorabot.config.set
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.await
+import java.io.InputStream
 
 private val MANAGE_PERMISSION = GuildScope.command("sanctify").action("manage")
 private const val STATE_KEY = "sanctify"
@@ -74,15 +75,42 @@ class SanctifyCommand(
                 val targetThread = targetChannel.createThreadChannel("Sanctified: " + sourceThread.name).await()
 
                 for (message in messages) {
-                    val action = targetThread.sendMessage(MessageBuilder(message).build())
+                    val attachments = message.attachments
+                    val builder = MessageBuilder(message)
+
+                    val (action, remainingAttachments) = run {
+                        var inputStreamForClose: InputStream? = null
+
+                        try {
+                            if (builder.isEmpty) {
+                                // Message content is empty, so message must have an attachment.
+                                val firstAttachment = attachments[0]
+                                inputStreamForClose = firstAttachment.retrieveInputStream().await()
+
+                                targetThread.sendFile(
+                                    inputStreamForClose,
+                                    firstAttachment.fileName,
+                                ) to attachments.subList(1, attachments.size)
+                            } else {
+                                targetThread.sendMessage(builder.build()) to attachments
+                            }
+                        } catch (e: Exception) {
+                            inputStreamForClose?.close()
+                            throw e
+                        }
+                    }
 
                     try {
-                        for (file in message.attachments) {
+                        for (file in remainingAttachments) {
                             action.addFile(file.retrieveInputStream().await(), file.fileName)
                         }
                     } catch (e: Exception) {
                         action.clearFiles { stream ->
-                            stream.close()
+                            try {
+                                stream.close()
+                            } catch (closeFailure: Exception) {
+                                e.addSuppressed(closeFailure)
+                            }
                         }
 
                         throw e
