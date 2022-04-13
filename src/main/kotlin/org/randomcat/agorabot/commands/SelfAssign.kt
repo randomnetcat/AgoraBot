@@ -11,6 +11,7 @@ import org.randomcat.agorabot.guild_state.get
 import org.randomcat.agorabot.guild_state.update
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
+import org.randomcat.agorabot.util.await
 
 private const val SELF_ASSIGNABLE_STATE_KEY = "self_assign.assignable"
 private typealias SelfAssignableStateType = List<String>
@@ -32,9 +33,9 @@ fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandEx
 ) = selfAssignAdminAction().execute { block(it.receiver, it.arg) }
 
 class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
-    private inline fun BaseCommandExecutionReceiverGuilded.withRoleResolved(
+    private suspend inline fun BaseCommandExecutionReceiverGuilded.withRoleResolved(
         roleName: String,
-        crossinline block: (Role) -> Unit,
+        crossinline block: suspend (Role) -> Unit,
     ) {
         val role = currentGuildInfo.resolveRole(roleName) ?: run {
             respond("Could not find a role by that name.")
@@ -44,9 +45,9 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         block(role)
     }
 
-    private inline fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.withInteractableSelfAssignableRoleResolved(
+    private suspend inline fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.withInteractableSelfAssignableRoleResolved(
         roleName: String,
-        crossinline block: (Role) -> Unit,
+        crossinline block: suspend (Role) -> Unit,
     ) {
         withRoleResolved(roleName) { role ->
             val assignableRoleIds = assignableRoleIds()
@@ -75,7 +76,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleListRequest() {
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleListRequest() {
         val assignableRoles = assignableRoles()
 
         if (assignableRoles.isEmpty()) {
@@ -90,23 +91,21 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleAssignRequest(roleName: String) {
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleAssignRequest(roleName: String) {
         withInteractableSelfAssignableRoleResolved(roleName) { role ->
-            currentGuild.addRoleToMember(senderMember, role).queue {
-                respond("Done.")
-            }
+            currentGuild.addRoleToMember(senderMember, role).await()
+            respond("Done.")
         }
     }
 
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleRemoveRequest(roleName: String) {
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleRemoveRequest(roleName: String) {
         withInteractableSelfAssignableRoleResolved(roleName) { role ->
-            currentGuild.removeRoleFromMember(senderMember, role).queue {
-                respond("Done.")
-            }
+            currentGuild.removeRoleFromMember(senderMember, role).await()
+            respond("Done.")
         }
     }
 
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleEnableRequest(roleName: String) {
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleEnableRequest(roleName: String) {
         withRoleResolved(roleName) { role ->
             if (role.isPublicRole) {
                 respond("Refusing to make everyone role self-assignable.")
@@ -121,7 +120,7 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleDisableRequest(roleName: String) {
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleDisableRequest(roleName: String) {
         withRoleResolved(roleName) { role ->
             currentGuildState.update<SelfAssignableStateType>(SELF_ASSIGNABLE_STATE_KEY) { old ->
                 // Use list subtraction in order to remove all instances of it (if it's duplicated).

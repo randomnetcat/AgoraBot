@@ -101,9 +101,9 @@ class ArchiveCommand(
         }
     }
 
-    private fun BaseCommandExecutionReceiverGuilded.doArchive(
+    private suspend fun BaseCommandExecutionReceiverGuilded.doArchive(
         channelIds: List<String>,
-        storeArchiveResult: BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
+        storeArchiveResult: suspend BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
     ) {
         val member = currentMessageEvent.member ?: error("Member should exist because this is in a Guild")
 

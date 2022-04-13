@@ -36,17 +36,17 @@ interface BaseCommandArgumentStrategy {
 }
 
 interface BaseCommandOutputStrategy {
-    fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String)
-    fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message)
+    suspend fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String)
+    suspend fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message)
 
-    fun sendResponseAsFile(
+    suspend fun sendResponseAsFile(
         source: CommandEventSource,
         invocation: CommandInvocation,
         fileName: String,
         fileContent: String,
     )
 
-    fun sendResponseTextAndFile(
+    suspend fun sendResponseTextAndFile(
         source: CommandEventSource,
         invocation: CommandInvocation,
         textResponse: String,
@@ -76,10 +76,10 @@ interface BaseCommandContext : CommandDependencyProvider {
 
 
 interface BaseCommandExecutionReceiver {
-    fun respond(message: String)
-    fun respond(message: Message)
-    fun respondWithFile(fileName: String, fileContent: String)
-    fun respondWithTextAndFile(text: String, fileName: String, fileContent: String)
+    suspend fun respond(message: String)
+    suspend fun respond(message: Message)
+    suspend fun respondWithFile(fileName: String, fileContent: String)
+    suspend fun respondWithTextAndFile(text: String, fileName: String, fileContent: String)
 }
 
 @CommandDslMarker
@@ -121,25 +121,25 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         ) = doArgs(a, b, c, d).prependAlwaysTransform { it.flatten() }
 
         fun <Ctx, R> ArgumentDescriptionReceiver<ContextAndReceiver<Ctx, R>>.noArgs(
-            block: R.(CommandArgs0) -> Unit,
+            block: suspend R.(CommandArgs0) -> Unit,
         ) = noArgs().execute { block(it.receiver, it.arg) }
 
         fun <A, AE, Ctx, R> ArgumentDescriptionReceiver<ContextAndReceiver<Ctx, R>>.args(
             a: CommandArgumentParser<A, AE>,
-            block: R.(CommandArgs1<A>) -> Unit,
+            block: suspend R.(CommandArgs1<A>) -> Unit,
         ) = args(a).execute { block(it.receiver, it.arg) }
 
         fun <A, AE, B, BE, Ctx, R> ArgumentDescriptionReceiver<ContextAndReceiver<Ctx, R>>.args(
             a: CommandArgumentParser<A, AE>,
             b: CommandArgumentParser<B, BE>,
-            block: R.(CommandArgs2<A, B>) -> Unit,
+            block: suspend R.(CommandArgs2<A, B>) -> Unit,
         ) = args(a, b).execute { block(it.receiver, it.arg) }
 
         fun <A, AE, B, BE, C, CE, Ctx, R> ArgumentDescriptionReceiver<ContextAndReceiver<Ctx, R>>.args(
             a: CommandArgumentParser<A, AE>,
             b: CommandArgumentParser<B, BE>,
             c: CommandArgumentParser<C, CE>,
-            block: R.(CommandArgs3<A, B, C>) -> Unit,
+            block: suspend R.(CommandArgs3<A, B, C>) -> Unit,
         ) = args(a, b, c).execute { block(it.receiver, it.arg) }
 
         fun <A, AE, B, BE, C, CE, D, DE, Ctx, R> ArgumentDescriptionReceiver<ContextAndReceiver<Ctx, R>>.args(
@@ -147,7 +147,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             b: CommandArgumentParser<B, BE>,
             c: CommandArgumentParser<C, CE>,
             d: CommandArgumentParser<D, DE>,
-            block: R.(CommandArgs4<A, B, C, D>) -> Unit,
+            block: suspend R.(CommandArgs4<A, B, C, D>) -> Unit,
         ) = args(a, b, c, d).execute { block(it.receiver, it.arg) }
     }
 
@@ -157,19 +157,19 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
         private val source: CommandEventSource,
         private val invocation: CommandInvocation,
     ) : BaseCommandExecutionReceiver {
-        override fun respond(message: String) {
+        override suspend fun respond(message: String) {
             strategy.sendResponse(source, invocation, message)
         }
 
-        override fun respond(message: Message) {
+        override suspend fun respond(message: Message) {
             strategy.sendResponseMessage(source, invocation, message)
         }
 
-        override fun respondWithFile(fileName: String, fileContent: String) {
+        override suspend fun respondWithFile(fileName: String, fileContent: String) {
             strategy.sendResponseAsFile(source, invocation, fileName, fileContent)
         }
 
-        override fun respondWithTextAndFile(text: String, fileName: String, fileContent: String) {
+        override suspend fun respondWithTextAndFile(text: String, fileName: String, fileContent: String) {
             strategy.sendResponseTextAndFile(source, invocation, text, fileName, fileContent)
         }
     }

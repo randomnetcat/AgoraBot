@@ -17,7 +17,7 @@ class PermissionsCommand(
     private val botMap: MutablePermissionMap,
     private val guildMap: MutableGuildPermissionMap,
 ) : BaseCommand(strategy) {
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleGuildSetState(
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedGuildRequirement>.handleGuildSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,
@@ -44,7 +44,7 @@ class PermissionsCommand(
         }
     }
 
-    private fun BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>.handleBotSetState(
+    private suspend fun BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>.handleBotSetState(
         id: PermissionMapId,
         stringPath: String,
         newState: BotPermissionState,

@@ -40,7 +40,7 @@ class RngCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         }
     }
 
-    private fun BaseCommandExecutionReceiver.doResponse(min: Long, max: Long) {
+    private suspend fun BaseCommandExecutionReceiver.doResponse(min: Long, max: Long) {
         if (min > max) {
             respond("Max value must be at least as big as min value.")
             return

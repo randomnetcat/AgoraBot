@@ -74,19 +74,23 @@ data class BaseCommandOutputStrategyByOutputMapping(
         outputMapping.externalSinksFor(source).forEach(block)
     }
 
-    override fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
+    override suspend fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
         forEachSinkOf(source) { sink ->
             sink.sendSimpleMessage(message)
         }
     }
 
-    override fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message) {
+    override suspend fun sendResponseMessage(
+        source: CommandEventSource,
+        invocation: CommandInvocation,
+        message: Message,
+    ) {
         forEachSinkOf(source) { sink ->
             sink.sendDiscordMessage(message)
         }
     }
 
-    override fun sendResponseAsFile(
+    override suspend fun sendResponseAsFile(
         source: CommandEventSource,
         invocation: CommandInvocation,
         fileName: String,
@@ -97,7 +101,7 @@ data class BaseCommandOutputStrategyByOutputMapping(
         }
     }
 
-    override fun sendResponseTextAndFile(
+    override suspend fun sendResponseTextAndFile(
         source: CommandEventSource,
         invocation: CommandInvocation,
         textResponse: String,
