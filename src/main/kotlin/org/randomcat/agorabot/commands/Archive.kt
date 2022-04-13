@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
@@ -83,9 +84,11 @@ class ArchiveCommand(
                         channelIds = channelIds.distinct(),
                         storeArchiveResult = { path ->
                             if (isStoreLocally) {
-                                val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
-                                Files.copy(path, localStorageDir.resolve(fileName))
-                                respond("Stored file locally at $fileName")
+                                withContext(Dispatchers.IO) {
+                                    val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
+                                    Files.copy(path, localStorageDir.resolve(fileName))
+                                    respond("Stored file locally at $fileName")
+                                }
                             } else {
                                 currentChannel
                                     .sendMessage("Archive for channels $channelIds")
