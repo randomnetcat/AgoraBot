@@ -35,9 +35,7 @@ private fun formatArgumentSelection(options: List<String>): String {
     }
 }
 
-private class MatchFirstUsageArgumentDescriptionReceiver(
-    private val receiver: PendingInvocation<Nothing>,
-) : ArgumentMultiDescriptionReceiver<Nothing> {
+private class MatchFirstUsageArgumentDescriptionReceiver : ArgumentMultiDescriptionReceiver<Nothing> {
     private val options = mutableListOf<String>()
 
     override fun <T, E, R> argsRaw(
@@ -45,7 +43,7 @@ private class MatchFirstUsageArgumentDescriptionReceiver(
         mapParsed: (List<T>) -> R,
     ): PendingInvocation<Nothing> {
         options += formatArgumentUsages(parsers.map { it.usage() })
-        return receiver
+        return PendingInvocation.neverExecute()
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
@@ -57,9 +55,7 @@ private class MatchFirstUsageArgumentDescriptionReceiver(
     }
 }
 
-private class UsageSubcommandsArgumentDescriptionReceiver(
-    private val receiver: PendingInvocation<Nothing>,
-) : SubcommandsArgumentDescriptionReceiver<Nothing> {
+private class UsageSubcommandsArgumentDescriptionReceiver : SubcommandsArgumentDescriptionReceiver<Nothing> {
     private val checker = SubcommandsReceiverChecker()
     private var options: PersistentList<String> = persistentListOf()
 
@@ -69,12 +65,12 @@ private class UsageSubcommandsArgumentDescriptionReceiver(
     ): PendingInvocation<Nothing> {
         checker.checkArgsRaw()
         options = persistentListOf(formatArgumentUsages(parsers.map { it.usage() }))
-        return receiver
+        return PendingInvocation.neverExecute()
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         checker.checkMatchFirst()
-        options = MatchFirstUsageArgumentDescriptionReceiver(receiver).apply(block).options().toPersistentList()
+        options = MatchFirstUsageArgumentDescriptionReceiver().apply(block).options().toPersistentList()
     }
 
     override fun subcommand(
@@ -83,7 +79,7 @@ private class UsageSubcommandsArgumentDescriptionReceiver(
     ) {
         checker.checkSubcommand(subcommand = name)
 
-        val subOptions = UsageSubcommandsArgumentDescriptionReceiver(receiver).apply(block).options()
+        val subOptions = UsageSubcommandsArgumentDescriptionReceiver().apply(block).options()
 
         val newOption = name + when {
             subOptions.isEmpty() -> ""
@@ -105,9 +101,7 @@ private class UsageSubcommandsArgumentDescriptionReceiver(
     }
 }
 
-class UsageTopLevelArgumentDescriptionReceiver(
-    private val receiver: PendingInvocation<Nothing>,
-) : TopLevelArgumentDescriptionReceiver<Nothing> {
+class UsageTopLevelArgumentDescriptionReceiver : TopLevelArgumentDescriptionReceiver<Nothing> {
     private var usageValue: String? = null
 
     override fun <T, E, R> argsRaw(
@@ -116,13 +110,13 @@ class UsageTopLevelArgumentDescriptionReceiver(
     ): PendingInvocation<Nothing> {
         check(usageValue == null)
         usageValue = formatArgumentUsages(parsers.map { it.usage() })
-        return receiver
+        return PendingInvocation.neverExecute()
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         check(usageValue == null)
         usageValue = formatArgumentSelection(
-            MatchFirstUsageArgumentDescriptionReceiver(receiver).apply(block).options()
+            MatchFirstUsageArgumentDescriptionReceiver().apply(block).options()
         )
     }
 
@@ -130,7 +124,7 @@ class UsageTopLevelArgumentDescriptionReceiver(
         check(usageValue == null)
 
         usageValue = formatArgumentSelection(
-            UsageSubcommandsArgumentDescriptionReceiver(receiver).also(block).options()
+            UsageSubcommandsArgumentDescriptionReceiver().also(block).options()
         )
     }
 

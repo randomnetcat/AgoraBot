@@ -87,12 +87,6 @@ interface BaseCommandExecutionReceiverRequiring<out Requirement> : BaseCommandEx
     fun requirement(): Requirement
 }
 
-private val nullPendingInvocation = object : PendingInvocation<Nothing> {
-    override fun execute(block: suspend (Nothing) -> Unit) {
-        // Do nothing.
-    }
-}
-
 abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command {
     companion object {
         fun <Ctx, R> ArgumentDescriptionReceiver<ContextAndReceiver<Ctx, R>>.noArgs(
@@ -227,7 +221,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                 }
 
                 override fun receiverOnError(): PendingInvocation<Nothing> {
-                    return nullPendingInvocation
+                    return PendingInvocation.neverExecute()
                 }
             },
         ).impl()
@@ -236,7 +230,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>>.impl()
 
     fun usage(): String {
-        return UsageTopLevelArgumentDescriptionReceiver(nullPendingInvocation).apply { impl() }.usage()
+        return UsageTopLevelArgumentDescriptionReceiver().apply { impl() }.usage()
     }
 }
 

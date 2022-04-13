@@ -8,6 +8,16 @@ private typealias CAP<T, E> = CommandArgumentParser<T, E>
 annotation class CommandDslMarker
 
 interface PendingInvocation<out Arg> {
+    companion object {
+        private object NullPendingInvocation : PendingInvocation<Nothing> {
+            override fun execute(block: suspend (Nothing) -> Unit) {
+                // Do nothing.
+            }
+        }
+
+        fun neverExecute(): PendingInvocation<Nothing> = NullPendingInvocation
+    }
+
     fun execute(block: suspend (Arg) -> Unit)
 }
 
