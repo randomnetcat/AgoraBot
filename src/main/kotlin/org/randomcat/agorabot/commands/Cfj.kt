@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.help.help
 import org.randomcat.agorabot.util.repeated
 import kotlin.random.Random
 
@@ -89,8 +90,10 @@ private fun formatResponse(statement: String, response: String, usePoorlyWorded:
 
 class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
+        help("Returns random Agoran-style CFJ judgements.")
+
         matchFirst {
-            noArgs { _ ->
+            noArgs().help("Returns a judgement without an associated statement") { _ ->
                 if (randomShouldFourFactor()) {
                     respondFourFactor()
                 }
@@ -98,7 +101,7 @@ class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 respond("Judged ${randomResponse()}.")
             }
 
-            args(RemainingStringArgs("statement")) { (statementParts) ->
+            args(RemainingStringArgs("statement")).help("Returns a judgement on the specified statement") { (statementParts) ->
                 if (randomShouldFourFactor()) {
                     respondFourFactor()
                 }
