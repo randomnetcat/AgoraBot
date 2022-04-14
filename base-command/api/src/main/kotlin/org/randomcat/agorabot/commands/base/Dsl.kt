@@ -13,12 +13,28 @@ interface PendingInvocation<out Arg> {
             override fun execute(block: suspend (Nothing) -> Unit) {
                 // Do nothing.
             }
+
+            override fun <NewArg> interpose(interposition: suspend (arg: Nothing, block: suspend (NewArg) -> Unit) -> Unit): PendingInvocation<NewArg> {
+                return this
+            }
         }
 
         fun neverExecute(): PendingInvocation<Nothing> = NullPendingInvocation
     }
 
     fun execute(block: suspend (Arg) -> Unit)
+
+    fun <NewArg> interpose(interposition: suspend (arg: Arg, block: suspend (NewArg) -> Unit) -> Unit): PendingInvocation<NewArg> {
+        val baseInvocation = this
+
+        return object : PendingInvocation<NewArg> {
+            override fun execute(block: suspend (NewArg) -> Unit) {
+                baseInvocation.execute {
+                    interposition(it, block)
+                }
+            }
+        }
+    }
 }
 
 interface WithContext<out Context> {
@@ -40,20 +56,14 @@ sealed class PrependResult {
 }
 
 inline fun <Arg> PendingInvocation<Arg>.prepend(crossinline prependBlock: (Arg) -> PrependResult): PendingInvocation<Arg> {
-    val baseInvocation = this
-
-    return object : PendingInvocation<Arg> {
-        override fun execute(block: suspend (Arg) -> Unit) {
-            baseInvocation.execute { arg ->
-                @Suppress("UNUSED_VARIABLE")
-                val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
-                    is PrependResult.ContinueExecution -> {
-                        block(arg)
-                    }
-
-                    is PrependResult.StopExecution -> {}
-                }
+    return interpose { arg, block ->
+        @Suppress("UNUSED_VARIABLE")
+        val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
+            is PrependResult.ContinueExecution -> {
+                block(arg)
             }
+
+            is PrependResult.StopExecution -> {}
         }
     }
 }
@@ -64,31 +74,21 @@ sealed class PrependTransformResult<out NewArg> {
 }
 
 inline fun <Arg, NewArg> PendingInvocation<Arg>.prependTransform(crossinline prependBlock: (Arg) -> PrependTransformResult<NewArg>): PendingInvocation<NewArg> {
-    val baseInvocation = this
-
-    return object : PendingInvocation<NewArg> {
-        override fun execute(block: suspend (NewArg) -> Unit) {
-            baseInvocation.execute { arg ->
-                @Suppress("UNUSED_VARIABLE")
-                val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
-                    is PrependTransformResult.ContinueExecution -> {
-                        block(prependResult.newArg)
-                    }
-
-                    is PrependTransformResult.StopExecution -> {}
-                }
+    return interpose { arg, block ->
+        @Suppress("UNUSED_VARIABLE")
+        val ensureExhaustive = when (val prependResult = prependBlock(arg)) {
+            is PrependTransformResult.ContinueExecution -> {
+                block(prependResult.newArg)
             }
+
+            is PrependTransformResult.StopExecution -> {}
         }
     }
 }
 
 inline fun <Arg, NewArg> PendingInvocation<Arg>.prependAlwaysTransform(crossinline transform: (Arg) -> NewArg): PendingInvocation<NewArg> {
-    val baseInvocation = this
-
-    return object : PendingInvocation<NewArg> {
-        override fun execute(block: suspend (NewArg) -> Unit) {
-            return baseInvocation.execute { block(transform(it)) }
-        }
+    return interpose { arg, block ->
+        block(transform(arg))
     }
 }
 
