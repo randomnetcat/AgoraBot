@@ -4,13 +4,14 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.help.simpleUsageString
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
 
 private fun MessageBuilder.appendUsage(name: String, command: Command) {
     val usageHelp =
         if (command is BaseCommand)
-            command.usage().ifBlank { NO_ARGUMENTS }
+            command.usage().simpleUsageString().ifBlank { NO_ARGUMENTS }
         else
             "<no usage available>"
 

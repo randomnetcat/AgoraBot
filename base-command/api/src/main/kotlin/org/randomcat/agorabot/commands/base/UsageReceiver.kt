@@ -1,76 +1,80 @@
 package org.randomcat.agorabot.commands.base
 
-import kotlinx.collections.immutable.*
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentMap
+import org.randomcat.agorabot.commands.base.help.BaseCommandArgumentSet
+import org.randomcat.agorabot.commands.base.help.BaseCommandUsageModel
+import org.randomcat.agorabot.commands.base.help.HelpReceiver
 
-private fun CommandArgumentUsage.Count.symbol(): String {
-    return when (this) {
-        CommandArgumentUsage.Count.ONCE -> ""
-        CommandArgumentUsage.Count.OPTIONAL -> "?"
-        CommandArgumentUsage.Count.REPEATING -> "..."
-    }
-}
 
-private fun formatArgumentUsageWrapped(usage: CommandArgumentUsage): String {
-    return if (usage.type == LITERAL_ARG_TYPE && usage.count == CommandArgumentUsage.Count.ONCE && usage.name != null) {
-        usage.name
-    } else {
-        "[${usage.name ?: "_"}${usage.type?.let { ": $it" } ?: ""}${usage.count.symbol()}]"
-    }
-}
+private fun <T, E> delayedArgumentSetWithHelp(parsers: List<CommandArgumentParser<T, E>>): Pair<PendingInvocation<Nothing>, () -> BaseCommandArgumentSet> {
+    val argumentUsages = parsers.map { it.usage() }.toImmutableList()
+    var argumentHelp: String? = null
 
-private fun formatArgumentUsages(usages: Iterable<CommandArgumentUsage>): String {
-    return usages.joinToString(" ") { formatArgumentUsageWrapped(it) }
-}
-
-private fun formatArgumentSelection(options: List<String>): String {
-    return when (options.size) {
-        0 -> ""
-        1 -> options.single()
-        else -> options.joinToString(" | ") {
-            when {
-                it.isEmpty() -> NO_ARGUMENTS
-                else -> it
-            }
+    return object : PendingInvocation<Nothing> by PendingInvocation.neverExecute(), HelpReceiver {
+        override fun acceptHelp(helpMessage: String) {
+            check(argumentHelp == null)
+            argumentHelp = helpMessage
         }
+
+        override fun <NewArg> interpose(interposition: suspend (arg: Nothing, block: suspend (NewArg) -> Unit) -> Unit): PendingInvocation<NewArg> {
+            return this
+        }
+    } to {
+        BaseCommandArgumentSet(
+            arguments = argumentUsages,
+            help = argumentHelp,
+        )
     }
 }
 
 private class MatchFirstUsageArgumentDescriptionReceiver : ArgumentMultiDescriptionReceiver<Nothing> {
-    private val options = mutableListOf<String>()
+    private val options = mutableListOf<() -> BaseCommandArgumentSet>()
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
     ): PendingInvocation<Nothing> {
-        options += formatArgumentUsages(parsers.map { it.usage() })
-        return PendingInvocation.neverExecute()
+        val (invocation, argumentSetFunction) = delayedArgumentSetWithHelp(parsers)
+        options.add(argumentSetFunction)
+        return invocation
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         block()
     }
 
-    fun options(): ImmutableList<String> {
-        return options.toImmutableList()
+    fun usage(): BaseCommandUsageModel {
+        return BaseCommandUsageModel.MatchArguments(options = options.map { it() }.toImmutableList())
     }
 }
 
-private class UsageSubcommandsArgumentDescriptionReceiver : SubcommandsArgumentDescriptionReceiver<Nothing> {
+private class UsageSubcommandsArgumentDescriptionReceiver : SubcommandsArgumentDescriptionReceiver<Nothing>,
+    HelpReceiver {
     private val checker = SubcommandsReceiverChecker()
-    private var options: PersistentList<String> = persistentListOf()
+    private var rawUsage: (() -> BaseCommandUsageModel)? = null
+    private var overallHelp: String? = null
+
+    override fun acceptHelp(helpMessage: String) {
+        check(overallHelp == null)
+        overallHelp = helpMessage
+    }
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
     ): PendingInvocation<Nothing> {
         checker.checkArgsRaw()
-        options = persistentListOf(formatArgumentUsages(parsers.map { it.usage() }))
-        return PendingInvocation.neverExecute()
+        val (invocation, argumentSetFunction) = delayedArgumentSetWithHelp(parsers)
+        rawUsage = { BaseCommandUsageModel.MatchArguments(persistentListOf(argumentSetFunction())) }
+        return invocation
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
         checker.checkMatchFirst()
-        options = MatchFirstUsageArgumentDescriptionReceiver().apply(block).options().toPersistentList()
+        rawUsage = { MatchFirstUsageArgumentDescriptionReceiver().apply(block).usage() }
     }
 
     override fun subcommand(
@@ -79,54 +83,56 @@ private class UsageSubcommandsArgumentDescriptionReceiver : SubcommandsArgumentD
     ) {
         checker.checkSubcommand(subcommand = name)
 
-        val subOptions = UsageSubcommandsArgumentDescriptionReceiver().apply(block).options()
+        val oldUsage = rawUsage ?: { BaseCommandUsageModel.Subcommands(subcommandsMap = persistentMapOf()) }
+        val subOptions = UsageSubcommandsArgumentDescriptionReceiver().apply(block).usage()
 
-        val newOption = name + when {
-            subOptions.isEmpty() -> ""
-            subOptions.size == 1 -> {
-                val subOption = subOptions.single()
-                if (subOption.isEmpty())
-                    ""
-                else
-                    " " + subOptions.single()
+        rawUsage = {
+            (oldUsage() as BaseCommandUsageModel.Subcommands).let {
+                it.copy(subcommandsMap = it.subcommandsMap.toPersistentMap().put(name, subOptions))
             }
-            else -> " [${formatArgumentSelection(subOptions)}]"
         }
-
-        options = options.add(newOption)
     }
 
-    fun options(): ImmutableList<String> {
-        return options
+    fun usage(): BaseCommandUsageModel {
+        return when (val oldModel = checkNotNull(rawUsage)()) {
+            is BaseCommandUsageModel.Subcommands -> oldModel.copy(overallHelp = overallHelp)
+            is BaseCommandUsageModel.MatchArguments -> oldModel.copy(overallHelp = overallHelp)
+        }
     }
 }
 
-class UsageTopLevelArgumentDescriptionReceiver : TopLevelArgumentDescriptionReceiver<Nothing> {
-    private var usageValue: String? = null
+class UsageTopLevelArgumentDescriptionReceiver : TopLevelArgumentDescriptionReceiver<Nothing>, HelpReceiver {
+    private var overallHelp: String? = null
+    private var rawUsage: (() -> BaseCommandUsageModel)? = null
+
+    override fun acceptHelp(helpMessage: String) {
+        check(overallHelp == null)
+        overallHelp = helpMessage
+    }
 
     override fun <T, E, R> argsRaw(
         parsers: List<CommandArgumentParser<T, E>>,
         mapParsed: (List<T>) -> R,
     ): PendingInvocation<Nothing> {
-        check(usageValue == null)
-        usageValue = formatArgumentUsages(parsers.map { it.usage() })
-        return PendingInvocation.neverExecute()
+        check(rawUsage == null)
+
+        val (invocation, argumentSetFunction) = delayedArgumentSetWithHelp(parsers)
+        rawUsage = { BaseCommandUsageModel.MatchArguments(persistentListOf(argumentSetFunction())) }
+        return invocation
     }
 
     override fun matchFirst(block: ArgumentMultiDescriptionReceiver<Nothing>.() -> Unit) {
-        check(usageValue == null)
-        usageValue = formatArgumentSelection(
-            MatchFirstUsageArgumentDescriptionReceiver().apply(block).options()
-        )
+        check(rawUsage == null)
+        rawUsage = { MatchFirstUsageArgumentDescriptionReceiver().apply(block).usage() }
     }
 
     override fun subcommands(block: SubcommandsArgumentDescriptionReceiver<Nothing>.() -> Unit) {
-        check(usageValue == null)
-
-        usageValue = formatArgumentSelection(
-            UsageSubcommandsArgumentDescriptionReceiver().also(block).options()
-        )
+        check(rawUsage == null)
+        rawUsage = { UsageSubcommandsArgumentDescriptionReceiver().also(block).usage() }
     }
 
-    fun usage(): String = checkNotNull(this.usageValue)
+    fun usage(): BaseCommandUsageModel = when (val oldModel = checkNotNull(rawUsage)()) {
+        is BaseCommandUsageModel.Subcommands -> oldModel.copy(overallHelp = overallHelp)
+        is BaseCommandUsageModel.MatchArguments -> oldModel.copy(overallHelp = overallHelp)
+    }
 }

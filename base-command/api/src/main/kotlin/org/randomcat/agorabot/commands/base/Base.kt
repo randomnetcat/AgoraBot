@@ -1,6 +1,8 @@
 package org.randomcat.agorabot.commands.base
 
 import net.dv8tion.jda.api.entities.Message
+import org.randomcat.agorabot.commands.base.help.BaseCommandUsageModel
+import org.randomcat.agorabot.commands.base.help.simpleUsageString
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
@@ -179,7 +181,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
                     source = source,
                     invocation = invocation,
                     errorMessage = msg,
-                    usage = usage()
+                    usage = usage().simpleUsageString()
                 )
             },
             object :
@@ -229,7 +231,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>>.impl()
 
-    fun usage(): String {
+    fun usage(): BaseCommandUsageModel {
         return UsageTopLevelArgumentDescriptionReceiver().apply { impl() }.usage()
     }
 }
