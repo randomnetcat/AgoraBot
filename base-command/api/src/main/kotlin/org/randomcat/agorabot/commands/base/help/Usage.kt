@@ -19,7 +19,7 @@ private fun formatArgumentUsageWrapped(usage: CommandArgumentUsage): String {
     }
 }
 
-private fun formatArgumentUsages(usages: List<CommandArgumentUsage>): String {
+fun concatWrappedArgumentUsages(usages: List<CommandArgumentUsage>): String {
     return if (usages.isNotEmpty())
         usages.joinToString(" ") { formatArgumentUsageWrapped(it) }
     else
@@ -64,7 +64,7 @@ fun BaseCommandUsageModel.simpleUsageString(): String {
 
         is BaseCommandUsageModel.MatchArguments -> {
             options.joinToString(" | ") {
-                if (it.arguments.isNotEmpty()) formatArgumentUsages(it.arguments) else NO_ARGUMENTS
+                if (it.arguments.isNotEmpty()) concatWrappedArgumentUsages(it.arguments) else NO_ARGUMENTS
             }
         }
     }
