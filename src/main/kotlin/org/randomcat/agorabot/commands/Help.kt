@@ -14,6 +14,13 @@ private data class UsageGenerationConfig(
     val includeOptionHelp: Boolean,
 )
 
+private fun BaseCommandUsageModel.hasAnyOptionHelp(): Boolean {
+    return when (this) {
+        is BaseCommandUsageModel.MatchArguments -> options.any { it.help != null }
+        is BaseCommandUsageModel.Subcommands -> subcommandsMap.values.any { it.hasAnyOptionHelp() }
+    }
+}
+
 private fun StringBuilder.doMatchUsage(
     usage: BaseCommandUsageModel.MatchArguments,
     commandPrefix: String,
@@ -109,13 +116,7 @@ class HelpCommand(
                     val usage = command.usage()
 
                     val usageString = buildString {
-                        val includeOptionHelp = when (usage) {
-                            is BaseCommandUsageModel.MatchArguments -> {
-                                usage.options.any { it.help != null }
-                            }
-
-                            else -> true
-                        }
+                        val includeOptionHelp = usage.hasAnyOptionHelp()
 
                         doUsage(
                             usage = usage,
