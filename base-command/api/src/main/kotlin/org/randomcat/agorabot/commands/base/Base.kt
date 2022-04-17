@@ -231,8 +231,12 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
 
     protected abstract fun TopLevelArgumentDescriptionReceiver<ContextAndReceiver<BaseCommandContext, BaseCommandExecutionReceiver>>.impl()
 
+    private val _usage: BaseCommandUsageModel by lazy {
+        UsageTopLevelArgumentDescriptionReceiver().apply { impl() }.usage()
+    }
+
     fun usage(): BaseCommandUsageModel {
-        return UsageTopLevelArgumentDescriptionReceiver().apply { impl() }.usage()
+        return _usage
     }
 }
 
