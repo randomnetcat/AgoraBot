@@ -6,20 +6,7 @@ import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.help.BaseCommandUsageModel
 import org.randomcat.agorabot.commands.base.help.concatWrappedArgumentUsages
-import org.randomcat.agorabot.commands.base.help.simpleUsageString
-import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
-
-private fun MessageBuilder.appendUsage(name: String, command: Command) {
-    val usageHelp =
-        if (command is BaseCommand)
-            command.usage().simpleUsageString().ifBlank { NO_ARGUMENTS }
-        else
-            "<no usage available>"
-
-    append(name, MessageBuilder.Formatting.BOLD)
-    append(": $usageHelp")
-}
 
 private const val HELP_INDENT = "  "
 
@@ -95,8 +82,11 @@ class HelpCommand(
             noArgs {
                 val builder = MessageBuilder()
 
+                builder.appendLine("Use help [command] for specific usage. Available commands:")
+
                 commands().filter { (name, _) -> !suppressedCommands.contains(name) }.forEach { (name, command) ->
-                    builder.appendUsage(name = name, command = command)
+                    val helpPart = (command as? BaseCommand)?.usage()?.overallHelp?.let { ": $it" } ?: ""
+                    builder.append("**$name**").append(helpPart)
                     builder.appendLine()
                 }
 
