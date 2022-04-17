@@ -2,6 +2,7 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Role
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.help.help
 import org.randomcat.agorabot.commands.base.requirements.discord.*
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedGuildRequirement
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
@@ -132,36 +133,43 @@ class SelfAssignCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     }
 
     override fun BaseCommandImplReceiver.impl() {
+        help("Allows users to assign roles to themselves, even without having permissions.")
+
         // Unfortunately this has to be a matchFirst instead of subcommands to handle the no arguments case and the
         // role name without an "assign" subcommand case.
         matchFirst {
-            noArgs().selfAssignAction() {
+            noArgs().help("Lists available self-assignable roles.").selfAssignAction() {
                 handleListRequest()
             }
 
-            args(LiteralArg("list")).selfAssignAction() { (_) ->
+            args(LiteralArg("list")).help("Lists available self-assignable roles.").selfAssignAction() { (_) ->
                 handleListRequest()
             }
 
-            args(StringArg("role_name")).selfAssignAction() { (roleName) ->
-                handleAssignRequest(roleName)
-            }
+            args(StringArg("role_name")).help("Assigns the specified role to the sender.")
+                .selfAssignAction() { (roleName) ->
+                    handleAssignRequest(roleName)
+                }
 
-            args(LiteralArg("assign"), StringArg("role_name")).selfAssignAction() { (_, roleName) ->
-                handleAssignRequest(roleName)
-            }
+            args(LiteralArg("assign"), StringArg("role_name")).help("Assigns the specified role to the sender.")
+                .selfAssignAction() { (_, roleName) ->
+                    handleAssignRequest(roleName)
+                }
 
-            args(LiteralArg("remove"), StringArg("role_name")).selfAssignAction() { (_, roleName) ->
-                handleRemoveRequest(roleName)
-            }
+            args(LiteralArg("remove"), StringArg("role_name")).help("Removes the specified role from the sender.")
+                .selfAssignAction() { (_, roleName) ->
+                    handleRemoveRequest(roleName)
+                }
 
-            args(LiteralArg("enable"), StringArg("role_name")).selfAssignAdminAction() { (_, roleName) ->
-                handleEnableRequest(roleName)
-            }
+            args(LiteralArg("enable"), StringArg("role_name")).help("Enables self-assignment of the specified role.")
+                .selfAssignAdminAction() { (_, roleName) ->
+                    handleEnableRequest(roleName)
+                }
 
-            args(LiteralArg("disable"), StringArg("role_name")).selfAssignAdminAction() { (_, roleName) ->
-                handleDisableRequest(roleName)
-            }
+            args(LiteralArg("disable"), StringArg("role_name")).help("Enables self-assignment of the specified role.")
+                .selfAssignAdminAction() { (_, roleName) ->
+                    handleDisableRequest(roleName)
+                }
         }
     }
 

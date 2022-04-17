@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.help.help
 import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildInfo
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedDiscordRequirement
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedGuildRequirement
@@ -139,14 +140,20 @@ class PermissionsCommand(
     }
 
     override fun BaseCommandImplReceiver.impl() {
+        help("Manages bot-wide or guild-local permissions.")
+
         subcommands {
             subcommand("guild") {
+                help("Manages permissions for this guild. Guild admins always have all permissions. Otherwise, the permission is checked from highest to lowest role, stopping when a grant/deny is reached. If none is reached, the permission is denied.")
+
                 guildSubcommand("grant", BotPermissionState.ALLOW)
                 guildSubcommand("clear", BotPermissionState.DEFER)
                 guildSubcommand("deny", BotPermissionState.DENY)
             }
 
             subcommand("bot") {
+                help("Manages permissions for the whole bot. Can only be used by bot admins.")
+
                 botSubcommand("grant", BotPermissionState.ALLOW)
                 botSubcommand("clear", BotPermissionState.DEFER)
                 botSubcommand("deny", BotPermissionState.DENY)
