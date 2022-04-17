@@ -3,7 +3,10 @@ package org.randomcat.agorabot.commands
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.MessageBuilder
-import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.commands.base.StringArg
 import org.randomcat.agorabot.commands.base.help.BaseCommandUsageModel
 import org.randomcat.agorabot.commands.base.help.concatWrappedArgumentUsages
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
@@ -27,7 +30,7 @@ private fun StringBuilder.doMatchUsage(
     config: UsageGenerationConfig,
 ) {
     usage.options.forEach { option ->
-        appendLine(commandPrefix + " " + concatWrappedArgumentUsages(option.arguments).ifBlank { NO_ARGUMENTS })
+        appendLine(commandPrefix + " " + concatWrappedArgumentUsages(option.arguments))
 
         if (config.includeOptionHelp) {
             if (option.help != null) {
