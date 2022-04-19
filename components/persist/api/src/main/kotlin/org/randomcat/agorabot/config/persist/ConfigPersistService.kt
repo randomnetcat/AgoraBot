@@ -9,5 +9,15 @@ interface ConfigPersistService {
      * Note that [persist] may be called during JVM shutdown, and thus it should avoid locking things if at all
      * possible.
      */
-    fun <T> schedulePersistence(readState: () -> T, persist: (T) -> Unit)
+    fun <T> schedulePersistence(readState: () -> T, persist: (T) -> Unit): PersistInstanceHandle
+}
+
+interface PersistInstanceHandle {
+    /**
+     * Instructs a [ConfigPersistService] to stop persisting the associated state. When this method returns, it is
+     * guaranteed that no further persistence will be done.
+     *
+     * Calling this method a further time after the first has no effect.
+     */
+    fun stopPersistence()
 }
