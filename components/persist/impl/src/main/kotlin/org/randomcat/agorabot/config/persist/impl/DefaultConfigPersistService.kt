@@ -51,7 +51,15 @@ object DefaultConfigPersistService : ConfigPersistService {
                 // code in this method will return true.
                 if (isClosed.getAndSet(true)) return
 
-                future?.cancel(false)
+                future?.let {
+                    it.cancel(false)
+
+                    // Call get to wait for final cancellation.
+                    runCatching {
+                        it.get()
+                    }
+                }
+
                 future = null
 
                 // Unconditionally write out final state.
