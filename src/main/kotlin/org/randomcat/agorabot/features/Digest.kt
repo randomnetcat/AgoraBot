@@ -66,7 +66,14 @@ fun digestFeatureFactory(): FeatureSource {
             return object : AbstractFeature() {
                 private val FeatureContext.digestMap
                     get() = cache(DigestStorageCacheKey) {
-                        JsonGuildDigestMap(typedConfig.digestStorageDir, configPersistService)
+                        alwaysCloseObject(
+                            {
+                                JsonGuildDigestMap(typedConfig.digestStorageDir, configPersistService)
+                            },
+                            {
+                                it.close()
+                            },
+                        )
                     }
 
                 override fun commandsInContext(context: FeatureContext): Map<String, Command> {

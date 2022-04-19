@@ -27,7 +27,14 @@ fun guildStateStorageFactory() = object : FeatureSource {
         return object : Feature {
             override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                 if (tag is GuildStateStorageTag) return tag.result(context.cache(GuildStateMapCacheKey) {
-                    JsonGuildStateMap(config.storageDir, context.configPersistService)
+                    context.alwaysCloseObject(
+                        {
+                            JsonGuildStateMap(config.storageDir, context.configPersistService)
+                        },
+                        {
+                            it.close()
+                        },
+                    )
                 })
 
                 return FeatureQueryResult.NotFound
