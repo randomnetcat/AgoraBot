@@ -473,6 +473,10 @@ private fun runBot(config: BotRunConfig) {
             exitProcess(0)
         }
 
+        Runtime.getRuntime().addShutdownHook(Thread {
+            (haltFunctionReference.get() ?: error("halt function should have been initialized")).invoke()
+        })
+
         try {
             startupMessageStrategy.sendMessageAndClearChannel(jda = jda)
         } catch (e: Exception) {
