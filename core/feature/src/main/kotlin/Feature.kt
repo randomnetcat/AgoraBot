@@ -31,6 +31,25 @@ interface FeatureContext {
      * Exceptions in queries are caught and returned as failed Results.
      */
     fun <T> tryQueryAll(tag: FeatureElementTag<T>): Map<String, Result<FeatureQueryResult<T>>>
+
+    /**
+     * Registers a function to be run in order to close a resource.
+     * Closing functions will be run in reverse order of addition.
+     */
+    fun onClose(block: () -> Unit)
+}
+
+inline fun <T : Any> FeatureContext.alwaysCloseObject(producer: () -> T, crossinline closer: (T) -> Unit): T {
+    var obj: T? = null
+
+    try {
+        obj = producer()
+        onClose { closer(obj) }
+        return obj
+    } catch (e: Exception) {
+        obj?.let(closer)
+        throw e
+    }
 }
 
 /**

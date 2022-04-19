@@ -29,6 +29,8 @@ import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.io.path.createDirectories
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.system.exitProcess
@@ -262,6 +264,9 @@ private fun runBot(config: BotRunConfig) {
             featureSetupContext = FeatureSetupContext(paths = config.paths),
         )
 
+        val closeHandlerLock = ReentrantLock()
+        val closeHandlers = mutableListOf<() -> Unit>()
+
         val featureContext = object : FeatureContext {
             private val cacheMap = AtomicLoadOnceMap<Any, Any?>()
 
@@ -285,6 +290,12 @@ private fun runBot(config: BotRunConfig) {
                     runCatching {
                         v.query(this, tag)
                     }
+                }
+            }
+
+            override fun onClose(block: () -> Unit) {
+                closeHandlerLock.withLock {
+                    closeHandlers.add(block)
                 }
             }
         }
