@@ -20,7 +20,6 @@ import java.io.Writer
 import java.math.BigInteger
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.nio.file.spi.FileSystemProvider
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
@@ -379,10 +378,6 @@ private suspend fun receiveGlobalData(
     }
 }
 
-private val ZIP_FILE_SYSTEM_PROVIDER = FileSystemProvider.installedProviders().single {
-    it.scheme.equals("jar", ignoreCase = true)
-}
-
 private val ZIP_FILE_SYSTEM_CREATE_OPTIONS = mapOf("create" to "true")
 
 class DefaultDiscordArchiver(
@@ -409,7 +404,7 @@ class DefaultDiscordArchiver(
         withContext(Dispatchers.IO) {
             workDir.createDirectory()
 
-            ZIP_FILE_SYSTEM_PROVIDER.newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
+            zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
                 coroutineScope {
                     val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
 
