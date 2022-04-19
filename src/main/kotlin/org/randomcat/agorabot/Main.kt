@@ -18,6 +18,8 @@ import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.buttons.feature.buttonHandlerMap
 import org.randomcat.agorabot.buttons.feature.buttonRequestDataMap
 import org.randomcat.agorabot.commands.HelpCommand
+import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProvider
+import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProviderTag
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.config.CommandOutputMappingTag
 import org.randomcat.agorabot.config.prefixMap
@@ -28,6 +30,7 @@ import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -244,6 +247,8 @@ private fun runBot(config: BotRunConfig) {
             }
         }
 
+        val haltFunctionReference = AtomicReference<() -> Unit>(null)
+
         val extraFeatureSources = listOf(
             "command_output_mapping_provider" to object : Feature {
                 override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
@@ -257,6 +262,17 @@ private fun runBot(config: BotRunConfig) {
                     return FeatureQueryResult.NotFound
                 }
             },
+            "halt_provider_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag == BaseCommandDependencyTag(HaltProviderTag)) return tag.result(object : HaltProvider {
+                        override fun scheduleHalt() {
+                            haltFunctionReference.get()?.invoke()
+                        }
+                    } as T)
+
+                    return FeatureQueryResult.NotFound
+                }
+            }
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
@@ -336,16 +352,29 @@ private fun runBot(config: BotRunConfig) {
 
         logger.info("Adding command listener...")
 
-        jda.addEventListener(
-            BotListener(
-                MentionPrefixCommandParser(GuildPrefixCommandParser(featureContext.prefixMap)),
-                commandRegistry,
-            ),
+        featureContext.onClose {
+            logger.info("Shutting down JDA...")
+            jda.shutdown()
+            logger.info("JDA shutdown.")
+        }
+
+        val botListener = BotListener(
+            MentionPrefixCommandParser(GuildPrefixCommandParser(featureContext.prefixMap)),
+            commandRegistry,
         )
+
+        jda.addEventListener(
+            botListener,
+        )
+
+        featureContext.onClose {
+            botListener.stop()
+            jda.removeEventListener(botListener)
+        }
 
         logger.info("Adding button listener..")
 
-        jda.addEventListener(run {
+        val botButtonListener = run {
             val buttonHandlerMap = featureContext.buttonHandlerMap
             val buttonRequestDataMap = featureContext.buttonRequestDataMap
 
@@ -385,7 +414,14 @@ private fun runBot(config: BotRunConfig) {
                     event.reply("Unknown button request. That button may have expired.").setEphemeral(true).queue()
                 }
             }
-        })
+        }
+
+        jda.addEventListener(botButtonListener)
+
+        featureContext.onClose {
+            botButtonListener.stop()
+            jda.removeEventListener(botButtonListener)
+        }
 
         logger.info("Added JDA event listeners")
 
@@ -403,6 +439,14 @@ private fun runBot(config: BotRunConfig) {
                     )
                 }
 
+                featureContext.onClose {
+                    for (client in clientMap.clients) {
+                        logger.info("Shutting down IRC...")
+                        client.shutdown("Bot shutdown")
+                        logger.info("IRC shutdown.")
+                    }
+                }
+
                 logger.info("Relay initialized.")
             } catch (e: Exception) {
                 for (client in clientMap.clients) {
@@ -411,6 +455,22 @@ private fun runBot(config: BotRunConfig) {
 
                 logger.error("Exception during IRC relay setup", e)
             }
+        }
+
+        val closeStartedFlag = AtomicBoolean(false)
+
+        haltFunctionReference.set {
+            if (closeStartedFlag.getAndSet(true)) return@set
+
+            closeHandlerLock.withLock {
+                val finalHandlers = closeHandlers.toList().asReversed()
+
+                for (handler in finalHandlers) {
+                    handler()
+                }
+            }
+
+            exitProcess(0)
         }
 
         try {

@@ -67,6 +67,7 @@ dependencies {
     implementation(projects.baseCommand.requirements.discord)
     implementation(projects.baseCommand.requirements.discordExt)
     implementation(projects.baseCommand.requirements.permissions)
+    implementation(projects.baseCommand.requirements.haltable)
 
     implementation(projects.components.persist.feature.api)
     runtimeOnly(projects.components.persist.feature.impl)
