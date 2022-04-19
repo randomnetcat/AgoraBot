@@ -18,6 +18,7 @@ private val PREFIX_FILE_CHARSET = Charsets.UTF_8
 class JsonPrefixMap(
     private val default: String,
     storagePath: Path,
+    persistService: ConfigPersistService,
 ) : MutableGuildPrefixMap {
     private object StrategyImpl : StorageStrategy<PersistentMap<String, PersistentList<String>>> {
         override fun defaultValue(): PersistentMap<String, PersistentList<String>> {
@@ -37,13 +38,9 @@ class JsonPrefixMap(
     }
 
 
-    private val storage = AtomicCachedStorage(storagePath, StrategyImpl)
+    private val storage = AtomicCachedStorage(storagePath, StrategyImpl, persistService)
 
     private val defaultList = persistentListOf(default)
-
-    fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
-        storage.schedulePersistenceOn(persistenceService)
-    }
 
     override fun addPrefixForGuild(guildId: String, prefix: String) {
         storage.updateValue { oldMap ->

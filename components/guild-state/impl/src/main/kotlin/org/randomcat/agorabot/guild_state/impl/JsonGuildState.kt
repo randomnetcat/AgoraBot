@@ -16,7 +16,10 @@ import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import java.nio.file.Files
 import java.nio.file.Path
 
-class JsonGuildState(private val storagePath: Path) : GuildState {
+class JsonGuildState(
+    storagePath: Path,
+    persistService: ConfigPersistService,
+) : GuildState {
     private object StrategyImpl : StorageStrategy<PersistentMap<String, String>> {
         override fun defaultValue(): PersistentMap<String, String> {
             return persistentMapOf()
@@ -34,6 +37,7 @@ class JsonGuildState(private val storagePath: Path) : GuildState {
     private val storage = AtomicCachedStorage(
         storagePath = storagePath,
         strategy = StrategyImpl,
+        persistService = persistService,
     )
 
     override fun getStrings(keys: List<String>): List<String?> {
@@ -76,10 +80,6 @@ class JsonGuildState(private val storagePath: Path) : GuildState {
             it.put(key, mapper(it[key]))
         }
     }
-
-    fun schedulePersistenceOn(service: ConfigPersistService) {
-        storage.schedulePersistenceOn(service)
-    }
 }
 
 class JsonGuildStateMap(
@@ -94,8 +94,7 @@ class JsonGuildStateMap(
 
     override fun stateForGuild(guildId: String): GuildState {
         return map.getOrPut(guildId) {
-            JsonGuildState(storagePath = storageDirectory.resolve(guildId))
-                .also { it.schedulePersistenceOn(persistService) }
+            JsonGuildState(storagePath = storageDirectory.resolve(guildId), persistService = persistService)
         }
     }
 }

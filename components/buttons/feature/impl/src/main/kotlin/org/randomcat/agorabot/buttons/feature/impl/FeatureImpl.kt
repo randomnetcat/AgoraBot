@@ -63,7 +63,8 @@ fun buttonStorageFactory() = object : FeatureSource {
                         storagePath = config.storagePath,
                         serializersModule = makeSerializersModule(buttonRequestTypes = context.buttonHandlerMap.handledClasses),
                         clock = Clock.systemUTC(),
-                    ).also { it.schedulePersistenceOn(context.configPersistService) }
+                        persistService = context.configPersistService,
+                    )
                 })
 
                 return FeatureQueryResult.NotFound

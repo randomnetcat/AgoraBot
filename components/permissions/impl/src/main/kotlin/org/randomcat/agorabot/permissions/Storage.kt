@@ -17,7 +17,7 @@ import java.nio.file.Path
 private typealias JsonValueType = PersistentMap<PermissionPath, PersistentMap<String, BotPermissionState>>
 private typealias JsonStorageType = Map<String, Map<String, String>>
 
-class JsonPermissionMap(storagePath: Path) : MutablePermissionMap {
+class JsonPermissionMap(storagePath: Path, persistService: ConfigPersistService) : MutablePermissionMap {
     private object Strategy : StorageStrategy<JsonValueType> {
         override fun defaultValue(): JsonValueType {
             return persistentMapOf()
@@ -50,11 +50,8 @@ class JsonPermissionMap(storagePath: Path) : MutablePermissionMap {
     private val impl = AtomicCachedStorage<JsonValueType>(
         storagePath = storagePath,
         strategy = Strategy,
+        persistService = persistService,
     )
-
-    fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
-        impl.schedulePersistenceOn(persistenceService)
-    }
 
     override fun stateForId(path: PermissionPath, id: PermissionMapId): BotPermissionState? {
         return impl.getValue()[path]?.get(id.raw)
@@ -84,8 +81,7 @@ class JsonGuildPermissionMap(
 
     override fun mapForGuild(guildId: String): MutablePermissionMap {
         return map.getOrPut(guildId) {
-            JsonPermissionMap(storagePath = storageDir.resolve(guildId))
-                .also { it.schedulePersistenceOn(persistenceService) }
+            JsonPermissionMap(storagePath = storageDir.resolve(guildId), persistService = persistenceService)
         }
     }
 }

@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     implementation(projects.util.common)
+    implementation(libs.kotlinx.collectionsImmutable)
 }

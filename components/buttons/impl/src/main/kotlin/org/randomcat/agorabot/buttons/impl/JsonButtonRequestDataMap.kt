@@ -51,6 +51,7 @@ class JsonButtonRequestDataMap(
     storagePath: Path,
     serializersModule: SerializersModule,
     clock: Clock,
+    persistService: ConfigPersistService,
 ) : ButtonRequestDataMap {
     private val impl = run {
         // Provides an unambiguous name for serializersModule
@@ -84,6 +85,7 @@ class JsonButtonRequestDataMap(
                     return jsonImpl.decodeFromString<JsonStoredValueType>(text).toValue()
                 }
             },
+            persistService,
         ).also { storage ->
             storage.schedulePeriodicUpdate(Duration.ofMinutes(5)) { oldValue ->
                 val currentTime = clock.instant()
@@ -115,9 +117,5 @@ class JsonButtonRequestDataMap(
         }
 
         return currentID
-    }
-
-    fun schedulePersistenceOn(persistService: ConfigPersistService) {
-        impl.schedulePersistenceOn(persistService)
     }
 }

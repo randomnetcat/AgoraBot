@@ -34,9 +34,7 @@ fun permissionsStorageFactory() = object : FeatureSource {
         return object : Feature {
             override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                 if (tag is BotPermissionMapTag) return tag.result(context.cache(BotPermissionMapCacheKey) {
-                    JsonPermissionMap(config.botStoragePath).also {
-                        it.schedulePersistenceOn(context.configPersistService)
-                    }
+                    JsonPermissionMap(config.botStoragePath, persistService = context.configPersistService)
                 })
 
                 if (tag is GuildPermissionMapTag) return tag.result(context.cache(GuildPermissionMapCacheKey) {
