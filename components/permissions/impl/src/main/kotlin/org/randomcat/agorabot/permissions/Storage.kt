@@ -67,6 +67,10 @@ class JsonPermissionMap(storagePath: Path, persistService: ConfigPersistService)
             }
         }
     }
+
+    fun close() {
+        impl.close()
+    }
 }
 
 class JsonGuildPermissionMap(
@@ -77,11 +81,15 @@ class JsonGuildPermissionMap(
         Files.createDirectories(storageDir)
     }
 
-    private val map = AtomicLoadOnceMap<String /* GuildId */, MutablePermissionMap>()
+    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonPermissionMap>()
 
     override fun mapForGuild(guildId: String): MutablePermissionMap {
         return map.getOrPut(guildId) {
             JsonPermissionMap(storagePath = storageDir.resolve(guildId), persistService = persistenceService)
         }
+    }
+
+    fun close() {
+        map.closeAndTake().values.forEach { it.close() }
     }
 }

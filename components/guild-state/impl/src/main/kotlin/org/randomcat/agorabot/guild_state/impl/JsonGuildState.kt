@@ -80,6 +80,10 @@ class JsonGuildState(
             it.put(key, mapper(it[key]))
         }
     }
+
+    fun close() {
+        storage.close()
+    }
 }
 
 class JsonGuildStateMap(
@@ -96,5 +100,9 @@ class JsonGuildStateMap(
         return map.getOrPut(guildId) {
             JsonGuildState(storagePath = storageDirectory.resolve(guildId), persistService = persistService)
         }
+    }
+
+    fun close() {
+        map.closeAndTake().values.forEach { it.close() }
     }
 }
