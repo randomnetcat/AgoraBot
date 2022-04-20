@@ -9,6 +9,7 @@ import kotlinx.serialization.json.encodeToStream
 import org.randomcat.agorabot.community_message.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import org.randomcat.agorabot.util.zipFileSystemProvider
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.FileSystem
 import java.nio.file.Files
@@ -85,6 +86,8 @@ private sealed class GlobalMetadataDto {
         val rawNamesToInternalNames: Map<String, String>,
     ) : GlobalMetadataDto()
 }
+
+private val logger = LoggerFactory.getLogger("JsonCommunityMessageStorage")
 
 class JsonCommunityMessageGuildStorage(
     private val storageFS: FileSystem,
@@ -275,7 +278,8 @@ class JsonCommunityMessageGuildStorage(
                 // Next, write out the revision. If this fails, the revision hasn't been recorded yet, so the list
                 // is still consistent.
 
-                val currentDir = revisionsDirPath(internalName).resolve("revision_$newNumber").createDirectory()
+                val currentDir =
+                    revisionsDirPath(internalName).createDirectories().resolve("revision_$newNumber").createDirectory()
                 currentDir.resolve("content.txt").writeText(content, Charsets.UTF_8, StandardOpenOption.CREATE_NEW)
 
                 // Finally, record the revision in the list. If this fails, a revision has been written but not recorded,
@@ -290,6 +294,7 @@ class JsonCommunityMessageGuildStorage(
 
                 return CommunityMessageRevisionNumber(newNumber)
             } catch (e: IOException) {
+                logger.error("IOException while adding revision to message $name", e)
                 return null
             }
         }

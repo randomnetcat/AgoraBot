@@ -9,4 +9,5 @@ dependencies {
     implementation(projects.util.common)
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.slf4j.api)
 }
