@@ -262,6 +262,8 @@ class JsonCommunityMessageGuildStorage(
         content: String,
     ): CommunityMessageRevisionNumber? {
         dataLock.write {
+            check(!isClosed)
+
             try {
                 val internalName = lookupInternalName(name) ?: return null
 
