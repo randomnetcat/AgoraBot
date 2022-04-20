@@ -84,6 +84,7 @@ private sealed class GlobalMetadataDto {
     @SerialName("v0")
     data class Version0(
         val rawNamesToInternalNames: Map<String, String>,
+        val oldNames: List<Pair<String, String>> = emptyList(),
     ) : GlobalMetadataDto()
 }
 
@@ -198,7 +199,8 @@ class JsonCommunityMessageGuildStorage(
     private fun addInternalName(rawName: String, internalName: InternalName) {
         dataLock.write {
             return when (val metadata =
-                readGlobalMetadata() ?: GlobalMetadataDto.Version0(rawNamesToInternalNames = emptyMap())) {
+                readGlobalMetadata() ?: GlobalMetadataDto.Version0(rawNamesToInternalNames = emptyMap(),
+                    oldNames = emptyList())) {
                 is GlobalMetadataDto.Version0 -> {
                     writeGlobalMetadata(
                         metadata.copy(
@@ -296,6 +298,37 @@ class JsonCommunityMessageGuildStorage(
             } catch (e: IOException) {
                 logger.error("IOException while adding revision to message $name", e)
                 return null
+            }
+        }
+    }
+
+    override fun messageNames(): Set<String> {
+        return when (val metadata = readGlobalMetadata()) {
+            null -> emptySet()
+            is GlobalMetadataDto.Version0 -> metadata.rawNamesToInternalNames.keys.toSet()
+        }
+    }
+
+    override fun removeMessage(name: String): Boolean {
+        dataLock.write {
+            when (val metadata = readGlobalMetadata()) {
+                null -> return false
+                is GlobalMetadataDto.Version0 -> {
+                    if (!metadata.rawNamesToInternalNames.containsKey(name)) return false
+
+                    writeGlobalMetadata(
+                        metadata.copy(
+                            rawNamesToInternalNames = metadata.rawNamesToInternalNames.toMutableMap().apply {
+                                remove(name)
+                            },
+                            oldNames = metadata.oldNames.toMutableList().apply {
+                                add(name to metadata.rawNamesToInternalNames.getValue(name))
+                            },
+                        )
+                    )
+
+                    return true
+                }
             }
         }
     }

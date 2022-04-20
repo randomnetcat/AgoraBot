@@ -40,4 +40,8 @@ interface CommunityMessageGuildStorage {
         metadata: CommunityMessageRevisionMetadata,
         content: String,
     ): CommunityMessageRevisionNumber?
+
+    fun messageNames(): Set<String>
+
+    fun removeMessage(name: String): Boolean
 }
