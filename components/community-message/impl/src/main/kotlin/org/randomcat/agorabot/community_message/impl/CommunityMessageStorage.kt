@@ -51,6 +51,7 @@ private sealed class MessageMetadataDto {
         val channelId: String,
         val messageId: String,
         val maxRevision: Long?,
+        val group: String? = null,
     ) : MessageMetadataDto() {
         override fun build(): CommunityMessageMetadata {
             return CommunityMessageMetadata(
@@ -59,6 +60,7 @@ private sealed class MessageMetadataDto {
                 channelId = channelId,
                 messageId = messageId,
                 maxRevision = maxRevision?.let { CommunityMessageRevisionNumber(it) },
+                group = group,
             )
         }
     }
@@ -71,6 +73,7 @@ private sealed class MessageMetadataDto {
                 channelId = metadata.channelId,
                 messageId = metadata.messageId,
                 maxRevision = metadata.maxRevision?.value,
+                group = metadata.group,
             )
         }
     }

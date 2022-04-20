@@ -8,6 +8,7 @@ data class CommunityMessageMetadata(
     val channelId: String,
     val messageId: String,
     val maxRevision: CommunityMessageRevisionNumber?,
+    val group: String?,
 )
 
 data class CommunityMessageRevisionMetadata(
