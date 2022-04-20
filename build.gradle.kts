@@ -81,6 +81,9 @@ dependencies {
     implementation(projects.components.buttons.feature.api)
     runtimeOnly(projects.components.buttons.feature.impl)
 
+    implementation(projects.components.communityMessage.feature.api)
+    runtimeOnly(projects.components.communityMessage.feature.impl)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)
