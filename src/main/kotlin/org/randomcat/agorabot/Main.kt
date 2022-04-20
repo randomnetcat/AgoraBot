@@ -267,6 +267,7 @@ private fun runBot(config: BotRunConfig) {
                     if (tag == BaseCommandDependencyTag(HaltProviderTag)) return tag.result(object : HaltProvider {
                         override fun scheduleHalt() {
                             haltFunctionReference.get()?.invoke()
+                            exitProcess(0)
                         }
                     } as T)
 
@@ -469,8 +470,6 @@ private fun runBot(config: BotRunConfig) {
                     handler()
                 }
             }
-
-            exitProcess(0)
         }
 
         Runtime.getRuntime().addShutdownHook(Thread {
