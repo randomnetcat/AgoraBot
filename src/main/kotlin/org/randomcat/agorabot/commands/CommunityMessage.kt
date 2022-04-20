@@ -133,6 +133,54 @@ class CommunityMessageCommand(
                         respond("Edited. Revision number: ${revisionNumber.value}")
                     }
             }
+
+            subcommand("list") {
+                noArgs().requires(InGuildSimple) {
+                    val guildStorage = globalStorage.storageForGuild(currentGuildId)
+
+                    val allNames = guildStorage.messageNames()
+                    val nameData = allNames.associateWith { guildStorage.messageMetadata(it) }
+
+                    val list = nameData.filterValues { v -> v != null }.entries.joinToString("\n") { (name, metadata) ->
+                        metadata!!
+                        "**${name}**: Revision ${metadata.maxRevision?.value?.toString() ?: "[none]"}, Message: ${metadata.channelId}/${metadata.messageId}"
+                    }
+
+                    respond(list)
+                }
+            }
+
+            subcommand("remove") {
+                args(StringArg("name"))
+                    .requires(InGuildSimple)
+                    .permissions(GuildScope.command("community_message").action("remove")) { (name) ->
+                        val guildStorage = globalStorage.storageForGuild(currentGuildId)
+
+                        val metadata = guildStorage.messageMetadata(name)
+
+                        if (guildStorage.removeMessage(name)) {
+                            if (metadata != null) {
+                                try {
+                                    currentGuild
+                                        .getTextChannelById(metadata.channelId)
+                                        ?.retrieveMessageById(metadata.messageId)
+                                        ?.await()
+                                        ?.delete()
+                                        ?.await()
+
+                                    respond("Removed entry and deleted message.")
+                                    return@permissions
+                                } catch (e: Exception) {
+                                    // Ignored.
+                                }
+                            }
+
+                            respond("Removed entry, but could not delete message.")
+                        } else {
+                            respond("Could not remove.")
+                        }
+                    }
+            }
         }
     }
 }
