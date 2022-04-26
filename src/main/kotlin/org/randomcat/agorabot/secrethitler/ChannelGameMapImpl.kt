@@ -7,10 +7,10 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.randomcat.agorabot.config.AtomicCachedStorage
-import org.randomcat.agorabot.config.ConfigPersistService
-import org.randomcat.agorabot.config.StorageStrategy
-import org.randomcat.agorabot.config.updateValueAndExtract
+import org.randomcat.agorabot.config.persist.AtomicCachedStorage
+import org.randomcat.agorabot.config.persist.ConfigPersistService
+import org.randomcat.agorabot.config.persist.StorageStrategy
+import org.randomcat.agorabot.config.persist.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.util.isDistinct
@@ -19,7 +19,10 @@ import java.nio.file.Path
 
 // It'll be fiiiiineee....
 @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
-class JsonSecretHitlerChannelGameMap(storagePath: Path) : SecretHitlerChannelGameMap {
+class JsonSecretHitlerChannelGameMap(
+    storagePath: Path,
+    persistService: ConfigPersistService
+) : SecretHitlerChannelGameMap {
     private class ValueType private constructor(
         private val gameIdsByChannel: PersistentMap<String, SecretHitlerGameId>,
         private val channelsByGameId: PersistentMap<SecretHitlerGameId, String>,
@@ -148,7 +151,7 @@ class JsonSecretHitlerChannelGameMap(storagePath: Path) : SecretHitlerChannelGam
         }
     }
 
-    private val impl = AtomicCachedStorage<ValueType>(storagePath = storagePath, strategy = Strategy)
+    private val impl = AtomicCachedStorage<ValueType>(storagePath = storagePath, strategy = Strategy, persistService = persistService)
 
     override fun gameByChannelId(channelId: String): SecretHitlerGameId? {
         return impl.getValue().gameIdByChannelId(channelId)
@@ -171,9 +174,5 @@ class JsonSecretHitlerChannelGameMap(storagePath: Path) : SecretHitlerChannelGam
         return impl.updateValueAndExtract { value ->
             value.removeByChannelId(channelId)
         }
-    }
-
-    fun schedulePersistenceOn(persistService: ConfigPersistService) {
-        impl.schedulePersistenceOn(persistService)
     }
 }

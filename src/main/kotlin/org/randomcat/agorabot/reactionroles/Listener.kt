@@ -39,6 +39,7 @@ fun reactionRolesListener(reactionRolesMap: ReactionRolesMap): Any {
         @SubscribeEvent
         operator fun invoke(event: MessageReactionAddEvent) {
             if (!event.isFromGuild) return
+            if (event.user == event.jda.selfUser) return
 
             withResolvedRoleFor(event) { role, member ->
                 member.guild.addRoleToMember(member, role).queue()
@@ -48,6 +49,7 @@ fun reactionRolesListener(reactionRolesMap: ReactionRolesMap): Any {
         @SubscribeEvent
         operator fun invoke(event: MessageReactionRemoveEvent) {
             if (!event.isFromGuild) return
+            if (event.user == event.jda.selfUser) return
 
             withResolvedRoleFor(event) { role, member ->
                 member.guild.removeRoleFromMember(member, role).queue()

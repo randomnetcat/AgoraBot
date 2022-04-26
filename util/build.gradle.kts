@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.jda)
-    implementation(libs.kotlinx.collectionsImmutable)
-    implementation(libs.kotlinx.coroutines)
+    api(projects.util.common)
+    api(projects.util.discord)
+    api(projects.util.irc)
 }

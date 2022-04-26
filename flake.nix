@@ -35,7 +35,7 @@
                 };
               };
 
-              gradleFlags = [ "installDist" "--no-watch-fs" ];
+              gradleFlags = [ "installDist" "--no-watch-fs" "--parallel" ];
 
               buildJdk = jdk;
 
@@ -51,26 +51,25 @@
          '';
       };
     in
-    { inherit overlay; } //
+    { overlays.default = overlay; } //
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; overlays = [ overlay ]; };
       in
       rec {
-        packages = {
+        packages = rec {
           AgoraBot = pkgs.randomcat.agorabot;
+          default = AgoraBot;
         };
 
-        defaultPackage = packages.AgoraBot;
-
-        apps = {
+        apps = rec {
           AgoraBot = {
             type = "app";
             program = "${packages.AgoraBot}/bin/AgoraBot";
           };
-        };
 
-        defaultApp = apps.AgoraBot;
+          default = AgoraBot;
+        };
       }
     );
 }

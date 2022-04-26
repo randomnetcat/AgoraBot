@@ -7,10 +7,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.randomcat.agorabot.commands.impl.BaseCommand
-import org.randomcat.agorabot.commands.impl.BaseCommandImplReceiver
-import org.randomcat.agorabot.commands.impl.BaseCommandStrategy
-import org.randomcat.agorabot.commands.impl.noArgs
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
 import org.slf4j.LoggerFactory
 import java.net.URI
 

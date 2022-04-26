@@ -1,12 +1,17 @@
 package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.CfjCommand
 import org.randomcat.agorabot.commands.ChooseCommand
 import org.randomcat.agorabot.commands.RngCommand
 import org.randomcat.agorabot.commands.RollCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.ofCommands
 
-fun randomCommandsFeature() = Feature.ofCommands { context ->
+@FeatureSourceFactory
+fun randomFactory() = FeatureSource.ofConstant("random_commands", Feature.ofCommands { context ->
     val commandStrategy = context.defaultCommandStrategy
 
     mapOf(
@@ -15,4 +20,4 @@ fun randomCommandsFeature() = Feature.ofCommands { context ->
         "cfj" to CfjCommand(commandStrategy),
         "choose" to ChooseCommand(commandStrategy),
     )
-}
+})

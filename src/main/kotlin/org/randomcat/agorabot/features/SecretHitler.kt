@@ -5,10 +5,11 @@ import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.interactions.Interaction
 import org.randomcat.agorabot.AbstractFeature
-import org.randomcat.agorabot.FeatureButtonData
 import org.randomcat.agorabot.FeatureContext
 import org.randomcat.agorabot.buttons.*
+import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.commands.SecretHitlerCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.secrethitler.SecretHitlerImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap

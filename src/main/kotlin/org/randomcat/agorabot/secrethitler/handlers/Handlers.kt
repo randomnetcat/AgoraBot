@@ -17,7 +17,7 @@ object SecretHitlerHandlers {
         )
     }
 
-    fun handleStart(
+    suspend fun handleStart(
         context: SecretHitlerCommandContext,
         gameList: SecretHitlerGameList,
         gameId: SecretHitlerGameId,

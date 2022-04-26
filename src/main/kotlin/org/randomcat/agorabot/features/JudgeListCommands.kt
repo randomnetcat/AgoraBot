@@ -1,14 +1,17 @@
 package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.JudgeListCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.ofCommands
 
-fun judgeListCommandsFeature(): Feature {
-    return Feature.ofCommands { context ->
-        mapOf(
-            "judge_list" to JudgeListCommand(
-                strategy = context.defaultCommandStrategy,
-            ),
-        )
-    }
-}
+@FeatureSourceFactory
+fun judgeListFactory() = FeatureSource.ofConstant("judge_list", Feature.ofCommands { context ->
+    mapOf(
+        "judge_list" to JudgeListCommand(
+            strategy = context.defaultCommandStrategy,
+        ),
+    )
+})

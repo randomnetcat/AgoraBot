@@ -2,7 +2,7 @@ package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorPolicyChoiceButtonDescriptor
 import org.randomcat.agorabot.secrethitler.model.*
@@ -127,7 +127,7 @@ private fun ChancellorPolicySelectedHandlerUpdateResult.Success.effectivePower()
 fun doHandleSecretHitlerChancellorPolicySelected(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
-    event: ButtonClickEvent,
+    event: ButtonInteractionEvent,
     request: SecretHitlerChancellorPolicyChoiceButtonDescriptor,
 ) {
     handleTextResponse(event) {

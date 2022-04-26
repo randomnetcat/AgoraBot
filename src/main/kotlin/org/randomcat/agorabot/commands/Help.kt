@@ -3,19 +3,72 @@ package org.randomcat.agorabot.commands
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import net.dv8tion.jda.api.MessageBuilder
-import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.commands.base.BaseCommand
+import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
+import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.commands.base.StringArg
+import org.randomcat.agorabot.commands.base.help.BaseCommandUsageModel
+import org.randomcat.agorabot.commands.base.help.concatWrappedArgumentUsages
 import org.randomcat.agorabot.listener.QueryableCommandRegistry
 
-private fun MessageBuilder.appendUsage(name: String, command: Command) {
-    val usageHelp =
-        if (command is BaseCommand)
-            command.usage().ifBlank { NO_ARGUMENTS }
-        else
-            "<no usage available>"
+private const val HELP_INDENT = "  "
 
-    append(name, MessageBuilder.Formatting.BOLD)
-    append(": $usageHelp")
+private data class UsageGenerationConfig(
+    val includeOptionHelp: Boolean,
+)
+
+private fun BaseCommandUsageModel.hasAnyOptionHelp(): Boolean {
+    return when (this) {
+        is BaseCommandUsageModel.MatchArguments -> options.any { it.help != null }
+        is BaseCommandUsageModel.Subcommands -> subcommandsMap.values.any { it.hasAnyOptionHelp() }
+    }
+}
+
+private fun StringBuilder.doMatchUsage(
+    usage: BaseCommandUsageModel.MatchArguments,
+    commandPrefix: String,
+    config: UsageGenerationConfig,
+) {
+    usage.options.forEach { option ->
+        appendLine(commandPrefix + " " + concatWrappedArgumentUsages(option.arguments))
+
+        if (config.includeOptionHelp) {
+            if (option.help != null) {
+                appendLine(HELP_INDENT + option.help)
+            }
+
+            appendLine()
+        }
+    }
+}
+
+private fun StringBuilder.doSubcommandsUsage(
+    usage: BaseCommandUsageModel.Subcommands,
+    commandPrefix: String,
+    config: UsageGenerationConfig,
+) {
+    usage.subcommandsMap.forEach { (subcommandName, subcommandUsage) ->
+        doUsage(subcommandUsage, "$commandPrefix $subcommandName", config)
+        appendLine()
+    }
+}
+
+private fun StringBuilder.doUsage(usage: BaseCommandUsageModel, commandPrefix: String, config: UsageGenerationConfig) {
+    if (usage.overallHelp != null) {
+        appendLine("$commandPrefix [...]")
+        appendLine(HELP_INDENT + usage.overallHelp)
+        appendLine()
+    }
+
+    when (usage) {
+        is BaseCommandUsageModel.MatchArguments -> {
+            doMatchUsage(usage, commandPrefix = commandPrefix, config = config)
+        }
+
+        is BaseCommandUsageModel.Subcommands -> {
+            doSubcommandsUsage(usage, commandPrefix = commandPrefix, config = config)
+        }
+    }
 }
 
 class HelpCommand(
@@ -40,8 +93,11 @@ class HelpCommand(
             noArgs {
                 val builder = MessageBuilder()
 
+                builder.appendLine("Use help [command] for specific usage. Available commands:")
+
                 commands().filter { (name, _) -> !suppressedCommands.contains(name) }.forEach { (name, command) ->
-                    builder.appendUsage(name = name, command = command)
+                    val helpPart = (command as? BaseCommand)?.usage()?.overallHelp?.let { ": $it" } ?: ""
+                    builder.append("**$name**").append(helpPart)
                     builder.appendLine()
                 }
 
@@ -56,11 +112,26 @@ class HelpCommand(
                 if (commands.containsKey(commandName)) {
                     val command = commands.getValue(commandName)
 
-                    val builder = MessageBuilder()
-                    builder.appendUsage(name = commandName, command = command)
-                    builder.appendLine()
+                    if (command !is BaseCommand) {
+                        respond("No help is available for this command.")
+                        return@args
+                    }
 
-                    respond(builder.build())
+                    val usage = command.usage()
+
+                    val usageString = buildString {
+                        val includeOptionHelp = usage.hasAnyOptionHelp()
+
+                        doUsage(
+                            usage = usage,
+                            commandPrefix = commandName,
+                            config = UsageGenerationConfig(
+                                includeOptionHelp = includeOptionHelp,
+                            ),
+                        )
+                    }
+
+                    respond(MessageBuilder().appendCodeBlock(usageString, "").build())
                 } else {
                     respond("No such command \"$commandName\".")
                 }

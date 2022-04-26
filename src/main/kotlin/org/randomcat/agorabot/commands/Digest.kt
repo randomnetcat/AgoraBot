@@ -2,10 +2,15 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.requests.RestAction
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
+import org.randomcat.agorabot.commands.base.requirements.discord.InGuildSimple
+import org.randomcat.agorabot.commands.base.requirements.discord.currentChannel
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildId
 import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.util.CompletedRestAction
 import org.randomcat.agorabot.util.JDA_HISTORY_MAX_RETRIEVE_LIMIT
+import org.randomcat.agorabot.util.await
 import org.randomcat.agorabot.util.tryAddReaction
 
 private fun retrieveMessagesExclusiveRange(beginExclusive: Message, endExclusive: Message): RestAction<List<Message>> {
@@ -56,7 +61,7 @@ private fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseC
     requires(InGuildSimple)
 
 private fun <Arg> PendingInvocation<ContextReceiverArg<BaseCommandContext, BaseCommandExecutionReceiver, Arg>>.digestAction(
-    block: BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
+    block: suspend BaseCommandExecutionReceiverGuilded.(Arg) -> Unit,
 ) = digestAction().execute { block(it.receiver, it.arg) }
 
 class DigestCommand(
@@ -66,7 +71,7 @@ class DigestCommand(
     private val digestFormat: DigestFormat,
     private val digestAddedReaction: String?,
 ) : BaseCommand(strategy) {
-    private fun BaseCommandExecutionReceiverGuilded.getMessageOrError(id: String): Message? {
+    private suspend fun BaseCommandExecutionReceiverGuilded.getMessageOrError(id: String): Message? {
         val msgResult = currentChannel.retrieveMessageById(id).mapToResult().complete()
 
         if (msgResult.isFailure) {
@@ -118,13 +123,13 @@ class DigestCommand(
 
                         val message = getMessageOrError(messageId) ?: return@digestAction
 
-                        message.retrieveDigestMessage().queue { digestMessage ->
-                            digest.add(digestMessage)
-                            respond("Added one message to digest.")
+                        val digestMessage = message.retrieveDigestMessage().await()
 
-                            if (digestAddedReaction != null) {
-                                message.tryAddReaction(digestAddedReaction).queue()
-                            }
+                        digest.add(digestMessage)
+                        respond("Added one message to digest.")
+
+                        if (digestAddedReaction != null) {
+                            message.tryAddReaction(digestAddedReaction).queue()
                         }
                     }
 
@@ -145,22 +150,17 @@ class DigestCommand(
                             return@digestAction
                         }
 
-                        retrieveMessagesBetween(rangeBegin, rangeEnd)
-                            .map {
-                                it to it.retrieveDigestMessages()
-                            }
-                            .queue { (messages, digestMessagesAction) ->
-                                digestMessagesAction.queue { digestMessage ->
-                                    digest.add(digestMessage)
-                                    respond("Added ${messages.size} messages to digest.")
+                        val messages = retrieveMessagesBetween(rangeBegin, rangeEnd).await()
+                        val digestMessages = messages.retrieveDigestMessages().await()
 
-                                    if (digestAddedReaction != null) {
-                                        messages.forEach { message ->
-                                            message.tryAddReaction(digestAddedReaction).queue()
-                                        }
-                                    }
-                                }
+                        digest.add(digestMessages)
+                        respond("Added ${messages.size} messages to digest.")
+
+                        if (digestAddedReaction != null) {
+                            messages.forEach { message ->
+                                message.tryAddReaction(digestAddedReaction).queue()
                             }
+                        }
                     }
                 }
             }

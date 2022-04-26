@@ -1,12 +1,6 @@
 package org.randomcat.agorabot.listener
 
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import org.randomcat.agorabot.util.splitArguments
-
-data class CommandInvocation(val command: String, val args: ImmutableList<String>) {
-    constructor(command: String, args: List<String>) : this(command, args.toImmutableList())
-}
 
 sealed class CommandParseResult {
     data class Invocation(val invocation: CommandInvocation) : CommandParseResult()

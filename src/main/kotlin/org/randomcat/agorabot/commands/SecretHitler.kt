@@ -2,6 +2,15 @@ package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.MessageChannel
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
+import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord.InGuildSimple
+import org.randomcat.agorabot.commands.base.requirements.discord.currentChannel
+import org.randomcat.agorabot.commands.base.requirements.discord.currentChannelId
+import org.randomcat.agorabot.commands.base.requirements.discord.currentMessageEvent
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedDiscordRequirement
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.newButtonId
+import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
@@ -31,11 +40,11 @@ private fun makeContext(
             return commandReceiver.newButtonId(descriptor, expiryDuration)
         }
 
-        override fun respond(message: DiscordMessage) {
+        override suspend fun respond(message: DiscordMessage) {
             commandReceiver.respond(message)
         }
 
-        override fun respond(message: String) {
+        override suspend fun respond(message: String) {
             commandReceiver.respond(message)
         }
     }

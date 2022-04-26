@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
-import org.randomcat.agorabot.commands.impl.*
+import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.help.help
 import org.randomcat.agorabot.util.repeated
 import kotlin.random.Random
 
@@ -43,7 +44,7 @@ private fun randomResponse(): String {
     return RESPONSES.random()
 }
 
-private fun BaseCommandExecutionReceiver.respondFourFactor() {
+private suspend fun BaseCommandExecutionReceiver.respondFourFactor() {
     fun textForFactor(factor: String): String {
         val isTrue = Random.nextBoolean()
         return "Is the statement supported by $factor? ${if (isTrue) "TRUE" else "FALSE"}"
@@ -89,8 +90,10 @@ private fun formatResponse(statement: String, response: String, usePoorlyWorded:
 
 class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
+        help("Returns random Agoran-style CFJ judgements.")
+
         matchFirst {
-            noArgs { _ ->
+            noArgs().help("Returns a judgement without an associated statement") { _ ->
                 if (randomShouldFourFactor()) {
                     respondFourFactor()
                 }
@@ -98,7 +101,7 @@ class CfjCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 respond("Judged ${randomResponse()}.")
             }
 
-            args(RemainingStringArgs("statement")) { (statementParts) ->
+            args(RemainingStringArgs("statement")).help("Returns a judgement on the specified statement") { (statementParts) ->
                 if (randomShouldFourFactor()) {
                     respondFourFactor()
                 }

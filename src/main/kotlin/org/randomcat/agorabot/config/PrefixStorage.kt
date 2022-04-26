@@ -4,6 +4,9 @@ import kotlinx.collections.immutable.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.randomcat.agorabot.config.persist.AtomicCachedStorage
+import org.randomcat.agorabot.config.persist.ConfigPersistService
+import org.randomcat.agorabot.config.persist.StorageStrategy
 import org.randomcat.agorabot.listener.MutableGuildPrefixMap
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -15,6 +18,7 @@ private val PREFIX_FILE_CHARSET = Charsets.UTF_8
 class JsonPrefixMap(
     private val default: String,
     storagePath: Path,
+    persistService: ConfigPersistService,
 ) : MutableGuildPrefixMap {
     private object StrategyImpl : StorageStrategy<PersistentMap<String, PersistentList<String>>> {
         override fun defaultValue(): PersistentMap<String, PersistentList<String>> {
@@ -34,13 +38,9 @@ class JsonPrefixMap(
     }
 
 
-    private val storage = AtomicCachedStorage(storagePath, StrategyImpl)
+    private val storage = AtomicCachedStorage(storagePath, StrategyImpl, persistService)
 
     private val defaultList = persistentListOf(default)
-
-    fun schedulePersistenceOn(persistenceService: ConfigPersistService) {
-        storage.schedulePersistenceOn(persistenceService)
-    }
 
     override fun addPrefixForGuild(guildId: String, prefix: String) {
         storage.updateValue { oldMap ->

@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.setup.features
 
 import org.randomcat.agorabot.Feature
-import org.randomcat.agorabot.config.ConfigPersistService
 import org.randomcat.agorabot.config.parsing.features.SecretHitlerFeatureConfig
 import org.randomcat.agorabot.config.parsing.features.readSecretHitlerConfig
+import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.features.secretHitlerFeature
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList
@@ -23,11 +23,9 @@ fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistS
     val secretHitlerDir = paths.storagePath.resolve("secret_hitler")
     Files.createDirectories(secretHitlerDir)
 
-    val gameList = JsonSecretHitlerGameList(storagePath = secretHitlerDir.resolve("games"))
-    gameList.schedulePersistenceOn(persistService)
+    val gameList = JsonSecretHitlerGameList(storagePath = secretHitlerDir.resolve("games"), persistService)
 
-    val channelGameMap = JsonSecretHitlerChannelGameMap(storagePath = secretHitlerDir.resolve("games_by_channel"))
-    channelGameMap.schedulePersistenceOn(persistService)
+    val channelGameMap = JsonSecretHitlerChannelGameMap(storagePath = secretHitlerDir.resolve("games_by_channel"), persistService)
 
     val repository = SecretHitlerRepository(
         gameList = gameList,
@@ -35,9 +33,7 @@ fun setupSecretHitlerFeature(paths: BotDataPaths, persistService: ConfigPersistS
     )
 
     val impersonationMap = if (config.enableImpersonation) {
-        SecretHitlerJsonImpersonationMap(secretHitlerDir.resolve("impersonation_data")).also {
-            it.schedulePersistenceOn(persistService)
-        }
+        SecretHitlerJsonImpersonationMap(secretHitlerDir.resolve("impersonation_data"), persistService)
     } else {
         null
     }

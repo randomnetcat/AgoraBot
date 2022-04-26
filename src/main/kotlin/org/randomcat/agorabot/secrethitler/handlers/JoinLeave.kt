@@ -4,9 +4,9 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
-import net.dv8tion.jda.api.interactions.components.Button
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
@@ -60,7 +60,7 @@ private fun handleJoinLeave(
     repository: SecretHitlerRepository,
     action: String,
     gameId: SecretHitlerGameId,
-    event: ButtonClickEvent,
+    event: ButtonInteractionEvent,
     mapState: (SecretHitlerGameState.Joining) -> JoinLeaveMapResult,
 ): String {
     return repository.gameList.updateGameTypedWithValidExtract(
@@ -113,7 +113,7 @@ private fun handleJoinLeave(
 internal fun doHandleSecretHitlerJoin(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
-    event: ButtonClickEvent,
+    event: ButtonInteractionEvent,
     request: SecretHitlerJoinGameButtonDescriptor,
 ) {
     val playerName = context.nameFromInteraction(event.interaction)
@@ -146,7 +146,7 @@ internal fun doHandleSecretHitlerJoin(
 internal fun doHandleSecretHitlerLeave(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
-    event: ButtonClickEvent,
+    event: ButtonInteractionEvent,
     request: SecretHitlerLeaveGameButtonDescriptor,
 ) {
     val playerName = context.nameFromInteraction(event.interaction)

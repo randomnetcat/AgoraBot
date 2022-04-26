@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.*
 import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSecretHitlerPresidentExecutePowerSelection
@@ -11,7 +11,7 @@ object SecretHitlerButtons {
     fun handleJoin(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerJoinGameButtonDescriptor,
     ) {
         doHandleSecretHitlerJoin(
@@ -25,7 +25,7 @@ object SecretHitlerButtons {
     fun handleLeave(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerLeaveGameButtonDescriptor,
     ) {
         doHandleSecretHitlerLeave(
@@ -39,7 +39,7 @@ object SecretHitlerButtons {
     fun handleChancellorSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerChancellorCandidateSelectionButtonDescriptor,
     ) {
         doHandleSecretHitlerChancellorSelect(
@@ -53,7 +53,7 @@ object SecretHitlerButtons {
     fun handleVote(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerVoteButtonDescriptor,
     ) {
         doHandleSecretHitlerVote(
@@ -67,7 +67,7 @@ object SecretHitlerButtons {
     fun handlePresidentPolicySelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerPresidentPolicyChoiceButtonDescriptor,
     ) {
         doHandleSecretHitlerPresidentPolicySelected(
@@ -81,7 +81,7 @@ object SecretHitlerButtons {
     fun handleChancellorPolicySelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerChancellorPolicyChoiceButtonDescriptor,
     ) {
         doHandleSecretHitlerChancellorPolicySelected(
@@ -95,7 +95,7 @@ object SecretHitlerButtons {
     fun handlePresidentInvestigatePowerSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerPendingInvestigatePartySelectionButtonDescriptor,
     ) {
         doHandleSecretHitlerPresidentInvestigatePowerSelection(
@@ -109,7 +109,7 @@ object SecretHitlerButtons {
     fun handlePresidentSpecialElectionPowerSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerPendingSpecialElectionSelectionButtonDescriptor,
     ) {
         doHandleSecretHitlerPresidentSpecialElectionPowerSelection(
@@ -123,7 +123,7 @@ object SecretHitlerButtons {
     fun handlePresidentExecutePowerSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerPendingExecutionSelectionButtonDescriptor,
     ) {
         doHandleSecretHitlerPresidentExecutePowerSelection(
@@ -137,7 +137,7 @@ object SecretHitlerButtons {
     fun handleChancellorVetoRequest(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerChancellorRequestVetoButtonDescriptor,
     ) {
         doHandleSecretHitlerChancellorVetoRequest(
@@ -151,7 +151,7 @@ object SecretHitlerButtons {
     fun handlePresidentVetoApproval(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerPresidentAcceptVetoButtonDescriptor,
     ) {
         doHandleSecretHitlerPresidentVetoApproval(
@@ -165,7 +165,7 @@ object SecretHitlerButtons {
     fun handlePresidentVetoRejection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
-        event: ButtonClickEvent,
+        event: ButtonInteractionEvent,
         request: SecretHitlerPresidentRejectVetoButtonDescriptor,
     ) {
         doHandleSecretHitlerPresidentVetoRejection(

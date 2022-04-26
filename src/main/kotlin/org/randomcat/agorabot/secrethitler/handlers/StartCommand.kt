@@ -22,7 +22,7 @@ private fun randomAssignRoles(
     return SecretHitlerRoleMap((players zip roleList).toMap())
 }
 
-internal fun doHandleSecretHitlerStart(
+internal suspend fun doHandleSecretHitlerStart(
     context: SecretHitlerCommandContext,
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,

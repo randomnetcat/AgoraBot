@@ -5,9 +5,13 @@ import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.serialization.Serializable
-import org.randomcat.agorabot.commands.impl.*
-import org.randomcat.agorabot.config.get
-import org.randomcat.agorabot.config.update
+import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedGuildRequirement
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.currentGuildState
+import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
+import org.randomcat.agorabot.guild_state.get
+import org.randomcat.agorabot.guild_state.update
 import org.randomcat.agorabot.permissions.GuildScope
 
 private data class JudgeListState(val judgeNames: ImmutableList<String>) {

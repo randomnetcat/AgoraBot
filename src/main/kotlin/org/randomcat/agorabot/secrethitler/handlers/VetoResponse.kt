@@ -2,7 +2,7 @@ package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentAcceptVetoButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentRejectVetoButtonDescriptor
@@ -141,7 +141,7 @@ private fun sendVetoApprovedNotification(
 fun doHandleSecretHitlerPresidentVetoApproval(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
-    event: ButtonClickEvent,
+    event: ButtonInteractionEvent,
     request: SecretHitlerPresidentAcceptVetoButtonDescriptor,
 ) {
     handleTextResponse(event) {
@@ -219,7 +219,7 @@ private fun sendVetoRejectedNotification(
 fun doHandleSecretHitlerPresidentVetoRejection(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
-    event: ButtonClickEvent,
+    event: ButtonInteractionEvent,
     request: SecretHitlerPresidentRejectVetoButtonDescriptor,
 ) {
     handleTextResponse(event) {

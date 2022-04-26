@@ -39,8 +39,8 @@ interface SecretHitlerNameContext {
 interface SecretHitlerGameContext : SecretHitlerButtonContext, SecretHitlerMessageContext, SecretHitlerNameContext
 
 interface SecretHitlerCommandContext : SecretHitlerGameContext {
-    fun respond(message: String)
-    fun respond(message: DiscordMessage)
+    suspend fun respond(message: String)
+    suspend fun respond(message: DiscordMessage)
 }
 
 interface SecretHitlerInteractionContext : SecretHitlerGameContext {

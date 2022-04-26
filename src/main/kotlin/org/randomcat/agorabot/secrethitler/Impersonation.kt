@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.randomcat.agorabot.config.AtomicCachedStorage
-import org.randomcat.agorabot.config.ConfigPersistService
-import org.randomcat.agorabot.config.StorageStrategy
+import org.randomcat.agorabot.config.persist.AtomicCachedStorage
+import org.randomcat.agorabot.config.persist.ConfigPersistService
+import org.randomcat.agorabot.config.persist.StorageStrategy
 import java.nio.file.Path
 
 interface SecretHitlerImpersonationMap {
@@ -25,6 +25,7 @@ interface SecretHitlerMutableImpersonationMap : SecretHitlerImpersonationMap {
 
 class SecretHitlerJsonImpersonationMap(
     storagePath: Path,
+    persistService: ConfigPersistService,
 ) : SecretHitlerMutableImpersonationMap {
     private data class ValueType(
         val namesByUserId: PersistentMap<String, String>,
@@ -70,7 +71,7 @@ class SecretHitlerJsonImpersonationMap(
         }
     }
 
-    private val impl = AtomicCachedStorage<ValueType>(storagePath, Strategy)
+    private val impl = AtomicCachedStorage<ValueType>(storagePath, Strategy, persistService)
 
     override fun currentNameForId(userId: String): String? {
         return impl.getValue().namesByUserId[userId]
@@ -107,9 +108,5 @@ class SecretHitlerJsonImpersonationMap(
         impl.updateValue { old ->
             old.copy(dmRecipientsByName = old.dmRecipientsByName.put(name, persistentSetOf()))
         }
-    }
-
-    fun schedulePersistenceOn(persistService: ConfigPersistService) {
-        impl.schedulePersistenceOn(persistService)
     }
 }

@@ -1,14 +1,29 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.Feature
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.HaltCommand
 import org.randomcat.agorabot.commands.StopCommand
+import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 
-fun adminCommandsFeature(writeHammertimeChannelFun: (channelId: String) -> Unit) = Feature.ofCommands { context ->
+object StartupMessageStrategyTag : FeatureElementTag<StartupMessageStrategy>
+
+@FeatureSourceFactory
+fun adminCommandsFactory() = FeatureSource.ofConstant("admin_commands", Feature.ofCommands { context ->
     val commandStrategy = context.defaultCommandStrategy
 
+    val haltCommand = HaltCommand(commandStrategy)
+
+    val stopCommand = when (val result = context.tryQueryExpectOne(StartupMessageStrategyTag)) {
+        is FeatureQueryResult.Found -> StopCommand(commandStrategy, writeChannelFun = result.value::writeChannel)
+        is FeatureQueryResult.NotFound -> null
+    }
+
     mapOf(
-        "halt" to HaltCommand(commandStrategy),
-        "stop" to StopCommand(commandStrategy, writeChannelFun = writeHammertimeChannelFun),
-    )
-}
+        "halt" to haltCommand,
+        "stop" to stopCommand,
+    ).filterValues {
+        it != null
+    }.mapValues { (_, v) ->
+        v!!
+    }
+})

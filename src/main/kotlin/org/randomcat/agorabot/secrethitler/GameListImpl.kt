@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.randomcat.agorabot.config.AtomicCachedStorage
-import org.randomcat.agorabot.config.ConfigPersistService
-import org.randomcat.agorabot.config.StorageStrategy
-import org.randomcat.agorabot.config.updateValueAndExtract
+import org.randomcat.agorabot.config.persist.AtomicCachedStorage
+import org.randomcat.agorabot.config.persist.ConfigPersistService
+import org.randomcat.agorabot.config.persist.StorageStrategy
+import org.randomcat.agorabot.config.persist.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.StorageType
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.ValueType
 import org.randomcat.agorabot.secrethitler.model.*
@@ -511,7 +511,10 @@ private sealed class GameStateDto {
 
 // It'll be fiiiiineee....
 @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
-class JsonSecretHitlerGameList(storagePath: Path) : SecretHitlerGameList {
+class JsonSecretHitlerGameList(
+    storagePath: Path,
+    persistService: ConfigPersistService,
+) : SecretHitlerGameList {
     private typealias ValueType = PersistentMap<SecretHitlerGameId, SecretHitlerGameState>
     private typealias StorageType = Map<SecretHitlerGameId, GameStateDto>
 
@@ -537,7 +540,7 @@ class JsonSecretHitlerGameList(storagePath: Path) : SecretHitlerGameList {
         }
     }
 
-    private val impl = AtomicCachedStorage(storagePath = storagePath, strategy = Strategy)
+    private val impl = AtomicCachedStorage(storagePath = storagePath, strategy = Strategy, persistService = persistService)
 
     override fun gameById(id: SecretHitlerGameId): SecretHitlerGameState? {
         return impl.getValue()[id]
@@ -577,9 +580,5 @@ class JsonSecretHitlerGameList(storagePath: Path) : SecretHitlerGameList {
                 it to false
             }
         }
-    }
-
-    fun schedulePersistenceOn(persistService: ConfigPersistService) {
-        impl.schedulePersistenceOn(persistService)
     }
 }
