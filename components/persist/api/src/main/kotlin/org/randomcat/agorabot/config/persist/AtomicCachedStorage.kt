@@ -86,7 +86,7 @@ class AtomicCachedStorage<T>(
     }
 }
 
-internal inline fun <T, V> AtomicCachedStorage<T>.updateValueAndExtract(crossinline mapper: (T) -> Pair<T, V>): V {
+inline fun <T, V> AtomicCachedStorage<T>.updateValueAndExtract(crossinline mapper: (T) -> Pair<T, V>): V {
     return doUpdateAndExtract(this::updateValue, mapper)
 }
 
@@ -182,6 +182,6 @@ class SchedulableAtomicCachedStorage<T>(
     }
 }
 
-internal inline fun <T, V> SchedulableAtomicCachedStorage<T>.updateValueAndExtract(crossinline mapper: (T) -> Pair<T, V>): V {
+inline fun <T, V> SchedulableAtomicCachedStorage<T>.updateValueAndExtract(crossinline mapper: (T) -> Pair<T, V>): V {
     return doUpdateAndExtract(this::updateValue, mapper)
 }
