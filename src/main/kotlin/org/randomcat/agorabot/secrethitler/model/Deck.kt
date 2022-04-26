@@ -29,13 +29,22 @@ data class SecretHitlerDiscardDeckState(private val policies: ImmutableList<Secr
     }
 }
 
-data class SecretHitlerDrawDeckState(private val policies: ImmutableList<SecretHitlerPolicyType>) {
+data class SecretHitlerDrawDeckState(
+    /**
+     * The list of policies that wil be drawn, in the order they are to be drawn (i.e. index 0 will be drawn first,
+     * then index 1, and so on).
+     */
+    private val policies: ImmutableList<SecretHitlerPolicyType>,
+) {
     constructor(policies: List<SecretHitlerPolicyType>) : this(policies.toImmutableList())
 
     companion object {
         const val STANDARD_DRAW_AMOUNT = 3
     }
 
+    /**
+     * A result of a draw that does not check any constraints on the number of drawn cards.
+     */
     private data class DrawAnyResult(
         val drawnCards: ImmutableList<SecretHitlerPolicyType>,
         val newDeck: SecretHitlerDrawDeckState,
