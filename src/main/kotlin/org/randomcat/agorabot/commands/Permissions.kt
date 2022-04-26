@@ -1,7 +1,9 @@
 package org.randomcat.agorabot.commands
 
+import net.dv8tion.jda.api.MessageBuilder
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.help.help
+import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildId
 import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildInfo
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedDiscordRequirement
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedGuildRequirement
@@ -139,6 +141,34 @@ class PermissionsCommand(
         }
     }
 
+    private suspend fun BaseCommandExecutionReceiver.listPermissions(permissionMap: PermissionMap) {
+        val entries = permissionMap.listEntries().filterValues { it.isNotEmpty() }
+
+        if (entries.isEmpty()) {
+            respond("No permission entries exist.")
+            return
+        }
+
+        val fullString = entries.entries.joinToString("\n\n") { (path, subMap) ->
+            path.joinToString() + ":\n" + subMap.entries.joinToString("\n") { (id, state) ->
+                val rawId = id.raw
+
+                when {
+                    rawId.startsWith("user.") -> "User <@${rawId.removePrefix("user.")}>"
+                    rawId.startsWith("role.") -> "Role <&${rawId.removePrefix("role.")}"
+                    else -> "Internal id [$rawId]"
+                } + ": " + when (state) {
+                    BotPermissionState.ALLOW -> "allow"
+                    BotPermissionState.DENY -> "deny"
+                    BotPermissionState.DEFER -> "defer"
+                }
+            }
+        }
+
+        val messages = MessageBuilder(fullString).buildAll(MessageBuilder.SplitPolicy.NEWLINE)
+        messages.forEach { respond(it.contentRaw) }
+    }
+
     override fun BaseCommandImplReceiver.impl() {
         help("Manages bot-wide or guild-local permissions.")
 
@@ -149,6 +179,12 @@ class PermissionsCommand(
                 guildSubcommand("grant", BotPermissionState.ALLOW)
                 guildSubcommand("clear", BotPermissionState.DEFER)
                 guildSubcommand("deny", BotPermissionState.DENY)
+
+                subcommand("list") {
+                    noArgs().requires(InGuild) {
+                        listPermissions(guildMap.mapForGuild(currentGuildId))
+                    }
+                }
             }
 
             subcommand("bot") {
@@ -157,6 +193,12 @@ class PermissionsCommand(
                 botSubcommand("grant", BotPermissionState.ALLOW)
                 botSubcommand("clear", BotPermissionState.DEFER)
                 botSubcommand("deny", BotPermissionState.DENY)
+
+                subcommand("list") {
+                    noArgs().permissions(BotScope.admin()) {
+                        listPermissions(botMap)
+                    }
+                }
             }
         }
     }
