@@ -96,6 +96,7 @@ interface PermissionMap {
     }
 
     fun stateForId(path: PermissionPath, id: PermissionMapId): BotPermissionState?
+    fun listEntries(): Map<PermissionPath, Map<PermissionMapId, BotPermissionState>>
 }
 
 fun PermissionMap.Companion.idForUser(user: User) = idForUser(userId = user.id)

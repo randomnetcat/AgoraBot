@@ -57,6 +57,10 @@ class JsonPermissionMap(storagePath: Path, persistService: ConfigPersistService)
         return impl.getValue()[path]?.get(id.raw)
     }
 
+    override fun listEntries(): Map<PermissionPath, Map<PermissionMapId, BotPermissionState>> {
+        return impl.getValue().mapValues { (_, v) -> v.mapKeys { (id, _) -> PermissionMapId(id) } }
+    }
+
     override fun setStateForId(path: PermissionPath, id: PermissionMapId, newState: BotPermissionState) {
         impl.updateValue { immutablePermissionsMap ->
             immutablePermissionsMap.mutate { permissionsMap ->
