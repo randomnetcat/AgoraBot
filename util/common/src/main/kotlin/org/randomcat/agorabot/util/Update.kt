@@ -7,6 +7,8 @@ inline fun <T, V> doUpdateAndExtract(runUpdate: ((T) -> T) -> Unit, crossinline 
     var extractedValue: Any? = UpdateAndExtractUninit
 
     runUpdate {
+        extractedValue = UpdateAndExtractUninit
+
         val result = mapper(it)
         extractedValue = result.second
         result.first
