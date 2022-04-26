@@ -153,8 +153,7 @@ data class SecretHitlerDeckState(
             @OptIn(ExperimentalStdlibApi::class)
             return SecretHitlerDrawDeckState(buildList {
                 addAll(remainingDrawPile)
-                addAll(discardPile)
-                shuffle()
+                addAll(discardPile.shuffled())
             })
         }
     }
