@@ -155,7 +155,7 @@ class PermissionsCommand(
 
                 when {
                     rawId.startsWith("user.") -> "User <@${rawId.removePrefix("user.")}>"
-                    rawId.startsWith("role.") -> "Role <&${rawId.removePrefix("role.")}"
+                    rawId.startsWith("role.") -> "Role <&${rawId.removePrefix("role.")}>"
                     else -> "Internal id [$rawId]"
                 } + ": " + when (state) {
                     BotPermissionState.ALLOW -> "allow"
