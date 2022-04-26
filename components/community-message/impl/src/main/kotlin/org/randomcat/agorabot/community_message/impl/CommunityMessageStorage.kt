@@ -256,6 +256,17 @@ class JsonCommunityMessageGuildStorage(
         }
     }
 
+    override fun updateMetadata(name: String, map: (CommunityMessageMetadata) -> CommunityMessageMetadata): Boolean {
+        dataLock.write {
+            check(!isClosed)
+
+            val internalName = lookupInternalName(name) ?: return false
+            writeMetadata(internalName, MessageMetadataDto.from(readMetadata(internalName).build()))
+
+            return true
+        }
+    }
+
     override fun createRevision(
         name: String,
         metadata: CommunityMessageRevisionMetadata,

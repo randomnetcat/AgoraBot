@@ -32,6 +32,8 @@ interface CommunityMessageGuildStorage {
 
     fun messageMetadata(name: String): CommunityMessageMetadata?
 
+    fun updateMetadata(name: String, map: (CommunityMessageMetadata) -> CommunityMessageMetadata): Boolean
+
     /**
      * Attempts to store a new revision of a message. Fails if no message with that name exists.
      * @return the revision number of the new revision, or null if storing the revision did not succeed
