@@ -49,6 +49,7 @@ private fun StringBuilder.doSubcommandsUsage(
 ) {
     usage.subcommandsMap.forEach { (subcommandName, subcommandUsage) ->
         doUsage(subcommandUsage, "$commandPrefix $subcommandName", config)
+        appendLine()
     }
 }
 
