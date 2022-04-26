@@ -261,7 +261,7 @@ class JsonCommunityMessageGuildStorage(
             check(!isClosed)
 
             val internalName = lookupInternalName(name) ?: return false
-            writeMetadata(internalName, MessageMetadataDto.from(readMetadata(internalName).build()))
+            writeMetadata(internalName, MessageMetadataDto.from(map(readMetadata(internalName).build())))
 
             return true
         }
