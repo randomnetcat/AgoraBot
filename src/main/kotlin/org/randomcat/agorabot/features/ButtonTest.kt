@@ -18,7 +18,7 @@ private val buttonTestFeature = object : AbstractFeature() {
         )
     }
 
-    override fun buttonData(): FeatureButtonData {
+    override fun buttonData(context: FeatureContext): FeatureButtonData {
         return FeatureButtonData.RegisterHandlers(
             ButtonHandlerMap {
                 withType<ButtonTestCommand.SuccessRequest> { context, _ ->
