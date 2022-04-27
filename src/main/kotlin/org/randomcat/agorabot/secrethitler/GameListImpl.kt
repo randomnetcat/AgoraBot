@@ -581,4 +581,8 @@ class JsonSecretHitlerGameList(
             }
         }
     }
+
+    fun close() {
+        impl.close()
+    }
 }

@@ -175,4 +175,8 @@ class JsonSecretHitlerChannelGameMap(
             value.removeByChannelId(channelId)
         }
     }
+
+    fun close() {
+        impl.close()
+    }
 }

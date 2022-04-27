@@ -1,31 +1,35 @@
 package org.randomcat.agorabot.features
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.interactions.Interaction
-import org.randomcat.agorabot.AbstractFeature
-import org.randomcat.agorabot.FeatureContext
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.commands.SecretHitlerCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.config.persist.feature.configPersistService
+import org.randomcat.agorabot.config.readConfigFromFile
 import org.randomcat.agorabot.listener.Command
-import org.randomcat.agorabot.secrethitler.SecretHitlerImpersonationMap
-import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.*
 import org.randomcat.agorabot.secrethitler.buttons.*
 import org.randomcat.agorabot.secrethitler.handlers.*
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
+import org.randomcat.agorabot.setup.features.featureConfigDir
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.asSnowflakeOrNull
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.Duration
 import java.time.Instant
 
-private data class NameContextImpl(
-    val impersonationMap: SecretHitlerImpersonationMap?,
-) : SecretHitlerNameContext {
+private object NameContextImpl : SecretHitlerNameContext {
     override fun renderExternalName(name: SecretHitlerPlayerExternalName): String {
         val raw = name.raw
 
@@ -123,13 +127,54 @@ private object NullMessageContext : SecretHitlerMessageContext {
     }
 }
 
-fun secretHitlerFeature(
-    repository: SecretHitlerRepository,
-    impersonationMap: SecretHitlerMutableImpersonationMap?,
-) = object : AbstractFeature() {
-    private val nameContext = NameContextImpl(impersonationMap)
+private object SecretHitlerRepositoryCacheKey
+private object SecretHitlerImpersonationMapCacheKey
 
-    private fun makeMessageContext(jda: JDA, gameMessageChannelId: String?): SecretHitlerMessageContext {
+private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : AbstractFeature() {
+    private val FeatureContext.impersonationMap
+        get() = if (config.enableImpersonation)
+            cache(SecretHitlerImpersonationMapCacheKey) {
+                SecretHitlerJsonImpersonationMap(config.baseStoragePath.resolve("impersonation_data"),
+                    configPersistService)
+            }
+        else
+            null
+
+    private val nameContext = NameContextImpl
+
+    private val FeatureContext.repository
+        get() = cache(SecretHitlerRepositoryCacheKey) {
+            SecretHitlerRepository(
+                gameList = alwaysCloseObject(
+                    {
+                        JsonSecretHitlerGameList(
+                            storagePath = config.baseStoragePath.resolve("games"),
+                            persistService = configPersistService,
+                        )
+                    },
+                    {
+                        it.close()
+                    },
+                ),
+                channelGameMap = alwaysCloseObject(
+                    {
+                        JsonSecretHitlerChannelGameMap(
+                            storagePath = config.baseStoragePath.resolve("games_by_channel"),
+                            persistService = configPersistService,
+                        )
+                    },
+                    {
+                        it.close()
+                    },
+                ),
+            )
+        }
+
+    private fun makeMessageContext(
+        impersonationMap: SecretHitlerImpersonationMap?,
+        jda: JDA,
+        gameMessageChannelId: String?,
+    ): SecretHitlerMessageContext {
         val gameChannel = gameMessageChannelId?.let { jda.getTextChannelById(it) }
 
         return if (gameChannel != null) {
@@ -143,6 +188,9 @@ fun secretHitlerFeature(
     }
 
     override fun commandsInContext(context: FeatureContext): Map<String, Command> {
+        val repository = context.repository
+        val impersonationMap = context.impersonationMap
+
         return mapOf(
             "secret_hitler" to SecretHitlerCommand(
                 context.defaultCommandStrategy,
@@ -159,7 +207,10 @@ fun secretHitlerFeature(
         )
     }
 
-    override fun buttonData(): FeatureButtonData {
+    override fun buttonData(context: FeatureContext): FeatureButtonData {
+        val repository = context.repository
+        val impersonationMap = context.impersonationMap
+
         fun interactionContextFor(
             context: ButtonHandlerContext,
             gameId: SecretHitlerGameId,
@@ -171,6 +222,7 @@ fun secretHitlerFeature(
                 SecretHitlerGameContext,
                 SecretHitlerNameContext by nameContext,
                 SecretHitlerMessageContext by makeMessageContext(
+                    impersonationMap = impersonationMap,
                     jda = context.event.jda,
                     gameMessageChannelId = gameMessageChannelId,
                 ) {
@@ -303,5 +355,40 @@ fun secretHitlerFeature(
                 }
             },
         )
+    }
+}
+
+private data class SecretHitlerFeatureConfig(
+    val baseStoragePath: Path,
+    val enableImpersonation: Boolean,
+)
+
+@Serializable
+private data class SecretHitlerConfigDto(
+    @SerialName("enable_impersonation") val enableImpersonation: Boolean = false,
+)
+
+@FeatureSourceFactory
+fun secretHitlerFactory() = object : FeatureSource {
+    override val featureName: String
+        get() = "secret_hitler"
+
+    override fun readConfig(context: FeatureSetupContext): SecretHitlerFeatureConfig {
+        val fileConfig =
+            readConfigFromFile(context.paths.featureConfigDir.resolve("secret_hitler.json"), SecretHitlerConfigDto()) {
+                Json.decodeFromString<SecretHitlerConfigDto>(it)
+            }
+
+        return SecretHitlerFeatureConfig(
+            baseStoragePath = context.paths.storagePath.resolve("secret_hitler"),
+            enableImpersonation = fileConfig.enableImpersonation,
+        )
+    }
+
+    override fun createFeature(config: Any?): Feature {
+        config as SecretHitlerFeatureConfig
+
+        Files.createDirectories(config.baseStoragePath)
+        return secretHitlerFeature(config)
     }
 }
