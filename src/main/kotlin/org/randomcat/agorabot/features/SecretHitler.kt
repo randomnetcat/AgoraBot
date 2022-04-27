@@ -197,7 +197,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
                 repository = repository,
                 impersonationMap = impersonationMap,
                 nameContext = nameContext,
-                makeMessageContext = { gameMessageChannel ->
+                makeMessageContext = { _, gameMessageChannel ->
                     MessageContextImpl(
                         impersonationMap = impersonationMap,
                         gameMessageChannel = gameMessageChannel,

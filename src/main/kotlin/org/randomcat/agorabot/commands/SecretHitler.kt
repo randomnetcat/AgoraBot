@@ -19,6 +19,7 @@ import org.randomcat.agorabot.secrethitler.handlers.*
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
+import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.util.DiscordMessage
 import java.time.Duration
@@ -54,13 +55,13 @@ class SecretHitlerCommand(
     private val repository: SecretHitlerRepository,
     private val impersonationMap: SecretHitlerMutableImpersonationMap?,
     private val nameContext: SecretHitlerNameContext,
-    private val makeMessageContext: (currentChannel: MessageChannel) -> SecretHitlerMessageContext,
+    private val makeMessageContext: (gameId: SecretHitlerGameId, currentChannel: MessageChannel) -> SecretHitlerMessageContext,
 ) : BaseCommand(strategy) {
-    private val BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>.context: SecretHitlerCommandContext
-        get() = makeContext(
+    private fun BaseCommandExecutionReceiverRequiring<ExtendedDiscordRequirement>.currentContext(gameId: SecretHitlerGameId): SecretHitlerCommandContext =
+        makeContext(
             commandReceiver = this,
             nameContext = nameContext,
-            messageContext = makeMessageContext(currentChannel),
+            messageContext = makeMessageContext(gameId, currentChannel),
         )
 
     override fun BaseCommandImplReceiver.impl() {
@@ -117,7 +118,7 @@ class SecretHitlerCommand(
 
                     if (assignSucceeded) {
                         sendJoinLeaveMessage(
-                            context = context,
+                            context = currentContext(gameId = gameId),
                             gameId = gameId,
                             state = state,
                         )
@@ -150,7 +151,7 @@ class SecretHitlerCommand(
                     }
 
                     handleStart(
-                        context = context,
+                        context = currentContext(gameId = gameId),
                         gameList = repository.gameList,
                         gameId = gameId,
                     )
@@ -170,6 +171,8 @@ class SecretHitlerCommand(
                         respond("That game no longer exists.")
                         return@requires
                     }
+
+                    val context = currentContext(gameId = gameId)
 
                     @Suppress("UNUSED_VARIABLE")
                     val ensureExhaustive = when (gameState) {
