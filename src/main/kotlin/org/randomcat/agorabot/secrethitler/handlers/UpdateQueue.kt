@@ -30,6 +30,8 @@ internal object SecretHitlerMessageUpdateQueue {
         var pruneCount = 0
 
         for (updateAction in channel) {
+            ++pruneCount
+
             // Every 100 actions, remove the entries with futures that are completed. This means that any new updates
             // would execute immediately anyway, so the future is unnecessary.
             // 100 chosen arbitrarily.
