@@ -1,8 +1,6 @@
 package org.randomcat.agorabot.commands
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import org.randomcat.agorabot.commands.base.*
@@ -16,6 +14,7 @@ import org.randomcat.agorabot.commands.base.requirements.permissions.senderHasPe
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.DiscordPermission
+import org.randomcat.agorabot.util.await
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -131,36 +130,35 @@ class ArchiveCommand(
 
         val channelNamesString = channelIds.joinToString(", ") { "<#$it>" }
 
-        currentChannel.sendMessage("Running archive job for channels $channelNamesString...").queue { statusMessage ->
-            fun markFailed() {
-                statusMessage.editMessage("Archive job failed!").queue()
-            }
+        val statusMessage =
+            currentChannel.sendMessage("Running archive job for channels $channelNamesString...").await()
 
-            fun markFailedWith(e: Throwable) {
-                markFailed()
-                LOGGER.error("Error while archiving channels $channelNamesString", e)
-            }
+        fun markFailed() {
+            statusMessage.editMessage("Archive job failed!").queue()
+        }
 
-            try {
-                CoroutineScope(Dispatchers.Default).launch {
-                    try {
-                        storeArchiveResult(
-                            archiver.createArchiveFrom(
-                                guild = currentGuild,
-                                channelIds = distinctChannelIds,
-                            ),
-                        )
+        fun markFailedWith(e: Throwable) {
+            markFailed()
+            LOGGER.error("Error while archiving channels $channelNamesString", e)
+        }
 
-                        statusMessage
-                            .editMessage("Archive done for channels $channelNamesString.")
-                            .queue()
-                    } catch (t: Throwable) {
-                        markFailedWith(t)
-                    }
+        try {
+            withContext(Dispatchers.IO) {
+                try {
+                    storeArchiveResult(
+                        archiver.createArchiveFrom(
+                            guild = currentGuild,
+                            channelIds = distinctChannelIds,
+                        ),
+                    )
+
+                    statusMessage.editMessage("Archive done for channels $channelNamesString.").await()
+                } catch (t: Throwable) {
+                    markFailedWith(t)
                 }
-            } catch (e: Exception) {
-                markFailedWith(e)
             }
+        } catch (e: Exception) {
+            markFailedWith(e)
         }
 
         return
