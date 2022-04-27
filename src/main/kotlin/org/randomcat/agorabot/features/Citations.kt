@@ -1,8 +1,9 @@
 package org.randomcat.agorabot.features
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
@@ -11,6 +12,9 @@ import org.randomcat.agorabot.config.parsing.features.CitationsConfig
 import org.randomcat.agorabot.config.parsing.features.readCitationsConfig
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.setup.features.featureConfigDir
+import org.randomcat.agorabot.util.await
+import org.randomcat.agorabot.util.coroutineScope
+import org.slf4j.LoggerFactory
 import java.net.URI
 
 const val RULE_URL_NUMBER_REPLACMENT = "{bot_rule_num}"
@@ -30,14 +34,16 @@ private fun String.bracedSections(): List<String> {
         }
 }
 
-private fun enqueueResponse(message: Message, name: String, citationUri: URI) {
-    CoroutineScope(Dispatchers.IO).launch {
+private suspend fun sendResponse(message: Message, name: String, citationUri: URI) {
+    withContext(Dispatchers.IO) {
         citationUri.toURL().openStream().use { fileStream ->
             val bytes = fileStream.readBytes()
-            message.channel.sendFile(bytes, "$name.txt").queue()
+            message.channel.sendFile(bytes, "$name.txt").await()
         }
     }
 }
+
+private val logger = LoggerFactory.getLogger("AgoraBotCitations")
 
 private fun citationsFeature(config: CitationsConfig): Feature {
     return object : AbstractFeature() {
@@ -68,11 +74,19 @@ private fun citationsFeature(config: CitationsConfig): Feature {
                     ) {
                         if (bracedText.startsWith(prefix)) {
                             bracedText.removePrefix(prefix).toBigIntegerOrNull()?.let { number ->
-                                enqueueResponse(
-                                    message = message,
-                                    name = bracedText,
-                                    citationUri = URI(urlPattern.replace(replacement, number.toString())),
-                                )
+                                context.coroutineScope.launch {
+                                    try {
+                                        sendResponse(
+                                            message = message,
+                                            name = bracedText,
+                                            citationUri = URI(urlPattern.replace(replacement, number.toString())),
+                                        )
+                                    } catch (e: CancellationException) {
+                                        throw e
+                                    } catch (e: Exception) {
+                                        logger.error("Error while attempting to send citation", e)
+                                    }
+                                }
                             }
                         }
                     }
