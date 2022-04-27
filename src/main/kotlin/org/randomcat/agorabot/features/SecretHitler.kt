@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
@@ -41,9 +42,33 @@ private object NameContextImpl : SecretHitlerNameContext {
     }
 }
 
+private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): DiscordMessage {
+    return if (message.embeds.isNotEmpty()) {
+        MessageBuilder(message).setEmbeds(message.embeds.map {
+            val builder = EmbedBuilder(it)
+
+            val footerText = it.footer?.text
+
+            if (footerText.isNullOrBlank()) {
+                builder.setFooter("Game id: ${gameId.raw}", it.footer?.iconUrl)
+            } else {
+                builder.setFooter(footerText + "\nGame id: ${gameId.raw}", it.footer?.iconUrl)
+            }
+
+            builder.build()
+        }).build()
+    } else {
+        val builder = MessageBuilder(message)
+        builder.stringBuilder.insert(0, "Game id: ${gameId.raw}\n")
+
+        builder.build()
+    }
+}
+
 private class MessageContextImpl(
     private val impersonationMap: SecretHitlerImpersonationMap?,
     private val gameMessageChannel: MessageChannel,
+    private val contextGameId: SecretHitlerGameId,
 ) : SecretHitlerMessageContext {
     override fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
@@ -68,10 +93,12 @@ private class MessageContextImpl(
 
         val impersonationIds = impersonationMap?.dmUserIdsForName(rawName)
 
+        val messageWithId = insertGameId(message, gameId)
+
         when {
             impersonationIds != null -> {
                 val adjustedMessage =
-                    MessageBuilder(message)
+                    MessageBuilder(messageWithId)
                         .also {
                             it.stringBuilder.insert(0, "Redirected from ${recipient.raw}:\n")
                         }
@@ -83,7 +110,7 @@ private class MessageContextImpl(
             }
 
             rawName.asSnowflakeOrNull() != null -> {
-                queuePrivateMessage(rawName, message)
+                queuePrivateMessage(rawName, messageWithId)
             }
 
             else -> {
@@ -93,11 +120,11 @@ private class MessageContextImpl(
     }
 
     override fun sendGameMessage(message: DiscordMessage) {
-        gameMessageChannel.sendMessage(message).queue()
+        gameMessageChannel.sendMessage(insertGameId(message, contextGameId)).queue()
     }
 
     override fun sendGameMessage(message: String) {
-        gameMessageChannel.sendMessage(message).queue()
+        gameMessageChannel.sendMessage("Game id: ${contextGameId}\n" + message).queue()
     }
 }
 
@@ -174,6 +201,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
         impersonationMap: SecretHitlerImpersonationMap?,
         jda: JDA,
         gameMessageChannelId: String?,
+        gameId: SecretHitlerGameId,
     ): SecretHitlerMessageContext {
         val gameChannel = gameMessageChannelId?.let { jda.getTextChannelById(it) }
 
@@ -181,6 +209,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
             MessageContextImpl(
                 impersonationMap = impersonationMap,
                 gameMessageChannel = gameChannel,
+                contextGameId = gameId,
             )
         } else {
             NullMessageContext
@@ -197,10 +226,11 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
                 repository = repository,
                 impersonationMap = impersonationMap,
                 nameContext = nameContext,
-                makeMessageContext = { _, gameMessageChannel ->
+                makeMessageContext = { gameId, gameMessageChannel ->
                     MessageContextImpl(
                         impersonationMap = impersonationMap,
                         gameMessageChannel = gameMessageChannel,
+                        contextGameId = gameId,
                     )
                 },
             ),
@@ -225,6 +255,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
                     impersonationMap = impersonationMap,
                     jda = context.event.jda,
                     gameMessageChannelId = gameMessageChannelId,
+                    gameId = gameId,
                 ) {
                 override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
                     return context.buttonRequestDataMap.putRequest(
