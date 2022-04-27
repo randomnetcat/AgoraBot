@@ -11,7 +11,6 @@ import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedDis
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.newButtonId
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
-import org.randomcat.agorabot.commands.impl.*
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
@@ -200,6 +199,14 @@ class SecretHitlerCommand(
                                     )
                                 }
 
+                                is SecretHitlerEphemeralState.PresidentPolicyChoicePending -> {
+                                    sendSecretHitlerPresidentPolicySelectionMessage(
+                                        context = context,
+                                        gameId = gameId,
+                                        currentState = gameState.assumeWith<SecretHitlerEphemeralState.PresidentPolicyChoicePending>(),
+                                    )
+                                }
+
                                 is SecretHitlerEphemeralState.ChancellorPolicyChoicePending -> {
                                     sendSecretHitlerChancellorPolicySelectionMessage(
                                         context = context,
@@ -214,10 +221,6 @@ class SecretHitlerCommand(
                                         gameId = gameId,
                                         currentState = gameState.assumeWith<SecretHitlerEphemeralState.PolicyPending>(),
                                     )
-                                }
-
-                                else -> {
-                                    respond("Not yet implemented")
                                 }
                             }
                         }
