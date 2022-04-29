@@ -43,6 +43,8 @@ private object NameContextImpl : SecretHitlerNameContext {
 }
 
 private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): DiscordMessage {
+    val gameIdText = "Game id: ${gameId.raw}"
+
     return if (message.embeds.isNotEmpty()) {
         MessageBuilder(message).setEmbeds(message.embeds.map {
             val builder = EmbedBuilder(it)
@@ -50,16 +52,21 @@ private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): D
             val footerText = it.footer?.text
 
             if (footerText.isNullOrBlank()) {
-                builder.setFooter("Game id: ${gameId.raw}", it.footer?.iconUrl)
+                builder.setFooter(gameIdText, it.footer?.iconUrl)
             } else {
-                builder.setFooter(footerText + "\nGame id: ${gameId.raw}", it.footer?.iconUrl)
+                if (!footerText.contains(gameIdText)) {
+                    builder.setFooter(footerText + "\n" + gameIdText, it.footer?.iconUrl)
+                }
             }
 
             builder.build()
         }).build()
     } else {
         val builder = MessageBuilder(message)
-        builder.stringBuilder.insert(0, "Game id: ${gameId.raw}\n")
+
+        if (!builder.stringBuilder.contains(gameIdText)) {
+            builder.stringBuilder.insert(0, gameIdText + "\n")
+        }
 
         builder.build()
     }
