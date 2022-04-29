@@ -72,9 +72,10 @@ fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }
 }
 
-private val logger = LoggerFactory.getLogger("AgoraBotUtil")
+@PublishedApi
+internal val logger = LoggerFactory.getLogger("AgoraBotUtil")
 
-fun handleTextResponse(event: IReplyCallback, responseBlock: () -> String) {
+inline fun handleTextResponse(event: IReplyCallback, responseBlock: () -> String) {
     // Ensure that responseBlock is always run, because it may have side effects
     val webhookResult = runCatching { event.deferReply(true).submit() }
     val response = responseBlock()
