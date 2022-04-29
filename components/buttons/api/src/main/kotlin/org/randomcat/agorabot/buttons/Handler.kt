@@ -11,7 +11,7 @@ interface ButtonHandlerContext {
     val buttonRequestDataMap: ButtonRequestDataMap
 }
 
-typealias ButtonHandler<T> = (context: ButtonHandlerContext, request: T) -> Unit
+typealias ButtonHandler<T> = suspend (context: ButtonHandlerContext, request: T) -> Unit
 
 interface ButtonHandlersReceiver {
     fun <T : Any> withTypeImpl(type: KClass<T>, handler: ButtonHandler<T>)

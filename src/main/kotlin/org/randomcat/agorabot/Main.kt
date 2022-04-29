@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.classgraph.ClassGraph
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -28,6 +29,7 @@ import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.setup.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
+import org.randomcat.agorabot.util.coroutineScope
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
@@ -398,16 +400,18 @@ private fun runBot(config: BotRunConfig) {
                         val theEvent = event
                         val theDataMap = buttonRequestDataMap
 
-                        handler(
-                            object : ButtonHandlerContext {
-                                override val event: ButtonInteractionEvent
-                                    get() = theEvent
+                        featureContext.coroutineScope.launch {
+                            handler(
+                                object : ButtonHandlerContext {
+                                    override val event: ButtonInteractionEvent
+                                        get() = theEvent
 
-                                override val buttonRequestDataMap: ButtonRequestDataMap
-                                    get() = theDataMap
-                            },
-                            requestDescriptor,
-                        )
+                                    override val buttonRequestDataMap: ButtonRequestDataMap
+                                        get() = theDataMap
+                                },
+                                requestDescriptor,
+                            )
+                        }
                     } else {
                         event.reply("Unknown button type. That feature may be disabled.").setEphemeral(true).queue()
                     }
