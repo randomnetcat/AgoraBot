@@ -8,7 +8,7 @@ import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSec
 import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSecretHitlerPresidentSpecialElectionPowerSelection
 
 object SecretHitlerButtons {
-    fun handleJoin(
+    suspend fun handleJoin(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -22,7 +22,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handleLeave(
+    suspend fun handleLeave(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -50,7 +50,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handleVote(
+    suspend fun handleVote(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,

@@ -1,5 +1,12 @@
 package org.randomcat.agorabot.features
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -25,6 +32,9 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.setup.features.featureConfigDir
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.asSnowflakeOrNull
+import org.randomcat.agorabot.util.await
+import org.randomcat.agorabot.util.coroutineScope
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
@@ -72,10 +82,16 @@ private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): D
     }
 }
 
+private data class MessageEditQueueEntry(
+    val targetMessage: DiscordMessage,
+    val newContentBlock: () -> DiscordMessage?,
+)
+
 private class MessageContextImpl(
     private val impersonationMap: SecretHitlerImpersonationMap?,
     private val gameMessageChannel: MessageChannel,
     private val contextGameId: SecretHitlerGameId,
+    private val editChannel: SendChannel<MessageEditQueueEntry>,
 ) : SecretHitlerMessageContext {
     override fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
@@ -133,6 +149,12 @@ private class MessageContextImpl(
     override fun sendGameMessage(message: String) {
         gameMessageChannel.sendMessage("Game id: ${contextGameId}\n" + message).queue()
     }
+
+    override suspend fun enqueueEditGameMessage(targetMessage: DiscordMessage, newContentBlock: () -> DiscordMessage?) {
+        editChannel.send(MessageEditQueueEntry(targetMessage) {
+            newContentBlock()?.let { insertGameId(it, gameId = contextGameId) }
+        })
+    }
 }
 
 private object NullMessageContext : SecretHitlerMessageContext {
@@ -159,10 +181,52 @@ private object NullMessageContext : SecretHitlerMessageContext {
     override fun sendGameMessage(message: DiscordMessage) {
         // Intentionally do nothing.
     }
+
+    override suspend fun enqueueEditGameMessage(targetMessage: DiscordMessage, newContentBlock: () -> DiscordMessage?) {
+        // Intentionally do nothing.
+    }
+}
+
+private val logger = LoggerFactory.getLogger("AgoraBotSecretHitlerFeature")
+
+private suspend fun handleEditQueue(channel: ReceiveChannel<MessageEditQueueEntry>) {
+    supervisorScope {
+        val jobMap = mutableMapOf<String /* ChannelId */, Job>()
+        var pruneCount = 0
+
+        for (entry in channel) {
+            try {
+                ++pruneCount
+
+                if (pruneCount == 100) {
+                    pruneCount = 0
+                    jobMap.entries.removeAll { it.value.isCompleted }
+                }
+
+                val targetChannelId = entry.targetMessage.channel.id
+
+                val oldJob = jobMap[targetChannelId]
+
+                jobMap[targetChannelId] = launch {
+                    oldJob?.join()
+
+                    val newContent = entry.newContentBlock()
+                    if (newContent != null) {
+                        entry.targetMessage.editMessage(newContent).await()
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logger.error("Error while processing update", e)
+            }
+        }
+    }
 }
 
 private object SecretHitlerRepositoryCacheKey
 private object SecretHitlerImpersonationMapCacheKey
+private object SecretHitlerEditQueueChannelCacheKey
 
 private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : AbstractFeature() {
     private val FeatureContext.impersonationMap
@@ -204,8 +268,27 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
             )
         }
 
+    private val FeatureContext.editQueueChannel
+        get() = cache(SecretHitlerEditQueueChannelCacheKey) {
+            val channel = alwaysCloseObject(
+                {
+                    Channel<MessageEditQueueEntry>()
+                },
+                {
+                    it.cancel()
+                },
+            )
+
+            coroutineScope.launch {
+                handleEditQueue(channel)
+            }
+
+            channel
+        }
+
     private fun makeMessageContext(
         impersonationMap: SecretHitlerImpersonationMap?,
+        editQueueChannel: SendChannel<MessageEditQueueEntry>,
         jda: JDA,
         gameMessageChannelId: String?,
         gameId: SecretHitlerGameId,
@@ -217,6 +300,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
                 impersonationMap = impersonationMap,
                 gameMessageChannel = gameChannel,
                 contextGameId = gameId,
+                editChannel = editQueueChannel,
             )
         } else {
             NullMessageContext
@@ -238,6 +322,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
                         impersonationMap = impersonationMap,
                         gameMessageChannel = gameMessageChannel,
                         contextGameId = gameId,
+                        editChannel = context.editQueueChannel,
                     )
                 },
             ),
@@ -247,6 +332,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
     override fun buttonData(context: FeatureContext): FeatureButtonData {
         val repository = context.repository
         val impersonationMap = context.impersonationMap
+        val editQueueChannel = context.editQueueChannel
 
         fun interactionContextFor(
             context: ButtonHandlerContext,
@@ -263,6 +349,7 @@ private fun secretHitlerFeature(config: SecretHitlerFeatureConfig) = object : Ab
                     jda = context.event.jda,
                     gameMessageChannelId = gameMessageChannelId,
                     gameId = gameId,
+                    editQueueChannel = editQueueChannel,
                 ) {
                 override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
                     return context.buttonRequestDataMap.putRequest(

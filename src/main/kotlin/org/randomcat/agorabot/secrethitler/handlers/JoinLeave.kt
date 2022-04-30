@@ -2,7 +2,6 @@ package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
@@ -15,7 +14,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.handleTextResponse
-import java.math.BigInteger
 import java.time.Duration
 
 private sealed class JoinLeaveMapResult {
@@ -30,33 +28,11 @@ private sealed class HandleJoinLeaveInternalState {
 
     data class Succeeded(
         val newState: SecretHitlerGameState.Joining,
-        val updateNumber: BigInteger,
     ) : HandleJoinLeaveInternalState()
 }
 
-private class JoinMessageUpdateAction(
-    updateNumber: BigInteger,
-    targetMessage: Message,
-    private val context: SecretHitlerNameContext,
-    private val state: SecretHitlerGameState.Joining,
-) : SecretHitlerMessageUpdateQueue.UpdateAction(
-    updateNumber = updateNumber,
-    targetMessage = targetMessage,
-) {
-    override fun newMessageData(): Message {
-        return MessageBuilder(targetMessage)
-            .setEmbeds(
-                formatSecretHitlerJoinMessageEmbed(
-                    context = context,
-                    state = state,
-                ),
-            )
-            .build()
-    }
-}
-
-private fun handleJoinLeave(
-    context: SecretHitlerNameContext,
+private suspend fun handleJoinLeave(
+    context: SecretHitlerGameContext,
     repository: SecretHitlerRepository,
     action: String,
     gameId: SecretHitlerGameId,
@@ -78,7 +54,6 @@ private fun handleJoinLeave(
 
                     newState to HandleJoinLeaveInternalState.Succeeded(
                         newState = newState,
-                        updateNumber = SecretHitlerMessageUpdateQueue.nextUpdateNumber(),
                     )
                 }
 
@@ -90,13 +65,25 @@ private fun handleJoinLeave(
         afterValid = { state ->
             when (state) {
                 is HandleJoinLeaveInternalState.Succeeded -> {
-                    SecretHitlerMessageUpdateQueue.sendUpdateAction(
-                        JoinMessageUpdateAction(
-                            updateNumber = state.updateNumber,
-                            targetMessage = checkNotNull(event.message),
-                            context = context,
-                            state = state.newState,
-                        ),
+                    context.enqueueEditGameMessage(
+                        targetMessage = checkNotNull(event.message),
+                        newContentBlock = {
+                            // Don't update if the state has changed out from under us.
+                            val currentState = repository.gameList.gameById(gameId)
+
+                            if (currentState == state.newState) {
+                                MessageBuilder(event.message)
+                                    .setEmbeds(
+                                        formatSecretHitlerJoinMessageEmbed(
+                                            context = context,
+                                            state = state.newState,
+                                        ),
+                                    )
+                                    .build()
+                            } else {
+                                null
+                            }
+                        }
                     )
 
                     "Successfully $action."
@@ -110,7 +97,7 @@ private fun handleJoinLeave(
     )
 }
 
-internal fun doHandleSecretHitlerJoin(
+internal suspend fun doHandleSecretHitlerJoin(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,
@@ -143,7 +130,7 @@ internal fun doHandleSecretHitlerJoin(
     }
 }
 
-internal fun doHandleSecretHitlerLeave(
+internal suspend fun doHandleSecretHitlerLeave(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,

@@ -16,7 +16,6 @@ import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiv
 import org.randomcat.agorabot.secrethitler.model.transitions.afterNewVote
 import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
-import java.math.BigInteger
 import java.time.Duration
 import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
 import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
@@ -135,7 +134,6 @@ private sealed class VoteButtonResult {
     data class Success(
         val originalState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
         val nestedResult: SecretHitlerAfterVoteResult,
-        val updateNumber: BigInteger,
     ) : VoteButtonResult()
 
     sealed class Failure : VoteButtonResult()
@@ -145,29 +143,30 @@ private sealed class VoteButtonResult {
     object NotPlayer : Failure()
 }
 
-private fun queueVoteMessageUpdate(
-    context: SecretHitlerNameContext,
-    updateNumber: BigInteger,
+private suspend fun queueVoteMessageUpdate(
+    context: SecretHitlerGameContext,
     targetMessage: Message,
-    currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
+    gameList: SecretHitlerGameList,
+    gameId: SecretHitlerGameId,
+    stateAfterUpdate: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
 ) {
-    SecretHitlerMessageUpdateQueue.sendUpdateAction(
-        object : SecretHitlerMessageUpdateQueue.UpdateAction(
-            updateNumber = updateNumber,
-            targetMessage = targetMessage,
-        ) {
-            override fun newMessageData(): Message {
-                return MessageBuilder(targetMessage)
-                    .setEmbeds(
-                        formatVotingEmbed(
-                            context = context,
-                            currentState = currentState,
-                        ),
-                    )
-                    .build()
-            }
+    context.enqueueEditGameMessage(targetMessage) {
+        // Don't update if the state has changed out from under us.
+        val currentState = gameList.gameById(gameId)
+
+        if (currentState == stateAfterUpdate) {
+            MessageBuilder(targetMessage)
+                .setEmbeds(
+                    formatVotingEmbed(
+                        context = context,
+                        currentState = stateAfterUpdate,
+                    ),
+                )
+                .build()
+        } else {
+            null
         }
-    )
+    }
 }
 
 private fun SecretHitlerInactiveGovernmentResult.stateForUpdate(): SecretHitlerGameState {
@@ -189,12 +188,11 @@ private fun SecretHitlerAfterVoteResult.stateForUpdate(): SecretHitlerGameState 
 
 private data class VoteCheckResult(val voterNumber: SecretHitlerPlayerNumber)
 
-private inline fun updateState(
+private fun updateState(
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,
     voterName: SecretHitlerPlayerExternalName,
     voteKind: SecretHitlerEphemeralState.VoteKind,
-    crossinline nextUpdateNumber: () -> BigInteger,
 ): VoteButtonResult {
     return gameList.updateRunningGameWithValidation(
         id = gameId,
@@ -235,7 +233,6 @@ private inline fun updateState(
             newState to VoteButtonResult.Success(
                 originalState = currentState,
                 nestedResult = voteResult,
-                updateNumber = nextUpdateNumber(),
             )
         },
     )
@@ -274,7 +271,7 @@ private fun sendVoteSummaryMessage(
     )
 }
 
-internal fun doHandleSecretHitlerVote(
+internal suspend fun doHandleSecretHitlerVote(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,
@@ -288,7 +285,6 @@ internal fun doHandleSecretHitlerVote(
             gameId = gameId,
             voterName = context.nameFromInteraction(event.interaction),
             voteKind = request.voteKind,
-            nextUpdateNumber = { SecretHitlerMessageUpdateQueue.nextUpdateNumber() }
         )
 
         when (updateResult) {
@@ -298,9 +294,10 @@ internal fun doHandleSecretHitlerVote(
                     is SecretHitlerAfterVoteResult.VotingContinues -> {
                         queueVoteMessageUpdate(
                             context = context,
-                            updateNumber = updateResult.updateNumber,
                             targetMessage = checkNotNull(event.message),
-                            currentState = afterVoteResult.newState,
+                            gameList = repository.gameList,
+                            gameId = gameId,
+                            stateAfterUpdate = afterVoteResult.newState,
                         )
                     }
 
