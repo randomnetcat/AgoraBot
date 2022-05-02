@@ -11,11 +11,6 @@ object PrefixStorageTag : FeatureElementTag<MutableGuildPrefixMap>
 val FeatureContext.prefixMap
     get() = queryExpectOne(PrefixStorageTag)
 
-object VersioningStorageTag : FeatureElementTag<VersioningStorage>
-
-val FeatureContext.versioningStorage
-    get() = queryExpectOne(VersioningStorageTag)
-
 object CommandOutputMappingTag : FeatureElementTag<CommandOutputMapping>
 
 val FeatureContext.commandOutputMapping
