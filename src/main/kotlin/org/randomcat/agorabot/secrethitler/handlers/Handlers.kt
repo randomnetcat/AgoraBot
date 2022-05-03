@@ -5,7 +5,7 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 
 object SecretHitlerHandlers {
-    fun sendJoinLeaveMessage(
+    suspend fun sendJoinLeaveMessage(
         context: SecretHitlerCommandContext,
         gameId: SecretHitlerGameId,
         state: SecretHitlerGameState.Joining,

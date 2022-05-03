@@ -6,7 +6,7 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.readableName
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiveGovernmentResult
 
-fun sendSecretHitlerInactiveGovernmentMessages(
+suspend fun sendSecretHitlerInactiveGovernmentMessages(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     result: SecretHitlerInactiveGovernmentResult,

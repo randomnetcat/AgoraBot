@@ -140,11 +140,11 @@ private class MessageContextImpl(
         }
     }
 
-    override fun sendGameMessage(message: DiscordMessage) {
+    override suspend fun sendGameMessage(message: DiscordMessage) {
         gameMessageChannel.sendMessage(insertGameId(message, contextGameId)).queue()
     }
 
-    override fun sendGameMessage(message: String) {
+    override suspend fun sendGameMessage(message: String) {
         gameMessageChannel.sendMessage("Game id: ${contextGameId}\n" + message).queue()
     }
 
@@ -172,11 +172,11 @@ private object NullMessageContext : SecretHitlerMessageContext {
         // Intentionally do nothing.
     }
 
-    override fun sendGameMessage(message: String) {
+    override suspend fun sendGameMessage(message: String) {
         // Intentionally do nothing.
     }
 
-    override fun sendGameMessage(message: DiscordMessage) {
+    override suspend fun sendGameMessage(message: DiscordMessage) {
         // Intentionally do nothing.
     }
 

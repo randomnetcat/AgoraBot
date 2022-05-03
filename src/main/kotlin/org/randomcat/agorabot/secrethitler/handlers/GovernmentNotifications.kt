@@ -8,7 +8,7 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerMap
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiveGovernmentResult
 
-private fun sendBasicElectionNotification(
+private suspend fun sendBasicElectionNotification(
     context: SecretHitlerGameContext,
     title: String,
     description: String,
@@ -41,7 +41,7 @@ private fun sendBasicElectionNotification(
     )
 }
 
-fun sendSecretHitlerGovernmentElectedNotification(
+suspend fun sendSecretHitlerGovernmentElectedNotification(
     context: SecretHitlerGameContext,
     playerMap: SecretHitlerPlayerMap,
     governmentMembers: SecretHitlerGovernmentMembers,
@@ -55,7 +55,7 @@ fun sendSecretHitlerGovernmentElectedNotification(
     )
 }
 
-private fun sendGovernmentRejectedNotification(
+private suspend fun sendGovernmentRejectedNotification(
     context: SecretHitlerGameContext,
     playerMap: SecretHitlerPlayerMap,
     governmentMembers: SecretHitlerGovernmentMembers,
@@ -69,7 +69,7 @@ private fun sendGovernmentRejectedNotification(
     )
 }
 
-fun sendSecretHitlerGovernmentRejectedMessages(
+suspend fun sendSecretHitlerGovernmentRejectedMessages(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     playerMap: SecretHitlerPlayerMap,

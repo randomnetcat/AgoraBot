@@ -194,7 +194,7 @@ private fun formatSecretHitlerJoinMessage(
         .build()
 }
 
-internal fun doSendSecretHitlerJoinLeaveMessage(
+internal suspend fun doSendSecretHitlerJoinLeaveMessage(
     context: SecretHitlerCommandContext,
     gameId: SecretHitlerGameId,
     state: SecretHitlerGameState.Joining,

@@ -39,7 +39,7 @@ fun SecretHitlerGameState.Running.chancellorSelectionIsValid(
     return true
 }
 
-fun secretHitlerSendChancellorSelectionMessage(
+suspend fun secretHitlerSendChancellorSelectionMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     state: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorSelectionPending>,

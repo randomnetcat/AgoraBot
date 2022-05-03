@@ -42,7 +42,7 @@ private fun doStateUpdate(
     )
 }
 
-fun doHandleSecretHitlerPresidentSpecialElectionPowerSelection(
+suspend fun doHandleSecretHitlerPresidentSpecialElectionPowerSelection(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,

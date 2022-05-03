@@ -122,7 +122,7 @@ private fun formatVotingMessage(
         .build()
 }
 
-internal fun doSendSecretHitlerVotingMessage(
+internal suspend fun doSendSecretHitlerVotingMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     gameState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
@@ -238,7 +238,7 @@ private fun updateState(
     )
 }
 
-private fun sendVoteSummaryMessage(
+private suspend fun sendVoteSummaryMessage(
     context: SecretHitlerGameContext,
     playerMap: SecretHitlerPlayerMap,
     voteMap: SecretHitlerEphemeralState.VoteMap,

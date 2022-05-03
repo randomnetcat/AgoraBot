@@ -84,7 +84,7 @@ private fun doStateUpdate(
     )
 }
 
-private fun sendPolicyEnactedNotification(
+private suspend fun sendPolicyEnactedNotification(
     context: SecretHitlerGameContext,
     policyType: SecretHitlerPolicyType,
     power: SecretHitlerFascistPower?,
@@ -148,7 +148,7 @@ suspend fun doHandleSecretHitlerChancellorPolicySelected(
                     power = updateResult.effectivePower(),
                 )
 
-                fun sendElectionStartMessage(
+                suspend fun sendElectionStartMessage(
                     newState: GameState.Running.With<EphemeralState.ChancellorSelectionPending>,
                 ) {
                     secretHitlerSendChancellorSelectionMessage(

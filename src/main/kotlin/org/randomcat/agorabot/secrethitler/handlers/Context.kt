@@ -26,8 +26,8 @@ interface SecretHitlerPrivateMessageContext {
 }
 
 interface SecretHitlerGameMessageContext {
-    fun sendGameMessage(message: String)
-    fun sendGameMessage(message: DiscordMessage)
+    suspend fun sendGameMessage(message: String)
+    suspend fun sendGameMessage(message: DiscordMessage)
 
     /**
      * Enqueues the editing of the target game message to have the content produced by the provided function.

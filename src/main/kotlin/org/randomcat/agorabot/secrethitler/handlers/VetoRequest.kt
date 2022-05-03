@@ -88,7 +88,7 @@ private fun doStateUpdate(
 
 private val BUTTON_EXPIRY = Duration.ofDays(1)
 
-private fun sendVetoRequestNotification(
+private suspend fun sendVetoRequestNotification(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     presidentName: SecretHitlerPlayerExternalName,
@@ -137,7 +137,7 @@ private fun sendVetoRequestNotification(
     )
 }
 
-fun doHandleSecretHitlerChancellorVetoRequest(
+suspend fun doHandleSecretHitlerChancellorVetoRequest(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,

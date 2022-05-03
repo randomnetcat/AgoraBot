@@ -15,7 +15,7 @@ import java.time.Duration
 
 private val BUTTON_EXPIRY = Duration.ofDays(1)
 
-private fun sendPlayerSelectPowerNotification(
+private suspend fun sendPlayerSelectPowerNotification(
     context: SecretHitlerGameContext,
     powerName: String,
     description: String,
@@ -78,14 +78,14 @@ private fun sendPlayerSelectPowerNotification(
     )
 }
 
-fun sendSecretHitlerPowerActivatedMessages(
+suspend fun sendSecretHitlerPowerActivatedMessages(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PolicyPending>,
 ) {
     val presidentNumber = currentState.ephemeralState.presidentNumber
 
-    fun doSendSelectMessage(
+    suspend fun doSendSelectMessage(
         powerName: String,
         powerDescription: String,
         selectVerb: String,

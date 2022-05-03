@@ -23,7 +23,7 @@ private val SecretHitlerWinResult.winMessage: String
         }
     }
 
-fun sendSecretHitlerWinMessage(
+suspend fun sendSecretHitlerWinMessage(
     context: SecretHitlerGameContext,
     winResult: SecretHitlerWinResult,
 ) {

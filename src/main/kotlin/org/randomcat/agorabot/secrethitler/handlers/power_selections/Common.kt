@@ -101,7 +101,7 @@ internal inline fun <reified E, R> SecretHitlerGameList.updateGameForPowerSelect
     )
 }
 
-fun sendSecretHitlerCommonPowerSelectionNotification(
+suspend fun sendSecretHitlerCommonPowerSelectionNotification(
     context: SecretHitlerGameContext,
     title: String,
     description: String,

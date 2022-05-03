@@ -105,7 +105,7 @@ private fun doApprovalStateUpdate(
     )
 }
 
-private fun sendGenericVetoNotification(
+private suspend fun sendGenericVetoNotification(
     context: SecretHitlerGameContext,
     presidentName: SecretHitlerPlayerExternalName,
     title: String,
@@ -126,7 +126,7 @@ private fun sendGenericVetoNotification(
     )
 }
 
-private fun sendVetoApprovedNotification(
+private suspend fun sendVetoApprovedNotification(
     context: SecretHitlerGameContext,
     presidentName: SecretHitlerPlayerExternalName,
 ) {
@@ -138,7 +138,7 @@ private fun sendVetoApprovedNotification(
     )
 }
 
-fun doHandleSecretHitlerPresidentVetoApproval(
+suspend fun doHandleSecretHitlerPresidentVetoApproval(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,
@@ -204,7 +204,7 @@ private fun doRejectionStateUpdate(
     )
 }
 
-private fun sendVetoRejectedNotification(
+private suspend fun sendVetoRejectedNotification(
     context: SecretHitlerGameContext,
     presidentName: SecretHitlerPlayerExternalName,
 ) {
@@ -216,7 +216,7 @@ private fun sendVetoRejectedNotification(
     )
 }
 
-fun doHandleSecretHitlerPresidentVetoRejection(
+suspend fun doHandleSecretHitlerPresidentVetoRejection(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,
