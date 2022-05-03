@@ -124,7 +124,7 @@ private fun ChancellorPolicySelectedHandlerUpdateResult.Success.effectivePower()
 }
 
 
-fun doHandleSecretHitlerChancellorPolicySelected(
+suspend fun doHandleSecretHitlerChancellorPolicySelected(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,
@@ -218,7 +218,7 @@ fun doHandleSecretHitlerChancellorPolicySelected(
     }
 }
 
-private fun sendPolicyPeekMessages(
+private suspend fun sendPolicyPeekMessages(
     context: SecretHitlerInteractionContext,
     gameId: SecretHitlerGameId,
     playerMap: SecretHitlerPlayerMap,

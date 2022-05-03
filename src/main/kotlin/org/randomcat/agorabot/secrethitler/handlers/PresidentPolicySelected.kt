@@ -65,7 +65,7 @@ private fun doStateUpdate(
     )
 }
 
-internal fun doHandleSecretHitlerPresidentPolicySelected(
+internal suspend fun doHandleSecretHitlerPresidentPolicySelected(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,

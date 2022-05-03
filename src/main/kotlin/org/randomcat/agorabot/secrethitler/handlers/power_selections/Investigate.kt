@@ -61,7 +61,7 @@ private val SecretHitlerParty.readableName: String
         SecretHitlerParty.FASCIST -> "Fascist"
     }
 
-private fun sendInvestigationResultMessages(
+private suspend fun sendInvestigationResultMessages(
     context: SecretHitlerInteractionContext,
     gameId: SecretHitlerGameId,
     presidentName: SecretHitlerPlayerExternalName,
@@ -88,7 +88,7 @@ private fun sendInvestigationResultMessages(
     )
 }
 
-fun doHandleSecretHitlerPresidentInvestigatePowerSelection(
+suspend fun doHandleSecretHitlerPresidentInvestigatePowerSelection(
     repository: SecretHitlerRepository,
     context: SecretHitlerInteractionContext,
     event: ButtonInteractionEvent,

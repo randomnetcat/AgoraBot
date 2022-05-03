@@ -14,7 +14,7 @@ import java.time.Duration
 
 private val PRESIDENT_POLICY_CHOICE_EXPIRY = Duration.ofDays(1)
 
-private inline fun sendPolicySelectionMessage(
+private inline suspend fun sendPolicySelectionMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     description: String,
@@ -77,7 +77,7 @@ private inline fun sendPolicySelectionMessage(
     )
 }
 
-fun sendSecretHitlerPresidentPolicySelectionMessage(
+suspend fun sendSecretHitlerPresidentPolicySelectionMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.PresidentPolicyChoicePending>,
@@ -105,7 +105,7 @@ fun sendSecretHitlerPresidentPolicySelectionMessage(
 private val SecretHitlerGlobalGameState.chancellorCanVeto
     get() = boardState.policiesState.fascistPoliciesEnacted >= configuration.vetoUnlockRequirement
 
-fun sendSecretHitlerChancellorPolicySelectionMessage(
+suspend fun sendSecretHitlerChancellorPolicySelectionMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     state: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.ChancellorPolicyChoicePending>,

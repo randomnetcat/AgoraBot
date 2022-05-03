@@ -12,13 +12,13 @@ interface SecretHitlerButtonContext {
 }
 
 interface SecretHitlerPrivateMessageContext {
-    fun sendPrivateMessage(
+    suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
         message: String,
     )
 
-    fun sendPrivateMessage(
+    suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
         message: DiscordMessage,

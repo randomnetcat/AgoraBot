@@ -93,7 +93,7 @@ private class MessageContextImpl(
     private val contextGameId: SecretHitlerGameId,
     private val editChannel: SendChannel<MessageEditQueueEntry>,
 ) : SecretHitlerMessageContext {
-    override fun sendPrivateMessage(
+    override suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
         message: String,
@@ -101,13 +101,11 @@ private class MessageContextImpl(
         sendPrivateMessage(recipient, gameId, MessageBuilder(message).build())
     }
 
-    private fun queuePrivateMessage(recipientId: String, message: DiscordMessage) {
-        gameMessageChannel.jda.openPrivateChannelById(recipientId).queue { channel ->
-            channel.sendMessage(message).queue()
-        }
+    private suspend fun sendRawPrivateMessage(recipientId: String, message: DiscordMessage) {
+        gameMessageChannel.jda.openPrivateChannelById(recipientId).await().sendMessage(message).await()
     }
 
-    override fun sendPrivateMessage(
+    override suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
         message: DiscordMessage,
@@ -128,12 +126,12 @@ private class MessageContextImpl(
                         .build()
 
                 for (userId in impersonationIds) {
-                    queuePrivateMessage(userId, adjustedMessage)
+                    sendRawPrivateMessage(userId, adjustedMessage)
                 }
             }
 
             rawName.asSnowflakeOrNull() != null -> {
-                queuePrivateMessage(rawName, messageWithId)
+                sendRawPrivateMessage(rawName, messageWithId)
             }
 
             else -> {
@@ -158,7 +156,7 @@ private class MessageContextImpl(
 }
 
 private object NullMessageContext : SecretHitlerMessageContext {
-    override fun sendPrivateMessage(
+    override suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
         message: String,
@@ -166,7 +164,7 @@ private object NullMessageContext : SecretHitlerMessageContext {
         // Intentionally do nothing.
     }
 
-    override fun sendPrivateMessage(
+    override suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
         message: DiscordMessage,
