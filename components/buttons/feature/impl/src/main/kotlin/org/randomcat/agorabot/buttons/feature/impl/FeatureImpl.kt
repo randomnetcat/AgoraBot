@@ -8,8 +8,11 @@ import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.buttons.feature.ButtonRequestDataMapTag
 import org.randomcat.agorabot.buttons.feature.buttonHandlerMap
+import org.randomcat.agorabot.buttons.impl.ButtonDataStorageVersion
 import org.randomcat.agorabot.buttons.impl.JsonButtonRequestDataMap
+import org.randomcat.agorabot.buttons.impl.migrateButtonsStorage
 import org.randomcat.agorabot.config.persist.feature.configPersistService
+import org.randomcat.agorabot.versioning_storage.feature.api.versioningStorage
 import java.nio.file.Path
 import java.time.Clock
 import kotlin.reflect.KClass
@@ -42,6 +45,9 @@ private data class ButtonStorageConfig(
 
 private object ButtonRequestDataMapCacheKey
 
+private const val COMPONENT_VERSION_NAME = "button_storage_default"
+private val CURRENT_STORAGE_VERSION = ButtonDataStorageVersion.JSON_VALUES_STRINGS
+
 @FeatureSourceFactory
 fun buttonStorageFactory() = object : FeatureSource {
     override val featureName: String
@@ -59,9 +65,24 @@ fun buttonStorageFactory() = object : FeatureSource {
         return object : Feature {
             override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
                 if (tag is ButtonRequestDataMapTag) return tag.result(context.cache(ButtonRequestDataMapCacheKey) {
+                    val serializersModule =
+                        makeSerializersModule(buttonRequestTypes = context.buttonHandlerMap.handledClasses)
+
+                    migrateButtonsStorage(
+                        storagePath = config.storagePath,
+                        serializersModule = serializersModule,
+                        oldVersion = context.versioningStorage
+                            .versionFor(COMPONENT_VERSION_NAME)
+                            ?.let { ButtonDataStorageVersion.valueOf(it) }
+                            ?: ButtonDataStorageVersion.JSON_VALUES_INLINE,
+                        newVersion = CURRENT_STORAGE_VERSION,
+                    )
+
+                    context.versioningStorage.setVersion(COMPONENT_VERSION_NAME, CURRENT_STORAGE_VERSION.name)
+
                     JsonButtonRequestDataMap(
                         storagePath = config.storagePath,
-                        serializersModule = makeSerializersModule(buttonRequestTypes = context.buttonHandlerMap.handledClasses),
+                        serializersModule = serializersModule,
                         clock = Clock.systemUTC(),
                         persistService = context.configPersistService,
                     )

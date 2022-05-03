@@ -84,6 +84,9 @@ dependencies {
     implementation(projects.components.communityMessage.feature.api)
     runtimeOnly(projects.components.communityMessage.feature.impl)
 
+    implementation(projects.components.versioningStorage.feature.api)
+    runtimeOnly(projects.components.versioningStorage.feature.impl)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)

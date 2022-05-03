@@ -59,19 +59,25 @@ inline fun <T : Any> FeatureContext.alwaysCloseObject(producer: () -> T, crossin
  * Exceptions thrown by queries are ignored, and such queries are considered unsuccessful.
  */
 fun <T> FeatureContext.queryExpectOne(tag: FeatureElementTag<T>): T {
-    val results =
-        tryQueryAll(tag)
+    val allResults = tryQueryAll(tag)
+
+    val successResults =
+        allResults
             .values
             .filter { it.isSuccess }
             .map { it.getOrThrow() }
             .filterIsInstance<FeatureQueryResult.Found<T>>()
 
-    if (results.size == 1) return results.single().value
+    if (successResults.size == 1) return successResults.single().value
 
-    if (results.isEmpty()) {
-        throw IllegalArgumentException("Unable to find feature element with tag $tag")
+    if (successResults.isEmpty()) {
+        throw IllegalArgumentException("Unable to find feature element with tag $tag").also { e ->
+            allResults.values.filter { it.isFailure }.forEach {
+                e.addSuppressed(it.exceptionOrNull() ?: error("Should have exception"))
+            }
+        }
     } else {
-        throw IllegalArgumentException("Found multiple feature elements with tag $tag: $results")
+        throw IllegalArgumentException("Found multiple feature elements with tag $tag: $successResults")
     }
 }
 

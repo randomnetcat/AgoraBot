@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.config
+package org.randomcat.agorabot.versioning_storage.impl
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.toPersistentMap
@@ -6,6 +6,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.util.withTempFile
+import org.randomcat.agorabot.versioning_storage.api.VersioningStorage
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -13,11 +14,6 @@ import java.nio.file.StandardOpenOption
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-
-interface VersioningStorage {
-    fun versionFor(component: String): String?
-    fun setVersion(component: String, version: String)
-}
 
 class JsonVersioningStorage(private val storagePath: Path) : VersioningStorage {
     companion object {

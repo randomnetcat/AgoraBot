@@ -1,8 +1,8 @@
-package org.randomcat.agorabot.features
+package org.randomcat.agorabot.versioning_storage.feature.impl
 
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.config.JsonVersioningStorage
-import org.randomcat.agorabot.config.VersioningStorageTag
+import org.randomcat.agorabot.versioning_storage.feature.api.VersioningStorageTag
+import org.randomcat.agorabot.versioning_storage.impl.JsonVersioningStorage
 import java.nio.file.Path
 
 private data class VersioningStorageConfig(

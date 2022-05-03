@@ -10,6 +10,7 @@ dependencies {
     implementation(projects.components.buttons.impl)
     implementation(projects.components.buttons.feature.api)
     implementation(projects.components.persist.feature.api)
+    implementation(projects.components.versioningStorage.feature.api)
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.kotlinx.serialization.json)
 }
