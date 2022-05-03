@@ -36,7 +36,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handleChancellorSelection(
+    suspend fun handleChancellorSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -64,7 +64,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handlePresidentPolicySelection(
+    suspend fun handlePresidentPolicySelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -78,7 +78,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handleChancellorPolicySelection(
+    suspend fun handleChancellorPolicySelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -92,7 +92,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handlePresidentInvestigatePowerSelection(
+    suspend fun handlePresidentInvestigatePowerSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -106,7 +106,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handlePresidentSpecialElectionPowerSelection(
+    suspend fun handlePresidentSpecialElectionPowerSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -120,7 +120,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handlePresidentExecutePowerSelection(
+    suspend fun handlePresidentExecutePowerSelection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -134,7 +134,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handleChancellorVetoRequest(
+    suspend fun handleChancellorVetoRequest(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -148,7 +148,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handlePresidentVetoApproval(
+    suspend fun handlePresidentVetoApproval(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
@@ -162,7 +162,7 @@ object SecretHitlerButtons {
         )
     }
 
-    fun handlePresidentVetoRejection(
+    suspend fun handlePresidentVetoRejection(
         repository: SecretHitlerRepository,
         context: SecretHitlerInteractionContext,
         event: ButtonInteractionEvent,
