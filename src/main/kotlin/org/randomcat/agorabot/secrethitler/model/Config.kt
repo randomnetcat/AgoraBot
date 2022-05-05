@@ -66,7 +66,7 @@ private val POWERS_7_OR_8 = persistentListOf(
 )
 
 private val POWERS_9_OR_10 = persistentListOf(
-    null,
+    SecretHitlerFascistPower.INVESTIGATE_PARTY,
     SecretHitlerFascistPower.INVESTIGATE_PARTY,
     SecretHitlerFascistPower.SPECIAL_ELECTION,
     SecretHitlerFascistPower.EXECUTE_PLAYER,
