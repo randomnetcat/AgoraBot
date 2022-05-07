@@ -15,6 +15,9 @@ import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.secrethitler.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerCommandContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerMessageContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.handlers.*
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.handleStart
 import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerHandlers.sendJoinLeaveMessage

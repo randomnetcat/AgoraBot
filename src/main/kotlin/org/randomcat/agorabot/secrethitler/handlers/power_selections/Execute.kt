@@ -3,7 +3,7 @@ package org.randomcat.agorabot.secrethitler.handlers.power_selections
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingExecutionSelectionButtonDescriptor
-import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerInteractionContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
 import org.randomcat.agorabot.secrethitler.handlers.sendSecretHitlerWinMessage
 import org.randomcat.agorabot.secrethitler.model.*

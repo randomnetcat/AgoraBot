@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.secrethitler.handlers
+package org.randomcat.agorabot.secrethitler.context
 
 import net.dv8tion.jda.api.interactions.Interaction
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor

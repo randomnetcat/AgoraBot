@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentAcceptVetoButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentRejectVetoButtonDescriptor
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState

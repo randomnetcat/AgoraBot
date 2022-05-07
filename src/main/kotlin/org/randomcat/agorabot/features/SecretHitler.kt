@@ -26,7 +26,11 @@ import org.randomcat.agorabot.config.readConfigFromFile
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.secrethitler.*
 import org.randomcat.agorabot.secrethitler.buttons.*
-import org.randomcat.agorabot.secrethitler.handlers.*
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerMessageContext
+import org.randomcat.agorabot.secrethitler.context.SecretHitlerNameContext
+import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.setup.features.featureConfigDir
