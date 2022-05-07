@@ -4,7 +4,6 @@ import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
 
-@OptIn(ExperimentalStdlibApi::class)
 private fun randomAssignRoles(
     players: Set<SecretHitlerPlayerNumber>,
     roleConfiguration: SecretHitlerRoleConfiguration,
@@ -61,7 +60,6 @@ internal suspend fun doHandleSecretHitlerStart(
                         return underlyingResult.newState.globalState.playerMap.playerByNumberKnown(number)
                     }
 
-                    @OptIn(ExperimentalStdlibApi::class)
                     val messageMap: Map<SecretHitlerPlayerNumber, String> = buildMap {
                         val roleMap = underlyingResult.newState.globalState.roleMap
 

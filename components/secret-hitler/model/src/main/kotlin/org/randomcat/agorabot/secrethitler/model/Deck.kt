@@ -147,7 +147,6 @@ data class SecretHitlerDeckState(
 
     object RandomShuffleProvider : ShuffleProvider {
         override fun initialDeck(): SecretHitlerDrawDeckState {
-            @OptIn(ExperimentalStdlibApi::class)
             return SecretHitlerDrawDeckState(buildList {
                 repeat(TOTAL_FASCIST_COUNT) { add(SecretHitlerPolicyType.FASCIST) }
                 repeat(TOTAL_LIBERAL_COUNT) { add(SecretHitlerPolicyType.LIBERAL) }
@@ -159,7 +158,6 @@ data class SecretHitlerDeckState(
             remainingDrawPile: List<SecretHitlerPolicyType>,
             discardPile: List<SecretHitlerPolicyType>,
         ): SecretHitlerDrawDeckState {
-            @OptIn(ExperimentalStdlibApi::class)
             return SecretHitlerDrawDeckState(buildList {
                 addAll(remainingDrawPile)
                 addAll(discardPile.shuffled())
