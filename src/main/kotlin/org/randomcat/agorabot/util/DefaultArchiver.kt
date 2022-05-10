@@ -250,13 +250,25 @@ private suspend fun archiveChannel(
             try {
                 textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
                     jsonPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { jsonOut ->
-                        receiveMessages(
-                            messageChannel = forwardHistoryChannelOf(channel, bufferCapacity = 100),
-                            attachmentChannel = attachmentChannel,
-                            globalDataChannel = globalDataChannel,
-                            textOut = textOut,
-                            jsonOut = jsonOut,
-                        )
+                        coroutineScope {
+                            val messageChannel = Channel<DiscordMessage>(capacity = 100)
+
+                            launch {
+                                receiveMessages(
+                                    messageChannel = messageChannel,
+                                    attachmentChannel = attachmentChannel,
+                                    globalDataChannel = globalDataChannel,
+                                    textOut = textOut,
+                                    jsonOut = jsonOut,
+                                )
+                            }
+
+                            try {
+                                channel.sendForwardHistoryTo(messageChannel)
+                            } finally {
+                                messageChannel.close()
+                            }
+                        }
                     }
                 }
             } finally {
