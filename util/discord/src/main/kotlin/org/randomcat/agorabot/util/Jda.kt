@@ -1,11 +1,6 @@
 package org.randomcat.agorabot.util
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.produce
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
@@ -83,30 +78,8 @@ private fun MessageChannel.retrieveEarliestMessage(): RestAction<Message?> {
     }
 }
 
-fun CoroutineScope.forwardHistoryChannelOf(
-    discordChannel: MessageChannel,
-    bufferCapacity: Int = 0,
-): ReceiveChannel<Message> {
-    require(bufferCapacity != Channel.CONFLATED) // CONFLATED makes no sense here
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    return produce(Dispatchers.IO, capacity = bufferCapacity) {
-        var lastRetrievedMessage = discordChannel.retrieveEarliestMessage().await() ?: return@produce
-        send(lastRetrievedMessage)
-
-        while (true) {
-            val nextHistory =
-                discordChannel.getHistoryAfter(lastRetrievedMessage, JDA_HISTORY_MAX_RETRIEVE_LIMIT).await()
-
-            if (nextHistory.isEmpty) {
-                return@produce
-            }
-
-            // retrievedHistory is always newest -> oldest, we want oldest -> newest
-            val nextMessages = nextHistory.retrievedHistory.asReversed()
-
-            nextMessages.forEach { send(it) }
-            lastRetrievedMessage = nextMessages.last()
-        }
+suspend fun MessageChannel.sendForwardHistoryTo(channel: SendChannel<DiscordMessage>) {
+    this.iterableHistory.reverse().iterator().forEach {
+        channel.send(it)
     }
 }
