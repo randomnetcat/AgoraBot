@@ -37,22 +37,22 @@ class PrefixCommand(
                     InGuildSimple
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
-                ) { (newPrefix) ->
+                ) cmd@{ (newPrefix) ->
                     val guildId = currentGuildInfo.guildId
 
                     if (newPrefix.isBlank()) {
                         respond("The prefix cannot be empty. Stop it.")
-                        return@permissions
+                        return@cmd
                     }
 
                     if (newPrefix.any { PROHIBITED_CATEGORIES.contains(it.category) }) {
                         respond("The specified prefix contains an illegal character.")
-                        return@permissions
+                        return@cmd
                     }
 
                     if (prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
                         respond("That's already a prefix.")
-                        return@permissions
+                        return@cmd
                     }
 
                     prefixMap.addPrefixForGuild(guildId, newPrefix)
@@ -67,12 +67,12 @@ class PrefixCommand(
                     InGuildSimple
                 ).permissions(
                     GuildScope.command("prefix").action("set"),
-                ) { (newPrefix) ->
+                ) cmd@{ (newPrefix) ->
                     val guildId = currentGuildInfo.guildId
 
                     if (!prefixMap.prefixesForGuild(guildId).contains(newPrefix)) {
                         respond("That's not a prefix.")
-                        return@permissions
+                        return@cmd
                     }
 
                     prefixMap.removePrefixForGuild(guildId, newPrefix)

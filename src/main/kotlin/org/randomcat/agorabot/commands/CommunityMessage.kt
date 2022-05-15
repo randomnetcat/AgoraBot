@@ -54,26 +54,26 @@ class CommunityMessageCommand(
             subcommand("create") {
                 args(StringArg("name"), StringArg("channel_id"))
                     .requires(InGuildSimple)
-                    .permissions(globalCommandPermission(PERMISSION_ACTION_CREATE)) { (name, targetChannelId) ->
+                    .permissions(globalCommandPermission(PERMISSION_ACTION_CREATE)) cmd@{ (name, targetChannelId) ->
                         val guildStorage = globalStorage.storageForGuild(currentGuildId)
 
                         val targetChannel = currentGuild.getTextChannelById(targetChannelId)
 
                         if (targetChannel == null) {
                             respond("Unable to find a channel with that id.")
-                            return@permissions
+                            return@cmd
                         }
 
                         val senderMember = currentMessageEvent.member
 
                         if (senderMember == null) {
                             respond("This command does not support webhooks.")
-                            return@permissions
+                            return@cmd
                         }
 
                         if (!targetChannel.canTalk(senderMember)) {
                             respond("You do not have permission to send messages in that channel.")
-                            return@permissions
+                            return@cmd
                         }
 
                         val newMessage = try {
@@ -83,7 +83,7 @@ class CommunityMessageCommand(
                                 .await()
                         } catch (e: Exception) {
                             respond("Unable to create message in that channel.")
-                            return@permissions
+                            return@cmd
                         }
 
                         val storageResult = guildStorage.createMessage(
@@ -100,7 +100,7 @@ class CommunityMessageCommand(
 
                         if (!storageResult) {
                             respond("Unable to store record of message.")
-                            return@permissions
+                            return@cmd
                         }
 
                         respond("Created.")
@@ -110,14 +110,14 @@ class CommunityMessageCommand(
             subcommand("revise") {
                 args(StringArg("name"), StringArg("source_id"))
                     .help("Sets the content of the specified community message to the content of the specified source message (which must be in the same channel as the command this is run). Does not copy attachments.")
-                    .requires(InGuild) { (name, sourceId) ->
+                    .requires(InGuild) cmd@{ (name, sourceId) ->
                         val guildStorage = globalStorage.storageForGuild(currentGuildId)
 
                         val messageMetadata = guildStorage.messageMetadata(name)
 
                         if (messageMetadata == null) {
                             respond("Unable to find a community message with that name.")
-                            return@requires
+                            return@cmd
                         }
 
                         val sourceMessage =
@@ -125,14 +125,14 @@ class CommunityMessageCommand(
 
                         if (sourceMessage == null) {
                             respond("Unable to find source message in \\*this\\* channel.")
-                            return@requires
+                            return@cmd
                         }
 
                         val permission = groupCommandPermission(PERMISSION_ACTION_EDIT, messageMetadata.group)
 
                         if (!senderHasPermission(permission)) {
                             respond("You do not have permission to remove that message; need ${permission.readable()}")
-                            return@requires
+                            return@cmd
                         }
 
                         val content = sourceMessage.contentRaw
@@ -148,7 +148,7 @@ class CommunityMessageCommand(
 
                         if (revisionNumber == null) {
                             respond("Unable to store revision.")
-                            return@requires
+                            return@cmd
                         }
 
                         val targetMessage = runCatching {
@@ -160,14 +160,14 @@ class CommunityMessageCommand(
 
                         if (targetMessage == null) {
                             respond("Unable to find target message.")
-                            return@requires
+                            return@cmd
                         }
 
                         try {
                             targetMessage.editMessage(content).disallowMentions().await()
                         } catch (e: Exception) {
                             respond("Unable to edit target message.")
-                            return@requires
+                            return@cmd
                         }
 
                         respond("Edited. Revision number: ${revisionNumber.value}")
@@ -191,20 +191,20 @@ class CommunityMessageCommand(
             }
 
             subcommand("remove") {
-                args(StringArg("name")).requires(InGuild) { (name) ->
+                args(StringArg("name")).requires(InGuild) cmd@{ (name) ->
                     val guildStorage = globalStorage.storageForGuild(currentGuildId)
 
                     val metadata = guildStorage.messageMetadata(name)
 
                     if (metadata == null) {
                         respond("Unable to find the specified message.")
-                        return@requires
+                        return@cmd
                     }
 
                     val permission = groupCommandPermission(action = PERMISSION_ACTION_REMOVE, group = metadata.group)
                     if (!senderHasPermission(permission)) {
                         respond("You do not have permission to remove that message; need: ${permission.readable()}")
-                        return@requires
+                        return@cmd
                     }
 
                     if (guildStorage.removeMessage(name)) {
@@ -217,7 +217,7 @@ class CommunityMessageCommand(
                                 ?.await()
 
                             respond("Removed entry and deleted message.")
-                            return@requires
+                            return@cmd
                         } catch (e: Exception) {
                             // Ignored.
                         }
@@ -230,10 +230,10 @@ class CommunityMessageCommand(
             }
 
             subcommand("group") {
-                args(StringArg("name"), StringArg("new_group")).requires(InGuild) { (name, newGroup) ->
+                args(StringArg("name"), StringArg("new_group")).requires(InGuild) cmd@{ (name, newGroup) ->
                     if (newGroup == UNGROUPED) {
                         respond("Cannot de-group an grouped message.")
-                        return@requires
+                        return@cmd
                     }
 
                     val guildStorage = globalStorage.storageForGuild(currentGuildId)
@@ -242,7 +242,7 @@ class CommunityMessageCommand(
 
                     if (metadata == null) {
                         respond("Unable to find the specified message.")
-                        return@requires
+                        return@cmd
                     }
 
                     val expectedGroup = metadata.group
@@ -250,14 +250,14 @@ class CommunityMessageCommand(
                     val newGroupPermission = groupCommandPermission(action = PERMISSION_ACTION_GROUP, group = newGroup)
                     if (!senderHasPermission(newGroupPermission)) {
                         respond("You do not have permission to add that message to that group; need: ${newGroupPermission.readable()}")
-                        return@requires
+                        return@cmd
                     }
 
                     val degroupPermission =
                         groupCommandPermission(action = PERMISSION_ACTION_GROUP, group = metadata.group)
                     if (!senderHasPermission(degroupPermission)) {
                         respond("You do not have permission to remove that message from that group; need: ${degroupPermission.readable()}")
-                        return@requires
+                        return@cmd
                     }
 
                     var didUpdate = false
@@ -274,7 +274,7 @@ class CommunityMessageCommand(
 
                     if (!didUpdate || !updateResult) {
                         respond("Could not update message metadata.")
-                        return@requires
+                        return@cmd
                     }
 
                     respond("Done.")

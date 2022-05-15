@@ -52,7 +52,7 @@ class ArchiveCommand(
         matchFirst {
             args(RemainingStringArgs("marker_or_id"))
                 .requires(InGuild)
-                .permissions(ARCHIVE_PERMISSION) { (args) ->
+                .permissions(ARCHIVE_PERMISSION) cmd@{ (args) ->
                     val isStoreLocally = args.contains("store_locally")
                     val isCategoryIds = args.contains("categories")
 
@@ -60,7 +60,7 @@ class ArchiveCommand(
 
                     if (isStoreLocally && !senderHasPermission(BotScope.admin())) {
                         respond("Archives can only be stored locally by bot admins.")
-                        return@permissions
+                        return@cmd
                     }
 
                     val channelIds = if (isCategoryIds) {
@@ -69,7 +69,7 @@ class ArchiveCommand(
                                 currentGuild.getCategoryById(id).also {
                                     if (it == null) {
                                         respond("Unable to find category by id $it")
-                                        return@permissions
+                                        return@cmd
                                     }
                                 }
                             }

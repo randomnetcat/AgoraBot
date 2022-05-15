@@ -106,7 +106,7 @@ class HelpCommand(
                 }
             }
 
-            args(StringArg("command")) { (commandName) ->
+            args(StringArg("command")) cmd@{ (commandName) ->
                 val commands = commands()
 
                 if (commands.containsKey(commandName)) {
@@ -114,7 +114,7 @@ class HelpCommand(
 
                     if (command !is BaseCommand) {
                         respond("No help is available for this command.")
-                        return@args
+                        return@cmd
                     }
 
                     val usage = command.usage()

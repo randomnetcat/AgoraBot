@@ -118,10 +118,10 @@ class DigestCommand(
 
             subcommand("add") {
                 matchFirst {
-                    args(StringArg("message_id")).digestAction { (messageId) ->
+                    args(StringArg("message_id")).digestAction cmd@{ (messageId) ->
                         val digest = currentDigest()
 
-                        val message = getMessageOrError(messageId) ?: return@digestAction
+                        val message = getMessageOrError(messageId) ?: return@cmd
 
                         val digestMessage = message.retrieveDigestMessage().await()
 
@@ -136,18 +136,18 @@ class DigestCommand(
                     args(
                         StringArg("range_begin"),
                         StringArg("range_end"),
-                    ).digestAction { (rangeBeginId, rangeEndId) ->
+                    ).digestAction cmd@{ (rangeBeginId, rangeEndId) ->
                         val digest = currentDigest()
 
-                        val rangeBegin = getMessageOrError(rangeBeginId) ?: return@digestAction
-                        val rangeEnd = getMessageOrError(rangeEndId) ?: return@digestAction
+                        val rangeBegin = getMessageOrError(rangeBeginId) ?: return@cmd
+                        val rangeEnd = getMessageOrError(rangeEndId) ?: return@cmd
 
                         val rangeBeginTime = rangeBegin.timeCreated
                         val rangeEndTime = rangeEnd.timeCreated
 
                         if (rangeBeginTime > rangeEndTime) {
                             respond("Range start cannot be before range end.")
-                            return@digestAction
+                            return@cmd
                         }
 
                         val messages = retrieveMessagesBetween(rangeBegin, rangeEnd).await()

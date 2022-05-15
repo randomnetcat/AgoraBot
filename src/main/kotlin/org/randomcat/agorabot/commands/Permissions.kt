@@ -100,13 +100,13 @@ class PermissionsCommand(
                     InGuild
                 ).permissions(
                     MANAGE_GUILD_PERMISSIONS_PERMISSION,
-                ) { (roleString, stringPath) ->
+                ) cmd@{ (roleString, stringPath) ->
                     val guildInfo = currentGuildInfo
 
                     val role = guildInfo.resolveRole(roleString)
                     if (role == null) {
                         respond("Unable to locate single role with name/id \"$roleString\".")
-                        return@permissions
+                        return@cmd
                     }
 
                     handleGuildSetState(

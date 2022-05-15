@@ -12,22 +12,22 @@ import javax.imageio.ImageIO
 
 class CheckSquareCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
-        noArgs().requires(InDiscordSimple) { _ ->
+        noArgs().requires(InDiscordSimple) cmd@{ _ ->
             if (currentMessageEvent.message.type != MessageType.INLINE_REPLY) {
                 respond("This command must be sent in a reply to a message.")
-                return@requires
+                return@cmd
             }
 
             val targetMessage = currentMessageEvent.message.referencedMessage
 
             if (targetMessage == null) {
                 respond("Unable to load referenced message.")
-                return@requires
+                return@cmd
             }
 
             if (targetMessage.attachments.size != 1) {
                 respond("The replied to message must have a single attachment.")
-                return@requires
+                return@cmd
             }
 
             val attachment = targetMessage.attachments.single()
@@ -36,7 +36,7 @@ class CheckSquareCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) 
                 attachment.retrieveInputStream().await()
             } catch (e: Exception) {
                 respond("Unable to retrieve attachment.")
-                return@requires
+                return@cmd
             }
 
             inputStream.use {
@@ -44,7 +44,7 @@ class CheckSquareCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) 
 
                 if (image == null) {
                     respond("Unable to parse image.")
-                    return@requires
+                    return@cmd
                 }
 
                 val height = image.height
