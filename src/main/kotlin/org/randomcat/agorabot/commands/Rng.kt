@@ -15,24 +15,24 @@ private fun BigInteger.toLongOrNull(): Long? {
 class RngCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
-            args(IntArg("max")) { (bigMax) ->
+            args(IntArg("max")) cmd@{ (bigMax) ->
                 val max = bigMax.toLongOrNull() ?: run {
                     respond("Provided maximum is invalid.")
-                    return@args
+                    return@cmd
                 }
 
                 doResponse(min = 1, max = max)
             }
 
-            args(IntArg("min"), IntArg("max")) { (bigMin, bigMax) ->
+            args(IntArg("min"), IntArg("max")) cmd@{ (bigMin, bigMax) ->
                 val min = bigMin.toLongOrNull() ?: run {
                     respond("Provided minimum is invalid.")
-                    return@args
+                    return@cmd
                 }
 
                 val max = bigMax.toLongOrNull() ?: run {
                     respond("Provided maximum is invalid.")
-                    return@args
+                    return@cmd
                 }
 
                 doResponse(min = min, max = max)
