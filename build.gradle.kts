@@ -89,6 +89,7 @@ dependencies {
 
     implementation(projects.components.secretHitler.model)
     implementation(projects.components.secretHitler.context)
+    implementation(projects.components.secretHitler.buttonData)
 
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
