@@ -198,7 +198,7 @@ class SecretHitlerCommand(
                                 }
 
                                 is SecretHitlerEphemeralState.VotingOngoing -> {
-                                    doSendSecretHitlerVotingMessage(
+                                    sendSecretHitlerVotingMessage(
                                         context = context,
                                         gameId = gameId,
                                         gameState = gameState.assumeWith<SecretHitlerEphemeralState.VotingOngoing>(),

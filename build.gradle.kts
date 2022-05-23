@@ -92,6 +92,7 @@ dependencies {
     implementation(projects.components.secretHitler.buttonData)
     implementation(projects.components.secretHitler.storage.api)
     implementation(projects.components.secretHitler.storage.impl)
+    implementation(projects.components.secretHitler.handlers)
 
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)

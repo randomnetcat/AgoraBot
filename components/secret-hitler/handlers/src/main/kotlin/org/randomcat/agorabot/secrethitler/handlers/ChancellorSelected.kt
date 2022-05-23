@@ -98,7 +98,7 @@ internal suspend fun doHandleSecretHitlerChancellorSelect(
 
         when (result) {
             is ChancellorSelectResult.Success -> {
-                doSendSecretHitlerVotingMessage(
+                sendSecretHitlerVotingMessage(
                     context = context,
                     gameId = gameId,
                     gameState = result.newState,

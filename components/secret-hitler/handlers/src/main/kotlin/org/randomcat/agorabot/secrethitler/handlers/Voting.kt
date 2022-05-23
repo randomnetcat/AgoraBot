@@ -125,7 +125,7 @@ private fun formatVotingMessage(
         .build()
 }
 
-internal suspend fun doSendSecretHitlerVotingMessage(
+suspend fun sendSecretHitlerVotingMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     gameState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
