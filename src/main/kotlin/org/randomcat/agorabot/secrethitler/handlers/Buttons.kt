@@ -1,12 +1,12 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.*
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSecretHitlerPresidentExecutePowerSelection
 import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSecretHitlerPresidentInvestigatePowerSelection
 import org.randomcat.agorabot.secrethitler.handlers.power_selections.doHandleSecretHitlerPresidentSpecialElectionPowerSelection
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 
 object SecretHitlerButtons {
     suspend fun handleJoin(

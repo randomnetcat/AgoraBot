@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerCommandContext
@@ -15,7 +14,8 @@ import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContex
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerNameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
-import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.storage.api.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.handleTextResponse
 import java.time.Duration

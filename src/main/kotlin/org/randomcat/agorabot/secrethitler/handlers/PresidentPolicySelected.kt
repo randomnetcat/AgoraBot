@@ -1,7 +1,6 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentPolicyChoiceButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
@@ -9,10 +8,11 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.model.transitions.afterPresidentPolicySelected
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
 private sealed class PresidentPolicySelectedResult {
     data class Success(

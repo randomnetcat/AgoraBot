@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.secrethitler
+package org.randomcat.agorabot.secrethitler.storage.api
 
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
@@ -52,9 +52,10 @@ inline fun <reified T : SecretHitlerGameState, R> SecretHitlerGameList.updateGam
     }
 }
 
+@PublishedApi
 internal object SecretHitlerValidExtractNotSet
 
-internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameList.updateGameTypedWithValidExtract(
+inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameList.updateGameTypedWithValidExtract(
     id: SecretHitlerGameId,
     onNoSuchGame: () -> R,
     onInvalidType: (invalidGame: SecretHitlerGameState) -> R,
@@ -87,9 +88,10 @@ internal inline fun <reified T : SecretHitlerGameState, VE, R> SecretHitlerGameL
     )
 }
 
+@PublishedApi
 internal object SecretHitlerInvalidRunningGameMarker
 
-internal inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitlerGameList.updateRunningGameWithValidExtract(
+inline fun <reified E : SecretHitlerEphemeralState, VE, R> SecretHitlerGameList.updateRunningGameWithValidExtract(
     id: SecretHitlerGameId,
     onNoSuchGame: () -> R,
     onInvalidType: () -> R, // Does not accept game in order to ease implementation. May revisit later.
@@ -130,7 +132,7 @@ sealed class SecretHitlerUpdateValidationResult<out ErrorResult, out ValidResult
     ) : SecretHitlerUpdateValidationResult<Nothing, ValidResult>()
 }
 
-internal inline fun <reified E : SecretHitlerEphemeralState, R, CheckValid> SecretHitlerGameList.updateRunningGameWithValidation(
+inline fun <reified E : SecretHitlerEphemeralState, R, CheckValid> SecretHitlerGameList.updateRunningGameWithValidation(
     id: SecretHitlerGameId,
     onNoSuchGame: () -> R,
     onInvalidType: () -> R,

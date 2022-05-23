@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.secrethitler
+package org.randomcat.agorabot.secrethitler.storage.impl
 
 import kotlinx.collections.immutable.*
 import kotlinx.serialization.Serializable
@@ -9,9 +9,10 @@ import org.randomcat.agorabot.config.persist.AtomicCachedStorage
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.config.persist.StorageStrategy
 import org.randomcat.agorabot.config.persist.updateValueAndExtract
-import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.StorageType
-import org.randomcat.agorabot.secrethitler.JsonSecretHitlerGameList.ValueType
 import org.randomcat.agorabot.secrethitler.model.*
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerGameList.StorageType
+import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerGameList.ValueType
 import java.nio.file.Path
 import java.util.*
 
@@ -455,15 +456,15 @@ private sealed class GameStateDto {
         fun from(gameState: SecretHitlerGameState): GameStateDto {
             return when (gameState) {
                 is SecretHitlerGameState.Joining -> {
-                    GameStateDto.Joining(names = gameState.playerNames.toList())
+                    Joining(names = gameState.playerNames.toList())
                 }
 
                 is SecretHitlerGameState.Running -> {
-                    GameStateDto.Running.from(gameState)
+                    Running.from(gameState)
                 }
 
                 is SecretHitlerGameState.Completed -> {
-                    GameStateDto.Completed
+                    Completed
                 }
             }
         }

@@ -7,8 +7,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
@@ -17,11 +15,13 @@ import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerAfterVoteResult
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerInactiveGovernmentResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterNewVote
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
 import java.time.Duration
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
 private fun formatVotingEmbed(
     context: SecretHitlerNameContext,

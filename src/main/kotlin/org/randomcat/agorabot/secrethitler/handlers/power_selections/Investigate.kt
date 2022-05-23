@@ -3,12 +3,12 @@ package org.randomcat.agorabot.secrethitler.handlers.power_selections
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingInvestigatePartySelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.stateForElectionAfterAdvancingTicker
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class InvestigateSelectionResult {

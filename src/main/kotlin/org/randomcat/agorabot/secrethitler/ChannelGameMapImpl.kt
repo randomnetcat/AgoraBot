@@ -13,6 +13,7 @@ import org.randomcat.agorabot.config.persist.StorageStrategy
 import org.randomcat.agorabot.config.persist.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerChannelGameMap
 import org.randomcat.util.isDistinct
 import org.randomcat.util.requireDistinct
 import java.nio.file.Path

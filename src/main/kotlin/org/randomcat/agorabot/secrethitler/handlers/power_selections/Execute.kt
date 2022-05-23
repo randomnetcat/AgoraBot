@@ -1,7 +1,6 @@
 package org.randomcat.agorabot.secrethitler.handlers.power_selections
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingExecutionSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
@@ -10,6 +9,7 @@ import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerExecutionResult
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerWinResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterExecuting
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class ExecuteSelectResult {

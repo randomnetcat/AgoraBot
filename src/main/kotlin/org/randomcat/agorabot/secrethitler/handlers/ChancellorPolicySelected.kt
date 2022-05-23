@@ -3,19 +3,19 @@ package org.randomcat.agorabot.secrethitler.handlers
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorPolicyChoiceButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerAfterChancellorPolicySelectedResult
 import org.randomcat.agorabot.secrethitler.model.transitions.afterChancellorPolicySelected
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState as EphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState as GameState
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
 private sealed class ChancellorPolicySelectedHandlerUpdateResult {
     data class Success(

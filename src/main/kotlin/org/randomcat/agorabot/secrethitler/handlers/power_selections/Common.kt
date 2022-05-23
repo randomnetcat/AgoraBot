@@ -2,10 +2,10 @@ package org.randomcat.agorabot.secrethitler.handlers.power_selections
 
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
-import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.*
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidExtract
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidExtract
 
 sealed class SecretHitlerPowerCommonCheckResult
 

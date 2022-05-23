@@ -1,15 +1,15 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
-import org.randomcat.agorabot.secrethitler.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.model.*
-import org.randomcat.agorabot.secrethitler.updateRunningGameWithValidation
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
+import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
-import org.randomcat.agorabot.secrethitler.SecretHitlerUpdateValidationResult.Valid as ValidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
 private sealed class ChancellorSelectResult {
     data class Success(

@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
-import org.randomcat.agorabot.secrethitler.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerCommandContext
 import org.randomcat.agorabot.secrethitler.model.*
-import org.randomcat.agorabot.secrethitler.updateGameTypedWithValidExtract
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
+import org.randomcat.agorabot.secrethitler.storage.api.updateGameTypedWithValidExtract
 
 private fun randomAssignRoles(
     players: Set<SecretHitlerPlayerNumber>,
