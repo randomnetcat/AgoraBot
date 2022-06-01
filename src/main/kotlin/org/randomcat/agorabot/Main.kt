@@ -189,6 +189,8 @@ private fun runBot(config: BotRunConfig) {
                 listOf(
                     GatewayIntent.GUILD_MESSAGES,
                     GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                    GatewayIntent.DIRECT_MESSAGES,
+                    GatewayIntent.DIRECT_MESSAGE_REACTIONS,
                 ),
             )
             .setEventManager(AnnotatedEventManager())
