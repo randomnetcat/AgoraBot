@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.secrethitler.storage.impl
 
 import kotlinx.collections.immutable.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -17,16 +18,10 @@ import java.nio.file.Path
 import java.util.*
 
 @Serializable
-private data class GameConfigurationDto(
-    val liberalWinRequirement: Int,
-    val fascistPowers: List<SecretHitlerFascistPower?>,
-    val hitlerChancellorWinRequirement: Int,
-    val vetoUnlockRequirement: Int,
-    val speedyEnactRequirement: Int,
-) {
+private sealed class GameConfigurationDto {
     companion object {
         fun from(configuration: SecretHitlerGameConfiguration): GameConfigurationDto {
-            return GameConfigurationDto(
+            return Version0(
                 liberalWinRequirement = configuration.liberalWinRequirement,
                 fascistPowers = (1 until configuration.fascistWinRequirement).map { configuration.fascistPowerAt(it) },
                 hitlerChancellorWinRequirement = configuration.hitlerChancellorWinRequirement,
@@ -36,29 +31,47 @@ private data class GameConfigurationDto(
         }
     }
 
-    fun toConfiguration(): SecretHitlerGameConfiguration {
-        return SecretHitlerGameConfiguration(
-            liberalWinRequirement = liberalWinRequirement,
-            fascistPowers = fascistPowers.toImmutableList(),
-            hitlerChancellorWinRequirement = hitlerChancellorWinRequirement,
-            vetoUnlockRequirement = vetoUnlockRequirement,
-            speedyEnactRequirement = speedyEnactRequirement,
-        )
+    abstract fun toConfiguration(): SecretHitlerGameConfiguration
+
+    @Serializable
+    @SerialName("GameConfigurationV0")
+    data class Version0(
+        val liberalWinRequirement: Int,
+        val fascistPowers: List<SecretHitlerFascistPower?>,
+        val hitlerChancellorWinRequirement: Int,
+        val vetoUnlockRequirement: Int,
+        val speedyEnactRequirement: Int,
+    ) : GameConfigurationDto() {
+        override fun toConfiguration(): SecretHitlerGameConfiguration {
+            return SecretHitlerGameConfiguration(
+                liberalWinRequirement = liberalWinRequirement,
+                fascistPowers = fascistPowers.toImmutableList(),
+                hitlerChancellorWinRequirement = hitlerChancellorWinRequirement,
+                vetoUnlockRequirement = vetoUnlockRequirement,
+                speedyEnactRequirement = speedyEnactRequirement,
+            )
+        }
     }
 }
 
 @Serializable
-private data class PlayerMapDto(
-    val map: Map<SecretHitlerPlayerNumber, SecretHitlerPlayerExternalName>,
-) {
+private sealed class PlayerMapDto {
     companion object {
         fun from(playerMap: SecretHitlerPlayerMap): PlayerMapDto {
-            return PlayerMapDto(playerMap.toMap())
+            return Version0(playerMap.toMap())
         }
     }
 
-    fun toPlayerMap(): SecretHitlerPlayerMap {
-        return SecretHitlerPlayerMap(map)
+    abstract fun toPlayerMap(): SecretHitlerPlayerMap
+
+    @Serializable
+    @SerialName("PlayerMapV0")
+    data class Version0(
+        val map: Map<SecretHitlerPlayerNumber, SecretHitlerPlayerExternalName>,
+    ) : PlayerMapDto() {
+        override fun toPlayerMap(): SecretHitlerPlayerMap {
+            return SecretHitlerPlayerMap(map)
+        }
     }
 }
 
@@ -88,73 +101,87 @@ private enum class RoleDto {
 }
 
 @Serializable
-private data class RoleMapDto(
-    val map: Map<SecretHitlerPlayerNumber, RoleDto>,
-) {
+private sealed class RoleMapDto {
     companion object {
         fun from(roleMap: SecretHitlerRoleMap): RoleMapDto {
-            return RoleMapDto(roleMap.toMap().mapValues { (_, v) -> RoleDto.from(v) })
+            return Version0(roleMap.toMap().mapValues { (_, v) -> RoleDto.from(v) })
         }
     }
 
-    fun toRoleMap(): SecretHitlerRoleMap {
-        return SecretHitlerRoleMap(map.mapValues { (_, v) -> v.toRole() })
+    abstract fun toRoleMap(): SecretHitlerRoleMap
+
+    @Serializable
+    @SerialName("RoleMapV0")
+    data class Version0(
+        val map: Map<SecretHitlerPlayerNumber, RoleDto>,
+    ) : RoleMapDto() {
+        override fun toRoleMap(): SecretHitlerRoleMap {
+            return SecretHitlerRoleMap(map.mapValues { (_, v) -> v.toRole() })
+        }
     }
 }
 
 @Serializable
-private data class DeckStateDto(
-    val drawDeckPolicies: List<SecretHitlerPolicyType>,
-    val discardDeckPolicies: List<SecretHitlerPolicyType>,
-) {
+private sealed class DeckStateDto {
     companion object {
         fun from(deckState: SecretHitlerDeckState): DeckStateDto {
-            return DeckStateDto(
+            return Version0(
                 drawDeckPolicies = deckState.drawDeck.allPolicies(),
                 discardDeckPolicies = deckState.discardDeck.allPolicies(),
             )
         }
     }
 
-    fun toDeckState(): SecretHitlerDeckState {
-        return SecretHitlerDeckState(
-            drawDeck = SecretHitlerDrawDeckState(drawDeckPolicies),
-            discardDeck = SecretHitlerDiscardDeckState(discardDeckPolicies),
-        )
+    abstract fun toDeckState(): SecretHitlerDeckState
+
+    @Serializable
+    @SerialName("DeckStateV0")
+    data class Version0(
+        val drawDeckPolicies: List<SecretHitlerPolicyType>,
+        val discardDeckPolicies: List<SecretHitlerPolicyType>,
+    ) : DeckStateDto() {
+        override fun toDeckState(): SecretHitlerDeckState {
+            return SecretHitlerDeckState(
+                drawDeck = SecretHitlerDrawDeckState(drawDeckPolicies),
+                discardDeck = SecretHitlerDiscardDeckState(discardDeckPolicies),
+            )
+        }
     }
 }
 
 @Serializable
-private data class PoliciesStateDto(
-    val liberalPoliciesEnacted: Int,
-    val fascistPoliciesEnacted: Int,
-) {
+private sealed class PoliciesStateDto {
     companion object {
         fun from(policiesState: SecretHitlerPoliciesState): PoliciesStateDto {
-            return PoliciesStateDto(
+            return Version0(
                 liberalPoliciesEnacted = policiesState.liberalPoliciesEnacted,
                 fascistPoliciesEnacted = policiesState.fascistPoliciesEnacted,
             )
         }
     }
 
-    fun toPoliciesState(): SecretHitlerPoliciesState {
-        return SecretHitlerPoliciesState(
-            liberalPoliciesEnacted = liberalPoliciesEnacted,
-            fascistPoliciesEnacted = fascistPoliciesEnacted,
-        )
+    abstract fun toPoliciesState(): SecretHitlerPoliciesState
+
+    @Serializable
+    @SerialName("PoliciesStateV0")
+    data class Version0(
+        val liberalPoliciesEnacted: Int,
+        val fascistPoliciesEnacted: Int,
+    ) : PoliciesStateDto() {
+        override fun toPoliciesState(): SecretHitlerPoliciesState {
+            return SecretHitlerPoliciesState(
+                liberalPoliciesEnacted = liberalPoliciesEnacted,
+                fascistPoliciesEnacted = fascistPoliciesEnacted,
+            )
+        }
     }
 }
 
 @Serializable
-private data class ElectionStateDto(
-    val currentPresidentTicker: SecretHitlerPlayerNumber,
-    val termLimitedPlayers: GovernmentMembersDto?,
-    val electionTrackerState: Int,
-) {
+private sealed class ElectionStateDto {
     companion object {
         fun from(electionState: SecretHitlerElectionState): ElectionStateDto {
-            return ElectionStateDto(
+            return Version0(
                 currentPresidentTicker = electionState.currentPresidentTicker,
                 termLimitedPlayers = electionState
                     .termLimitState
@@ -165,47 +192,55 @@ private data class ElectionStateDto(
         }
     }
 
-    fun toElectionState(): SecretHitlerElectionState {
-        return SecretHitlerElectionState(
-            currentPresidentTicker = currentPresidentTicker,
-            termLimitState = SecretHitlerTermLimitState(termLimitedPlayers?.toGovernmentMembers()),
-            electionTrackerState = electionTrackerState,
-        )
+    abstract fun toElectionState(): SecretHitlerElectionState
+
+    @Serializable
+    @SerialName("ElectionStateV0")
+    data class Version0(
+        val currentPresidentTicker: SecretHitlerPlayerNumber,
+        val termLimitedPlayers: GovernmentMembersDto?,
+        val electionTrackerState: Int,
+    ) : ElectionStateDto() {
+        override fun toElectionState(): SecretHitlerElectionState {
+            return SecretHitlerElectionState(
+                currentPresidentTicker = currentPresidentTicker,
+                termLimitState = SecretHitlerTermLimitState(termLimitedPlayers?.toGovernmentMembers()),
+                electionTrackerState = electionTrackerState,
+            )
+        }
     }
 }
 
 @Serializable
-private data class PowersStateDto(
-    val previouslyInvestigatedPlayers: Set<SecretHitlerPlayerNumber>,
-) {
+private sealed class PowersStateDto {
     companion object {
         fun from(powersState: SecretHitlerPowersState): PowersStateDto {
-            return PowersStateDto(
+            return Version0(
                 previouslyInvestigatedPlayers = powersState.previouslyInvestigatedPlayers,
             )
         }
     }
 
-    fun toPowersState(): SecretHitlerPowersState {
-        return SecretHitlerPowersState(
-            previouslyInvestigatedPlayers = previouslyInvestigatedPlayers.toImmutableSet(),
-        )
+    abstract fun toPowersState(): SecretHitlerPowersState
+
+    @Serializable
+    @SerialName("PowersStateV0")
+    data class Version0(
+        val previouslyInvestigatedPlayers: Set<SecretHitlerPlayerNumber>,
+    ) : PowersStateDto() {
+        override fun toPowersState(): SecretHitlerPowersState {
+            return SecretHitlerPowersState(
+                previouslyInvestigatedPlayers = previouslyInvestigatedPlayers.toImmutableSet(),
+            )
+        }
     }
 }
 
 @Serializable
-private data class GlobalStateDto(
-    val configuration: GameConfigurationDto,
-    val playerMap: PlayerMapDto,
-    val roleMap: RoleMapDto,
-    val deckState: DeckStateDto,
-    val policiesState: PoliciesStateDto,
-    val electionState: ElectionStateDto,
-    val powersState: PowersStateDto,
-) {
+private sealed class GlobalStateDto {
     companion object {
         fun from(globalGameState: SecretHitlerGlobalGameState): GlobalStateDto {
-            return GlobalStateDto(
+            return Version0(
                 configuration = GameConfigurationDto.from(globalGameState.configuration),
                 playerMap = PlayerMapDto.from(globalGameState.playerMap),
                 roleMap = RoleMapDto.from(globalGameState.roleMap),
@@ -217,40 +252,60 @@ private data class GlobalStateDto(
         }
     }
 
-    fun toGlobalState(): SecretHitlerGlobalGameState {
-        return SecretHitlerGlobalGameState(
-            configuration = configuration.toConfiguration(),
-            playerMap = playerMap.toPlayerMap(),
-            roleMap = roleMap.toRoleMap(),
-            boardState = SecretHitlerBoardState(
-                deckState = deckState.toDeckState(),
-                policiesState = policiesState.toPoliciesState(),
-            ),
-            electionState = electionState.toElectionState(),
-            powersState = powersState.toPowersState(),
-        )
+    abstract fun toGlobalState(): SecretHitlerGlobalGameState
+
+    @Serializable
+    @SerialName("GlobalStateV0")
+    data class Version0(
+        val configuration: GameConfigurationDto,
+        val playerMap: PlayerMapDto,
+        val roleMap: RoleMapDto,
+        val deckState: DeckStateDto,
+        val policiesState: PoliciesStateDto,
+        val electionState: ElectionStateDto,
+        val powersState: PowersStateDto,
+    ) : GlobalStateDto() {
+        override fun toGlobalState(): SecretHitlerGlobalGameState {
+            return SecretHitlerGlobalGameState(
+                configuration = configuration.toConfiguration(),
+                playerMap = playerMap.toPlayerMap(),
+                roleMap = roleMap.toRoleMap(),
+                boardState = SecretHitlerBoardState(
+                    deckState = deckState.toDeckState(),
+                    policiesState = policiesState.toPoliciesState(),
+                ),
+                electionState = electionState.toElectionState(),
+                powersState = powersState.toPowersState(),
+            )
+        }
     }
 }
 
 @Serializable
-private data class GovernmentMembersDto(
-    val president: SecretHitlerPlayerNumber,
-    val chancellor: SecretHitlerPlayerNumber,
-) {
+private sealed class GovernmentMembersDto {
     companion object {
         fun from(governmentMembers: SecretHitlerGovernmentMembers): GovernmentMembersDto {
-            return GovernmentMembersDto(
+            return Version0(
                 president = governmentMembers.president,
                 chancellor = governmentMembers.chancellor,
             )
         }
     }
 
-    fun toGovernmentMembers(): SecretHitlerGovernmentMembers {
-        return SecretHitlerGovernmentMembers(
-            president = president,
-            chancellor = chancellor,
-        )
+    abstract fun toGovernmentMembers(): SecretHitlerGovernmentMembers
+
+    @Serializable
+    @SerialName("GovernmentMembersV0")
+    data class Version0(
+        val president: SecretHitlerPlayerNumber,
+        val chancellor: SecretHitlerPlayerNumber,
+    ) : GovernmentMembersDto() {
+        override fun toGovernmentMembers(): SecretHitlerGovernmentMembers {
+            return SecretHitlerGovernmentMembers(
+                president = president,
+                chancellor = chancellor,
+            )
+        }
     }
 }
 
@@ -307,6 +362,7 @@ private sealed class EphemeralStateDto {
     abstract fun toEphemeralState(): SecretHitlerEphemeralState
 
     @Serializable
+    @SerialName("ChancellorSelectionPendingV0")
     data class ChancellorSelectionPending(val presidentCandidate: SecretHitlerPlayerNumber) : EphemeralStateDto() {
         companion object {
             fun from(state: SecretHitlerEphemeralState.ChancellorSelectionPending): ChancellorSelectionPending {
@@ -324,6 +380,7 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
+    @SerialName("VotingOngoingV0")
     data class VotingOngoing(
         val governmentMembers: GovernmentMembersDto,
         val voteMap: VoteMapDto,
@@ -346,6 +403,7 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
+    @SerialName("PresidentPolicyChoicePendingV0")
     data class PresidentPolicyChoicePending(
         val governmentMembers: GovernmentMembersDto,
         val policyOptions: List<SecretHitlerPolicyType>,
@@ -368,6 +426,7 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
+    @SerialName("ChancellorPolicyChoicePendingV0")
     data class ChancellorPolicyChoicePending(
         val governmentMembers: GovernmentMembersDto,
         val policyOptions: List<SecretHitlerPolicyType>,
@@ -393,6 +452,7 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
+    @SerialName("InvestigatePendingV0")
     data class InvestigatePending(
         val presidentNumber: SecretHitlerPlayerNumber,
     ) : EphemeralStateDto() {
@@ -412,6 +472,7 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
+    @SerialName("SpecialElectionPendingV0")
     data class SpecialElectionPending(
         val presidentNumber: SecretHitlerPlayerNumber,
     ) : EphemeralStateDto() {
@@ -431,6 +492,7 @@ private sealed class EphemeralStateDto {
     }
 
     @Serializable
+    @SerialName("ExecutionPendingV0")
     data class ExecutionPending(
         val presidentNumber: SecretHitlerPlayerNumber,
     ) : EphemeralStateDto() {
@@ -473,6 +535,7 @@ private sealed class GameStateDto {
     abstract fun toGameState(): SecretHitlerGameState
 
     @Serializable
+    @SerialName("JoiningV0")
     data class Joining(val names: List<SecretHitlerPlayerExternalName>) : GameStateDto() {
         override fun toGameState(): SecretHitlerGameState {
             return SecretHitlerGameState.Joining(playerNames = names.toImmutableSet())
@@ -480,6 +543,7 @@ private sealed class GameStateDto {
     }
 
     @Serializable
+    @SerialName("RunningV0")
     data class Running(
         val globalState: GlobalStateDto,
         val ephemeralState: EphemeralStateDto,
@@ -502,6 +566,7 @@ private sealed class GameStateDto {
     }
 
     @Serializable
+    @SerialName("CompletedV0")
     object Completed : GameStateDto() {
         override fun toGameState(): SecretHitlerGameState {
             return SecretHitlerGameState.Completed
