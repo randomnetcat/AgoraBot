@@ -147,6 +147,11 @@ private fun buildFeaturesMap(
 
 object JdaListenerTag : FeatureElementTag<List<Any>>
 object BotCommandListTag : FeatureElementTag<Map<String, Command>>
+object StartupBlockTag : FeatureElementTag<() -> Unit>
+object JdaTag : FeatureElementTag<JDA>
+
+val FeatureContext.jda: JDA
+    get() = queryExpectOne(JdaTag)
 
 data class BaseCommandDependencyTag(val baseTag: Any?) : FeatureElementTag<Any?>
 
@@ -277,7 +282,13 @@ private fun runBot(config: BotRunConfig) {
 
                     return FeatureQueryResult.NotFound
                 }
-            }
+            },
+            "jda_provider" to object : Feature {
+                override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
+                    if (tag is JdaTag) return tag.result(jda)
+                    return FeatureQueryResult.NotFound
+                }
+            },
         ).map { FeatureSource.ofConstant(it.first, it.second) }
 
         val featureMap = buildFeaturesMap(
@@ -323,6 +334,11 @@ private fun runBot(config: BotRunConfig) {
 
         for ((name, feature) in featureMap) {
             logger.info("Registering feature $name")
+
+            val startupBlock = feature.query(featureContext, StartupBlockTag)
+            if (startupBlock is FeatureQueryResult.Found) {
+                startupBlock.value()
+            }
 
             @Suppress("UNUSED_VARIABLE")
             val ensureExhaustive = when (val commandQueryResult = feature.query(featureContext, BotCommandListTag)) {
