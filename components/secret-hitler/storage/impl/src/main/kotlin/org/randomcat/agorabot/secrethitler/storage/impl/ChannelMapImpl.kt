@@ -13,13 +13,12 @@ import org.randomcat.agorabot.config.persist.StorageStrategy
 import org.randomcat.agorabot.config.persist.updateValueAndExtract
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerChannelGameMap
-import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.util.isDistinct
 import org.randomcat.util.requireDistinct
 import java.nio.file.Path
 
-// It'll be fiiiiineee....
-@Suppress("TOPLEVEL_TYPEALIASES_ONLY")
+private typealias GameMapStorageType = Map<String, SecretHitlerGameId>
+
 class JsonSecretHitlerChannelGameMap(
     storagePath: Path,
     persistService: ConfigPersistService,
@@ -128,27 +127,25 @@ class JsonSecretHitlerChannelGameMap(
         }
     }
 
-    private typealias StorageType = Map<String, SecretHitlerGameId>
-
     private object Strategy : StorageStrategy<ValueType> {
         override fun defaultValue(): ValueType {
             return ValueType.empty()
         }
 
-        private fun ValueType.toStorage(): StorageType {
+        private fun ValueType.toStorage(): GameMapStorageType {
             return this.toGameIdsByChannelIdMap()
         }
 
-        private fun StorageType.toValue(): ValueType {
+        private fun GameMapStorageType.toValue(): ValueType {
             return ValueType.fromMap(gameIdsByChannel = this)
         }
 
         override fun encodeToString(value: ValueType): String {
-            return Json.encodeToString<StorageType>(value.toStorage())
+            return Json.encodeToString<GameMapStorageType>(value.toStorage())
         }
 
         override fun decodeFromString(text: String): ValueType {
-            return Json.decodeFromString<StorageType>(text).toValue()
+            return Json.decodeFromString<GameMapStorageType>(text).toValue()
         }
     }
 
