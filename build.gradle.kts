@@ -94,6 +94,9 @@ dependencies {
     implementation(projects.components.secretHitler.storage.impl)
     implementation(projects.components.secretHitler.handlers)
 
+    implementation(projects.components.secretHitler.storage.feature.api)
+    runtimeOnly(projects.components.secretHitler.storage.feature.impl)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)
