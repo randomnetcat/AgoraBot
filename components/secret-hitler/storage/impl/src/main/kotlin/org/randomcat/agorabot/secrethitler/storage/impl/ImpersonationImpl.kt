@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.secrethitler
+package org.randomcat.agorabot.secrethitler.storage.impl
 
 import kotlinx.collections.immutable.*
 import kotlinx.serialization.Serializable
@@ -8,20 +8,8 @@ import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.persist.AtomicCachedStorage
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.config.persist.StorageStrategy
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerMutableImpersonationMap
 import java.nio.file.Path
-
-interface SecretHitlerImpersonationMap {
-    fun currentNameForId(userId: String): String?
-    fun dmUserIdsForName(name: String): Set<String>?
-}
-
-interface SecretHitlerMutableImpersonationMap : SecretHitlerImpersonationMap {
-    fun setNameForId(userId: String, newName: String)
-    fun clearNameForId(userId: String)
-
-    fun addDmUserIdForName(name: String, userId: String)
-    fun clearDmUsersForName(name: String)
-}
 
 class SecretHitlerJsonImpersonationMap(
     storagePath: Path,

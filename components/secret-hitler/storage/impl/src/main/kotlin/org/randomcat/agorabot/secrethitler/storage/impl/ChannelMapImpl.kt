@@ -1,4 +1,4 @@
-package org.randomcat.agorabot.secrethitler
+package org.randomcat.agorabot.secrethitler.storage.impl
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.mutate
@@ -11,9 +11,9 @@ import org.randomcat.agorabot.config.persist.AtomicCachedStorage
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.config.persist.StorageStrategy
 import org.randomcat.agorabot.config.persist.updateValueAndExtract
-import org.randomcat.agorabot.secrethitler.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerChannelGameMap
+import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerChannelGameMap.StorageType
 import org.randomcat.util.isDistinct
 import org.randomcat.util.requireDistinct
 import java.nio.file.Path
@@ -22,7 +22,7 @@ import java.nio.file.Path
 @Suppress("TOPLEVEL_TYPEALIASES_ONLY")
 class JsonSecretHitlerChannelGameMap(
     storagePath: Path,
-    persistService: ConfigPersistService
+    persistService: ConfigPersistService,
 ) : SecretHitlerChannelGameMap {
     private class ValueType private constructor(
         private val gameIdsByChannel: PersistentMap<String, SecretHitlerGameId>,
@@ -152,7 +152,8 @@ class JsonSecretHitlerChannelGameMap(
         }
     }
 
-    private val impl = AtomicCachedStorage<ValueType>(storagePath = storagePath, strategy = Strategy, persistService = persistService)
+    private val impl =
+        AtomicCachedStorage<ValueType>(storagePath = storagePath, strategy = Strategy, persistService = persistService)
 
     override fun gameByChannelId(channelId: String): SecretHitlerGameId? {
         return impl.getValue().gameIdByChannelId(channelId)
