@@ -1,11 +1,14 @@
 package org.randomcat.agorabot.secrethitler.buttons
 
 import kotlinx.serialization.Serializable
-import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 
 @Serializable
-data class SecretHitlerJoinGameButtonDescriptor(val gameId: SecretHitlerGameId) : ButtonRequestDescriptor
+data class SecretHitlerJoinGameButtonDescriptor(
+    override val gameId: SecretHitlerGameId,
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
-data class SecretHitlerLeaveGameButtonDescriptor(val gameId: SecretHitlerGameId) : ButtonRequestDescriptor
+data class SecretHitlerLeaveGameButtonDescriptor(
+    override val gameId: SecretHitlerGameId,
+) : SecretHitlerButtonRequestDescriptor

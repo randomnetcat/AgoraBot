@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.Interaction
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.*
@@ -27,6 +28,7 @@ import org.randomcat.agorabot.secrethitler.handlers.SecretHitlerButtons
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerImpersonationMap
+import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.storage.feature.api.secretHitlerImpersonationMap
 import org.randomcat.agorabot.secrethitler.storage.feature.api.secretHitlerRepostitory
 import org.randomcat.agorabot.util.DiscordMessage
@@ -36,6 +38,7 @@ import org.randomcat.agorabot.util.coroutineScope
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
+import kotlin.reflect.KClass
 
 private object NameContextImpl : SecretHitlerNameContext {
     override fun renderExternalName(name: SecretHitlerPlayerExternalName): String {
@@ -323,115 +326,76 @@ private fun secretHitlerFeature() = object : AbstractFeature() {
             }
         }
 
+        fun <Button : SecretHitlerButtonRequestDescriptor> ButtonHandlersReceiver.registerSH(
+            type: KClass<Button>,
+            handler: suspend (SecretHitlerRepository, SecretHitlerInteractionContext, ButtonInteractionEvent, Button) -> Unit,
+        ) {
+            withTypeImpl(type) { context, request ->
+                handler(repository, interactionContextFor(context, request.gameId), context.event, request)
+            }
+        }
+
         return FeatureButtonData.RegisterHandlers(
             ButtonHandlerMap {
-                withType<SecretHitlerJoinGameButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handleJoin(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerJoinGameButtonDescriptor::class,
+                    SecretHitlerButtons::handleJoin,
+                )
 
-                withType<SecretHitlerLeaveGameButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handleLeave(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerLeaveGameButtonDescriptor::class,
+                    SecretHitlerButtons::handleLeave,
+                )
 
-                withType<SecretHitlerChancellorCandidateSelectionButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handleChancellorSelection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerChancellorCandidateSelectionButtonDescriptor::class,
+                    SecretHitlerButtons::handleChancellorSelection,
+                )
 
-                withType<SecretHitlerVoteButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handleVote(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerVoteButtonDescriptor::class,
+                    SecretHitlerButtons::handleVote,
+                )
 
-                withType<SecretHitlerPresidentPolicyChoiceButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handlePresidentPolicySelection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerPresidentPolicyChoiceButtonDescriptor::class,
+                    SecretHitlerButtons::handlePresidentPolicySelection,
+                )
 
-                withType<SecretHitlerChancellorPolicyChoiceButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handleChancellorPolicySelection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerChancellorPolicyChoiceButtonDescriptor::class,
+                    SecretHitlerButtons::handleChancellorPolicySelection,
+                )
 
-                withType<SecretHitlerPendingInvestigatePartySelectionButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handlePresidentInvestigatePowerSelection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerPendingInvestigatePartySelectionButtonDescriptor::class,
+                    SecretHitlerButtons::handlePresidentInvestigatePowerSelection,
+                )
 
-                withType<SecretHitlerPendingSpecialElectionSelectionButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handlePresidentSpecialElectionPowerSelection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerPendingSpecialElectionSelectionButtonDescriptor::class,
+                    SecretHitlerButtons::handlePresidentSpecialElectionPowerSelection,
+                )
 
-                withType<SecretHitlerPendingExecutionSelectionButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handlePresidentExecutePowerSelection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerPendingExecutionSelectionButtonDescriptor::class,
+                    SecretHitlerButtons::handlePresidentExecutePowerSelection,
+                )
 
-                withType<SecretHitlerChancellorRequestVetoButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handleChancellorVetoRequest(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerChancellorRequestVetoButtonDescriptor::class,
+                    SecretHitlerButtons::handleChancellorVetoRequest,
+                )
 
-                withType<SecretHitlerPresidentAcceptVetoButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handlePresidentVetoApproval(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerPresidentAcceptVetoButtonDescriptor::class,
+                    SecretHitlerButtons::handlePresidentVetoApproval,
+                )
 
-                withType<SecretHitlerPresidentRejectVetoButtonDescriptor> { context, request ->
-                    SecretHitlerButtons.handlePresidentVetoRejection(
-                        repository = repository,
-                        context = interactionContextFor(context, request.gameId),
-                        event = context.event,
-                        request = request,
-                    )
-                }
+                registerSH(
+                    SecretHitlerPresidentRejectVetoButtonDescriptor::class,
+                    SecretHitlerButtons::handlePresidentVetoRejection,
+                )
             },
         )
     }

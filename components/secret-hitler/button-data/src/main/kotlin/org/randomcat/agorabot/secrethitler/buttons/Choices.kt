@@ -1,46 +1,45 @@
 package org.randomcat.agorabot.secrethitler.buttons
 
 import kotlinx.serialization.Serializable
-import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 
 @Serializable
 data class SecretHitlerChancellorCandidateSelectionButtonDescriptor(
-    val gameId: SecretHitlerGameId,
+    override val gameId: SecretHitlerGameId,
     val selectedChancellor: SecretHitlerPlayerNumber,
-) : ButtonRequestDescriptor
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerVoteButtonDescriptor(
-    val gameId: SecretHitlerGameId,
+    override val gameId: SecretHitlerGameId,
     val voteKind: SecretHitlerEphemeralState.VoteKind,
-) : ButtonRequestDescriptor
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerPresidentPolicyChoiceButtonDescriptor(
-    val gameId: SecretHitlerGameId,
+    override val gameId: SecretHitlerGameId,
     val policyIndex: Int,
-) : ButtonRequestDescriptor
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerChancellorPolicyChoiceButtonDescriptor(
-    val gameId: SecretHitlerGameId,
+    override val gameId: SecretHitlerGameId,
     val policyIndex: Int,
-) : ButtonRequestDescriptor
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerChancellorRequestVetoButtonDescriptor(
-    val gameId: SecretHitlerGameId,
-) : ButtonRequestDescriptor
+    override val gameId: SecretHitlerGameId,
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerPresidentAcceptVetoButtonDescriptor(
-    val gameId: SecretHitlerGameId,
-) : ButtonRequestDescriptor
+    override val gameId: SecretHitlerGameId,
+) : SecretHitlerButtonRequestDescriptor
 
 @Serializable
 data class SecretHitlerPresidentRejectVetoButtonDescriptor(
-    val gameId: SecretHitlerGameId,
-) : ButtonRequestDescriptor
+    override val gameId: SecretHitlerGameId,
+) : SecretHitlerButtonRequestDescriptor
