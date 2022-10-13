@@ -13,7 +13,7 @@ abstract class AbstractFeature : Feature {
         return FeatureQueryResult.NotFound
     }
 
-    protected abstract fun commandsInContext(context: FeatureContext): Map<String, Command>
+    protected open fun commandsInContext(context: FeatureContext): Map<String, Command> = emptyMap()
 
     protected open fun jdaListeners(context: FeatureContext): List<Any> {
         return listOf()
