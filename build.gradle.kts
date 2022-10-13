@@ -87,6 +87,16 @@ dependencies {
     implementation(projects.components.versioningStorage.feature.api)
     runtimeOnly(projects.components.versioningStorage.feature.impl)
 
+    implementation(projects.components.secretHitler.model)
+    implementation(projects.components.secretHitler.context)
+    implementation(projects.components.secretHitler.buttonData)
+    implementation(projects.components.secretHitler.storage.api)
+    implementation(projects.components.secretHitler.storage.impl)
+    implementation(projects.components.secretHitler.handlers)
+
+    implementation(projects.components.secretHitler.storage.feature.api)
+    runtimeOnly(projects.components.secretHitler.storage.feature.impl)
+
     implementation(libs.kotlinx.collectionsImmutable)
     implementation(libs.jda)
     implementation(libs.kitteh)

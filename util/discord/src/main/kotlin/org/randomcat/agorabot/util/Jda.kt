@@ -4,11 +4,14 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
+import org.slf4j.LoggerFactory
 
 const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
 const val DISCORD_MAX_MESSAGE_LENGTH = 2000
+const val MAX_BUTTONS_PER_ROW = 5
 
 fun MessageAction.disallowMentions() = allowedMentions(emptyList())
 
@@ -62,6 +65,23 @@ val Message.effectiveSenderName: String
 
 fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }
+}
+
+@PublishedApi
+internal val logger = LoggerFactory.getLogger("AgoraBotUtil")
+
+inline fun handleTextResponse(event: IReplyCallback, responseBlock: () -> String) {
+    // Ensure that responseBlock is always run, because it may have side effects
+    val webhookResult = runCatching { event.deferReply(true).submit() }
+    val response = responseBlock()
+
+    webhookResult.getOrThrow().thenApply { hook ->
+        hook.sendMessage(response).queue()
+        Unit
+    }.exceptionally { e ->
+        logger.error("Error during interaction response", e)
+        Unit
+    }
 }
 
 fun <T> RestAction<T>.ignoreErrors() = map { Unit }.onErrorMap { Unit }
