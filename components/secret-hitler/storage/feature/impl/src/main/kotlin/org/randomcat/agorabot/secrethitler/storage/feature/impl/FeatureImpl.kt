@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
 import kotlin.io.path.readText
 
 private data class SecretHitlerFeatureConfig(
@@ -69,7 +70,7 @@ fun secretHitlerStorageFactory() = object : FeatureSource {
                         gameList = alwaysCloseObject(
                             {
                                 JsonSecretHitlerGameList(
-                                    storagePath = typedConfig.baseStoragePath.resolve("games"),
+                                    storagePath = typedConfig.baseStoragePath.createDirectories().resolve("games"),
                                     persistService = configPersistService,
                                 )
                             },
@@ -80,7 +81,8 @@ fun secretHitlerStorageFactory() = object : FeatureSource {
                         channelGameMap = alwaysCloseObject(
                             {
                                 JsonSecretHitlerChannelGameMap(
-                                    storagePath = typedConfig.baseStoragePath.resolve("games_by_channel"),
+                                    storagePath = typedConfig.baseStoragePath.createDirectories()
+                                        .resolve("games_by_channel"),
                                     persistService = configPersistService,
                                 )
                             },
@@ -95,7 +97,7 @@ fun secretHitlerStorageFactory() = object : FeatureSource {
                 get() = if (typedConfig.enableImpersonation)
                     cache(impersonationMapCacheKey) {
                         SecretHitlerJsonImpersonationMap(
-                            typedConfig.baseStoragePath.resolve("impersonation_data"),
+                            typedConfig.baseStoragePath.createDirectories().resolve("impersonation_data"),
                             configPersistService,
                         )
                     }
