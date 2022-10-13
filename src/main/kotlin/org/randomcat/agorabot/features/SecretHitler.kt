@@ -250,7 +250,7 @@ private fun secretHitlerFeature() = object : AbstractFeature() {
         gameMessageChannelId: String?,
         gameId: SecretHitlerGameId,
     ): SecretHitlerMessageContext {
-        val gameChannel = gameMessageChannelId?.let { jda.getTextChannelById(it) }
+        val gameChannel = gameMessageChannelId?.let { jda.getChannelById(MessageChannel::class.java, it) }
 
         return if (gameChannel != null) {
             MessageContextImpl(
