@@ -12,9 +12,6 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingSpecialEle
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.util.MAX_BUTTONS_PER_ROW
-import java.time.Duration
-
-private val BUTTON_EXPIRY = Duration.ofDays(1)
 
 private suspend fun sendPlayerSelectPowerNotification(
     context: SecretHitlerGameContext,
@@ -63,7 +60,7 @@ private suspend fun sendPlayerSelectPowerNotification(
                                     descriptor = makeButtonDescriptor(
                                         playerNumber,
                                     ),
-                                    expiryDuration = BUTTON_EXPIRY,
+                                    expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                                 )
                             } else {
                                 BUTTON_INVALID_ID_RAW

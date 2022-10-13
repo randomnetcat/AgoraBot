@@ -12,7 +12,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerNumber
 import org.randomcat.agorabot.util.MAX_BUTTONS_PER_ROW
-import java.time.Duration
 
 private const val LAST_PRESIDENT_INELIGIBILITY_THRESHOLD = 5
 
@@ -64,7 +63,7 @@ suspend fun secretHitlerSendChancellorSelectionMessage(
                             gameId = gameId,
                             selectedChancellor = chancellorCandidate,
                         ),
-                        Duration.ofDays(1),
+                        SECRET_HITLER_BUTTON_EXPIRY,
                     )
                 else
                     BUTTON_INVALID_ID_RAW,

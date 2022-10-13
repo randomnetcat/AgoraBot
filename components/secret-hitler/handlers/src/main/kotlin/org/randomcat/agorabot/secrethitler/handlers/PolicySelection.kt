@@ -11,9 +11,6 @@ import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentPolicyCh
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.util.MAX_BUTTONS_PER_ROW
-import java.time.Duration
-
-private val PRESIDENT_POLICY_CHOICE_EXPIRY = Duration.ofDays(1)
 
 private inline suspend fun sendPolicySelectionMessage(
     context: SecretHitlerGameContext,
@@ -52,7 +49,7 @@ private inline suspend fun sendPolicySelectionMessage(
                     Button.primary(
                         context.newButtonId(
                             descriptor = makeButtonDescriptor(index),
-                            expiryDuration = PRESIDENT_POLICY_CHOICE_EXPIRY,
+                            expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                         ),
                         "$selectVerb policy #$humanIndex",
                     )
@@ -64,7 +61,7 @@ private inline suspend fun sendPolicySelectionMessage(
                             descriptor = SecretHitlerChancellorRequestVetoButtonDescriptor(
                                 gameId = gameId,
                             ),
-                            PRESIDENT_POLICY_CHOICE_EXPIRY,
+                            SECRET_HITLER_BUTTON_EXPIRY,
                         ),
                         "Request Veto",
                     )

@@ -18,7 +18,6 @@ import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.storage.api.updateGameTypedWithValidExtract
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.handleTextResponse
-import java.time.Duration
 
 private sealed class JoinLeaveMapResult {
     data class Failed(val message: String) : JoinLeaveMapResult()
@@ -163,8 +162,6 @@ internal suspend fun doHandleSecretHitlerLeave(
     }
 }
 
-private val JOIN_LEAVE_DURATION = Duration.ofDays(1)
-
 private fun formatSecretHitlerJoinMessageEmbed(
     context: SecretHitlerNameContext,
     state: SecretHitlerGameState.Joining,
@@ -209,11 +206,11 @@ internal suspend fun doSendSecretHitlerJoinLeaveMessage(
             state = state,
             joinButtonId = context.newButtonId(
                 descriptor = SecretHitlerJoinGameButtonDescriptor(gameId),
-                expiryDuration = JOIN_LEAVE_DURATION,
+                expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
             ),
             leaveButtonId = context.newButtonId(
                 descriptor = SecretHitlerLeaveGameButtonDescriptor(gameId),
-                expiryDuration = JOIN_LEAVE_DURATION,
+                expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
             ),
         ),
     )

@@ -17,7 +17,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
-import java.time.Duration
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
@@ -88,8 +87,6 @@ private fun doStateUpdate(
     )
 }
 
-private val BUTTON_EXPIRY = Duration.ofDays(1)
-
 private suspend fun sendVetoRequestNotification(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
@@ -120,7 +117,7 @@ private suspend fun sendVetoRequestNotification(
                             descriptor = SecretHitlerPresidentAcceptVetoButtonDescriptor(
                                 gameId = gameId,
                             ),
-                            expiryDuration = BUTTON_EXPIRY,
+                            expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                         ),
                         "Approve Veto",
                     ),
@@ -129,7 +126,7 @@ private suspend fun sendVetoRequestNotification(
                             descriptor = SecretHitlerPresidentRejectVetoButtonDescriptor(
                                 gameId = gameId,
                             ),
-                            expiryDuration = BUTTON_EXPIRY,
+                            expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                         ),
                         "Reject Veto",
                     ),

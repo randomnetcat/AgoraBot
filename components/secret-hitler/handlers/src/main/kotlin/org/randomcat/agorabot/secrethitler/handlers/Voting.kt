@@ -19,7 +19,6 @@ import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.storage.api.updateRunningGameWithValidation
 import org.randomcat.agorabot.util.handleTextResponse
-import java.time.Duration
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Invalid as InvalidResult
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerUpdateValidationResult.Valid as ValidResult
 
@@ -88,8 +87,6 @@ private fun formatVotingEmbed(
         .build()
 }
 
-private val VOTE_BUTTON_EXPIRY = Duration.ofDays(1)
-
 private fun formatVotingMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
@@ -106,7 +103,7 @@ private fun formatVotingMessage(
                             gameId = gameId,
                             voteKind = SecretHitlerEphemeralState.VoteKind.FOR,
                         ),
-                        expiryDuration = VOTE_BUTTON_EXPIRY,
+                        expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                     ),
                     "FOR",
                 ),
@@ -116,7 +113,7 @@ private fun formatVotingMessage(
                             gameId = gameId,
                             voteKind = SecretHitlerEphemeralState.VoteKind.AGAINST,
                         ),
-                        expiryDuration = VOTE_BUTTON_EXPIRY,
+                        expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                     ),
                     "AGAINST",
                 )
