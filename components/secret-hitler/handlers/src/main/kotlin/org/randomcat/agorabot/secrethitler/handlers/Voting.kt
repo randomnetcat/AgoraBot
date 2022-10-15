@@ -54,7 +54,17 @@ private fun formatVotingEmbed(
                 .joinToString("\n") { votingPlayerNumber ->
                     context.renderExternalName(playerMap.playerByNumberKnown(votingPlayerNumber))
                 }
-                .ifEmpty { "[None yet]" },
+                .ifEmpty { "[None]" },
+            false,
+        )
+        .addField(
+            "Non-Voting Players",
+            (currentState.globalState.playerMap.validNumbers - currentState.ephemeralState.voteMap.votingPlayers)
+                .sortedBy { it.raw }
+                .joinToString("\n") { votingPlayerNumber ->
+                    context.renderExternalName(playerMap.playerByNumberKnown(votingPlayerNumber))
+                }
+                .ifEmpty { "[None]" },
             false,
         )
         .addField(currentState.globalState.liberalPoliciesEmbedField())
