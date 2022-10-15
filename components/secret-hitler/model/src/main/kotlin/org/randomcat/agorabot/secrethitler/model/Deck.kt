@@ -160,7 +160,8 @@ data class SecretHitlerDeckState(
         ): SecretHitlerDrawDeckState {
             return SecretHitlerDrawDeckState(buildList {
                 addAll(remainingDrawPile)
-                addAll(discardPile.shuffled())
+                addAll(discardPile)
+                shuffle()
             })
         }
     }
