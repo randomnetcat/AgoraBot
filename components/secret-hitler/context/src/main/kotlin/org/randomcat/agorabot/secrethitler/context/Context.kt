@@ -9,6 +9,7 @@ import java.time.Duration
 
 interface SecretHitlerButtonContext {
     fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String
+    fun invalidButtonId(): String
 }
 
 interface SecretHitlerPrivateMessageContext {

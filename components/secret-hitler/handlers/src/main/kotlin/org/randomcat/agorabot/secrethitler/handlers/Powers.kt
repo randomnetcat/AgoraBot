@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import org.randomcat.agorabot.buttons.BUTTON_INVALID_ID_RAW
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingExecutionSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingInvestigatePartySelectionButtonDescriptor
@@ -63,7 +62,7 @@ private suspend fun sendPlayerSelectPowerNotification(
                                     expiryDuration = SECRET_HITLER_BUTTON_EXPIRY,
                                 )
                             } else {
-                                BUTTON_INVALID_ID_RAW
+                                context.invalidButtonId()
                             },
                             "$selectVerb player ${index + 1}"
                         )

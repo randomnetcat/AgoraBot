@@ -38,6 +38,7 @@ import org.randomcat.agorabot.util.coroutineScope
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import kotlin.reflect.KClass
 
 private object NameContextImpl : SecretHitlerNameContext {
@@ -315,6 +316,10 @@ private fun secretHitlerFeature() = object : AbstractFeature() {
                             expiry = Instant.now().plus(expiryDuration),
                         )
                     ).raw
+                }
+
+                override fun invalidButtonId(): String {
+                    return "INVALID-" + UUID.randomUUID()
                 }
 
                 override fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName {

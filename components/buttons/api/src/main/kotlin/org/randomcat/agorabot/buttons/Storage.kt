@@ -4,8 +4,6 @@ import java.time.Instant
 
 interface ButtonRequestDescriptor
 
-const val BUTTON_INVALID_ID_RAW = "INVALID_BUTTON"
-
 @JvmInline
 value class ButtonRequestId(val raw: String)
 

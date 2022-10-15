@@ -23,23 +23,32 @@ interface ButtonsRequirement {
                         )
                         .raw
                 }
+
+                override fun invalidButtonId(): String {
+                    return strategy.invalidButtonId().raw
+                }
             })
         }
     }
 
     fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: java.time.Duration): String
+    fun invalidButtonId(): String
 }
 
 object ButtonsStrategyTag
 
 interface ButtonsStrategy {
     fun storeButtonRequestAndGetId(descriptor: ButtonRequestDescriptor, expiry: Instant): ButtonRequestId
+    fun invalidButtonId(): ButtonRequestId
 }
 
 fun BaseCommandExecutionReceiverRequiring<ButtonsRequirement>.newButtonId(
     descriptor: ButtonRequestDescriptor,
     expiryDuration: java.time.Duration,
 ) = requirement().newButtonId(descriptor, expiryDuration)
+
+fun BaseCommandExecutionReceiverRequiring<ButtonsRequirement>.invalidButtonId(
+) = requirement().invalidButtonId()
 
 interface DiscordExtensionPartsRequirement : ButtonsRequirement, PermissionsAccessRequirement
 interface ExtendedDiscordRequirement : BaseCommandDiscordRequirement, DiscordExtensionPartsRequirement

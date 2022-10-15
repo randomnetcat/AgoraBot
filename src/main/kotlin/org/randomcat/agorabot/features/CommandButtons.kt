@@ -9,6 +9,7 @@ import org.randomcat.agorabot.buttons.feature.buttonRequestDataMap
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ButtonsStrategy
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ButtonsStrategyTag
 import java.time.Instant
+import java.util.*
 
 private object ButtonStrategyCacheKey
 
@@ -24,6 +25,10 @@ private fun makeButtonStrategy(buttonMap: ButtonRequestDataMap): ButtonsStrategy
                     expiry = expiry,
                 ),
             )
+        }
+
+        override fun invalidButtonId(): ButtonRequestId {
+            return ButtonRequestId("INVALID-" + UUID.randomUUID().toString())
         }
     }
 }

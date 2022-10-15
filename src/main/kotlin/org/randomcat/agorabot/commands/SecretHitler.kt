@@ -9,6 +9,7 @@ import org.randomcat.agorabot.commands.base.requirements.discord.currentChannelI
 import org.randomcat.agorabot.commands.base.requirements.discord.currentMessageEvent
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.ExtendedDiscordRequirement
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
+import org.randomcat.agorabot.commands.base.requirements.discord_ext.invalidButtonId
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.newButtonId
 import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.permissions.BotScope
@@ -41,6 +42,10 @@ private fun makeContext(
         SecretHitlerMessageContext by messageContext {
         override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
             return commandReceiver.newButtonId(descriptor, expiryDuration)
+        }
+
+        override fun invalidButtonId(): String {
+            return commandReceiver.invalidButtonId()
         }
 
         override suspend fun respond(message: DiscordMessage) {

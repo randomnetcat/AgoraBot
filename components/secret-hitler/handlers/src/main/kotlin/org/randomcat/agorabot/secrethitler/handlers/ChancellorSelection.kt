@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import org.randomcat.agorabot.buttons.BUTTON_INVALID_ID_RAW
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
@@ -66,7 +65,7 @@ suspend fun secretHitlerSendChancellorSelectionMessage(
                         SECRET_HITLER_BUTTON_EXPIRY,
                     )
                 else
-                    BUTTON_INVALID_ID_RAW,
+                    context.invalidButtonId(),
                 "Candidate #${index + 1}"
             )
             .withDisabled(!permissible)
