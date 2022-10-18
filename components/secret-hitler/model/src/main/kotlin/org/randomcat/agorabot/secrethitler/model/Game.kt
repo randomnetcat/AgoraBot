@@ -161,12 +161,13 @@ sealed class SecretHitlerGameState {
                 currentState: Joining,
                 assignRoles: (Set<SecretHitlerPlayerNumber>, SecretHitlerRoleConfiguration) -> SecretHitlerRoleMap,
                 shuffleProvider: SecretHitlerDeckState.ShuffleProvider,
+                orderShuffle: SecretHitlerPlayerOrderShuffle,
             ): StartResult {
                 val playerNames = currentState.playerNames
                 if (playerNames.size < SECRET_HITLER_MIN_START_PLAYERS) return StartResult.InsufficientPlayers
 
                 val startConfiguration = currentState.startConfiguration()
-                val playerMap = SecretHitlerPlayerMap.fromNames(playerNames)
+                val playerMap = SecretHitlerPlayerMap.fromNames(names = playerNames, shuffleOrder = orderShuffle)
                 val roleMap = assignRoles(playerMap.validNumbers, startConfiguration.roleConfiguration)
                 check(roleMap.assignedPlayers == playerMap.validNumbers)
 

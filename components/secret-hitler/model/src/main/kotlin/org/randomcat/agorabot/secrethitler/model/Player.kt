@@ -14,6 +14,8 @@ value class SecretHitlerPlayerNumber(val raw: Int)
 @Serializable
 value class SecretHitlerPlayerExternalName(val raw: String)
 
+typealias SecretHitlerPlayerOrderShuffle = (List<SecretHitlerPlayerExternalName>) -> List<SecretHitlerPlayerExternalName>
+
 data class SecretHitlerPlayerMap(
     private val players: ImmutableMap<SecretHitlerPlayerNumber, SecretHitlerPlayerExternalName>,
 ) {
@@ -24,9 +26,14 @@ data class SecretHitlerPlayerMap(
     }
 
     companion object {
-        fun fromNames(name: Set<SecretHitlerPlayerExternalName>): SecretHitlerPlayerMap {
+        fun fromNames(
+            names: Set<SecretHitlerPlayerExternalName>,
+            shuffleOrder: SecretHitlerPlayerOrderShuffle,
+        ): SecretHitlerPlayerMap {
             return SecretHitlerPlayerMap(
-                players = name
+                players = names
+                    .toList()
+                    .let(shuffleOrder)
                     .mapIndexed { index, externalName ->
                         SecretHitlerPlayerNumber(index) to externalName
                     }

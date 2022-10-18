@@ -40,6 +40,7 @@ internal suspend fun doHandleSecretHitlerStart(
                 currentState = currentState,
                 assignRoles = ::randomAssignRoles,
                 shuffleProvider = SecretHitlerGlobals.shuffleProvider(),
+                orderShuffle = SecretHitlerGlobals::shufflePlayerOrder,
             )
 
             when (startResult) {
