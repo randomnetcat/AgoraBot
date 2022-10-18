@@ -7,7 +7,7 @@ import org.randomcat.agorabot.commands.base.RemainingStringArgs
 import org.randomcat.agorabot.util.DISCORD_MAX_MESSAGE_LENGTH
 import java.math.BigInteger
 import kotlin.random.Random
-import kotlin.random.nextLong
+import kotlin.random.asJavaRandom
 
 private sealed class DieSpecification {
     data class Constant(val value: BigInteger) : DieSpecification() {
@@ -16,13 +16,19 @@ private sealed class DieSpecification {
         }
     }
 
-    data class NormalDie(val maxValue: Long) : DieSpecification() {
+    data class NormalDie(val maxValue: BigInteger) : DieSpecification() {
         init {
-            require(maxValue >= 1)
+            require(maxValue >= BigInteger.ONE)
         }
 
         override fun roll(random: Random): BigInteger {
-            return random.nextLong(1..maxValue).toBigInteger()
+            var candidate: BigInteger
+
+            do {
+                candidate = BigInteger(maxValue.bitLength(), random.asJavaRandom()) + BigInteger.ONE
+            } while (candidate > maxValue)
+
+            return candidate
         }
     }
 
@@ -40,7 +46,7 @@ private fun parseSingleDieSpec(spec: String): ParsedDie {
         when (spec.first()) {
             '+', '-' -> DieSpecification.Constant(spec.toBigInteger())
 
-            'd' -> DieSpecification.NormalDie(spec.removePrefix("d").toLong())
+            'd' -> DieSpecification.NormalDie(spec.removePrefix("d").toBigInteger())
 
             else -> throw IllegalArgumentException("Invalid die spec: $spec")
         }
@@ -84,29 +90,29 @@ class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
 
             // This cannot be a Sequence because the map call is non-deterministic and the rolls are iterated
             // multiple times.
-            diceSpecs
+            val rolls = diceSpecs
                 .flatMap { stringSpec ->
                     parseMultiDiceSpec(stringSpec)
                 }
                 .map { parsedDie ->
                     parsedDie.die.roll(Random)
                 }
-                .let { rolls ->
-                    rolls.joinToString(
-                        separator = ", ",
-                        prefix = "[", postfix = "]",
-                    ) { roll ->
-                        roll.toString()
-                    } to "Sum: ${rolls.sumOf { it }}"
-                }
-                .let { (rollStr, sumStr) ->
-                    val fullStr = "$rollStr. $sumStr"
 
-                    if (fullStr.length < DISCORD_MAX_MESSAGE_LENGTH)
-                        respond(fullStr)
-                    else
-                        respondWithTextAndFile(text = sumStr, fileName = "rng.txt", fileContent = fullStr)
-                }
+            val rollStr = rolls.joinToString(
+                separator = ", ",
+                prefix = "[", postfix = "]",
+            ) { roll ->
+                roll.toString()
+            }
+
+            val sumStr = "Sum: ${rolls.sumOf { it }}"
+
+            val fullStr = "$rollStr. $sumStr"
+
+            if (fullStr.length < DISCORD_MAX_MESSAGE_LENGTH)
+                respond(fullStr)
+            else
+                respondWithTextAndFile(text = sumStr, fileName = "rng.txt", fileContent = fullStr)
         }
     }
 }
