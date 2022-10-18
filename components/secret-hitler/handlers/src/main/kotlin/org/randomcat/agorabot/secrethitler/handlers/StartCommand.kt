@@ -8,24 +8,26 @@ import org.randomcat.agorabot.secrethitler.storage.api.updateGameTypedWithValidE
 private fun randomAssignRoles(
     players: Set<SecretHitlerPlayerNumber>,
     roleConfiguration: SecretHitlerRoleConfiguration,
+    shuffleRoles: SecretHitlerShuffleRoles,
 ): SecretHitlerRoleMap {
-    val roleList: List<SecretHitlerRole> = buildList {
+    val roleList: List<SecretHitlerRole> = shuffleRoles(buildList {
         repeat(roleConfiguration.liberalCount) { add(SecretHitlerRole.Liberal) }
         repeat(roleConfiguration.plainFascistCount) { add(SecretHitlerRole.PlainFascist) }
         add(SecretHitlerRole.Hitler)
-
-        shuffle()
-    }
+    })
 
     check(players.size == roleList.size)
 
     return SecretHitlerRoleMap((players zip roleList).toMap())
 }
 
+typealias SecretHitlerShuffleRoles = (List<SecretHitlerRole>) -> List<SecretHitlerRole>
+
 internal suspend fun doHandleSecretHitlerStart(
     context: SecretHitlerCommandContext,
     gameList: SecretHitlerGameList,
     gameId: SecretHitlerGameId,
+    shuffleRoles: SecretHitlerShuffleRoles,
 ) {
     gameList.updateGameTypedWithValidExtract(
         gameId,
@@ -38,7 +40,13 @@ internal suspend fun doHandleSecretHitlerStart(
         validMapper = { currentState: SecretHitlerGameState.Joining ->
             val startResult = SecretHitlerGameState.Running.tryStart(
                 currentState = currentState,
-                assignRoles = ::randomAssignRoles,
+                assignRoles = { players, roleConfig ->
+                    randomAssignRoles(
+                        players = players,
+                        roleConfiguration = roleConfig,
+                        shuffleRoles = shuffleRoles,
+                    )
+                },
                 shuffleProvider = SecretHitlerGlobals.shuffleProvider(),
                 orderShuffle = SecretHitlerGlobals::shufflePlayerOrder,
             )

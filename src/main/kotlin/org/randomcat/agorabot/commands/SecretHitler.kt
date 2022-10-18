@@ -162,6 +162,7 @@ class SecretHitlerCommand(
                         context = currentContext(gameId = gameId),
                         gameList = repository.gameList,
                         gameId = gameId,
+                        shuffleRoles = SecretHitlerGlobals::shuffleRoles,
                     )
                 }
             }

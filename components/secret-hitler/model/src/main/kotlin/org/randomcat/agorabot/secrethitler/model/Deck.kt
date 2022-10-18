@@ -4,6 +4,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import java.util.*
 
 data class SecretHitlerDiscardDeckState(private val policies: ImmutableList<SecretHitlerPolicyType>) {
     constructor(policies: List<SecretHitlerPolicyType>) : this(policies.toImmutableList())
@@ -145,12 +146,12 @@ data class SecretHitlerDeckState(
         const val TOTAL_LIBERAL_COUNT = 6
     }
 
-    object RandomShuffleProvider : ShuffleProvider {
+    data class RandomShuffleProvider(private val rng: () -> Random) : ShuffleProvider {
         override fun initialDeck(): SecretHitlerDrawDeckState {
             return SecretHitlerDrawDeckState(buildList {
                 repeat(TOTAL_FASCIST_COUNT) { add(SecretHitlerPolicyType.FASCIST) }
                 repeat(TOTAL_LIBERAL_COUNT) { add(SecretHitlerPolicyType.LIBERAL) }
-                shuffle()
+                shuffle(rng())
             })
         }
 
@@ -161,7 +162,7 @@ data class SecretHitlerDeckState(
             return SecretHitlerDrawDeckState(buildList {
                 addAll(remainingDrawPile)
                 addAll(discardPile)
-                shuffle()
+                shuffle(rng())
             })
         }
     }

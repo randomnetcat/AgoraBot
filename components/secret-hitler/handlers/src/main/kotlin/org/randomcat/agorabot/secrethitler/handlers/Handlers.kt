@@ -22,11 +22,13 @@ object SecretHitlerHandlers {
         context: SecretHitlerCommandContext,
         gameList: SecretHitlerGameList,
         gameId: SecretHitlerGameId,
+        shuffleRoles: SecretHitlerShuffleRoles,
     ) {
         doHandleSecretHitlerStart(
             context = context,
             gameList = gameList,
             gameId = gameId,
+            shuffleRoles = shuffleRoles,
         )
     }
 }
