@@ -13,6 +13,7 @@ import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.guild_state.get
 import org.randomcat.agorabot.guild_state.update
 import org.randomcat.agorabot.permissions.GuildScope
+import org.randomcat.agorabot.util.userFacingRandom
 
 private data class JudgeListState(val judgeNames: ImmutableList<String>) {
     constructor(judgeNames: List<String>) : this(judgeNames.toImmutableList())
@@ -107,7 +108,7 @@ class JudgeListCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                     val judgeNames = getJudgeListState().judgeNames
 
                     if (judgeNames.isNotEmpty()) {
-                        respond("Selected: ${judgeNames.random()}")
+                        respond("Selected: ${judgeNames.random(userFacingRandom())}")
                     } else {
                         respond("The judge list is empty.")
                     }

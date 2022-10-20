@@ -11,6 +11,7 @@ import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.DuckCommand
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.util.userFacingRandom
 import java.util.concurrent.atomic.AtomicReference
 
 private const val END_DUCK_SESSION_CMD = "I fixed it"
@@ -50,7 +51,7 @@ private val duckFeature = object : AbstractFeature() {
                             it.remove(listeningSpec)
                         }
                     } else {
-                        event.channel.sendMessage(RESPONSES.random()).queue()
+                        event.channel.sendMessage(RESPONSES.random(userFacingRandom())).queue()
                     }
                 }
             }

@@ -1,16 +1,9 @@
 package org.randomcat.agorabot.commands
 
 import org.randomcat.agorabot.commands.base.*
+import org.randomcat.agorabot.util.userFacingRandom
 import java.math.BigInteger
-import kotlin.random.Random
 import kotlin.random.asJavaRandom
-
-private fun BigInteger.toLongOrNull(): Long? {
-    return if (this > Long.MAX_VALUE.toBigInteger() || this < Long.MIN_VALUE.toBigInteger())
-        null
-    else
-        longValueExact()
-}
 
 class RngCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
     override fun BaseCommandImplReceiver.impl() {
@@ -35,7 +28,7 @@ class RngCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
         var offset: BigInteger
 
         do {
-            offset = BigInteger(length.bitLength(), Random.asJavaRandom())
+            offset = BigInteger(length.bitLength(), userFacingRandom().asJavaRandom())
         } while (offset >= length)
 
         respond("Random number from $min to $max: ${min + offset}")

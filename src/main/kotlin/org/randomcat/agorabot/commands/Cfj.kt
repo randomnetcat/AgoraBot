@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.help.help
 import org.randomcat.agorabot.util.repeated
+import org.randomcat.agorabot.util.userFacingRandom
 import kotlin.random.Random
 
 private const val FOUR_FACTORS_LOTS = 10
@@ -41,12 +42,12 @@ private fun randomShouldFourFactor(): Boolean {
 }
 
 private fun randomResponse(): String {
-    return RESPONSES.random()
+    return RESPONSES.random(userFacingRandom())
 }
 
 private suspend fun BaseCommandExecutionReceiver.respondFourFactor() {
     fun textForFactor(factor: String): String {
-        val isTrue = Random.nextBoolean()
+        val isTrue = userFacingRandom().nextBoolean()
         return "Is the statement supported by $factor? ${if (isTrue) "TRUE" else "FALSE"}"
     }
 

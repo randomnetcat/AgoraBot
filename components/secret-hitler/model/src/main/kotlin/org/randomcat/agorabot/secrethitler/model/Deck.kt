@@ -4,7 +4,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
-import java.util.*
+import kotlin.random.Random
 
 data class SecretHitlerDiscardDeckState(private val policies: ImmutableList<SecretHitlerPolicyType>) {
     constructor(policies: List<SecretHitlerPolicyType>) : this(policies.toImmutableList())

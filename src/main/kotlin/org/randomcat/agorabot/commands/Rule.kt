@@ -9,6 +9,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.randomcat.agorabot.commands.base.BaseCommand
 import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
 import org.randomcat.agorabot.commands.base.BaseCommandStrategy
+import org.randomcat.agorabot.util.userFacingRandom
 import org.slf4j.LoggerFactory
 import java.net.URI
 
@@ -34,7 +35,7 @@ class RuleCommand(
                         val ruleIndexJson = Json.parseToJsonElement(ruleIndexText).jsonObject
                         val enactedRuleNumbers = ruleIndexJson.getValue("enacted_rules").jsonArray
 
-                        val randomRuleIndex = enactedRuleNumbers.indices.random()
+                        val randomRuleIndex = enactedRuleNumbers.indices.random(userFacingRandom())
                         val randomRuleNumber = enactedRuleNumbers[randomRuleIndex].jsonPrimitive.content
 
                         val randomRuleTitle =

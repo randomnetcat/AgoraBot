@@ -13,6 +13,8 @@ import org.randomcat.agorabot.*
 import org.randomcat.agorabot.setup.features.featureConfigDir
 import org.randomcat.agorabot.util.await
 import org.randomcat.agorabot.util.coroutineScope
+import org.randomcat.agorabot.util.insecureRandom
+import org.randomcat.agorabot.util.userFacingRandom
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.time.Instant
@@ -21,7 +23,6 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoField
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import java.nio.file.NoSuchFileException as NioNoSuchFileException
@@ -135,8 +136,12 @@ private fun randomNextInterval(baseTime: Instant, interval: PeriodicMessageInter
 
             val startOfWeekAfterNext = startOfNextWeek.plusWeeks(1)
 
-            Instant.ofEpochSecond(Random.nextLong(startOfNextWeek.toEpochSecond(),
-                startOfWeekAfterNext.toEpochSecond()))
+            Instant.ofEpochSecond(
+                insecureRandom().nextLong(
+                    startOfNextWeek.toEpochSecond(),
+                    startOfWeekAfterNext.toEpochSecond(),
+                ),
+            )
         }
     }
 }
@@ -181,7 +186,7 @@ fun periodicMessageSource() = object : FeatureSource {
                                             context
                                                 .jda
                                                 .getTextChannelById(messageConfig.discordChannelId)
-                                                ?.sendMessage(messageConfig.options.random())
+                                                ?.sendMessage(messageConfig.options.random(userFacingRandom()))
                                                 ?.await()
 
                                             currentState = currentState.copy(
