@@ -3,10 +3,7 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
-import org.randomcat.agorabot.commands.CfjCommand
-import org.randomcat.agorabot.commands.ChooseCommand
-import org.randomcat.agorabot.commands.RngCommand
-import org.randomcat.agorabot.commands.RollCommand
+import org.randomcat.agorabot.commands.*
 import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 import org.randomcat.agorabot.ofCommands
 
@@ -19,5 +16,6 @@ fun randomFactory() = FeatureSource.ofConstant("random_commands", Feature.ofComm
         "roll" to RollCommand(commandStrategy),
         "cfj" to CfjCommand(commandStrategy),
         "choose" to ChooseCommand(commandStrategy),
+        "shuffle" to ShuffleCommand(commandStrategy),
     )
 })
