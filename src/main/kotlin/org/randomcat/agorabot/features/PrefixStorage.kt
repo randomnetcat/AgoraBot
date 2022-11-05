@@ -51,7 +51,7 @@ fun prefixStorageFactory() = object : FeatureSource {
 
                     versioningStorage.setVersion(PREFIX_STORAGE_COMPONENT, PREFIX_STORAGE_CURRENT_VERSION.name)
 
-                    JsonPrefixMap(default = ".", prefixStoragePath, context.configPersistService)
+                    JsonPrefixMap(default = "!", prefixStoragePath, context.configPersistService)
                 })
 
                 return FeatureQueryResult.NotFound
