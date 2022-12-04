@@ -95,11 +95,15 @@ class HelpCommand(
 
                 builder.appendLine("Use help [command] for specific usage. Available commands:")
 
-                commands().filter { (name, _) -> !suppressedCommands.contains(name) }.forEach { (name, command) ->
-                    val helpPart = (command as? BaseCommand)?.usage()?.overallHelp?.let { ": $it" } ?: ""
-                    builder.append("**$name**").append(helpPart)
-                    builder.appendLine()
-                }
+                commands()
+                    .filter { (name, _) -> !suppressedCommands.contains(name) }
+                    .entries
+                    .sortedBy { it.key }
+                    .forEach { (name, command) ->
+                        val helpPart = (command as? BaseCommand)?.usage()?.overallHelp?.let { ": $it" } ?: ""
+                        builder.append("**$name**").append(helpPart)
+                        builder.appendLine()
+                    }
 
                 if (!builder.isEmpty) {
                     builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach { respond(it) }
