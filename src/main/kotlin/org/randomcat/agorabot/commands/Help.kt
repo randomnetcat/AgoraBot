@@ -36,9 +36,9 @@ private fun StringBuilder.doMatchUsage(
             if (option.help != null) {
                 appendLine(HELP_INDENT + option.help)
             }
-
-            appendLine()
         }
+
+        appendLine()
     }
 }
 
@@ -49,7 +49,6 @@ private fun StringBuilder.doSubcommandsUsage(
 ) {
     usage.subcommandsMap.forEach { (subcommandName, subcommandUsage) ->
         doUsage(subcommandUsage, "$commandPrefix $subcommandName", config)
-        appendLine()
     }
 }
 
