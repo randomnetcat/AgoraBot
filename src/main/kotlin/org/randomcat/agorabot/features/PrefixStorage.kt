@@ -1,6 +1,9 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.*
+import org.randomcat.agorabot.FeatureDependency
+import org.randomcat.agorabot.FeatureSetupContext
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.config.JsonPrefixMap
 import org.randomcat.agorabot.config.PrefixStorageTag
 import org.randomcat.agorabot.config.PrefixStorageVersion
@@ -21,25 +24,20 @@ private data class PrefixStorageConfig(
     val prefixStoragePath: Path,
 )
 
+private fun readConfig(context: FeatureSetupContext): PrefixStorageConfig {
+    return PrefixStorageConfig(prefixStoragePath = context.paths.prefixStoragePath())
+}
+
 private val versioningStorageDep = FeatureDependency.Single(VersioningStorageTag)
 private val persistServiceDep = FeatureDependency.Single(ConfigPersistServiceTag)
 
 @FeatureSourceFactory
-fun prefixStorageFactory(): FeatureSource<*> = object : FeatureSource<PrefixStorageConfig> {
-    override val featureName: String
-        get() = "prefix_storage_default"
-
-    override fun readConfig(context: FeatureSetupContext): PrefixStorageConfig {
-        return PrefixStorageConfig(prefixStoragePath = context.paths.prefixStoragePath())
-    }
-
-    override val dependencies: List<FeatureDependency<*>>
-        get() = listOf(versioningStorageDep, persistServiceDep)
-
-    override val provides: List<FeatureElementTag<*>>
-        get() = listOf(PrefixStorageTag)
-
-    override fun createFeature(config: PrefixStorageConfig, context: FeatureSourceContext): Feature {
+fun prefixStorageFactory(): FeatureSource<*> = FeatureSource.ofCloseable(
+    name = "prefix_storage_default",
+    element = PrefixStorageTag,
+    dependencies = listOf(versioningStorageDep, persistServiceDep),
+    readConfig = ::readConfig,
+    create = { config, context ->
         val versioningStorage = context[versioningStorageDep]
         val persistService = context[persistServiceDep]
 
@@ -53,7 +51,7 @@ fun prefixStorageFactory(): FeatureSource<*> = object : FeatureSource<PrefixStor
 
         versioningStorage.setVersion(PREFIX_STORAGE_COMPONENT, PREFIX_STORAGE_CURRENT_VERSION.name)
 
-        val map = JsonPrefixMap(default = "!", config.prefixStoragePath, persistService)
-        return Feature.singleTag(PrefixStorageTag, map)
-    }
-}
+        JsonPrefixMap(default = "!", config.prefixStoragePath, persistService)
+    },
+    close = { it.close() }
+)
