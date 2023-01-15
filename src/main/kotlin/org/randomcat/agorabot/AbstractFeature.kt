@@ -69,20 +69,6 @@ fun <Config> FeatureSource.Companion.ofCommandsConfig(
     }
 }
 
-fun FeatureSource.Companion.ofCommands(
-    name: String,
-    dependencies: List<FeatureDependency<*>>,
-    block: (context: FeatureSourceContext) -> Map<String, Command>,
-): FeatureSource<Unit> {
-    return ofCommandsConfig(
-        name = name,
-        readConfig = { Unit },
-        dependencies = dependencies,
-    ) { _, context ->
-        block(context)
-    }
-}
-
 private val strategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
 
 fun <Config> FeatureSource.Companion.ofBaseCommandsConfig(

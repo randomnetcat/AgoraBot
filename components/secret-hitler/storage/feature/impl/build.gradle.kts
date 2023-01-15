@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.util.common)
     implementation(projects.core.feature)
     implementation(projects.components.secretHitler.storage.feature.api)
     implementation(projects.components.secretHitler.storage.impl)

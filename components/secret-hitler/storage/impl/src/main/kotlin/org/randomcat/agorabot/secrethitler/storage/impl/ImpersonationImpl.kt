@@ -11,7 +11,7 @@ import org.randomcat.agorabot.config.persist.StorageStrategy
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerMutableImpersonationMap
 import java.nio.file.Path
 
-class SecretHitlerJsonImpersonationMap(
+class JsonSecretHitlerImpersonationMap(
     storagePath: Path,
     persistService: ConfigPersistService,
 ) : SecretHitlerMutableImpersonationMap {
@@ -96,5 +96,9 @@ class SecretHitlerJsonImpersonationMap(
         impl.updateValue { old ->
             old.copy(dmRecipientsByName = old.dmRecipientsByName.put(name, persistentSetOf()))
         }
+    }
+
+    fun close() {
+        impl.close()
     }
 }

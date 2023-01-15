@@ -5,13 +5,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.*
-import org.randomcat.agorabot.config.persist.feature.configPersistService
+import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.storage.feature.api.SecretHitlerImpersonationMapTag
 import org.randomcat.agorabot.secrethitler.storage.feature.api.SecretHitlerRepositoryTag
 import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerChannelGameMap
 import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerGameList
-import org.randomcat.agorabot.secrethitler.storage.impl.SecretHitlerJsonImpersonationMap
+import org.randomcat.agorabot.secrethitler.storage.impl.JsonSecretHitlerImpersonationMap
+import org.randomcat.agorabot.util.exceptionallyClose
+import org.randomcat.agorabot.util.sequentiallyClose
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.NoSuchFileException
@@ -31,8 +33,10 @@ private data class SecretHitlerConfigDto(
 
 private val logger = LoggerFactory.getLogger("AgoraBotSecretHitlerDefaultStorageFeature")
 
+private val persistServiceDep = FeatureDependency.Single(ConfigPersistServiceTag)
+
 @FeatureSourceFactory
-fun secretHitlerStorageFactory() = object : FeatureSource {
+fun secretHitlerStorageFactory(): FeatureSource<*> = object : FeatureSource<SecretHitlerFeatureConfig> {
     override val featureName: String
         get() = "secret_hitler_storage_default"
 
@@ -57,62 +61,54 @@ fun secretHitlerStorageFactory() = object : FeatureSource {
         )
     }
 
-    override fun createFeature(config: Any?): Feature {
-        val typedConfig = config as SecretHitlerFeatureConfig
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(persistServiceDep)
 
-        val repositoryCacheKey = Any()
-        val impersonationMapCacheKey = Any()
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(SecretHitlerRepositoryTag, SecretHitlerImpersonationMapTag)
 
-        return object : Feature {
-            private val FeatureContext.repository
-                get() = cache(repositoryCacheKey) {
-                    SecretHitlerRepository(
-                        gameList = alwaysCloseObject(
-                            {
-                                JsonSecretHitlerGameList(
-                                    storagePath = typedConfig.baseStoragePath.createDirectories().resolve("games"),
-                                    persistService = configPersistService,
-                                )
-                            },
-                            {
-                                it.close()
-                            },
-                        ),
-                        channelGameMap = alwaysCloseObject(
-                            {
-                                JsonSecretHitlerChannelGameMap(
-                                    storagePath = typedConfig.baseStoragePath.createDirectories()
-                                        .resolve("games_by_channel"),
-                                    persistService = configPersistService,
-                                )
-                            },
-                            {
-                                it.close()
-                            },
-                        ),
-                    )
+    override fun createFeature(config: SecretHitlerFeatureConfig, context: FeatureSourceContext): Feature {
+        val persistService = context[persistServiceDep]
+
+        var gameList: JsonSecretHitlerGameList? = null
+        var channelMap: JsonSecretHitlerChannelGameMap? = null
+        var impersonationMap: JsonSecretHitlerImpersonationMap? = null
+
+        try {
+            gameList = JsonSecretHitlerGameList(
+                storagePath = config.baseStoragePath.createDirectories().resolve("games"),
+                persistService = persistService,
+            )
+
+            channelMap = JsonSecretHitlerChannelGameMap(
+                storagePath = config.baseStoragePath.createDirectories().resolve("games_by_channel"),
+                persistService = persistService,
+            )
+
+            impersonationMap = JsonSecretHitlerImpersonationMap(
+                config.baseStoragePath.createDirectories().resolve("impersonation_data"),
+                persistService,
+            )
+
+            val repository = SecretHitlerRepository(
+                gameList = gameList,
+                channelGameMap = channelMap,
+            )
+
+            return object : Feature {
+                override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                    if (tag is SecretHitlerRepositoryTag) return tag.values(repository)
+                    if (tag is SecretHitlerImpersonationMapTag) return tag.values(impersonationMap)
+
+                    invalidTag(tag)
                 }
 
-            private val FeatureContext.impersonationMap
-                get() = if (typedConfig.enableImpersonation)
-                    cache(impersonationMapCacheKey) {
-                        SecretHitlerJsonImpersonationMap(
-                            typedConfig.baseStoragePath.createDirectories().resolve("impersonation_data"),
-                            configPersistService,
-                        )
-                    }
-                else
-                    null
-
-            override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                if (tag is SecretHitlerRepositoryTag) return tag.result(context.repository)
-
-                if (tag is SecretHitlerImpersonationMapTag) {
-                    context.impersonationMap?.let { return tag.result(it) }
+                override fun close() {
+                    sequentiallyClose({ gameList.close() }, { channelMap.close() }, { impersonationMap.close() })
                 }
-
-                return FeatureQueryResult.NotFound
             }
+        } catch (e: Exception) {
+            exceptionallyClose(e, { gameList?.close() }, { channelMap?.close() }, { impersonationMap?.close() })
         }
     }
 }

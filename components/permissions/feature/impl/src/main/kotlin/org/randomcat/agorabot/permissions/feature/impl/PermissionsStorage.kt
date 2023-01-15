@@ -15,9 +15,6 @@ private data class PermissionsStorageConfig(
     val guildStorageDir: Path,
 )
 
-private object BotPermissionMapCacheKey
-private object GuildPermissionMapCacheKey
-
 private val persistServiceDep = FeatureDependency.Single(ConfigPersistServiceTag)
 
 @FeatureSourceFactory

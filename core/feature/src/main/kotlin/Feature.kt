@@ -1,6 +1,7 @@
 package org.randomcat.agorabot
 
 import org.randomcat.agorabot.setup.BotDataPaths
+import org.randomcat.agorabot.util.exceptionallyClose
 
 interface FeatureElementTag<T>
 
@@ -12,7 +13,7 @@ sealed class FeatureDependency<T> {
     data class AtMostOne<T : Any>(override val tag: FeatureElementTag<T>) : FeatureDependency<T>()
 }
 
-@Suppress("unused", "UNCHECKED_CAST")
+@Suppress("unused", "UNCHECKED_CAST", "UnusedReceiverParameter")
 fun <To, From> FeatureElementTag<From>.values(vararg values: From): List<To> {
     // Deliberately unchecked cast. This verifies the input type while casting to the unknown return type of the query
     // function.
@@ -39,7 +40,52 @@ interface FeatureSourceContext {
 }
 
 interface FeatureSource<Config> {
-    companion object
+    companion object {
+        fun <Config, OutValue : Any, InternalValue : OutValue> ofCloseable(
+            name: String,
+            element: FeatureElementTag<OutValue>,
+            dependencies: List<FeatureDependency<*>> = emptyList(),
+            readConfig: (context: FeatureSetupContext) -> Config,
+            create: (Config, FeatureSourceContext) -> InternalValue,
+            close: (InternalValue) -> Unit,
+        ): FeatureSource<Config> {
+            return object : FeatureSource<Config> {
+                override val featureName: String
+                    get() = name
+
+                override val dependencies: List<FeatureDependency<*>>
+                    get() = dependencies
+
+                override val provides: List<FeatureElementTag<*>>
+                    get() = listOf(element)
+
+                override fun readConfig(context: FeatureSetupContext): Config {
+                    return readConfig(context)
+                }
+
+                override fun createFeature(config: Config, context: FeatureSourceContext): Feature {
+                    val value = create(config, context)
+
+                    try {
+                        return object : Feature {
+                            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                                @Suppress("UNCHECKED_CAST")
+                                if (tag == element) return listOf(value as T)
+
+                                invalidTag(tag)
+                            }
+
+                            override fun close() {
+                                close(value)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        exceptionallyClose(e, { close(value) })
+                    }
+                }
+            }
+        }
+    }
 
     val featureName: String
 
@@ -51,9 +97,7 @@ interface FeatureSource<Config> {
     val provides: List<FeatureElementTag<*>>
 
     interface NoConfig : FeatureSource<Unit> {
-        override fun readConfig(context: FeatureSetupContext) {
-            return Unit
-        }
+        override fun readConfig(context: FeatureSetupContext) = Unit
 
         override fun createFeature(config: Unit, context: FeatureSourceContext): Feature {
             return createFeature(context)

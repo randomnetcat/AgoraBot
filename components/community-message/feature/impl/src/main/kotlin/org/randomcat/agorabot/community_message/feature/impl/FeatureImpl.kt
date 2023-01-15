@@ -1,6 +1,8 @@
 package org.randomcat.agorabot.community_message.feature.impl
 
-import org.randomcat.agorabot.*
+import org.randomcat.agorabot.FeatureSetupContext
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.community_message.feature.CommunityMessageStorageTag
 import org.randomcat.agorabot.community_message.impl.JsonCommunityMessageStorage
 import java.nio.file.Path
@@ -10,37 +12,18 @@ private data class CommunityMessageStorageConfig(
     val storageDir: Path,
 )
 
-private object CommunityMessageStorageCacheKey
+private fun readConfig(context: FeatureSetupContext): CommunityMessageStorageConfig {
+    return CommunityMessageStorageConfig(storageDir = context.paths.storagePath.resolve("community_message"))
+}
 
 @FeatureSourceFactory
-fun communityMessageStorageFeature() = object : FeatureSource {
-    override val featureName: String
-        get() = "community_message_storage_default"
-
-    override fun readConfig(context: FeatureSetupContext): CommunityMessageStorageConfig {
-        return CommunityMessageStorageConfig(storageDir = context.paths.storagePath.resolve("community_message"))
-    }
-
-    override fun createFeature(config: Any?): Feature {
-        config as CommunityMessageStorageConfig
-
-        return object : Feature {
-            override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                if (tag is CommunityMessageStorageTag) return tag.result(context.cache(CommunityMessageStorageCacheKey) {
-                    config.storageDir.createDirectories()
-
-                    context.alwaysCloseObject(
-                        {
-                            JsonCommunityMessageStorage(baseDir = config.storageDir)
-                        },
-                        {
-                            it.close()
-                        },
-                    )
-                })
-
-                return FeatureQueryResult.NotFound
-            }
-        }
-    }
-}
+fun communityMessageStorageFeature(): FeatureSource<*> = FeatureSource.ofCloseable(
+    name = "community_message_storage_default",
+    readConfig = ::readConfig,
+    element = CommunityMessageStorageTag,
+    create = { config, _ ->
+        config.storageDir.createDirectories()
+        JsonCommunityMessageStorage(baseDir = config.storageDir)
+    },
+    close = { it.close() },
+)

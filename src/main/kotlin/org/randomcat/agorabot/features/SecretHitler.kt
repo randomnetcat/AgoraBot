@@ -222,7 +222,7 @@ private suspend fun handleEditQueue(channel: ReceiveChannel<MessageEditQueueEntr
 
 private val coroutineScopeDep = FeatureDependency.Single(CoroutineScopeTag)
 private val repositoryDep = FeatureDependency.Single(SecretHitlerRepositoryTag)
-private val impersonationMapDep = FeatureDependency.Single(SecretHitlerImpersonationMapTag)
+private val impersonationMapDep = FeatureDependency.AtMostOne(SecretHitlerImpersonationMapTag)
 private val commandStrategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
 
 @FeatureSourceFactory
