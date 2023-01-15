@@ -12,13 +12,13 @@ import java.nio.file.Path
 
 private val logger = LoggerFactory.getLogger("PermissionsConfig")
 
-data class PermissionsConfig(
+internal data class PermissionsConfig(
     val botAdmins: ImmutableList<String>,
 ) {
     constructor(botAdminList: List<String>) : this(botAdminList.toImmutableList())
 }
 
-fun readPermissionsConfig(configPath: Path): PermissionsConfig? {
+internal fun readPermissionsConfig(configPath: Path): PermissionsConfig? {
     if (Files.notExists(configPath)) {
         logger.warn("Permissions config path $configPath does not exist!")
         return null

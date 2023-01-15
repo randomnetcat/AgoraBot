@@ -16,8 +16,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager
 import net.dv8tion.jda.api.requests.GatewayIntent
 import org.randomcat.agorabot.buttons.*
-import org.randomcat.agorabot.buttons.feature.buttonHandlerMap
-import org.randomcat.agorabot.buttons.feature.buttonRequestDataMap
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProvider
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProviderTag
@@ -109,7 +107,7 @@ private fun createDirectories(paths: BotDataPaths) {
 }
 
 private fun buildFeaturesMap(
-    featureSources: Iterable<FeatureSource>,
+    featureSources: Iterable<FeatureSource<*>>,
     featureSetupContext: FeatureSetupContext,
 ): Map<String, Feature> {
     return buildMap {
@@ -145,7 +143,7 @@ private fun buildFeaturesMap(
     }
 }
 
-object JdaListenerTag : FeatureElementTag<List<Any>>
+object JdaListenerTag : FeatureElementTag<Any>
 object BotCommandListTag : FeatureElementTag<Map<String, Command>>
 object StartupBlockTag : FeatureElementTag<() -> Unit>
 object JdaTag : FeatureElementTag<JDA>
@@ -153,7 +151,12 @@ object JdaTag : FeatureElementTag<JDA>
 val FeatureContext.jda: JDA
     get() = queryExpectOne(JdaTag)
 
-data class BaseCommandDependencyTag(val baseTag: Any?) : FeatureElementTag<Any?>
+data class BaseCommandDependencyResult(
+    val baseTag: Any?,
+    val value: Any?,
+)
+
+object BaseCommandDependencyTag : FeatureElementTag<BaseCommandDependencyResult>
 
 private fun runBot(config: BotRunConfig) {
     val token = config.token
@@ -248,7 +251,7 @@ private fun runBot(config: BotRunConfig) {
                     .filter { it.hasAnnotation(FeatureSourceFactory::class.java) }
                     .mapNotNull { it.loadClassAndGetMethod().kotlinFunction }
                     .onEach { logger.info("Reflectively found feature function: $it") }
-                    .map { it.call() as FeatureSource }
+                    .map { it.call() as FeatureSource<*> }
             }
         }
 

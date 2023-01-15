@@ -2,11 +2,10 @@ package org.randomcat.agorabot.features
 
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.DigestCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.config.persist.feature.configPersistService
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
+import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag
 import org.randomcat.agorabot.config.readDigestMailConfig
 import org.randomcat.agorabot.digest.*
-import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.setup.BotDataPaths
 import java.nio.file.Path
 
@@ -48,11 +47,12 @@ private fun setupDigest(paths: BotDataPaths): DigestConfig {
     )
 }
 
-private object DigestStorageCacheKey
+private val persistServiceDep = FeatureDependency.Single(ConfigPersistServiceTag)
+private val commandStrategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
 
 @FeatureSourceFactory
-fun digestFeatureFactory(): FeatureSource {
-    return object : FeatureSource {
+fun digestFeatureFactory(): FeatureSource<*> {
+    return object : FeatureSource<DigestConfig> {
         override val featureName: String
             get() = "digest"
 
@@ -60,42 +60,47 @@ fun digestFeatureFactory(): FeatureSource {
             return setupDigest(context.paths)
         }
 
-        override fun createFeature(config: Any?): Feature {
-            val typedConfig = config as DigestConfig
+        override val dependencies: List<FeatureDependency<*>>
+            get() = listOf(persistServiceDep, commandStrategyDep)
 
-            return object : AbstractFeature() {
-                private val FeatureContext.digestMap
-                    get() = cache(DigestStorageCacheKey) {
-                        alwaysCloseObject(
-                            {
-                                JsonGuildDigestMap(typedConfig.digestStorageDir, configPersistService)
-                            },
-                            {
-                                it.close()
-                            },
+        override val provides: List<FeatureElementTag<*>>
+            get() = listOf(BotCommandListTag, JdaListenerTag)
+
+        override fun createFeature(config: DigestConfig, context: FeatureSourceContext): Feature {
+            val persistService = context[persistServiceDep]
+            val commandStrategy = context[commandStrategyDep]
+
+            val digestMap = JsonGuildDigestMap(config.digestStorageDir, persistService)
+
+            val commandMap = mapOf(
+                "digest" to DigestCommand(
+                    strategy = commandStrategy,
+                    digestMap = digestMap,
+                    sendStrategy = config.digestSendStrategy,
+                    digestFormat = config.digestFormat,
+                    digestAddedReaction = DIGEST_SUCCESS_EMOTE,
+                ),
+            )
+
+            val listener = digestEmoteListener(
+                digestMap = digestMap,
+                targetEmoji = DIGEST_ADD_EMOTE,
+                successEmoji = DIGEST_SUCCESS_EMOTE,
+            )
+
+            return object : Feature {
+                override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                    if (tag is BotCommandListTag) {
+                        return tag.values(
+                            commandMap,
                         )
                     }
 
-                override fun commandsInContext(context: FeatureContext): Map<String, Command> {
-                    return mapOf(
-                        "digest" to DigestCommand(
-                            strategy = context.defaultCommandStrategy,
-                            digestMap = context.digestMap,
-                            sendStrategy = typedConfig.digestSendStrategy,
-                            digestFormat = typedConfig.digestFormat,
-                            digestAddedReaction = DIGEST_SUCCESS_EMOTE,
-                        ),
-                    )
-                }
+                    if (tag is JdaListenerTag) {
+                        return tag.values(listener)
+                    }
 
-                override fun jdaListeners(context: FeatureContext): List<Any> {
-                    return listOf(
-                        digestEmoteListener(
-                            digestMap = context.digestMap,
-                            targetEmoji = DIGEST_ADD_EMOTE,
-                            successEmoji = DIGEST_SUCCESS_EMOTE,
-                        ),
-                    )
+                    invalidTag(tag)
                 }
             }
         }

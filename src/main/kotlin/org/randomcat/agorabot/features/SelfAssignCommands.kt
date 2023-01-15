@@ -1,13 +1,12 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.Feature
 import org.randomcat.agorabot.FeatureSource
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.SelfAssignCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.ofCommands
+import org.randomcat.agorabot.ofBaseCommands
 
 @FeatureSourceFactory
-fun selfAssignCommandsFactory() = FeatureSource.ofConstant("self_assign_commands", Feature.ofCommands { context ->
-    mapOf("selfassign" to SelfAssignCommand(context.defaultCommandStrategy))
-})
+fun selfAssignCommandsFactory() = FeatureSource.ofBaseCommands(
+    "self_assign_commands",
+    mapOf("selfassign" to ::SelfAssignCommand),
+)

@@ -1,9 +1,10 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.*
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.commands.ArchiveCommand
 import org.randomcat.agorabot.commands.DiscordArchiver
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.ofBaseCommandsConfig
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.util.DefaultDiscordArchiver
 import java.nio.file.Path
@@ -23,28 +24,20 @@ private data class ArchiveCommandsConfig(
 )
 
 @FeatureSourceFactory
-fun archiveCommandsFactory() = object : FeatureSource {
-    override val featureName: String
-        get() = "archive"
-
-    override fun readConfig(context: FeatureSetupContext): ArchiveCommandsConfig {
-        return ArchiveCommandsConfig(
+fun archiveCommandsFactory(): FeatureSource<*> = FeatureSource.ofBaseCommandsConfig(
+    name = "archive",
+    readConfig = { context ->
+        ArchiveCommandsConfig(
             archiver = setupArchiver(context.paths),
             localStorageDir = context.paths.archiveStorageDir,
         )
-    }
-
-    override fun createFeature(config: Any?): Feature {
-        config as ArchiveCommandsConfig
-
-        return Feature.ofCommands { context ->
-            mapOf(
-                "archive" to ArchiveCommand(
-                    strategy = context.defaultCommandStrategy,
-                    archiver = config.archiver,
-                    localStorageDir = config.localStorageDir,
-                )
-            )
-        }
-    }
+    },
+) { strategy, config, _ ->
+    mapOf(
+        "archive" to ArchiveCommand(
+            strategy = strategy,
+            archiver = config.archiver,
+            localStorageDir = config.localStorageDir,
+        ),
+    )
 }

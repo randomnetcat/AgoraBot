@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.util.common)
     implementation(projects.core.feature)
     implementation(projects.components.permissions.api)
     implementation(projects.components.permissions.impl)

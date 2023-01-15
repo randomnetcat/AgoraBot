@@ -5,9 +5,9 @@ import org.randomcat.agorabot.config.JsonPrefixMap
 import org.randomcat.agorabot.config.PrefixStorageTag
 import org.randomcat.agorabot.config.PrefixStorageVersion
 import org.randomcat.agorabot.config.migratePrefixStorage
-import org.randomcat.agorabot.config.persist.feature.configPersistService
+import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag
 import org.randomcat.agorabot.setup.BotDataPaths
-import org.randomcat.agorabot.versioning_storage.feature.api.versioningStorage
+import org.randomcat.agorabot.versioning_storage.feature.api.VersioningStorageTag
 import java.nio.file.Path
 
 private fun BotDataPaths.prefixStoragePath(): Path {
@@ -21,10 +21,11 @@ private data class PrefixStorageConfig(
     val prefixStoragePath: Path,
 )
 
-private object PrefixStorageMapCacheKey
+private val versioningStorageDep = FeatureDependency.Single(VersioningStorageTag)
+private val persistServiceDep = FeatureDependency.Single(ConfigPersistServiceTag)
 
 @FeatureSourceFactory
-fun prefixStorageFactory() = object : FeatureSource {
+fun prefixStorageFactory(): FeatureSource<*> = object : FeatureSource<PrefixStorageConfig> {
     override val featureName: String
         get() = "prefix_storage_default"
 
@@ -32,30 +33,27 @@ fun prefixStorageFactory() = object : FeatureSource {
         return PrefixStorageConfig(prefixStoragePath = context.paths.prefixStoragePath())
     }
 
-    override fun createFeature(config: Any?): Feature {
-        config as PrefixStorageConfig
-        val prefixStoragePath = config.prefixStoragePath
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(versioningStorageDep, persistServiceDep)
 
-        return object : Feature {
-            override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                if (tag is PrefixStorageTag) return tag.result(context.cache(PrefixStorageMapCacheKey) {
-                    val versioningStorage = context.versioningStorage
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(PrefixStorageTag)
 
-                    migratePrefixStorage(
-                        storagePath = prefixStoragePath,
-                        oldVersion = versioningStorage.versionFor(PREFIX_STORAGE_COMPONENT)
-                            ?.let { PrefixStorageVersion.valueOf(it) }
-                            ?: PrefixStorageVersion.JSON_SINGLE_PREFIX,
-                        newVersion = PREFIX_STORAGE_CURRENT_VERSION,
-                    )
+    override fun createFeature(config: PrefixStorageConfig, context: FeatureSourceContext): Feature {
+        val versioningStorage = context[versioningStorageDep]
+        val persistService = context[persistServiceDep]
 
-                    versioningStorage.setVersion(PREFIX_STORAGE_COMPONENT, PREFIX_STORAGE_CURRENT_VERSION.name)
+        migratePrefixStorage(
+            storagePath = config.prefixStoragePath,
+            oldVersion = versioningStorage.versionFor(PREFIX_STORAGE_COMPONENT)
+                ?.let { PrefixStorageVersion.valueOf(it) }
+                ?: PrefixStorageVersion.JSON_SINGLE_PREFIX,
+            newVersion = PREFIX_STORAGE_CURRENT_VERSION,
+        )
 
-                    JsonPrefixMap(default = "!", prefixStoragePath, context.configPersistService)
-                })
+        versioningStorage.setVersion(PREFIX_STORAGE_COMPONENT, PREFIX_STORAGE_CURRENT_VERSION.name)
 
-                return FeatureQueryResult.NotFound
-            }
-        }
+        val map = JsonPrefixMap(default = "!", config.prefixStoragePath, persistService)
+        return Feature.singleTag(PrefixStorageTag, map)
     }
 }

@@ -4,13 +4,9 @@ import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
-import org.randomcat.agorabot.AbstractFeature
-import org.randomcat.agorabot.FeatureContext
-import org.randomcat.agorabot.FeatureSource
-import org.randomcat.agorabot.FeatureSourceFactory
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.DuckCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.util.userFacingRandom
 import java.util.concurrent.atomic.AtomicReference
 
@@ -27,11 +23,31 @@ private val RESPONSES = listOf(
     "Alright.",
 )
 
-private val duckFeature = object : AbstractFeature() {
-    private val listening = AtomicReference<PersistentSet<DuckCommand.ListeningSpec>>(persistentSetOf())
+private val strategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
 
-    override fun jdaListeners(context: FeatureContext): List<Any> {
-        return listOf(object {
+@FeatureSourceFactory
+fun duckFactory() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "duck"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(strategyDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(BotCommandListTag, JdaListenerTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val listening = AtomicReference<PersistentSet<DuckCommand.ListeningSpec>>(persistentSetOf())
+        val strategy = context[strategyDep]
+
+        val commands = mapOf(
+            "duck" to DuckCommand(
+                strategy = strategy,
+                addListener = { listeningSpec -> listening.updateAndGet { it.add(listeningSpec) } },
+            ),
+        )
+
+        val listener = object {
             @SubscribeEvent
             fun onMessage(event: MessageReceivedEvent) {
                 if (!event.message.isFromGuild) return
@@ -55,18 +71,15 @@ private val duckFeature = object : AbstractFeature() {
                     }
                 }
             }
-        })
-    }
+        }
 
-    override fun commandsInContext(context: FeatureContext): Map<String, Command> {
-        return mapOf(
-            "duck" to DuckCommand(
-                strategy = context.defaultCommandStrategy,
-                addListener = { listeningSpec -> listening.updateAndGet { it.add(listeningSpec) } },
-            ),
-        )
+        return object : Feature {
+            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                if (tag is BotCommandListTag) return tag.values(commands)
+                if (tag is JdaListenerTag) return tag.values(listener)
+
+                invalidTag(tag)
+            }
+        }
     }
 }
-
-@FeatureSourceFactory
-fun duckFactory() = FeatureSource.ofConstant("duck", duckFeature)

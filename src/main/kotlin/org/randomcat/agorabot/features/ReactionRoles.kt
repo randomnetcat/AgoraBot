@@ -1,30 +1,41 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.AbstractFeature
-import org.randomcat.agorabot.FeatureContext
-import org.randomcat.agorabot.FeatureSource
-import org.randomcat.agorabot.FeatureSourceFactory
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.ReactionRolesCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.guild_state.feature.guildStateMap
-import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
+import org.randomcat.agorabot.guild_state.feature.GuildStateStorageTag
 import org.randomcat.agorabot.reactionroles.GuildStateReactionRolesMap
 import org.randomcat.agorabot.reactionroles.reactionRolesListener
 
-private object ReactionRolesStorageCacheKey
-
-private val FeatureContext.reactionRolesMap
-    get() = cache(ReactionRolesStorageCacheKey) {
-        GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
-    }
+private val strategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
+private val guildStateMapDep = FeatureDependency.Single(GuildStateStorageTag)
 
 @FeatureSourceFactory
-fun reactionRolesFactory() = FeatureSource.ofConstant("reaction_roles", object : AbstractFeature() {
-    override fun commandsInContext(context: FeatureContext): Map<String, Command> {
-        return mapOf("reactionroles" to ReactionRolesCommand(context.defaultCommandStrategy, context.reactionRolesMap))
-    }
+fun reactionRolesFactory() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "reaction_roles"
 
-    override fun jdaListeners(context: FeatureContext): List<Any> {
-        return listOf(reactionRolesListener(context.reactionRolesMap))
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(strategyDep, guildStateMapDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(BotCommandListTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val guildStateMap = context[guildStateMapDep]
+        val strategy = context[strategyDep]
+
+        val reactionRolesMap = GuildStateReactionRolesMap { guildId -> guildStateMap.stateForGuild(guildId) }
+        val commands = mapOf("reactionroles" to ReactionRolesCommand(strategy, reactionRolesMap))
+        val listener = reactionRolesListener(reactionRolesMap)
+
+        return object : Feature {
+            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                if (tag is BotCommandListTag) return tag.values(commands)
+                if (tag is JdaListenerTag) return tag.values(listener)
+
+                invalidTag(tag)
+            }
+        }
     }
-})
+}

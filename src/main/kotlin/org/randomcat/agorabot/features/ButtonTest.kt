@@ -1,24 +1,33 @@
 package org.randomcat.agorabot.features
 
-import org.randomcat.agorabot.AbstractFeature
-import org.randomcat.agorabot.FeatureContext
-import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.AbstractFeatureSource
+import org.randomcat.agorabot.FeatureDependency
+import org.randomcat.agorabot.FeatureSourceContext
 import org.randomcat.agorabot.FeatureSourceFactory
 import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.buttons.withType
 import org.randomcat.agorabot.commands.ButtonTestCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.listener.Command
 
-private val buttonTestFeature = object : AbstractFeature() {
-    override fun commandsInContext(context: FeatureContext): Map<String, Command> {
+private val strategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
+
+@FeatureSourceFactory
+fun buttonTestFactory() = object : AbstractFeatureSource.NoConfig() {
+    override val featureName: String
+        get() = "button_test"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(strategyDep)
+
+    override fun commandsInContext(context: FeatureSourceContext): Map<String, Command> {
         return mapOf(
-            "button_test" to ButtonTestCommand(context.defaultCommandStrategy),
+            "button_test" to ButtonTestCommand(context[strategyDep]),
         )
     }
 
-    override fun buttonData(context: FeatureContext): FeatureButtonData {
+    override fun buttonData(context: FeatureSourceContext): FeatureButtonData {
         return FeatureButtonData.RegisterHandlers(
             ButtonHandlerMap {
                 withType<ButtonTestCommand.SuccessRequest> { context, _ ->
@@ -32,6 +41,3 @@ private val buttonTestFeature = object : AbstractFeature() {
         )
     }
 }
-
-@FeatureSourceFactory
-fun buttonTestFactory() = FeatureSource.ofConstant("button_test", buttonTestFeature)
