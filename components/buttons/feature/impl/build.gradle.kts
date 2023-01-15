@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(kotlin("reflect"))
 
+    implementation(projects.util.common)
     implementation(projects.core.feature)
     implementation(projects.components.buttons.api)
     implementation(projects.components.buttons.impl)

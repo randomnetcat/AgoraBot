@@ -206,4 +206,8 @@ class JsonButtonRequestDataMap(
 
         return currentID
     }
+
+    fun close() {
+        impl.close()
+    }
 }

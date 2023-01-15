@@ -12,6 +12,7 @@ import org.randomcat.agorabot.buttons.impl.ButtonDataStorageVersion
 import org.randomcat.agorabot.buttons.impl.JsonButtonRequestDataMap
 import org.randomcat.agorabot.buttons.impl.migrateButtonsStorage
 import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag
+import org.randomcat.agorabot.util.exceptionallyClose
 import org.randomcat.agorabot.versioning_storage.feature.api.VersioningStorageTag
 import java.nio.file.Path
 import java.time.Clock
@@ -76,37 +77,45 @@ fun buttonStorageFactory(): FeatureSource<*> = object : FeatureSource<ButtonStor
             )
         }
 
-        val dataMap = run {
-            val serializersModule =
-                makeSerializersModule(buttonRequestTypes = handlerMap.handledClasses)
+        val serializersModule =
+            makeSerializersModule(buttonRequestTypes = handlerMap.handledClasses)
 
-            migrateButtonsStorage(
-                storagePath = config.storagePath,
-                serializersModule = serializersModule,
-                oldVersion = versioningStorage
-                    .versionFor(COMPONENT_VERSION_NAME)
-                    ?.let { ButtonDataStorageVersion.valueOf(it) }
-                    ?: ButtonDataStorageVersion.JSON_VALUES_INLINE,
-                newVersion = CURRENT_STORAGE_VERSION,
-            )
+        migrateButtonsStorage(
+            storagePath = config.storagePath,
+            serializersModule = serializersModule,
+            oldVersion = versioningStorage
+                .versionFor(COMPONENT_VERSION_NAME)
+                ?.let { ButtonDataStorageVersion.valueOf(it) }
+                ?: ButtonDataStorageVersion.JSON_VALUES_INLINE,
+            newVersion = CURRENT_STORAGE_VERSION,
+        )
 
-            versioningStorage.setVersion(COMPONENT_VERSION_NAME, CURRENT_STORAGE_VERSION.name)
+        versioningStorage.setVersion(COMPONENT_VERSION_NAME, CURRENT_STORAGE_VERSION.name)
 
-            JsonButtonRequestDataMap(
+        var dataMap: JsonButtonRequestDataMap? = null
+
+        try {
+            dataMap = JsonButtonRequestDataMap(
                 storagePath = config.storagePath,
                 serializersModule = serializersModule,
                 clock = Clock.systemUTC(),
                 persistService = configPersistService,
             )
-        }
 
-        return object : Feature {
-            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
-                if (tag is ButtonHandlerMapTag) return tag.values(handlerMap)
-                if (tag is ButtonRequestDataMapTag) return tag.values(dataMap)
+            return object : Feature {
+                override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                    if (tag is ButtonHandlerMapTag) return tag.values(handlerMap)
+                    if (tag is ButtonRequestDataMapTag) return tag.values(dataMap)
 
-                invalidTag(tag)
+                    invalidTag(tag)
+                }
+
+                override fun close() {
+                    dataMap.close()
+                }
             }
+        } catch (e: Exception) {
+            exceptionallyClose(e, { dataMap?.close() })
         }
     }
 }
