@@ -41,6 +41,32 @@ interface FeatureSourceContext {
 
 interface FeatureSource<Config> {
     companion object {
+        fun <Value> ofConstant(name: String, tag: FeatureElementTag<Value>, vararg values: Value): FeatureSource<Unit> {
+            val targetTag = tag
+
+            return object : FeatureSource.NoConfig {
+                override val featureName: String
+                    get() = name
+
+                override val dependencies: List<FeatureDependency<*>>
+                    get() = emptyList()
+
+                override val provides: List<FeatureElementTag<*>>
+                    get() = listOf(targetTag)
+
+                override fun createFeature(context: FeatureSourceContext): Feature {
+                    return object : Feature {
+                        override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                            @Suppress("UNCHECKED_CAST")
+                            if (tag == targetTag) return values.toList() as List<T>
+
+                            invalidTag(tag)
+                        }
+                    }
+                }
+            }
+        }
+
         fun <Config, OutValue : Any, InternalValue : OutValue> ofCloseable(
             name: String,
             element: FeatureElementTag<OutValue>,
@@ -104,6 +130,23 @@ interface FeatureSource<Config> {
         }
 
         fun createFeature(context: FeatureSourceContext): Feature
+
+        companion object {
+            fun <OutValue : Any, InternalValue : OutValue> ofCloseable(
+                name: String,
+                element: FeatureElementTag<OutValue>,
+                dependencies: List<FeatureDependency<*>> = emptyList(),
+                create: (FeatureSourceContext) -> InternalValue,
+                close: (InternalValue) -> Unit,
+            ): FeatureSource<Unit> = FeatureSource.ofCloseable(
+                name = name,
+                element = element,
+                dependencies = dependencies,
+                readConfig = {},
+                create = { _, context -> create(context) },
+                close = close,
+            )
+        }
     }
 }
 

@@ -5,7 +5,6 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 private val logger = LoggerFactory.getLogger("FeatureGraph")
 
@@ -17,7 +16,7 @@ class FeatureInitException(
 private class FeatureInitState(private val setupContext: FeatureSetupContext) {
     private val errorsBySource = mutableMapOf<FeatureSource<*>, Exception>()
     private val featuresBySource = mutableMapOf<FeatureSource<*>, Feature>()
-    private val initOrder = mutableListOf<Feature>()
+    private val initOrder = mutableListOf<Pair<String, Feature>>()
 
     private var isClosed = false
 
@@ -36,18 +35,25 @@ private class FeatureInitState(private val setupContext: FeatureSetupContext) {
         if (errorsBySource.containsKey(source)) throwInitError(source)
         if (featuresBySource.containsKey(source)) return featuresBySource.getValue(source)
 
+        val featureName = source.featureName
+
+        logger.info("Initializing feature $featureName")
+
         try {
             val config = source.readConfig(setupContext)
+            logger.info("Config for feature $featureName: $config")
+
             val feature = source.createFeature(config, context())
 
             featuresBySource[source] = feature
-            initOrder.add(feature)
+            initOrder.add(featureName to feature)
 
+            logger.info("Done initializing $featureName")
             return feature
         } catch (e: Exception) {
             errorsBySource[source] = e
 
-            logger.error("Error initializing feature ${source.featureName}", e)
+            logger.error("Error initializing feature $featureName", e)
             throwInitError(source)
         }
     }
@@ -56,7 +62,16 @@ private class FeatureInitState(private val setupContext: FeatureSetupContext) {
         check(!isClosed)
 
         isClosed = true
-        initOrder.asReversed().forEach { it.close() }
+
+        for ((name, feature) in initOrder.asReversed()) {
+            logger.info("Closing feature $name")
+
+            try {
+                feature.close()
+            } catch (e: Exception) {
+                logger.error("Error while closing feature $feature", e)
+            }
+        }
     }
 }
 
@@ -196,15 +211,25 @@ class FeatureElementInitState(
 
         val relevantSources = sources.filter { it.provides.contains(toInit) }
 
+        logger.info("Initializing dependencies of element $toInit")
+
         initializeDependencyElements(
             relevantSources = relevantSources,
             backtrace = backtrace.add(toInit),
         )
 
-        return initializeElementNoDependencies(
+        logger.info("Done initializing dependencies of element $toInit")
+
+        logger.info("Initializing element $toInit")
+
+        val result = initializeElementNoDependencies(
             toInit = toInit,
             sources = relevantSources,
         )
+
+        logger.info("Done initializing element $toInit")
+
+        return result
     }
 
     fun <T> initializeElement(element: FeatureElementTag<T>): List<T> {
