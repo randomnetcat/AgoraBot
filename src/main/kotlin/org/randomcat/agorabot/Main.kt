@@ -173,10 +173,6 @@ private fun runBot(config: BotRunConfig) {
                 logger.warn("Unable to setup IRC! Check for errors above.")
             }
 
-            is IrcSetupResult.NoRelayRequested -> {
-                logger.info("No IRC connections requested.")
-            }
-
             is IrcSetupResult.ErrorWhileConnecting -> {
                 logger.error("Exception while setting up IRC!", ircSetupResult.error)
             }
