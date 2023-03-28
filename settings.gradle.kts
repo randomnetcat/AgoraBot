@@ -1,6 +1,9 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+}
+
 rootProject.name = "AgoraBot"
 
-enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":util")
