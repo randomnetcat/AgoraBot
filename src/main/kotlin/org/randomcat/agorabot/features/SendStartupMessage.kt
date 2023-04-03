@@ -14,7 +14,7 @@ fun startupMessageBlockFactory() = object : FeatureSource.NoConfig {
         get() = "start_message_block_provider"
 
     override val dependencies: List<FeatureDependency<*>>
-        get() = listOf(strategyDep)
+        get() = listOf(strategyDep, jdaDep)
 
     override val provides: List<FeatureElementTag<*>>
         get() = listOf(StartupBlockTag)

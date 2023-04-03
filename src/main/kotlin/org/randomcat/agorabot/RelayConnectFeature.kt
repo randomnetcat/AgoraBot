@@ -20,7 +20,7 @@ fun relayConnectBlockFeatureSource(): FeatureSource<*> = object : FeatureSource.
         get() = listOf(relayMapDep, ircDep, commandRegistryDep)
 
     override val provides: List<FeatureElementTag<*>>
-        get() = listOf(CommandOutputMappingTag, RelayConnectedEndpointMapTag)
+        get() = listOf(StartupBlockTag)
 
     override fun createFeature(context: FeatureSourceContext): Feature {
         val relayMap = context[relayMapDep]

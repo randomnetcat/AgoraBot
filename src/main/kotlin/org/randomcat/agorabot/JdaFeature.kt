@@ -87,7 +87,7 @@ private class JdaFeatureSource : FeatureSource.NoConfig {
         get() = listOf(rawJdaDep, listenersDep)
 
     override val provides: List<FeatureElementTag<*>>
-        get() = listOf(RawJdaTag)
+        get() = listOf(JdaTag)
 
     override fun createFeature(context: FeatureSourceContext): Feature {
         val jda = context[rawJdaDep]

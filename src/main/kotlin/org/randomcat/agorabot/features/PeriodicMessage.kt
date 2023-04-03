@@ -161,7 +161,7 @@ fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicM
     }
 
     override val dependencies: List<FeatureDependency<*>>
-        get() = listOf(coroutineScopeDep)
+        get() = listOf(coroutineScopeDep, jdaDep)
 
     override val provides: List<FeatureElementTag<*>>
         get() = listOf(StartupBlockTag)
