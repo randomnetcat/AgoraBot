@@ -169,7 +169,7 @@ interface Feature {
         /**
          * Returns a [Feature] that provides [values] for [tag] and handles no other tags.
          */
-        fun <Value> singleTag(tag: FeatureElementTag<Value>, vararg values: Value): Feature {
+        fun <Value> singleTag(tag: FeatureElementTag<Value>, vararg values: Value, close: () -> Unit = {}): Feature {
             val usedTag = tag
 
             return object : Feature {
@@ -178,6 +178,10 @@ interface Feature {
                     if (tag == usedTag) return (tag as FeatureElementTag<Value>).values(*values)
 
                     invalidTag(tag)
+                }
+
+                override fun close() {
+                    close()
                 }
             }
         }
