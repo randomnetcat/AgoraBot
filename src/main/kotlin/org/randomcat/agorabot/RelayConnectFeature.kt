@@ -1,6 +1,5 @@
 package org.randomcat.agorabot
 
-import org.randomcat.agorabot.config.CommandOutputMappingTag
 import org.randomcat.agorabot.config.RelayConnectedEndpointMapTag
 import org.randomcat.agorabot.irc.initializeIrcRelay
 import org.slf4j.LoggerFactory
