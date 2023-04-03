@@ -6,7 +6,8 @@ import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag
 import org.randomcat.agorabot.config.persist.impl.DefaultConfigPersistService
 
 @FeatureSourceFactory
-fun configPersistFactory() = FeatureSource.ofConstant("config_persist_default",
+fun configPersistFactory() = FeatureSource.ofConstant(
+    "config_persist_default",
     ConfigPersistServiceTag,
     DefaultConfigPersistService,
-    )
+)
