@@ -8,12 +8,9 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.classgraph.ClassGraph
-import kotlinx.collections.immutable.toPersistentList
-import net.dv8tion.jda.api.JDA
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProvider
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProviderTag
-import org.randomcat.agorabot.config.CommandOutputMappingTag
 import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
@@ -28,66 +25,6 @@ import kotlin.reflect.jvm.kotlinFunction
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("AgoraBot")
-
-private fun ircAndDiscordMapping(
-    jda: JDA,
-    relayConnectedEndpointMap: RelayConnectedEndpointMap,
-    relayEntriesConfig: IrcRelayEntriesConfig,
-): CommandOutputMapping {
-    data class IrcChannelLookupKey(val client: IrcClient, val channelName: String)
-
-    val discordToIrcMap: MutableMap<String, MutableList<() -> List<CommandOutputSink>>> = mutableMapOf()
-    val ircToDiscordMap: MutableMap<IrcChannelLookupKey, MutableList<() -> List<CommandOutputSink>>> = mutableMapOf()
-
-    for (entry in relayEntriesConfig.entries) {
-        val endpoints = entry.endpointNames.map { relayConnectedEndpointMap.getByName(it) }.toPersistentList()
-
-        endpoints.mapIndexed { index, relayConnectedEndpoint ->
-            val otherEndpoints = endpoints.removeAt(index)
-
-            @Suppress(
-                "UNUSED_VARIABLE",
-                "MoveLambdaOutsideParentheses", // Lambda is the value, so it should be in parentheses
-            )
-            val ensureExhaustive = when (relayConnectedEndpoint) {
-                is RelayConnectedDiscordEndpoint -> {
-                    require(jda == relayConnectedEndpoint.jda) {
-                        "Multiple JDAs are not supported here"
-                    }
-
-                    val list = discordToIrcMap.getOrPut(relayConnectedEndpoint.channelId) { mutableListOf() }
-
-                    list.add({
-                        otherEndpoints.mapNotNull { it.commandOutputSink() }
-                    })
-                }
-
-                is RelayConnectedIrcEndpoint -> {
-                    val list = ircToDiscordMap.getOrPut(
-                        IrcChannelLookupKey(
-                            client = relayConnectedEndpoint.client,
-                            channelName = relayConnectedEndpoint.channelName,
-                        ),
-                    ) { mutableListOf() }
-
-                    list.add({
-                        otherEndpoints.mapNotNull { it.commandOutputSink() }
-                    })
-                }
-            }
-        }
-    }
-
-    return CommandOutputMapping(
-        sinksForDiscordFun = { source ->
-            discordToIrcMap[source.event.channel.id]?.flatMap { it() } ?: emptyList()
-        },
-        sinksForIrcFun = { source ->
-            val key = IrcChannelLookupKey(client = source.event.client, channelName = source.event.channel.name)
-            ircToDiscordMap[key]?.flatMap { it() } ?: emptyList()
-        },
-    )
-}
 
 private fun createDirectories(paths: BotDataPaths) {
     paths.configPath.createDirectories()
@@ -111,60 +48,9 @@ private fun runBot(config: BotRunConfig) {
 
     createDirectories(config.paths)
 
-    val ircSetupResult = setupIrcClient(config.paths)
-
-    run {
-        @Suppress("UNUSED_VARIABLE")
-        val ensureExhaustive = when (ircSetupResult) {
-            is IrcSetupResult.Connected -> {
-
-            }
-
-            is IrcSetupResult.ConfigUnavailable -> {
-                logger.warn("Unable to setup IRC! Check for errors above.")
-            }
-
-            is IrcSetupResult.ErrorWhileConnecting -> {
-                logger.error("Exception while setting up IRC!", ircSetupResult.error)
-            }
-        }
-    }
-
     val startupMessageStrategy = setupStartupMessageStrategy(config.paths)
 
     try {
-        val relayConnectedEndpointMap: RelayConnectedEndpointMap?
-        val commandOutputMapping: CommandOutputMapping
-
-        when (ircSetupResult) {
-            is IrcSetupResult.Connected -> {
-                logger.info("Connecting to relay endpoints...")
-
-                relayConnectedEndpointMap = connectToRelayEndpoints(
-                    endpointsConfig = ircSetupResult.config.relayConfig.endpointsConfig,
-                    context = RelayConnectionContext(
-                        ircClientMap = ircSetupResult.clients,
-                        jda = jda,
-                    ),
-                )
-
-                commandOutputMapping = ircAndDiscordMapping(
-                    jda = jda,
-                    relayConnectedEndpointMap = relayConnectedEndpointMap,
-                    relayEntriesConfig = ircSetupResult.config.relayConfig.relayEntriesConfig,
-                )
-
-                logger.info("Relay endpoints initialized")
-            }
-
-            else -> {
-                logger.info("IRC endpoints not available, not connecting")
-
-                relayConnectedEndpointMap = null
-                commandOutputMapping = CommandOutputMapping.empty()
-            }
-        }
-
         val foundFeatureSources = ClassGraph().enableAllInfo().scan().use { scanResult ->
             scanResult.getClassesWithMethodAnnotation(FeatureSourceFactory::class.java).flatMap { classInfo ->
                 classInfo
@@ -180,11 +66,6 @@ private fun runBot(config: BotRunConfig) {
         val haltFunctionReference = AtomicReference<() -> Unit>(null)
 
         val extraFeatureSources = listOf(
-            FeatureSource.ofConstant(
-                "command_output_mapping_provider",
-                CommandOutputMappingTag,
-                commandOutputMapping,
-            ),
             FeatureSource.ofConstant(
                 "startup_message_provider",
                 StartupMessageStrategyTag,
@@ -212,40 +93,6 @@ private fun runBot(config: BotRunConfig) {
 
         val closeHandlerLock = ReentrantLock()
         val closeHandlers = mutableListOf<() -> Unit>()
-
-        logger.info("Added JDA event listeners")
-
-        if (ircSetupResult is IrcSetupResult.Connected) {
-            logger.info("Initializing relay between relay endpoints...")
-
-            val clientMap = ircSetupResult.clients
-
-            try {
-                if (relayConnectedEndpointMap != null) {
-                    initializeIrcRelay(
-                        config = ircSetupResult.config.relayConfig.relayEntriesConfig,
-                        connectedEndpointMap = relayConnectedEndpointMap,
-                        commandRegistry = commandRegistry,
-                    )
-                }
-
-                featureContext.onClose {
-                    for (client in clientMap.clients) {
-                        logger.info("Shutting down IRC...")
-                        client.shutdown("Bot shutdown")
-                        logger.info("IRC shutdown.")
-                    }
-                }
-
-                logger.info("Relay initialized.")
-            } catch (e: Exception) {
-                for (client in clientMap.clients) {
-                    client.shutdown("Exception during connection setup")
-                }
-
-                logger.error("Exception during IRC relay setup", e)
-            }
-        }
 
         val closeStartedFlag = AtomicBoolean(false)
 
