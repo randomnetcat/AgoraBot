@@ -146,6 +146,7 @@ private fun randomNextInterval(baseTime: Instant, interval: PeriodicMessageInter
 }
 
 private val coroutineScopeDep = FeatureDependency.Single(CoroutineScopeTag)
+private val jdaDep = FeatureDependency.Single(JdaTag)
 
 @FeatureSourceFactory
 fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicMessageFeatureConfig> {
@@ -167,6 +168,7 @@ fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicM
 
     override fun createFeature(config: PeriodicMessageFeatureConfig, context: FeatureSourceContext): Feature {
         val coroutineScope = context[coroutineScopeDep]
+        val jda = context[jdaDep]
 
         return object : Feature {
             override fun <T> query(tag: FeatureElementTag<T>): List<T> {
@@ -190,8 +192,7 @@ fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicM
 
                                     if (previousScheduled == null || checkTime >= previousScheduled) {
                                         try {
-                                            context
-                                                .jda
+                                            jda
                                                 .getTextChannelById(messageConfig.discordChannelId)
                                                 ?.sendMessage(messageConfig.options.random(userFacingRandom()))
                                                 ?.await()
