@@ -14,7 +14,6 @@ import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.setup.BotDataStandardPaths
 import org.slf4j.LoggerFactory
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -81,26 +80,31 @@ private fun runBot(config: BotRunConfig) {
         ),
     )
 
-    val closeHandlerLock = ReentrantLock()
-    val closeHandlers = mutableListOf<() -> Unit>()
+    val featureState = FeatureElementInitState(
+        setupContext = FeatureSetupContext(paths = config.paths),
+        sources = foundFeatureSources + extraFeatureSources,
+    )
 
-    val closeStartedFlag = AtomicBoolean(false)
+    val closeHandlerLock = ReentrantLock()
+    var closeStarted = false
 
     haltFunctionReference.set {
-        if (closeStartedFlag.getAndSet(true)) return@set
-
         closeHandlerLock.withLock {
-            val finalHandlers = closeHandlers.toList().asReversed()
+            if (closeStarted) return@withLock
+            closeStarted = true
 
-            for (handler in finalHandlers) {
-                handler()
-            }
+            featureState.closeFeatures()
         }
     }
-
     Runtime.getRuntime().addShutdownHook(Thread {
         (haltFunctionReference.get() ?: error("halt function should have been initialized")).invoke()
     })
+
+    val startupBlocks = featureState.initializeElement(StartupBlockTag)
+
+    for (block in startupBlocks) {
+        block()
+    }
 }
 
 private data class BotRunConfig(
