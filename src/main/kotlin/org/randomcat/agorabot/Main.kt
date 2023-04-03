@@ -11,7 +11,6 @@ import io.github.classgraph.ClassGraph
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProvider
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProviderTag
-import org.randomcat.agorabot.features.StartupMessageStrategyTag
 import org.randomcat.agorabot.irc.*
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.setup.*
@@ -48,8 +47,6 @@ private fun runBot(config: BotRunConfig) {
 
     createDirectories(config.paths)
 
-    val startupMessageStrategy = setupStartupMessageStrategy(config.paths)
-
     try {
         val foundFeatureSources = ClassGraph().enableAllInfo().scan().use { scanResult ->
             scanResult.getClassesWithMethodAnnotation(FeatureSourceFactory::class.java).flatMap { classInfo ->
@@ -66,11 +63,6 @@ private fun runBot(config: BotRunConfig) {
         val haltFunctionReference = AtomicReference<() -> Unit>(null)
 
         val extraFeatureSources = listOf(
-            FeatureSource.ofConstant(
-                "startup_message_provider",
-                StartupMessageStrategyTag,
-                startupMessageStrategy,
-            ),
             FeatureSource.ofConstant(
                 "halt_provider_provider",
                 BaseCommandDependencyTag,
@@ -111,13 +103,6 @@ private fun runBot(config: BotRunConfig) {
         Runtime.getRuntime().addShutdownHook(Thread {
             (haltFunctionReference.get() ?: error("halt function should have been initialized")).invoke()
         })
-
-        try {
-            startupMessageStrategy.sendMessageAndClearChannel(jda = jda)
-        } catch (e: Exception) {
-            // Log and ignore. This failing should not bring down the whole bot
-            logger.error("Exception while handling startup message.", e)
-        }
     } catch (e: Exception) {
         logger.error("Exception while setting up JDA listeners!", e)
         jda.shutdownNow()
