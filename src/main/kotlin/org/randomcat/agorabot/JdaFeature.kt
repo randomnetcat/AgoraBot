@@ -8,10 +8,6 @@ import org.slf4j.LoggerFactory
 
 object JdaTokenTag : FeatureElementTag<String>
 
-// JDA without any event listeners attached
-object RawJdaTag : FeatureElementTag<JDA>
-
-// JDA fully initialized (with event listeners, etc.)
 object JdaTag : FeatureElementTag<JDA>
 
 private val tokenDep = FeatureDependency.Single(JdaTokenTag)
@@ -28,7 +24,7 @@ private class RawJdaFeatureSource : FeatureSource.NoConfig {
         get() = listOf(tokenDep)
 
     override val provides: List<FeatureElementTag<*>>
-        get() = listOf(RawJdaTag)
+        get() = listOf(JdaTag)
 
     override fun createFeature(context: FeatureSourceContext): Feature {
         val token = context[tokenDep]
@@ -57,7 +53,7 @@ private class RawJdaFeatureSource : FeatureSource.NoConfig {
 
         return object : Feature {
             override fun <T> query(tag: FeatureElementTag<T>): List<T> {
-                if (tag is RawJdaTag) return tag.values(jda)
+                if (tag is JdaTag) return tag.values(jda)
 
                 invalidTag(tag)
             }
@@ -71,43 +67,3 @@ private class RawJdaFeatureSource : FeatureSource.NoConfig {
 
 @FeatureSourceFactory
 fun rawJdaFeatureSource(): FeatureSource<*> = RawJdaFeatureSource()
-
-private val rawJdaDep = FeatureDependency.Single(RawJdaTag)
-private val listenersDep = FeatureDependency.All(JdaListenerTag)
-
-private class JdaFeatureSource : FeatureSource.NoConfig {
-    companion object {
-        private val logger = LoggerFactory.getLogger(RawJdaFeatureSource::class.java)
-    }
-
-    override val featureName: String
-        get() = "jda"
-
-    override val dependencies: List<FeatureDependency<*>>
-        get() = listOf(rawJdaDep, listenersDep)
-
-    override val provides: List<FeatureElementTag<*>>
-        get() = listOf(JdaTag)
-
-    override fun createFeature(context: FeatureSourceContext): Feature {
-        val jda = context[rawJdaDep]
-        val listeners = context[listenersDep]
-
-        jda.addEventListener(*listeners.toTypedArray())
-
-        return object : Feature {
-            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
-                if (tag is JdaTag) return tag.values(jda)
-
-                invalidTag(tag)
-            }
-
-            override fun close() {
-                jda.removeEventListener(*listeners.toTypedArray())
-            }
-        }
-    }
-}
-
-@FeatureSourceFactory
-fun fullJdaFeatureSource(): FeatureSource<*> = JdaFeatureSource()
