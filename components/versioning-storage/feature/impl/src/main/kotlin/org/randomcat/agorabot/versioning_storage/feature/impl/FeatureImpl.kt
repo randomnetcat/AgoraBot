@@ -10,7 +10,7 @@ private data class VersioningStorageConfig(
 )
 
 @FeatureSourceFactory
-fun versioningStorageFactory() = object : FeatureSource {
+fun versioningStorageFactory(): FeatureSource<*> = object : FeatureSource<VersioningStorageConfig> {
     override val featureName: String
         get() = "versioning_storage_default"
 
@@ -18,15 +18,15 @@ fun versioningStorageFactory() = object : FeatureSource {
         return VersioningStorageConfig(versioningStoragePath = context.paths.storagePath.resolve("storage_versions"))
     }
 
-    override fun createFeature(config: Any?): Feature {
-        config as VersioningStorageConfig
+    override val dependencies: List<FeatureDependency<*>>
+        get() = emptyList()
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = emptyList()
+
+    override fun createFeature(config: VersioningStorageConfig, context: FeatureSourceContext): Feature {
         val versioningStoragePath = config.versioningStoragePath
 
-        return object : Feature {
-            override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                if (tag is VersioningStorageTag) return tag.result(JsonVersioningStorage(versioningStoragePath))
-                return FeatureQueryResult.NotFound
-            }
-        }
+        return Feature.singleTag(VersioningStorageTag, JsonVersioningStorage(versioningStoragePath))
     }
 }
