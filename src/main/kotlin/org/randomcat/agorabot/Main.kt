@@ -8,12 +8,11 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.classgraph.ClassGraph
-import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProvider
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProviderTag
-import org.randomcat.agorabot.irc.*
-import org.randomcat.agorabot.listener.*
-import org.randomcat.agorabot.setup.*
+import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.setup.BotDataPaths
+import org.randomcat.agorabot.setup.BotDataStandardPaths
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -47,67 +46,61 @@ private fun runBot(config: BotRunConfig) {
 
     createDirectories(config.paths)
 
-    try {
-        val foundFeatureSources = ClassGraph().enableAllInfo().scan().use { scanResult ->
-            scanResult.getClassesWithMethodAnnotation(FeatureSourceFactory::class.java).flatMap { classInfo ->
-                classInfo
-                    .methodInfo
-                    .asSequence()
-                    .filter { it.hasAnnotation(FeatureSourceFactory::class.java) }
-                    .mapNotNull { it.loadClassAndGetMethod().kotlinFunction }
-                    .onEach { logger.info("Reflectively found feature function: $it") }
-                    .map { it.call() as FeatureSource<*> }
-            }
+    val foundFeatureSources = ClassGraph().enableAllInfo().scan().use { scanResult ->
+        scanResult.getClassesWithMethodAnnotation(FeatureSourceFactory::class.java).flatMap { classInfo ->
+            classInfo
+                .methodInfo
+                .asSequence()
+                .filter { it.hasAnnotation(FeatureSourceFactory::class.java) }
+                .mapNotNull { it.loadClassAndGetMethod().kotlinFunction }
+                .onEach { logger.info("Reflectively found feature function: $it") }
+                .map { it.call() as FeatureSource<*> }
         }
-
-        val haltFunctionReference = AtomicReference<() -> Unit>(null)
-
-        val extraFeatureSources = listOf(
-            FeatureSource.ofConstant(
-                "halt_provider_provider",
-                BaseCommandDependencyTag,
-                BaseCommandDependencyResult(
-                    baseTag = HaltProviderTag,
-                    object : HaltProvider {
-                        override fun scheduleHalt() {
-                            haltFunctionReference.get()?.invoke()
-                            exitProcess(0)
-                        }
-                    },
-                ),
-            ),
-            FeatureSource.ofConstant(
-                "jda_token_provider",
-                JdaTokenTag,
-                token,
-            ),
-        )
-
-        val closeHandlerLock = ReentrantLock()
-        val closeHandlers = mutableListOf<() -> Unit>()
-
-        val closeStartedFlag = AtomicBoolean(false)
-
-        haltFunctionReference.set {
-            if (closeStartedFlag.getAndSet(true)) return@set
-
-            closeHandlerLock.withLock {
-                val finalHandlers = closeHandlers.toList().asReversed()
-
-                for (handler in finalHandlers) {
-                    handler()
-                }
-            }
-        }
-
-        Runtime.getRuntime().addShutdownHook(Thread {
-            (haltFunctionReference.get() ?: error("halt function should have been initialized")).invoke()
-        })
-    } catch (e: Exception) {
-        logger.error("Exception while setting up JDA listeners!", e)
-        jda.shutdownNow()
-        exitProcess(1)
     }
+
+    val haltFunctionReference = AtomicReference<() -> Unit>(null)
+
+    val extraFeatureSources = listOf(
+        FeatureSource.ofConstant(
+            "halt_provider_provider",
+            BaseCommandDependencyTag,
+            BaseCommandDependencyResult(
+                baseTag = HaltProviderTag,
+                object : HaltProvider {
+                    override fun scheduleHalt() {
+                        haltFunctionReference.get()?.invoke()
+                        exitProcess(0)
+                    }
+                },
+            ),
+        ),
+        FeatureSource.ofConstant(
+            "jda_token_provider",
+            JdaTokenTag,
+            token,
+        ),
+    )
+
+    val closeHandlerLock = ReentrantLock()
+    val closeHandlers = mutableListOf<() -> Unit>()
+
+    val closeStartedFlag = AtomicBoolean(false)
+
+    haltFunctionReference.set {
+        if (closeStartedFlag.getAndSet(true)) return@set
+
+        closeHandlerLock.withLock {
+            val finalHandlers = closeHandlers.toList().asReversed()
+
+            for (handler in finalHandlers) {
+                handler()
+            }
+        }
+    }
+
+    Runtime.getRuntime().addShutdownHook(Thread {
+        (haltFunctionReference.get() ?: error("halt function should have been initialized")).invoke()
+    })
 }
 
 private data class BotRunConfig(
