@@ -22,7 +22,7 @@ fun versioningStorageFactory(): FeatureSource<*> = object : FeatureSource<Versio
         get() = emptyList()
 
     override val provides: List<FeatureElementTag<*>>
-        get() = emptyList()
+        get() = listOf(VersioningStorageTag)
 
     override fun createFeature(config: VersioningStorageConfig, context: FeatureSourceContext): Feature {
         val versioningStoragePath = config.versioningStoragePath

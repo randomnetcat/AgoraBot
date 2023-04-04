@@ -17,7 +17,7 @@ fun commandRegistrySource() = object : FeatureSource.NoConfig {
         get() = "bot_command_registry"
 
     override val dependencies: List<FeatureDependency<*>>
-        get() = listOf(commandListsDep)
+        get() = listOf(commandListsDep, strategyDep)
 
     override val provides: List<FeatureElementTag<*>>
         get() = listOf(BotCommandRegistryTag)

@@ -3,7 +3,6 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.GuildStateStrategy
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.GuildStateStrategyTag
-import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.guild_state.GuildState
 import org.randomcat.agorabot.guild_state.GuildStateMap
 import org.randomcat.agorabot.guild_state.feature.GuildStateStorageTag
@@ -27,7 +26,7 @@ fun baseCommandGuildStateSource() = object : FeatureSource.NoConfig {
         get() = listOf(guildStateDep)
 
     override val provides: List<FeatureElementTag<*>>
-        get() = listOf(BaseCommandStrategyTag)
+        get() = listOf(BaseCommandDependencyTag)
 
     override fun createFeature(context: FeatureSourceContext): Feature {
         val stateMap = context[guildStateDep]
