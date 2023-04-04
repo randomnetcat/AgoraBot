@@ -1,42 +1,9 @@
 package org.randomcat.agorabot
 
 import kotlinx.collections.immutable.toImmutableMap
-import org.randomcat.agorabot.buttons.feature.ButtonDataTag
-import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.commands.base.BaseCommandStrategy
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.listener.Command
-
-abstract class AbstractFeatureSource<Config> : FeatureSource<Config> {
-    abstract class NoConfig : AbstractFeatureSource<Unit>() {
-        override fun readConfig(context: FeatureSetupContext) = Unit
-    }
-
-    override val provides: List<FeatureElementTag<*>>
-        get() = listOf(JdaListenerTag, ButtonDataTag, BotCommandListTag)
-
-    final override fun createFeature(config: Config, context: FeatureSourceContext): Feature {
-        val commands = commandsInContext(context)
-        val listeners = jdaListeners(context)
-        val buttons = buttonData(context)
-
-        return object : Feature {
-            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
-                if (tag is BotCommandListTag) return tag.values(commands)
-                if (tag is JdaListenerTag) return tag.values(*listeners.toTypedArray())
-                if (tag is ButtonDataTag) return tag.values(buttons)
-
-                invalidTag(tag)
-            }
-        }
-    }
-
-    protected open fun commandsInContext(context: FeatureSourceContext): Map<String, Command> = emptyMap()
-
-    protected open fun jdaListeners(context: FeatureSourceContext): List<Any> = emptyList()
-
-    protected open fun buttonData(context: FeatureSourceContext): FeatureButtonData = FeatureButtonData.NoButtons
-}
 
 fun Feature.Companion.ofCommands(commands: Map<String, Command>): Feature {
     return Feature.singleTag(BotCommandListTag, commands.toImmutableMap())
