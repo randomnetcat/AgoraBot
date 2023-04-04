@@ -183,8 +183,9 @@ class FeatureElementInitState(
 
         for (source in sources) {
             val dependencies = source.dependencies.toImmutableList()
+            val notMet = dependencies.filterNot { dependencyIsSatisfied(it) }
 
-            if (dependencies.all { dependencyIsSatisfied(it) }) {
+            if (notMet.isEmpty()) {
                 try {
                     val feature = featureState.initFromSource(source) {
                         contextForDependencies(dependencies)
@@ -195,7 +196,7 @@ class FeatureElementInitState(
                     logger.warn("Failed to process feature ${source.featureName} for tag $toInit", e)
                 }
             } else {
-                logger.info("Dependencies not met for source ${source.featureName}")
+                logger.info("Dependencies not met for source ${source.featureName}: $notMet")
             }
         }
 
