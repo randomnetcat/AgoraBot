@@ -1,5 +1,9 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.features
 
+import org.randomcat.agorabot.FeatureDependency
+import org.randomcat.agorabot.FeatureSource
+import org.randomcat.agorabot.FeatureSourceFactory
+import org.randomcat.agorabot.JdaListenerTag
 import org.randomcat.agorabot.config.PrefixStorageTag
 import org.randomcat.agorabot.listener.BotListener
 import org.randomcat.agorabot.listener.GuildPrefixCommandParser

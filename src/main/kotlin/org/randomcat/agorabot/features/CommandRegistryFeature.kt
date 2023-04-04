@@ -1,5 +1,6 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.features
 
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.HelpCommand
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.listener.MutableMapCommandRegistry

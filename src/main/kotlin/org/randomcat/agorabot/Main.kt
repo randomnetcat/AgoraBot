@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.types.path
 import io.github.classgraph.ClassGraph
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProvider
 import org.randomcat.agorabot.commands.base.requirements.haltable.HaltProviderTag
+import org.randomcat.agorabot.features.JdaTokenTag
 import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.setup.BotDataStandardPaths

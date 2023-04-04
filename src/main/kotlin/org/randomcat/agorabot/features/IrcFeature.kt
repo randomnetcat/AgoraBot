@@ -1,6 +1,7 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.features
 
 import org.kitteh.irc.client.library.feature.auth.SaslEcdsaNist256PChallenge
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.config.parsing.RelayIrcServerAuthenticationDto
 import org.randomcat.agorabot.config.parsing.readRelayConfig
 import org.randomcat.agorabot.irc.IrcConfig

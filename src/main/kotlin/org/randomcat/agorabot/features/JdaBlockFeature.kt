@@ -1,4 +1,6 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.features
+
+import org.randomcat.agorabot.*
 
 private val jdaDep = FeatureDependency.Single(JdaTag)
 private val listenersDep = FeatureDependency.All(JdaListenerTag)

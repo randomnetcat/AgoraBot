@@ -1,7 +1,8 @@
-package org.randomcat.agorabot
+package org.randomcat.agorabot.features
 
 import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
+import org.randomcat.agorabot.*
 import org.randomcat.agorabot.config.CommandOutputMappingTag
 import org.randomcat.agorabot.config.RelayConnectedEndpointMapTag
 import org.randomcat.agorabot.irc.*
