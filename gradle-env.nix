@@ -241,18 +241,17 @@ let
       repos = mapAttrs (mkRepo projectSpec.name) projectSpec.dependencies;
       hasDependencies = mapAttrs (type: deps: deps != []) projectSpec.dependencies;
 
-      inSettings = pred: script:
-        optionalString pred (
-          if versionAtLeast gradle.version "6.0" then ''
-            gradle.beforeSettings {
-              ${script}
-            }
-          '' else ''
-            gradle.settingsEvaluated {
-              ${script}
-            }
-          ''
-        );
+      inSettings = script: (
+        if versionAtLeast gradle.version "6.0" then ''
+          gradle.beforeSettings {
+            ${script}
+          }
+        '' else ''
+          gradle.settingsEvaluated {
+            ${script}
+          }
+        ''
+      );
     in
       assert (assertMsg (hasDependencies.settings -> versionAtLeast gradle.version "6.0") ''
         Project `${projectSpec.name}' has settings script dependencies, such as settings
@@ -265,7 +264,6 @@ let
 
       writeText "init.gradle" ''
         static def offlineRepo(RepositoryHandler repositories, String env, String path) {
-            repositories.clear()
             repositories.maven {
                 name "Nix''${env.capitalize()}MavenOffline"
                 url path
@@ -287,12 +285,16 @@ let
             }
         }
 
-        ${inSettings (hasDependencies.settings && (versionAtLeast gradle.version "6.0")) ''
-          offlineRepo(it.buildscript.repositories, "settings", "${repos.settings}")
-        ''}
-
-        ${inSettings (hasDependencies.plugin) ''
-            offlineRepo(it.pluginManagement.repositories, "plugin", "${repos.plugin}")
+        ${inSettings ''
+            // Just use a hammer to make this work. I don't really care.
+            it.buildscript.repositories.clear()
+            offlineRepo(it.buildscript.repositories, "buildscript", "${repos.buildscript}")
+            offlineRepo(it.buildscript.repositories, "settings", "${repos.settings}")
+            offlineRepo(it.buildscript.repositories, "plugins", "${repos.plugin}")
+            it.pluginManagement.repositories.clear()
+            offlineRepo(it.pluginManagement.repositories, "buildscript", "${repos.buildscript}")
+            offlineRepo(it.pluginManagement.repositories, "settings", "${repos.settings}")
+            offlineRepo(it.pluginManagement.repositories, "plugins", "${repos.plugin}")
         ''}
 
         ${optionalString (hasDependencies.buildscript) ''
