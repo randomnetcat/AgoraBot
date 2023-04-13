@@ -3,6 +3,10 @@ package org.randomcat.agorabot
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.clikt.core.UsageError
+import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
+import com.github.ajalt.clikt.parameters.groups.required
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.deprecated
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
@@ -15,10 +19,12 @@ import org.randomcat.agorabot.listener.Command
 import org.randomcat.agorabot.setup.BotDataPaths
 import org.randomcat.agorabot.setup.BotDataStandardPaths
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.io.path.createDirectories
+import kotlin.io.path.readText
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.system.exitProcess
 
@@ -115,8 +121,18 @@ private data class BotRunConfig(
 
 private const val MIN_DATA_VERSION = 1
 
+private sealed class TokenOption {
+    data class RawToken(val token: String) : TokenOption()
+    data class TokenPath(val path: Path) : TokenOption()
+}
+
 private class AgoraBotCommand : CliktCommand() {
-    private val token by option("--token").required()
+    private val tokenOpt by mutuallyExclusiveOptions<TokenOption>(
+        option("--token").convert { TokenOption.RawToken(it) }
+            .deprecated("Passing tokens in command arguments is insecure. Use --token-path instead."),
+        option("--token-path").path(mustExist = true, canBeDir = false, mustBeReadable = true)
+            .convert { TokenOption.TokenPath(it) },
+    ).required()
 
     private val dataVersion by option("--data-version").int().required()
     private val configPath by option("--config-path").path().required()
@@ -130,7 +146,7 @@ private class AgoraBotCommand : CliktCommand() {
 
         val config = BotRunConfig(
             paths = readBotDataPaths(),
-            token = token,
+            token = readToken(),
         )
 
         runBot(config)
@@ -149,6 +165,13 @@ private class AgoraBotCommand : CliktCommand() {
             1 -> BotDataPaths.Version1(readBotDataStandardPaths())
             else -> throw PrintMessage("Invalid data version $dataVersion", error = true)
         }
+    }
+
+    private fun readToken(): String {
+        return when (val tokenOpt = tokenOpt) {
+            is TokenOption.RawToken -> tokenOpt.token
+            is TokenOption.TokenPath -> tokenOpt.path.readText()
+        }.trim()
     }
 }
 
