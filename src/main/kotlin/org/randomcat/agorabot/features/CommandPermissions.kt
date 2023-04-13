@@ -8,9 +8,7 @@ import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.listener.tryRespondWithText
 import org.randomcat.agorabot.permissions.BotPermission
 import org.randomcat.agorabot.permissions.BotPermissionContext
-import org.randomcat.agorabot.permissions.feature.botPermissionContext
-
-private object PermissionsStrategyCacheKey
+import org.randomcat.agorabot.permissions.feature.BotPermissionContextTag
 
 fun makePermissionsStrategy(
     permissionsContext: BotPermissionContext,
@@ -35,17 +33,27 @@ fun makePermissionsStrategy(
     }
 }
 
-@FeatureSourceFactory
-fun baseCommandPermissionsSource() = FeatureSource.ofConstant("base_command_permissions_default", object : Feature {
-    override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-        if (tag is BaseCommandDependencyTag && tag.baseTag is PermissionsStrategyTag) {
-            return tag.result(context.cache(PermissionsStrategyCacheKey) {
-                makePermissionsStrategy(
-                    permissionsContext = context.botPermissionContext,
-                )
-            })
-        }
+private val permissionContextDep = FeatureDependency.Single(BotPermissionContextTag)
 
-        return FeatureQueryResult.NotFound
+@FeatureSourceFactory
+fun baseCommandPermissionsSource() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "base_command_permissions_default"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(permissionContextDep)
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(BaseCommandDependencyTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val permissionContext = context[permissionContextDep]
+
+        return Feature.singleTag(
+            BaseCommandDependencyTag,
+            BaseCommandDependencyResult(
+                baseTag = PermissionsStrategyTag,
+                value = makePermissionsStrategy(permissionContext),
+            ),
+        )
     }
-})
+}

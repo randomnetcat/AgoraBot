@@ -5,9 +5,7 @@ import org.randomcat.agorabot.commands.base.requirements.discord_ext.GuildStateS
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.GuildStateStrategyTag
 import org.randomcat.agorabot.guild_state.GuildState
 import org.randomcat.agorabot.guild_state.GuildStateMap
-import org.randomcat.agorabot.guild_state.feature.guildStateMap
-
-private object GuildStateStrategyCacheKey
+import org.randomcat.agorabot.guild_state.feature.GuildStateStorageTag
 
 private fun makeGuildStateStrategy(guildStateMap: GuildStateMap): GuildStateStrategy {
     return object : GuildStateStrategy {
@@ -17,15 +15,29 @@ private fun makeGuildStateStrategy(guildStateMap: GuildStateMap): GuildStateStra
     }
 }
 
-@FeatureSourceFactory
-fun baseCommandGuildStateSource() = FeatureSource.ofConstant("base_command_guild_state_default", object : Feature {
-    override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-        if (tag is BaseCommandDependencyTag && tag.baseTag is GuildStateStrategyTag) {
-            return tag.result(context.cache(GuildStateStrategyCacheKey) {
-                makeGuildStateStrategy(context.guildStateMap)
-            })
-        }
+private val guildStateDep = FeatureDependency.Single(GuildStateStorageTag)
 
-        return FeatureQueryResult.NotFound
+@FeatureSourceFactory
+fun baseCommandGuildStateSource() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "base_command_guild_state_default"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(guildStateDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(BaseCommandDependencyTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val stateMap = context[guildStateDep]
+        val strategy = makeGuildStateStrategy(stateMap)
+
+        return Feature.singleTag(
+            BaseCommandDependencyTag,
+            BaseCommandDependencyResult(
+                baseTag = GuildStateStrategyTag,
+                value = strategy,
+            ),
+        )
     }
-})
+}

@@ -3,19 +3,23 @@ package org.randomcat.agorabot.features
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.HaltCommand
 import org.randomcat.agorabot.commands.StopCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
 
 object StartupMessageStrategyTag : FeatureElementTag<StartupMessageStrategy>
 
-@FeatureSourceFactory
-fun adminCommandsFactory() = FeatureSource.ofConstant("admin_commands", Feature.ofCommands { context ->
-    val commandStrategy = context.defaultCommandStrategy
+private val startupStrategyDep = FeatureDependency.AtMostOne(StartupMessageStrategyTag)
 
+@FeatureSourceFactory
+fun adminCommandsFactory() = FeatureSource.ofBaseCommands(
+    name = "admin_commands",
+    extraDependencies = listOf(startupStrategyDep),
+) { commandStrategy, context ->
+    val startupStrategy = context[startupStrategyDep]
     val haltCommand = HaltCommand(commandStrategy)
 
-    val stopCommand = when (val result = context.tryQueryExpectOne(StartupMessageStrategyTag)) {
-        is FeatureQueryResult.Found -> StopCommand(commandStrategy, writeChannelFun = result.value::writeChannel)
-        is FeatureQueryResult.NotFound -> null
+    val stopCommand = if (startupStrategy != null) {
+        StopCommand(commandStrategy, writeChannelFun = startupStrategy::writeChannel)
+    } else {
+        null
     }
 
     mapOf(
@@ -26,4 +30,4 @@ fun adminCommandsFactory() = FeatureSource.ofConstant("admin_commands", Feature.
     }.mapValues { (_, v) ->
         v!!
     }
-})
+}

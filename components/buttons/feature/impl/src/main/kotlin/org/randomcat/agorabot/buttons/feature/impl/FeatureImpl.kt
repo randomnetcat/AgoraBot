@@ -5,14 +5,15 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.serializer
 import org.randomcat.agorabot.*
+import org.randomcat.agorabot.buttons.ButtonHandlerMap
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
-import org.randomcat.agorabot.buttons.feature.ButtonRequestDataMapTag
-import org.randomcat.agorabot.buttons.feature.buttonHandlerMap
+import org.randomcat.agorabot.buttons.feature.*
 import org.randomcat.agorabot.buttons.impl.ButtonDataStorageVersion
 import org.randomcat.agorabot.buttons.impl.JsonButtonRequestDataMap
 import org.randomcat.agorabot.buttons.impl.migrateButtonsStorage
-import org.randomcat.agorabot.config.persist.feature.configPersistService
-import org.randomcat.agorabot.versioning_storage.feature.api.versioningStorage
+import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag
+import org.randomcat.agorabot.util.exceptionallyClose
+import org.randomcat.agorabot.versioning_storage.feature.api.VersioningStorageTag
 import java.nio.file.Path
 import java.time.Clock
 import kotlin.reflect.KClass
@@ -43,13 +44,15 @@ private data class ButtonStorageConfig(
     val storagePath: Path,
 )
 
-private object ButtonRequestDataMapCacheKey
-
 private const val COMPONENT_VERSION_NAME = "button_storage_default"
 private val CURRENT_STORAGE_VERSION = ButtonDataStorageVersion.JSON_VALUES_STRINGS
 
+private val versioningDep = FeatureDependency.Single(VersioningStorageTag)
+private val configPersistDep = FeatureDependency.Single(ConfigPersistServiceTag)
+private val tagsDep = FeatureDependency.All(ButtonDataTag)
+
 @FeatureSourceFactory
-fun buttonStorageFactory() = object : FeatureSource {
+fun buttonStorageFactory(): FeatureSource<*> = object : FeatureSource<ButtonStorageConfig> {
     override val featureName: String
         get() = "button_storage_default"
 
@@ -59,37 +62,60 @@ fun buttonStorageFactory() = object : FeatureSource {
         )
     }
 
-    override fun createFeature(config: Any?): Feature {
-        config as ButtonStorageConfig
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(versioningDep, configPersistDep, tagsDep)
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(ButtonRequestDataMapTag, ButtonHandlerMapTag)
 
-        return object : Feature {
-            override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                if (tag is ButtonRequestDataMapTag) return tag.result(context.cache(ButtonRequestDataMapCacheKey) {
-                    val serializersModule =
-                        makeSerializersModule(buttonRequestTypes = context.buttonHandlerMap.handledClasses)
+    override fun createFeature(config: ButtonStorageConfig, context: FeatureSourceContext): Feature {
+        val versioningStorage = context[versioningDep]
+        val configPersistService = context[configPersistDep]
 
-                    migrateButtonsStorage(
-                        storagePath = config.storagePath,
-                        serializersModule = serializersModule,
-                        oldVersion = context.versioningStorage
-                            .versionFor(COMPONENT_VERSION_NAME)
-                            ?.let { ButtonDataStorageVersion.valueOf(it) }
-                            ?: ButtonDataStorageVersion.JSON_VALUES_INLINE,
-                        newVersion = CURRENT_STORAGE_VERSION,
-                    )
+        val handlerMap = run {
+            ButtonHandlerMap.mergeDisjointHandlers(
+                context[tagsDep].filterIsInstance<FeatureButtonData.RegisterHandlers>().map { it.handlerMap },
+            )
+        }
 
-                    context.versioningStorage.setVersion(COMPONENT_VERSION_NAME, CURRENT_STORAGE_VERSION.name)
+        val serializersModule =
+            makeSerializersModule(buttonRequestTypes = handlerMap.handledClasses)
 
-                    JsonButtonRequestDataMap(
-                        storagePath = config.storagePath,
-                        serializersModule = serializersModule,
-                        clock = Clock.systemUTC(),
-                        persistService = context.configPersistService,
-                    )
-                })
+        migrateButtonsStorage(
+            storagePath = config.storagePath,
+            serializersModule = serializersModule,
+            oldVersion = versioningStorage
+                .versionFor(COMPONENT_VERSION_NAME)
+                ?.let { ButtonDataStorageVersion.valueOf(it) }
+                ?: ButtonDataStorageVersion.JSON_VALUES_INLINE,
+            newVersion = CURRENT_STORAGE_VERSION,
+        )
 
-                return FeatureQueryResult.NotFound
+        versioningStorage.setVersion(COMPONENT_VERSION_NAME, CURRENT_STORAGE_VERSION.name)
+
+        var dataMap: JsonButtonRequestDataMap? = null
+
+        try {
+            dataMap = JsonButtonRequestDataMap(
+                storagePath = config.storagePath,
+                serializersModule = serializersModule,
+                clock = Clock.systemUTC(),
+                persistService = configPersistService,
+            )
+
+            return object : Feature {
+                override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                    if (tag is ButtonHandlerMapTag) return tag.values(handlerMap)
+                    if (tag is ButtonRequestDataMapTag) return tag.values(dataMap)
+
+                    invalidTag(tag)
+                }
+
+                override fun close() {
+                    dataMap.close()
+                }
             }
+        } catch (e: Exception) {
+            exceptionallyClose(e, { dataMap?.close() })
         }
     }
 }

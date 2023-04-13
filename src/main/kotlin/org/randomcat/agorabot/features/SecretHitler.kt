@@ -15,10 +15,10 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.Interaction
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.*
+import org.randomcat.agorabot.buttons.feature.ButtonDataTag
 import org.randomcat.agorabot.buttons.feature.FeatureButtonData
 import org.randomcat.agorabot.commands.SecretHitlerCommand
-import org.randomcat.agorabot.commands.impl.defaultCommandStrategy
-import org.randomcat.agorabot.listener.Command
+import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
 import org.randomcat.agorabot.secrethitler.buttons.*
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
@@ -29,12 +29,11 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerImpersonationMap
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
-import org.randomcat.agorabot.secrethitler.storage.feature.api.secretHitlerImpersonationMap
-import org.randomcat.agorabot.secrethitler.storage.feature.api.secretHitlerRepostitory
+import org.randomcat.agorabot.secrethitler.storage.feature.api.SecretHitlerImpersonationMapTag
+import org.randomcat.agorabot.secrethitler.storage.feature.api.SecretHitlerRepositoryTag
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.asSnowflakeOrNull
 import org.randomcat.agorabot.util.await
-import org.randomcat.agorabot.util.coroutineScope
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
@@ -222,189 +221,236 @@ private suspend fun handleEditQueue(channel: ReceiveChannel<MessageEditQueueEntr
         }
     }
 }
-private object SecretHitlerEditQueueChannelCacheKey
 
-private fun secretHitlerFeature() = object : AbstractFeature() {
-    private val nameContext = NameContextImpl
-    private val FeatureContext.editQueueChannel
-        get() = cache(SecretHitlerEditQueueChannelCacheKey) {
-            val channel = alwaysCloseObject(
-                {
-                    Channel<MessageEditQueueEntry>()
-                },
-                {
-                    it.cancel()
-                },
-            )
+private val nameContext = NameContextImpl
 
-            coroutineScope.launch {
-                handleEditQueue(channel)
+private fun makeMessageContext(
+    impersonationMap: SecretHitlerImpersonationMap?,
+    editQueueChannel: SendChannel<MessageEditQueueEntry>,
+    jda: JDA,
+    gameMessageChannelId: String?,
+    gameId: SecretHitlerGameId,
+): SecretHitlerMessageContext {
+    val gameChannel = gameMessageChannelId?.let { jda.getChannelById(MessageChannel::class.java, it) }
+
+    return if (gameChannel != null) {
+        MessageContextImpl(
+            impersonationMap = impersonationMap,
+            gameMessageChannel = gameChannel,
+            contextGameId = gameId,
+            editChannel = editQueueChannel,
+        )
+    } else {
+        NullMessageContext
+    }
+}
+
+private fun makeButtonData(
+    repository: SecretHitlerRepository,
+    impersonationMap: SecretHitlerImpersonationMap?,
+    editQueueChannel: SendChannel<MessageEditQueueEntry>,
+): FeatureButtonData {
+    fun interactionContextFor(
+        context: ButtonHandlerContext,
+        gameId: SecretHitlerGameId,
+    ): SecretHitlerInteractionContext {
+        val gameMessageChannelId = repository.channelGameMap.channelIdByGame(gameId)
+
+        return object :
+            SecretHitlerInteractionContext,
+            SecretHitlerGameContext,
+            SecretHitlerNameContext by nameContext,
+            SecretHitlerMessageContext by makeMessageContext(
+                impersonationMap = impersonationMap,
+                jda = context.event.jda,
+                gameMessageChannelId = gameMessageChannelId,
+                gameId = gameId,
+                editQueueChannel = editQueueChannel,
+            ) {
+            override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
+                return context.buttonRequestDataMap.putRequest(
+                    data = ButtonRequestData(
+                        descriptor = descriptor,
+                        expiry = Instant.now().plus(expiryDuration),
+                    )
+                ).raw
             }
 
-            channel
-        }
+            override fun invalidButtonId(): String {
+                return "INVALID-" + UUID.randomUUID()
+            }
 
-    private fun makeMessageContext(
-        impersonationMap: SecretHitlerImpersonationMap?,
-        editQueueChannel: SendChannel<MessageEditQueueEntry>,
-        jda: JDA,
-        gameMessageChannelId: String?,
-        gameId: SecretHitlerGameId,
-    ): SecretHitlerMessageContext {
-        val gameChannel = gameMessageChannelId?.let { jda.getChannelById(MessageChannel::class.java, it) }
+            override fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName {
+                val userId = interaction.user.id
+                val effectiveName = impersonationMap?.currentNameForId(userId) ?: userId
 
-        return if (gameChannel != null) {
-            MessageContextImpl(
-                impersonationMap = impersonationMap,
-                gameMessageChannel = gameChannel,
-                contextGameId = gameId,
-                editChannel = editQueueChannel,
-            )
-        } else {
-            NullMessageContext
+                return SecretHitlerPlayerExternalName(effectiveName)
+            }
         }
     }
 
-    override fun commandsInContext(context: FeatureContext): Map<String, Command> {
-        val repository = context.secretHitlerRepostitory
-        val impersonationMap = context.secretHitlerImpersonationMap
+    fun <Button : SecretHitlerButtonRequestDescriptor> ButtonHandlersReceiver.registerSH(
+        type: KClass<Button>,
+        handler: suspend (SecretHitlerRepository, SecretHitlerInteractionContext, ButtonInteractionEvent, Button) -> Unit,
+    ) {
+        withTypeImpl(type) { context, request ->
+            handler(repository, interactionContextFor(context, request.gameId), context.event, request)
+        }
+    }
 
-        return mapOf(
-            "secret_hitler" to SecretHitlerCommand(
-                context.defaultCommandStrategy,
+    return FeatureButtonData.RegisterHandlers(
+        ButtonHandlerMap {
+            registerSH(
+                SecretHitlerJoinGameButtonDescriptor::class,
+                SecretHitlerButtons::handleJoin,
+            )
+
+            registerSH(
+                SecretHitlerLeaveGameButtonDescriptor::class,
+                SecretHitlerButtons::handleLeave,
+            )
+
+            registerSH(
+                SecretHitlerChancellorCandidateSelectionButtonDescriptor::class,
+                SecretHitlerButtons::handleChancellorSelection,
+            )
+
+            registerSH(
+                SecretHitlerVoteButtonDescriptor::class,
+                SecretHitlerButtons::handleVote,
+            )
+
+            registerSH(
+                SecretHitlerPresidentPolicyChoiceButtonDescriptor::class,
+                SecretHitlerButtons::handlePresidentPolicySelection,
+            )
+
+            registerSH(
+                SecretHitlerChancellorPolicyChoiceButtonDescriptor::class,
+                SecretHitlerButtons::handleChancellorPolicySelection,
+            )
+
+            registerSH(
+                SecretHitlerPendingInvestigatePartySelectionButtonDescriptor::class,
+                SecretHitlerButtons::handlePresidentInvestigatePowerSelection,
+            )
+
+            registerSH(
+                SecretHitlerPendingSpecialElectionSelectionButtonDescriptor::class,
+                SecretHitlerButtons::handlePresidentSpecialElectionPowerSelection,
+            )
+
+            registerSH(
+                SecretHitlerPendingExecutionSelectionButtonDescriptor::class,
+                SecretHitlerButtons::handlePresidentExecutePowerSelection,
+            )
+
+            registerSH(
+                SecretHitlerChancellorRequestVetoButtonDescriptor::class,
+                SecretHitlerButtons::handleChancellorVetoRequest,
+            )
+
+            registerSH(
+                SecretHitlerPresidentAcceptVetoButtonDescriptor::class,
+                SecretHitlerButtons::handlePresidentVetoApproval,
+            )
+
+            registerSH(
+                SecretHitlerPresidentRejectVetoButtonDescriptor::class,
+                SecretHitlerButtons::handlePresidentVetoRejection,
+            )
+        },
+    )
+}
+
+private val coroutineScopeDep = FeatureDependency.Single(CoroutineScopeTag)
+
+private object SecretHitlerEditChannelTag : FeatureElementTag<SendChannel<MessageEditQueueEntry>>
+
+@FeatureSourceFactory
+fun secretHitlerEditQueueFeature() = FeatureSource.NoConfig.ofCloseable(
+    name = "secret_hitler_edit_queue",
+    element = SecretHitlerEditChannelTag,
+    dependencies = listOf(coroutineScopeDep),
+    create = { context ->
+        val channel = Channel<MessageEditQueueEntry>()
+
+        context[coroutineScopeDep].launch {
+            handleEditQueue(channel)
+        }
+
+        channel
+    },
+    close = { channel ->
+        channel.close()
+    },
+)
+
+private val editChannelDep = FeatureDependency.Single(SecretHitlerEditChannelTag)
+private val repositoryDep = FeatureDependency.Single(SecretHitlerRepositoryTag)
+private val impersonationMapDep = FeatureDependency.AtMostOne(SecretHitlerImpersonationMapTag)
+private val commandStrategyDep = FeatureDependency.Single(BaseCommandStrategyTag)
+
+@FeatureSourceFactory
+fun secretHitlerButtons() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "secret_hitler_buttons"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(editChannelDep, repositoryDep, impersonationMapDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(ButtonDataTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val editChannel = context[editChannelDep]
+        val repository = context[repositoryDep]
+        val impersonationMap = context[impersonationMapDep]
+
+        return Feature.singleTag(
+            ButtonDataTag, makeButtonData(
                 repository = repository,
                 impersonationMap = impersonationMap,
-                nameContext = nameContext,
-                makeMessageContext = { gameId, gameMessageChannel ->
-                    MessageContextImpl(
-                        impersonationMap = impersonationMap,
-                        gameMessageChannel = gameMessageChannel,
-                        contextGameId = gameId,
-                        editChannel = context.editQueueChannel,
-                    )
-                },
-            ),
-        )
-    }
-
-    override fun buttonData(context: FeatureContext): FeatureButtonData {
-        val repository = context.secretHitlerRepostitory
-        val impersonationMap = context.secretHitlerImpersonationMap
-        val editQueueChannel = context.editQueueChannel
-
-        fun interactionContextFor(
-            context: ButtonHandlerContext,
-            gameId: SecretHitlerGameId,
-        ): SecretHitlerInteractionContext {
-            val gameMessageChannelId = repository.channelGameMap.channelIdByGame(gameId)
-
-            return object :
-                SecretHitlerInteractionContext,
-                SecretHitlerGameContext,
-                SecretHitlerNameContext by nameContext,
-                SecretHitlerMessageContext by makeMessageContext(
-                    impersonationMap = impersonationMap,
-                    jda = context.event.jda,
-                    gameMessageChannelId = gameMessageChannelId,
-                    gameId = gameId,
-                    editQueueChannel = editQueueChannel,
-                ) {
-                override fun newButtonId(descriptor: ButtonRequestDescriptor, expiryDuration: Duration): String {
-                    return context.buttonRequestDataMap.putRequest(
-                        data = ButtonRequestData(
-                            descriptor = descriptor,
-                            expiry = Instant.now().plus(expiryDuration),
-                        )
-                    ).raw
-                }
-
-                override fun invalidButtonId(): String {
-                    return "INVALID-" + UUID.randomUUID()
-                }
-
-                override fun nameFromInteraction(interaction: Interaction): SecretHitlerPlayerExternalName {
-                    val userId = interaction.user.id
-                    val effectiveName = impersonationMap?.currentNameForId(userId) ?: userId
-
-                    return SecretHitlerPlayerExternalName(effectiveName)
-                }
-            }
-        }
-
-        fun <Button : SecretHitlerButtonRequestDescriptor> ButtonHandlersReceiver.registerSH(
-            type: KClass<Button>,
-            handler: suspend (SecretHitlerRepository, SecretHitlerInteractionContext, ButtonInteractionEvent, Button) -> Unit,
-        ) {
-            withTypeImpl(type) { context, request ->
-                handler(repository, interactionContextFor(context, request.gameId), context.event, request)
-            }
-        }
-
-        return FeatureButtonData.RegisterHandlers(
-            ButtonHandlerMap {
-                registerSH(
-                    SecretHitlerJoinGameButtonDescriptor::class,
-                    SecretHitlerButtons::handleJoin,
-                )
-
-                registerSH(
-                    SecretHitlerLeaveGameButtonDescriptor::class,
-                    SecretHitlerButtons::handleLeave,
-                )
-
-                registerSH(
-                    SecretHitlerChancellorCandidateSelectionButtonDescriptor::class,
-                    SecretHitlerButtons::handleChancellorSelection,
-                )
-
-                registerSH(
-                    SecretHitlerVoteButtonDescriptor::class,
-                    SecretHitlerButtons::handleVote,
-                )
-
-                registerSH(
-                    SecretHitlerPresidentPolicyChoiceButtonDescriptor::class,
-                    SecretHitlerButtons::handlePresidentPolicySelection,
-                )
-
-                registerSH(
-                    SecretHitlerChancellorPolicyChoiceButtonDescriptor::class,
-                    SecretHitlerButtons::handleChancellorPolicySelection,
-                )
-
-                registerSH(
-                    SecretHitlerPendingInvestigatePartySelectionButtonDescriptor::class,
-                    SecretHitlerButtons::handlePresidentInvestigatePowerSelection,
-                )
-
-                registerSH(
-                    SecretHitlerPendingSpecialElectionSelectionButtonDescriptor::class,
-                    SecretHitlerButtons::handlePresidentSpecialElectionPowerSelection,
-                )
-
-                registerSH(
-                    SecretHitlerPendingExecutionSelectionButtonDescriptor::class,
-                    SecretHitlerButtons::handlePresidentExecutePowerSelection,
-                )
-
-                registerSH(
-                    SecretHitlerChancellorRequestVetoButtonDescriptor::class,
-                    SecretHitlerButtons::handleChancellorVetoRequest,
-                )
-
-                registerSH(
-                    SecretHitlerPresidentAcceptVetoButtonDescriptor::class,
-                    SecretHitlerButtons::handlePresidentVetoApproval,
-                )
-
-                registerSH(
-                    SecretHitlerPresidentRejectVetoButtonDescriptor::class,
-                    SecretHitlerButtons::handlePresidentVetoRejection,
-                )
-            },
+                editQueueChannel = editChannel,
+            )
         )
     }
 }
 
 @FeatureSourceFactory
-fun secretHitlerFactory() = FeatureSource.ofConstant("secret_hitler", secretHitlerFeature())
+fun secretHitlerFactory() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "secret_hitler"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(editChannelDep, repositoryDep, impersonationMapDep, commandStrategyDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(BotCommandListTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val editChannel = context[editChannelDep]
+        val repository = context[repositoryDep]
+        val impersonationMap = context[impersonationMapDep]
+        val commandStrategy = context[commandStrategyDep]
+
+        return Feature.ofCommands(
+            mapOf(
+                "secret_hitler" to SecretHitlerCommand(
+                    commandStrategy,
+                    repository = repository,
+                    impersonationMap = impersonationMap,
+                    nameContext = nameContext,
+                    makeMessageContext = { gameId, gameMessageChannel ->
+                        MessageContextImpl(
+                            impersonationMap = impersonationMap,
+                            gameMessageChannel = gameMessageChannel,
+                            contextGameId = gameId,
+                            editChannel = editChannel,
+                        )
+                    },
+                ),
+            )
+        )
+    }
+}

@@ -12,7 +12,6 @@ import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.setup.features.featureConfigDir
 import org.randomcat.agorabot.util.await
-import org.randomcat.agorabot.util.coroutineScope
 import org.randomcat.agorabot.util.insecureRandom
 import org.randomcat.agorabot.util.userFacingRandom
 import org.slf4j.LoggerFactory
@@ -146,25 +145,35 @@ private fun randomNextInterval(baseTime: Instant, interval: PeriodicMessageInter
     }
 }
 
+private val coroutineScopeDep = FeatureDependency.Single(CoroutineScopeTag)
+private val jdaDep = FeatureDependency.Single(JdaTag)
+
 @FeatureSourceFactory
-fun periodicMessageSource() = object : FeatureSource {
+fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicMessageFeatureConfig> {
     override val featureName: String
         get() = "periodic_messages"
 
-    override fun readConfig(context: FeatureSetupContext): Any? {
+    override fun readConfig(context: FeatureSetupContext): PeriodicMessageFeatureConfig {
         return PeriodicMessageFeatureConfig(
             list = Json.decodeFromString(context.paths.featureConfigDir.resolve("periodic_messages.json").readText()),
             storagePath = context.paths.storagePath.resolve("periodic_messages_state"),
         )
     }
 
-    override fun createFeature(config: Any?): Feature {
-        config as PeriodicMessageFeatureConfig
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(coroutineScopeDep, jdaDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(StartupBlockTag)
+
+    override fun createFeature(config: PeriodicMessageFeatureConfig, context: FeatureSourceContext): Feature {
+        val coroutineScope = context[coroutineScopeDep]
+        val jda = context[jdaDep]
 
         return object : Feature {
-            override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-                if (tag is StartupBlockTag) return tag.result {
-                    context.coroutineScope.launch {
+            override fun <T> query(tag: FeatureElementTag<T>): List<T> {
+                if (tag is StartupBlockTag) return tag.values({
+                    coroutineScope.launch {
                         var currentState = try {
                             PeriodicMessageFeatureState.from(
                                 Json.decodeFromString<PeriodicMessageFeatureStateDto>(config.storagePath.readText())
@@ -183,8 +192,7 @@ fun periodicMessageSource() = object : FeatureSource {
 
                                     if (previousScheduled == null || checkTime >= previousScheduled) {
                                         try {
-                                            context
-                                                .jda
+                                            jda
                                                 .getTextChannelById(messageConfig.discordChannelId)
                                                 ?.sendMessage(messageConfig.options.random(userFacingRandom()))
                                                 ?.await()
@@ -217,9 +225,9 @@ fun periodicMessageSource() = object : FeatureSource {
                             delay(10.seconds)
                         }
                     }
-                }
+                })
 
-                return FeatureQueryResult.NotFound
+                invalidTag(tag)
             }
         }
     }

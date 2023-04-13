@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api(projects.core.config)
+    implementation(projects.util.common)
 }

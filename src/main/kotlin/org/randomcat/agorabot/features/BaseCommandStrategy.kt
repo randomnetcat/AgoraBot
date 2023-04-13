@@ -6,8 +6,7 @@ import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.impl.BaseCommandDefaultArgumentStrategy
 import org.randomcat.agorabot.commands.impl.BaseCommandOutputStrategyByOutputMapping
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
-import org.randomcat.agorabot.config.commandOutputMapping
-import org.randomcat.agorabot.util.coroutineScope
+import org.randomcat.agorabot.config.CommandOutputMappingTag
 import org.slf4j.LoggerFactory
 
 private fun makeBaseCommandStrategy(
@@ -23,39 +22,52 @@ private fun makeBaseCommandStrategy(
         BaseCommandExecutionStrategy by executionStrategy {}
 }
 
-private object BaseCommandStrategyCacheKey
-
 private val logger = LoggerFactory.getLogger("BaseCommandStrategy")
 
+private val outputDep = FeatureDependency.Single(CommandOutputMappingTag)
+private val coroutineScopeDep = FeatureDependency.Single(CoroutineScopeTag)
+private val baseCommandDependenciesDep = FeatureDependency.All(BaseCommandDependencyTag)
+
 @FeatureSourceFactory
-fun baseCommandStrategyFactory() = FeatureSource.ofConstant("base_command_strategy_provider", object : Feature {
-    override fun <T> query(context: FeatureContext, tag: FeatureElementTag<T>): FeatureQueryResult<T> {
-        if (tag is BaseCommandStrategyTag) return tag.result(context.cache(BaseCommandStrategyCacheKey) {
-            makeBaseCommandStrategy(
-                BaseCommandOutputStrategyByOutputMapping(context.commandOutputMapping),
-                object : BaseCommandDependencyStrategy {
-                    override fun tryFindDependency(tag: Any): Any? {
-                        return context.tryQueryExpectOne(BaseCommandDependencyTag(baseTag = tag)).valueOrNull()
-                    }
-                },
-                object : BaseCommandExecutionStrategy {
-                    override fun executeCommandBlock(block: suspend () -> Unit) {
-                        try {
-                            context.coroutineScope.launch {
-                                try {
-                                    block()
-                                } catch (e: Exception) {
-                                    logger.error("Exception during command execution", e)
-                                }
+fun baseCommandStrategyFactory() = object : FeatureSource.NoConfig {
+    override val featureName: String
+        get() = "base_command_strategy_provider"
+
+    override val dependencies: List<FeatureDependency<*>>
+        get() = listOf(outputDep, coroutineScopeDep, baseCommandDependenciesDep)
+
+    override val provides: List<FeatureElementTag<*>>
+        get() = listOf(BaseCommandStrategyTag)
+
+    override fun createFeature(context: FeatureSourceContext): Feature {
+        val outputMapping = context[outputDep]
+        val coroutineScope = context[coroutineScopeDep]
+        val commandDependencies = context[baseCommandDependenciesDep]
+
+        val strategy = makeBaseCommandStrategy(
+            BaseCommandOutputStrategyByOutputMapping(outputMapping),
+            object : BaseCommandDependencyStrategy {
+                override fun tryFindDependency(tag: Any): Any? {
+                    return commandDependencies.singleOrNull { it.baseTag == tag }?.value
+                }
+            },
+            object : BaseCommandExecutionStrategy {
+                override fun executeCommandBlock(block: suspend () -> Unit) {
+                    try {
+                        coroutineScope.launch {
+                            try {
+                                block()
+                            } catch (e: Exception) {
+                                logger.error("Exception during command execution", e)
                             }
-                        } catch (e: Exception) {
-                            logger.error("Failed to schedule command execution", e)
                         }
+                    } catch (e: Exception) {
+                        logger.error("Failed to schedule command execution", e)
                     }
                 }
-            )
-        })
+            }
+        )
 
-        return FeatureQueryResult.NotFound
+        return Feature.singleTag(BaseCommandStrategyTag, strategy)
     }
-})
+}

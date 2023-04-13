@@ -67,6 +67,10 @@ class JsonPrefixMap(
     override fun prefixesForGuild(guildId: String): List<String> {
         return storage.getValue().getOrDefault(guildId, defaultList)
     }
+
+    fun close() {
+        storage.close()
+    }
 }
 
 private val logger = LoggerFactory.getLogger("AgoraBotPrefixStorage")
