@@ -19,7 +19,7 @@ fun reactionRolesFactory() = object : FeatureSource.NoConfig {
         get() = listOf(strategyDep, guildStateMapDep)
 
     override val provides: List<FeatureElementTag<*>>
-        get() = listOf(BotCommandListTag)
+        get() = listOf(BotCommandListTag, JdaListenerTag)
 
     override fun createFeature(context: FeatureSourceContext): Feature {
         val guildStateMap = context[guildStateMapDep]
