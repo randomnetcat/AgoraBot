@@ -1,10 +1,11 @@
 package org.randomcat.agorabot.irc
 
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
+import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
@@ -39,7 +40,9 @@ private fun addDiscordRelay(
 data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : RelayConnectedEndpoint() {
     companion object {
         private fun relayToChannel(channel: MessageChannel, text: String) {
-            (MessageBuilder(text).buildAll(MessageBuilder.SplitPolicy.NEWLINE)).forEach {
+            val parts = SplitUtil.split(text, Message.MAX_CONTENT_LENGTH, SplitUtil.Strategy.NEWLINE)
+
+            parts.forEach {
                 channel
                     .sendMessage(it)
                     .disallowMentions()

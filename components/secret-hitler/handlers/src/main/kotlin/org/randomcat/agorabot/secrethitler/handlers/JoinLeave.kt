@@ -1,11 +1,12 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerJoinGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerLeaveGameButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerCommandContext
@@ -16,7 +17,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
 import org.randomcat.agorabot.secrethitler.storage.api.updateGameTypedWithValidExtract
-import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.handleTextResponse
 
 private sealed class JoinLeaveMapResult {
@@ -75,7 +75,8 @@ private suspend fun handleJoinLeave(
                             val currentState = repository.gameList.gameById(gameId)
 
                             if (currentState == state.newState) {
-                                MessageBuilder(event.message)
+                                MessageCreateBuilder()
+                                    .setComponents(event.message.actionRows)
                                     .setEmbeds(
                                         formatSecretHitlerJoinMessageEmbed(
                                             context = context,
@@ -184,9 +185,10 @@ private fun formatSecretHitlerJoinMessage(
     state: SecretHitlerGameState.Joining,
     joinButtonId: String,
     leaveButtonId: String,
-): DiscordMessage {
-    return MessageBuilder(formatSecretHitlerJoinMessageEmbed(context = context, state = state))
-        .setActionRows(
+): MessageCreateData {
+    return MessageCreateBuilder()
+        .setEmbeds(formatSecretHitlerJoinMessageEmbed(context = context, state = state))
+        .setComponents(
             ActionRow.of(
                 Button.success(joinButtonId, "Join"),
                 Button.danger(leaveButtonId, "Leave"),

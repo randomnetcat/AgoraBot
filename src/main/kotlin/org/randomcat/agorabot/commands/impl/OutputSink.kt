@@ -1,6 +1,8 @@
 package org.randomcat.agorabot.commands.impl
 
-import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import org.randomcat.agorabot.CommandOutputMapping
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.commands.base.BaseCommandOutputStrategy
@@ -23,10 +25,10 @@ private fun CommandOutputSink.sendSimpleMessage(text: String) {
     }
 }
 
-private fun CommandOutputSink.sendDiscordMessage(message: Message) {
+private fun CommandOutputSink.sendDiscordMessage(message: MessageCreateData) {
     return when (this) {
         is CommandOutputSink.Discord -> channel.sendMessage(message).disallowMentions().queue()
-        is CommandOutputSink.Irc -> sendSimpleMessage(message.contentRaw)
+        is CommandOutputSink.Irc -> sendSimpleMessage(message.content)
     }
 }
 
@@ -43,7 +45,7 @@ private fun CommandOutputSink.sendAttachmentMessage(fileName: String, fileConten
     return when (this) {
         is CommandOutputSink.Discord -> {
             val bytes = fileContent.toByteArray(Charsets.UTF_8)
-            channel.sendFile(bytes, fileName).disallowMentions().queue()
+            channel.sendFiles(FileUpload.fromData(bytes, fileName)).disallowMentions().queue()
         }
 
         is CommandOutputSink.Irc -> {
@@ -56,7 +58,9 @@ private fun CommandOutputSink.sendTextAndAttachmentMessage(text: String, fileNam
     return when (this) {
         is CommandOutputSink.Discord -> {
             val bytes = fileContent.toByteArray(Charsets.UTF_8)
-            channel.sendMessage(text).addFile(bytes, fileName).disallowMentions().queue()
+            val message = MessageCreateBuilder().setContent(text).addFiles(FileUpload.fromData(bytes, fileName))
+                .disallowMentions().build()
+            channel.sendMessage(message).queue()
         }
 
         is CommandOutputSink.Irc -> {
@@ -83,7 +87,7 @@ data class BaseCommandOutputStrategyByOutputMapping(
     override suspend fun sendResponseMessage(
         source: CommandEventSource,
         invocation: CommandInvocation,
-        message: Message,
+        message: MessageCreateData,
     ) {
         forEachSinkOf(source) { sink ->
             sink.sendDiscordMessage(message)

@@ -4,16 +4,19 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import net.dv8tion.jda.api.requests.RestAction
-import net.dv8tion.jda.api.requests.restaction.MessageAction
+import net.dv8tion.jda.api.utils.messages.MessageRequest
 import org.slf4j.LoggerFactory
 
 const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
 const val DISCORD_MAX_MESSAGE_LENGTH = 2000
 const val MAX_BUTTONS_PER_ROW = 5
 
-fun MessageAction.disallowMentions() = allowedMentions(emptyList())
+fun <R : MessageRequest<R>> MessageRequest<R>.disallowMentions() = setAllowedMentions(emptyList())
 
 typealias DiscordMessage = net.dv8tion.jda.api.entities.Message
 typealias DiscordPermission = net.dv8tion.jda.api.Permission
@@ -63,7 +66,7 @@ inline fun <T> ignoringRestActionOn(jda: JDA, actionFun: () -> RestAction<T>?): 
 val Message.effectiveSenderName: String
     get() = member?.effectiveName ?: author.name
 
-fun Message.tryAddReaction(reaction: String): RestAction<Unit> {
+fun Message.tryAddReaction(reaction: Emoji): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }
 }
 

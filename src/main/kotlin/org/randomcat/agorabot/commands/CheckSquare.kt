@@ -33,7 +33,7 @@ class CheckSquareCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) 
             val attachment = targetMessage.attachments.single()
 
             val inputStream = try {
-                attachment.retrieveInputStream().await()
+                attachment.proxy.download().await()
             } catch (e: Exception) {
                 respond("Unable to retrieve attachment.")
                 return@cmd

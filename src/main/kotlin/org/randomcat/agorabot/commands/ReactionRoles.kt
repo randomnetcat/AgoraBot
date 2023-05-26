@@ -1,10 +1,8 @@
 package org.randomcat.agorabot.commands
 
-import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.Role
-import net.dv8tion.jda.api.requests.RestAction
+import net.dv8tion.jda.api.entities.emoji.Emoji
+import net.dv8tion.jda.api.entities.emoji.EmojiUnion
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
 import org.randomcat.agorabot.commands.base.requirements.discord.GuildInfo
@@ -14,43 +12,10 @@ import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.reactionroles.MutableReactionRolesMap
 import org.randomcat.agorabot.reactionroles.storageName
-import org.randomcat.agorabot.util.CompletedRestAction
 import org.randomcat.agorabot.util.await
 import org.randomcat.agorabot.util.resolveTextChannelString
 
 private val REACTION_ROLES_MANAGE_PERMISSION = GuildScope.command("reactionroles").action("manage")
-
-private fun Char.isAsciiDigit(): Boolean = this in '0'..'9'
-
-private fun Guild.retrieveEmoteByString(string: String): RestAction<MessageReaction.ReactionEmote?> {
-    return when {
-        string.startsWith("<a:") && string.endsWith(">") -> {
-            retrieveEmoteById(string.removeSurrounding("<a:", ">").split(":").last())
-                .map { MessageReaction.ReactionEmote.fromCustom(it) }
-        }
-
-        string.startsWith("<:") && string.endsWith(">") -> {
-            retrieveEmoteById(string.removeSurrounding("<:", ">").split(":").last())
-                .map { MessageReaction.ReactionEmote.fromCustom(it) }
-        }
-
-        string.all { it.isAsciiDigit() } -> {
-            retrieveEmoteById(string).map { MessageReaction.ReactionEmote.fromCustom(it) }
-        }
-
-        else -> {
-            CompletedRestAction.ofSuccess(jda, MessageReaction.ReactionEmote.fromUnicode(string, jda))
-        }
-    }
-}
-
-private fun Message.addReaction(emote: MessageReaction.ReactionEmote): RestAction<Unit> {
-    return when {
-        emote.isEmote -> addReaction(emote.emote).map { Unit }
-        emote.isEmoji -> addReaction(emote.emoji).map { Unit }
-        else -> error("ReactionEmote should be either emote or emoji")
-    }
-}
 
 class ReactionRolesCommand(
     strategy: BaseCommandStrategy,
@@ -58,22 +23,13 @@ class ReactionRolesCommand(
 ) : BaseCommand(strategy) {
     private suspend inline fun BaseCommandExecutionReceiverGuilded.withEmoteResolved(
         emoteString: String,
-        crossinline block: suspend (GuildInfo, emote: MessageReaction.ReactionEmote) -> Unit,
+        crossinline block: suspend (GuildInfo, emote: EmojiUnion) -> Unit,
     ) {
         val guildInfo = currentGuildInfo
+        val emote = runCatching { Emoji.fromFormatted(emoteString) }.getOrNull()
 
-        val reaction =
-            guildInfo
-                .guild
-                .retrieveEmoteByString(emoteString)
-                .mapToResult()
-                .await()
-                .let {
-                    if (it.isSuccess) it.get() else null
-                }
-
-        if (reaction != null) {
-            block(guildInfo, reaction)
+        if (emote != null) {
+            block(guildInfo, emote)
         } else {
             respond("Invalid emote.")
         }
@@ -82,7 +38,7 @@ class ReactionRolesCommand(
     private suspend inline fun BaseCommandExecutionReceiverGuilded.withRoleAndEmoteResolved(
         emoteString: String,
         roleString: String,
-        crossinline block: suspend (GuildInfo, Role, emote: MessageReaction.ReactionEmote) -> Unit,
+        crossinline block: suspend (GuildInfo, Role, emote: EmojiUnion) -> Unit,
     ) {
         withEmoteResolved(emoteString = emoteString) { guildInfo, emote ->
             val role = guildInfo.resolveRole(roleString) ?: run {

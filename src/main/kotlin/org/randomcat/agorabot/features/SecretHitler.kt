@@ -9,10 +9,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.MessageBuilder
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.Interaction
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
+import net.dv8tion.jda.api.utils.messages.MessageEditData
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.buttons.*
 import org.randomcat.agorabot.buttons.feature.ButtonDataTag
@@ -52,11 +54,11 @@ private object NameContextImpl : SecretHitlerNameContext {
     }
 }
 
-private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): DiscordMessage {
+private fun insertGameId(message: MessageCreateData, gameId: SecretHitlerGameId): MessageCreateData {
     val gameIdText = "Game id: ${gameId.raw}"
 
     return if (message.embeds.isNotEmpty()) {
-        MessageBuilder(message).setEmbeds(message.embeds.map {
+        MessageCreateBuilder.from(message).setEmbeds(message.embeds.map {
             val builder = EmbedBuilder(it)
 
             val footerText = it.footer?.text
@@ -72,10 +74,10 @@ private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): D
             builder.build()
         }).build()
     } else {
-        val builder = MessageBuilder(message)
+        val builder = MessageCreateBuilder.from(message)
 
-        if (!builder.stringBuilder.contains(gameIdText)) {
-            builder.stringBuilder.insert(0, gameIdText + "\n")
+        if (!builder.content.contains(gameIdText)) {
+            builder.setContent(gameIdText + "\n" + builder.content)
         }
 
         builder.build()
@@ -84,7 +86,7 @@ private fun insertGameId(message: DiscordMessage, gameId: SecretHitlerGameId): D
 
 private data class MessageEditQueueEntry(
     val targetMessage: DiscordMessage,
-    val newContentBlock: () -> DiscordMessage?,
+    val newContentBlock: () -> MessageEditData?,
 )
 
 private class MessageContextImpl(
@@ -98,17 +100,17 @@ private class MessageContextImpl(
         gameId: SecretHitlerGameId,
         message: String,
     ) {
-        sendPrivateMessage(recipient, gameId, MessageBuilder(message).build())
+        sendPrivateMessage(recipient, gameId, MessageCreateBuilder().setContent(message).build())
     }
 
-    private suspend fun sendRawPrivateMessage(recipientId: String, message: DiscordMessage) {
+    private suspend fun sendRawPrivateMessage(recipientId: String, message: MessageCreateData) {
         gameMessageChannel.jda.openPrivateChannelById(recipientId).await().sendMessage(message).await()
     }
 
     override suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
-        message: DiscordMessage,
+        message: MessageCreateData,
     ) {
         val rawName = recipient.raw
 
@@ -119,9 +121,9 @@ private class MessageContextImpl(
         when {
             impersonationIds != null -> {
                 val adjustedMessage =
-                    MessageBuilder(messageWithId)
+                    MessageCreateBuilder.from(messageWithId)
                         .also {
-                            it.stringBuilder.insert(0, "Redirected from ${recipient.raw}:\n")
+                            it.setContent("Redirected from ${recipient.raw}:\n" + it.content)
                         }
                         .build()
 
@@ -140,7 +142,7 @@ private class MessageContextImpl(
         }
     }
 
-    override suspend fun sendGameMessage(message: DiscordMessage) {
+    override suspend fun sendGameMessage(message: MessageCreateData) {
         gameMessageChannel.sendMessage(insertGameId(message, contextGameId)).queue()
     }
 
@@ -148,9 +150,12 @@ private class MessageContextImpl(
         gameMessageChannel.sendMessage("Game id: ${contextGameId}\n" + message).queue()
     }
 
-    override suspend fun enqueueEditGameMessage(targetMessage: DiscordMessage, newContentBlock: () -> DiscordMessage?) {
+    override suspend fun enqueueEditGameMessage(
+        targetMessage: DiscordMessage,
+        newContentBlock: () -> MessageCreateData?,
+    ) {
         editChannel.send(MessageEditQueueEntry(targetMessage) {
-            newContentBlock()?.let { insertGameId(it, gameId = contextGameId) }
+            newContentBlock()?.let { insertGameId(it, gameId = contextGameId) }?.let(MessageEditData::fromCreateData)
         })
     }
 }
@@ -167,7 +172,7 @@ private object NullMessageContext : SecretHitlerMessageContext {
     override suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
-        message: DiscordMessage,
+        message: MessageCreateData,
     ) {
         // Intentionally do nothing.
     }
@@ -176,11 +181,14 @@ private object NullMessageContext : SecretHitlerMessageContext {
         // Intentionally do nothing.
     }
 
-    override suspend fun sendGameMessage(message: DiscordMessage) {
+    override suspend fun sendGameMessage(message: MessageCreateData) {
         // Intentionally do nothing.
     }
 
-    override suspend fun enqueueEditGameMessage(targetMessage: DiscordMessage, newContentBlock: () -> DiscordMessage?) {
+    override suspend fun enqueueEditGameMessage(
+        targetMessage: DiscordMessage,
+        newContentBlock: () -> MessageCreateData?,
+    ) {
         // Intentionally do nothing.
     }
 }

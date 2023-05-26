@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.readableName
@@ -23,17 +23,19 @@ suspend fun sendSecretHitlerInactiveGovernmentMessages(
 
         is SecretHitlerInactiveGovernmentResult.CountryInChaos -> {
             context.sendGameMessage(
-                MessageBuilder(
-                    EmbedBuilder()
-                        .setTitle("Country in Chaos")
-                        .appendDescription("The election tracker has reached the maximum value. The top policy on the deck has been enacted.")
-                        .addField(
-                            "Policy Enacted",
-                            result.drawnPolicyType.readableName,
-                            false,
-                        )
-                        .build(),
-                ).build()
+                MessageCreateBuilder()
+                    .setEmbeds(
+                        EmbedBuilder()
+                            .setTitle("Country in Chaos")
+                            .appendDescription("The election tracker has reached the maximum value. The top policy on the deck has been enacted.")
+                            .addField(
+                                "Policy Enacted",
+                                result.drawnPolicyType.readableName,
+                                false,
+                            )
+                            .build(),
+                    )
+                    .build()
             )
 
             when (result) {

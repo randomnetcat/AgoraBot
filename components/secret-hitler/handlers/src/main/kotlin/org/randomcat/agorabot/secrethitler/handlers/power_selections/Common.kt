@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.secrethitler.handlers.power_selections
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.*
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerGameList
@@ -109,21 +109,22 @@ suspend fun sendSecretHitlerCommonPowerSelectionNotification(
     selectedPlayerName: SecretHitlerPlayerExternalName,
 ) {
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .addField(
-                    "President",
-                    context.renderExternalName(presidentName),
-                    true,
-                )
-                .addField(
-                    "Selected Player",
-                    context.renderExternalName(selectedPlayerName),
-                    true,
-                )
-                .build(),
-        ).build(),
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .addField(
+                        "President",
+                        context.renderExternalName(presidentName),
+                        true,
+                    )
+                    .addField(
+                        "Selected Player",
+                        context.renderExternalName(selectedPlayerName),
+                        true,
+                    )
+                    .build(),
+            ).build(),
     )
 }

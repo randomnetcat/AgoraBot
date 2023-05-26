@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.secrethitler.context
 
 import net.dv8tion.jda.api.interactions.Interaction
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerPlayerExternalName
@@ -22,13 +23,13 @@ interface SecretHitlerPrivateMessageContext {
     suspend fun sendPrivateMessage(
         recipient: SecretHitlerPlayerExternalName,
         gameId: SecretHitlerGameId,
-        message: DiscordMessage,
+        message: MessageCreateData,
     )
 }
 
 interface SecretHitlerGameMessageContext {
     suspend fun sendGameMessage(message: String)
-    suspend fun sendGameMessage(message: DiscordMessage)
+    suspend fun sendGameMessage(message: MessageCreateData)
 
     /**
      * Enqueues the editing of the target game message to have the content produced by the provided function.
@@ -41,7 +42,7 @@ interface SecretHitlerGameMessageContext {
      */
     suspend fun enqueueEditGameMessage(
         targetMessage: DiscordMessage,
-        newContentBlock: () -> DiscordMessage?,
+        newContentBlock: () -> MessageCreateData?,
     )
 }
 
@@ -55,7 +56,7 @@ interface SecretHitlerGameContext : SecretHitlerButtonContext, SecretHitlerMessa
 
 interface SecretHitlerCommandContext : SecretHitlerGameContext {
     suspend fun respond(message: String)
-    suspend fun respond(message: DiscordMessage)
+    suspend fun respond(message: MessageCreateData)
 }
 
 interface SecretHitlerInteractionContext : SecretHitlerGameContext {

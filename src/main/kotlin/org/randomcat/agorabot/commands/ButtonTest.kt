@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.commands
 
 import kotlinx.serialization.Serializable
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.commands.base.BaseCommand
 import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
@@ -32,12 +32,16 @@ class ButtonTestCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
                 expiryDuration = Duration.ofMinutes(1),
             )
 
-            MessageBuilder("Testing").setActionRows(
-                ActionRow.of(
-                    Button.success(successId, "Success"),
-                    Button.danger(failureId, "Error"),
-                ),
-            ).build().let { respond(it) }
+            MessageCreateBuilder()
+                .setContent("Testing")
+                .setComponents(
+                    ActionRow.of(
+                        Button.success(successId, "Success"),
+                        Button.danger(failureId, "Error"),
+                    ),
+                )
+                .build()
+                .let { respond(it) }
         }
     }
 }

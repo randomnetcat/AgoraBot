@@ -1,8 +1,8 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentAcceptVetoButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentRejectVetoButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
@@ -114,17 +114,19 @@ private suspend fun sendGenericVetoNotification(
     description: String,
 ) {
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .addField(
-                    "President",
-                    context.renderExternalName(presidentName),
-                    true,
-                )
-                .build()
-        ).build(),
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle(title)
+                    .setDescription(description)
+                    .addField(
+                        "President",
+                        context.renderExternalName(presidentName),
+                        true,
+                    )
+                    .build(),
+            )
+            .build(),
     )
 }
 

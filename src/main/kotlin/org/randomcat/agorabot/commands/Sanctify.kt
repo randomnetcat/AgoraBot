@@ -2,7 +2,8 @@ package org.randomcat.agorabot.commands
 
 import kotlinx.coroutines.future.await
 import kotlinx.serialization.Serializable
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.currentGuild
 import org.randomcat.agorabot.commands.base.requirements.discord_ext.InGuild
@@ -12,7 +13,7 @@ import org.randomcat.agorabot.guild_state.get
 import org.randomcat.agorabot.guild_state.set
 import org.randomcat.agorabot.permissions.GuildScope
 import org.randomcat.agorabot.util.await
-import java.io.InputStream
+import org.randomcat.agorabot.util.exceptionallyClose
 
 private val MANAGE_PERMISSION = GuildScope.command("sanctify").action("manage")
 private const val STATE_KEY = "sanctify"
@@ -75,48 +76,24 @@ class SanctifyCommand(
                 val targetThread = targetChannel.createThreadChannel("Sanctified: " + sourceThread.name).await()
 
                 for (message in messages) {
+                    val builder = MessageCreateBuilder.fromMessage(message)
                     val attachments = message.attachments
-                    val builder = MessageBuilder(message)
-
-                    val (action, remainingAttachments) = run {
-                        var inputStreamForClose: InputStream? = null
-
-                        try {
-                            if (builder.isEmpty) {
-                                // Message content is empty, so message must have an attachment.
-                                val firstAttachment = attachments[0]
-                                inputStreamForClose = firstAttachment.retrieveInputStream().await()
-
-                                targetThread.sendFile(
-                                    inputStreamForClose,
-                                    firstAttachment.fileName,
-                                ) to attachments.subList(1, attachments.size)
-                            } else {
-                                targetThread.sendMessage(builder.build()) to attachments
-                            }
-                        } catch (e: Exception) {
-                            inputStreamForClose?.close()
-                            throw e
-                        }
-                    }
 
                     try {
-                        for (file in remainingAttachments) {
-                            action.addFile(file.retrieveInputStream().await(), file.fileName)
-                        }
-                    } catch (e: Exception) {
-                        action.clearFiles { stream ->
+                        for (attachment in attachments) {
+                            val stream = attachment.proxy.download().await()
+
                             try {
-                                stream.close()
-                            } catch (closeFailure: Exception) {
-                                e.addSuppressed(closeFailure)
+                                builder.addFiles(FileUpload.fromData(stream, attachment.fileName))
+                            } catch (e: Exception) {
+                                exceptionallyClose(e, { stream.close() })
                             }
                         }
 
-                        throw e
+                        targetThread.sendMessage(builder.build())
+                    } finally {
+                        builder.closeFiles()
                     }
-
-                    action.await()
                 }
 
                 respond("Sanctification done.")

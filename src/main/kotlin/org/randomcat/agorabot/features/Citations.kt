@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
+import net.dv8tion.jda.api.utils.FileUpload
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.setup.features.featureConfigDir
 import org.randomcat.agorabot.util.await
@@ -38,7 +39,7 @@ private suspend fun sendResponse(message: Message, name: String, citationUri: UR
     withContext(Dispatchers.IO) {
         citationUri.toURL().openStream().use { fileStream ->
             val bytes = fileStream.readBytes()
-            message.channel.sendFile(bytes, "$name.txt").await()
+            message.channel.sendFiles(FileUpload.fromData(bytes, "$name.txt")).await()
         }
     }
 }

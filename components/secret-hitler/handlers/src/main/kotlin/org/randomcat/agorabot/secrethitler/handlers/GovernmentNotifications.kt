@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGovernmentMembers
@@ -21,7 +21,7 @@ private suspend fun sendBasicElectionNotification(
     }
 
     context.sendGameMessage(
-        MessageBuilder()
+        MessageCreateBuilder()
             .setEmbeds(
                 EmbedBuilder()
                     .setTitle(title)

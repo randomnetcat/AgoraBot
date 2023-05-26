@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.reactionroles
 
-import net.dv8tion.jda.api.entities.MessageReaction
+import net.dv8tion.jda.api.entities.emoji.Emoji
+import net.dv8tion.jda.api.entities.emoji.EmojiUnion
 import org.randomcat.agorabot.guild_state.GuildState
 import org.randomcat.agorabot.guild_state.get
 import org.randomcat.agorabot.guild_state.update
@@ -55,9 +56,8 @@ data class GuildStateReactionRolesMap(
     }
 }
 
-val MessageReaction.ReactionEmote.storageName
-    get() = when {
-        isEmoji -> asCodepoints
-        isEmote -> emote.id
-        else -> throw IllegalStateException()
+val EmojiUnion.storageName
+    get() = when (type) {
+        Emoji.Type.UNICODE -> this.asUnicode().asCodepoints
+        Emoji.Type.CUSTOM -> this.asCustom().id
     }

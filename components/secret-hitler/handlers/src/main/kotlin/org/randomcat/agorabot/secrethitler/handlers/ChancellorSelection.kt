@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorCandidateSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerEphemeralState
@@ -88,7 +88,8 @@ suspend fun secretHitlerSendChancellorSelectionMessage(
             },
             false,
         )
+        .build()
 
-    val message = MessageBuilder(embed).setActionRows(actionRows).build()
+    val message = MessageCreateBuilder().setEmbeds(embed).setComponents(actionRows).build()
     context.sendGameMessage(message)
 }

@@ -1,7 +1,7 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.model.transitions.SecretHitlerWinResult
 
@@ -29,21 +29,23 @@ suspend fun sendSecretHitlerWinMessage(
     winResult: SecretHitlerWinResult,
 ) {
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle(
-                    "Game Over",
-                )
-                .setDescription(winResult.winMessage)
-                .addField(
-                    "Result",
-                    when (winResult) {
-                        is SecretHitlerWinResult.LiberalsWin -> "Liberals win."
-                        is SecretHitlerWinResult.FascistsWin -> "Fascists win."
-                    },
-                    true,
-                )
-                .build(),
-        ).build(),
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle(
+                        "Game Over",
+                    )
+                    .setDescription(winResult.winMessage)
+                    .addField(
+                        "Result",
+                        when (winResult) {
+                            is SecretHitlerWinResult.LiberalsWin -> "Liberals win."
+                            is SecretHitlerWinResult.FascistsWin -> "Fascists win."
+                        },
+                        true,
+                    )
+                    .build(),
+            )
+            .build(),
     )
 }

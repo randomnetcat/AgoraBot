@@ -1,20 +1,17 @@
 package org.randomcat.agorabot.digest
 
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import org.randomcat.agorabot.listener.BotEmoteListener
 import org.randomcat.agorabot.util.tryAddReaction
 
-fun digestEmoteListener(digestMap: GuildMutableDigestMap, targetEmoji: String, successEmoji: String): BotEmoteListener {
+fun digestEmoteListener(digestMap: GuildMutableDigestMap, targetEmoji: Emoji, successEmoji: Emoji): BotEmoteListener {
     val functor = object {
         operator fun invoke(event: MessageReactionAddEvent) {
             if (!event.isFromGuild) return
             if (event.userId == event.jda.selfUser.id) return
 
-            val emote = event.reactionEmote
-            if (!emote.isEmoji) return
-
-            val reactionEmoji = emote.emoji
-            if (reactionEmoji == targetEmoji) {
+            if (event.emoji == targetEmoji) {
                 val digest = digestMap.digestForGuild(event.guild.id)
 
                 event.retrieveMessage().queue { message ->

@@ -2,7 +2,7 @@ package org.randomcat.agorabot.commands.base.requirements.discord
 
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import org.randomcat.agorabot.commands.base.BaseCommandExecutionReceiverRequiring
 import org.randomcat.agorabot.util.DiscordPermission
 

@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.InGuildSimple
@@ -25,7 +26,6 @@ import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameId
 import org.randomcat.agorabot.secrethitler.model.SecretHitlerGameState
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerMutableImpersonationMap
 import org.randomcat.agorabot.secrethitler.storage.api.SecretHitlerRepository
-import org.randomcat.agorabot.util.DiscordMessage
 import java.time.Duration
 
 private val MANAGE_PERMISSION = GuildScope.command("secret_hitler").action("manage")
@@ -48,7 +48,7 @@ private fun makeContext(
             return commandReceiver.invalidButtonId()
         }
 
-        override suspend fun respond(message: DiscordMessage) {
+        override suspend fun respond(message: MessageCreateData) {
             commandReceiver.respond(message)
         }
 

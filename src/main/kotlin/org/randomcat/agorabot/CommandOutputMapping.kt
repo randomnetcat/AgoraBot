@@ -1,6 +1,6 @@
 package org.randomcat.agorabot
 
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import org.randomcat.agorabot.irc.IrcChannel
 import org.randomcat.agorabot.listener.CommandEventSource
 

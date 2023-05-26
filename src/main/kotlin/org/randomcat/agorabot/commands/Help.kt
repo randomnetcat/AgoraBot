@@ -2,7 +2,8 @@ package org.randomcat.agorabot.commands
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.commands.base.BaseCommand
 import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
 import org.randomcat.agorabot.commands.base.BaseCommandStrategy
@@ -90,7 +91,7 @@ class HelpCommand(
     override fun BaseCommandImplReceiver.impl() {
         matchFirst {
             noArgs {
-                val builder = MessageBuilder()
+                val builder = StringBuilder()
 
                 builder.appendLine("Use help [command] for specific usage. Available commands:")
 
@@ -104,8 +105,13 @@ class HelpCommand(
                         builder.appendLine()
                     }
 
-                if (!builder.isEmpty) {
-                    builder.buildAll(MessageBuilder.SplitPolicy.NEWLINE).forEach { respond(it) }
+                if (builder.isNotEmpty()) {
+                    val parts =
+                        SplitUtil.split(builder.toString(), Message.MAX_CONTENT_LENGTH, SplitUtil.Strategy.NEWLINE)
+
+                    for (part in parts) {
+                        respond(part)
+                    }
                 }
             }
 
@@ -134,7 +140,7 @@ class HelpCommand(
                         )
                     }
 
-                    respond(MessageBuilder().appendCodeBlock(usageString, "").build())
+                    respond("```\n${usageString}```")
                 } else {
                     respond("No such command \"$commandName\".")
                 }

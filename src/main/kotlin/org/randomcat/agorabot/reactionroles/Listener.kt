@@ -17,7 +17,7 @@ fun reactionRolesListener(reactionRolesMap: ReactionRolesMap): Any {
             val guild = event.guild
             val guildId = guild.id
             val messageId = event.messageId
-            val emoteName = event.reactionEmote.storageName
+            val emoteName = event.emoji.storageName
 
             val roleId = reactionRolesMap.roleIdFor(
                 guildId = guildId,

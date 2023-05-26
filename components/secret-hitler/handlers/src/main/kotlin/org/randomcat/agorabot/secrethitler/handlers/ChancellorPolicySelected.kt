@@ -1,8 +1,8 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorPolicyChoiceButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
@@ -92,21 +92,22 @@ private suspend fun sendPolicyEnactedNotification(
     power: SecretHitlerFascistPower?,
 ) {
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Policy enacted")
-                .addField(
-                    "Policy kind",
-                    policyType.readableName,
-                    true
-                )
-                .addField(
-                    "Power activated",
-                    power?.readableName ?: "[None]",
-                    true,
-                )
-                .build()
-        ).build()
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle("Policy enacted")
+                    .addField(
+                        "Policy kind",
+                        policyType.readableName,
+                        true
+                    )
+                    .addField(
+                        "Power activated",
+                        power?.readableName ?: "[None]",
+                        true,
+                    )
+                    .build(),
+            ).build(),
     )
 }
 
@@ -234,29 +235,32 @@ private suspend fun sendPolicyPeekMessages(
     context.sendPrivateMessage(
         recipient = presidentName,
         gameId = gameId,
-        message = MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Policy Peek")
-                .setDescription(
-                    peekResult
-                        .peekedCards
-                        .mapIndexed { index, policyType ->
-                            "Policy #${index + 1}: ${policyType.readableName}"
-                        }
-                        .joinToString("\n"),
-                )
-                .build(),
-        ).build(),
+        message = MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle("Policy Peek")
+                    .setDescription(
+                        peekResult
+                            .peekedCards
+                            .mapIndexed { index, policyType ->
+                                "Policy #${index + 1}: ${policyType.readableName}"
+                            }
+                            .joinToString("\n"),
+                    )
+                    .build(),
+            ).build(),
     )
 
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Policy Peek")
-                .setDescription(
-                    "${context.renderExternalName(presidentName)} has been shown the top ${peekResult.peekedCards.size} policies."
-                )
-                .build(),
-        ).build(),
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle("Policy Peek")
+                    .setDescription(
+                        "${context.renderExternalName(presidentName)} has been shown the top ${peekResult.peekedCards.size} policies."
+                    )
+                    .build(),
+            )
+            .build(),
     )
 }

@@ -1,10 +1,10 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorRequestVetoButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentAcceptVetoButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPresidentRejectVetoButtonDescriptor
@@ -94,23 +94,24 @@ private suspend fun sendVetoRequestNotification(
     chancellorName: SecretHitlerPlayerExternalName,
 ) {
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Veto Request")
-                .setDescription("The Chancellor has requested to veto the proposed policies. The President may approve or deny this request.")
-                .addField(
-                    "President",
-                    context.renderExternalName(presidentName),
-                    true,
-                )
-                .addField(
-                    "Chancellor",
-                    context.renderExternalName(chancellorName),
-                    true,
-                )
-                .build(),
-        )
-            .setActionRows(
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle("Veto Request")
+                    .setDescription("The Chancellor has requested to veto the proposed policies. The President may approve or deny this request.")
+                    .addField(
+                        "President",
+                        context.renderExternalName(presidentName),
+                        true,
+                    )
+                    .addField(
+                        "Chancellor",
+                        context.renderExternalName(chancellorName),
+                        true,
+                    )
+                    .build(),
+            )
+            .setComponents(
                 ActionRow.of(
                     Button.success(
                         context.newButtonId(

@@ -1,8 +1,8 @@
 package org.randomcat.agorabot.secrethitler.handlers.power_selections
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingInvestigatePartySelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
 import org.randomcat.agorabot.secrethitler.handlers.secretHitlerSendChancellorSelectionMessage
@@ -79,12 +79,13 @@ private suspend fun sendInvestigationResultMessages(
     context.sendPrivateMessage(
         gameId = gameId,
         recipient = presidentName,
-        message = MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Party Investigation Result")
-                .setDescription("${context.renderExternalName(selectedPlayerName)}'s party is ${investigationResult.readableName}")
-                .build()
-        ).build(),
+        message = MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle("Party Investigation Result")
+                    .setDescription("${context.renderExternalName(selectedPlayerName)}'s party is ${investigationResult.readableName}")
+                    .build(),
+            ).build(),
     )
 }
 

@@ -1,12 +1,13 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerVoteButtonDescriptor
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerGameContext
 import org.randomcat.agorabot.secrethitler.context.SecretHitlerInteractionContext
@@ -101,11 +102,12 @@ private fun formatVotingMessage(
     context: SecretHitlerGameContext,
     gameId: SecretHitlerGameId,
     currentState: SecretHitlerGameState.Running.With<SecretHitlerEphemeralState.VotingOngoing>,
-): Message {
+): MessageCreateData {
     val embed = formatVotingEmbed(context, currentState)
 
-    return MessageBuilder(embed)
-        .setActionRows(
+    return MessageCreateBuilder()
+        .setEmbeds(embed)
+        .setComponents(
             ActionRow.of(
                 Button.success(
                     context.newButtonId(
@@ -165,7 +167,8 @@ private suspend fun queueVoteMessageUpdate(
         val currentState = gameList.gameById(gameId)
 
         if (currentState == stateAfterUpdate) {
-            MessageBuilder(targetMessage)
+            MessageCreateBuilder()
+                .setComponents(targetMessage.components)
                 .setEmbeds(
                     formatVotingEmbed(
                         context = context,
@@ -262,22 +265,22 @@ private suspend fun sendVoteSummaryMessage(
     }
 
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle("Voting Complete")
-                .addField(
-                    "For",
-                    renderVoteListField(voteMap.playersVotingFor()),
-                    true,
-                )
-                .addField(
-                    "Against",
-                    renderVoteListField(voteMap.playersVotingAgainst()),
-                    true,
-                )
-                .build()
-
-        ).build(),
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle("Voting Complete")
+                    .addField(
+                        "For",
+                        renderVoteListField(voteMap.playersVotingFor()),
+                        true,
+                    )
+                    .addField(
+                        "Against",
+                        renderVoteListField(voteMap.playersVotingAgainst()),
+                        true,
+                    )
+                    .build(),
+            ).build(),
     )
 }
 

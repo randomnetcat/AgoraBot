@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.MessageChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import org.randomcat.agorabot.commands.DiscordArchiver
 import java.io.OutputStream
 import java.io.Writer
@@ -71,7 +71,7 @@ private data class PendingAttachmentDownload(
 )
 
 private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out: OutputStream) {
-    attachment.retrieveInputStream().await().use { downloadStream ->
+    attachment.proxy.download().await().use { downloadStream ->
         downloadStream.copyTo(out)
     }
 }
@@ -186,7 +186,7 @@ private suspend fun receiveMessages(
                 ),
             )
 
-            message.mentionedUsers.forEach {
+            message.mentions.usersBag.forEach {
                 globalDataChannel.send(
                     ArchiveGlobalData.ReferencedUser(
                         id = it.id,
@@ -194,7 +194,7 @@ private suspend fun receiveMessages(
                 )
             }
 
-            message.mentionedRoles.forEach {
+            message.mentions.rolesBag.forEach {
                 globalDataChannel.send(
                     ArchiveGlobalData.ReferencedRole(
                         id = it.id,
@@ -202,7 +202,7 @@ private suspend fun receiveMessages(
                 )
             }
 
-            message.mentionedChannels.forEach {
+            message.mentions.channelsBag.forEach {
                 globalDataChannel.send(
                     ArchiveGlobalData.ReferencedChannel(
                         id = it.id,

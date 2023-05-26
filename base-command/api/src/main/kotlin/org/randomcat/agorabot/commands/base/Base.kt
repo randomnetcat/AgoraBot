@@ -1,6 +1,6 @@
 package org.randomcat.agorabot.commands.base
 
-import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import org.randomcat.agorabot.commands.base.help.BaseCommandUsageModel
 import org.randomcat.agorabot.commands.base.help.simpleUsageString
 import org.randomcat.agorabot.listener.Command
@@ -39,7 +39,11 @@ interface BaseCommandArgumentStrategy {
 
 interface BaseCommandOutputStrategy {
     suspend fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String)
-    suspend fun sendResponseMessage(source: CommandEventSource, invocation: CommandInvocation, message: Message)
+    suspend fun sendResponseMessage(
+        source: CommandEventSource,
+        invocation: CommandInvocation,
+        message: MessageCreateData,
+    )
 
     suspend fun sendResponseAsFile(
         source: CommandEventSource,
@@ -79,7 +83,7 @@ interface BaseCommandContext : CommandDependencyProvider {
 
 interface BaseCommandExecutionReceiver {
     suspend fun respond(message: String)
-    suspend fun respond(message: Message)
+    suspend fun respond(message: MessageCreateData)
     suspend fun respondWithFile(fileName: String, fileContent: String)
     suspend fun respondWithTextAndFile(text: String, fileName: String, fileContent: String)
 }
@@ -157,7 +161,7 @@ abstract class BaseCommand(private val strategy: BaseCommandStrategy) : Command 
             strategy.sendResponse(source, invocation, message)
         }
 
-        override suspend fun respond(message: Message) {
+        override suspend fun respond(message: MessageCreateData) {
             strategy.sendResponseMessage(source, invocation, message)
         }
 

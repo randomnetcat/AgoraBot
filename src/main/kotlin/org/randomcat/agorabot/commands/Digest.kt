@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.requests.RestAction
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
@@ -69,7 +70,7 @@ class DigestCommand(
     private val digestMap: GuildMutableDigestMap,
     private val sendStrategy: DigestSendStrategy?,
     private val digestFormat: DigestFormat,
-    private val digestAddedReaction: String?,
+    private val digestAddedReaction: Emoji?,
 ) : BaseCommand(strategy) {
     private suspend fun BaseCommandExecutionReceiverGuilded.getMessageOrError(id: String): Message? {
         val msgResult = currentChannel.retrieveMessageById(id).mapToResult().complete()

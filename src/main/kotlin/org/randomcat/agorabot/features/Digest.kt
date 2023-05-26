@@ -1,5 +1,6 @@
 package org.randomcat.agorabot.features
 
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.commands.DigestCommand
 import org.randomcat.agorabot.commands.impl.BaseCommandStrategyTag
@@ -9,8 +10,8 @@ import org.randomcat.agorabot.digest.*
 import org.randomcat.agorabot.setup.BotDataPaths
 import java.nio.file.Path
 
-private const val DIGEST_ADD_EMOTE = "\u2B50" // Discord :star:
-private const val DIGEST_SUCCESS_EMOTE = "\u2705" // Discord :white_check_mark:
+private val DIGEST_ADD_EMOTE = Emoji.fromUnicode("\u2B50") // Discord :star:
+private val DIGEST_SUCCESS_EMOTE = Emoji.fromUnicode("\u2705") // Discord :white_check_mark:
 
 private const val DIGEST_AFFIX =
     "THIS MESSAGE CONTAINS NO GAME ACTIONS.\n" +

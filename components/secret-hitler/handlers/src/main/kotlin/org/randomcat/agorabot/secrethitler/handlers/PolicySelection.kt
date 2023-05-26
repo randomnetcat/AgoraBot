@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorPolicyChoiceButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerChancellorRequestVetoButtonDescriptor
@@ -25,7 +25,7 @@ private inline suspend fun sendPolicySelectionMessage(
     context.sendPrivateMessage(
         recipient = recipientName,
         gameId = gameId,
-        message = MessageBuilder()
+        message = MessageCreateBuilder()
             .setEmbeds(
                 EmbedBuilder()
                     .appendDescription(description)
@@ -69,7 +69,7 @@ private inline suspend fun sendPolicySelectionMessage(
                     policyButtons
                 }
 
-                builder.setActionRows(allButtons.chunked(MAX_BUTTONS_PER_ROW) { ActionRow.of(it) })
+                builder.setComponents(allButtons.chunked(MAX_BUTTONS_PER_ROW) { ActionRow.of(it) })
             }
             .build()
     )

@@ -1,9 +1,9 @@
 package org.randomcat.agorabot.secrethitler.handlers
 
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.randomcat.agorabot.buttons.ButtonRequestDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingExecutionSelectionButtonDescriptor
 import org.randomcat.agorabot.secrethitler.buttons.SecretHitlerPendingInvestigatePartySelectionButtonDescriptor
@@ -27,27 +27,28 @@ private suspend fun sendPlayerSelectPowerNotification(
     val sortedNumbers = playerMap.validNumbers.sortedBy { it.raw }
 
     context.sendGameMessage(
-        MessageBuilder(
-            EmbedBuilder()
-                .setTitle(powerName)
-                .setDescription(description)
-                .addField(
-                    "President",
-                    context.renderExternalName(presidentName),
-                    false,
-                )
-                .addField(
-                    "Options",
-                    sortedNumbers
-                        .mapIndexed { index, playerNumber ->
-                            "Option #${index + 1}: " +
-                                    context.renderExternalName(playerMap.playerByNumberKnown(playerNumber))
-                        }
-                        .joinToString("\n"),
-                    false,
-                )
-                .build(),
-        )
+        MessageCreateBuilder()
+            .setEmbeds(
+                EmbedBuilder()
+                    .setTitle(powerName)
+                    .setDescription(description)
+                    .addField(
+                        "President",
+                        context.renderExternalName(presidentName),
+                        false,
+                    )
+                    .addField(
+                        "Options",
+                        sortedNumbers
+                            .mapIndexed { index, playerNumber ->
+                                "Option #${index + 1}: " +
+                                        context.renderExternalName(playerMap.playerByNumberKnown(playerNumber))
+                            }
+                            .joinToString("\n"),
+                        false,
+                    )
+                    .build(),
+            )
             .also { builder ->
                 val buttons = sortedNumbers.mapIndexed { index, playerNumber ->
                     val isPermissible = playerNumber != presidentNumber && !extraExcludedPlayers.contains(playerNumber)
@@ -69,7 +70,7 @@ private suspend fun sendPlayerSelectPowerNotification(
                         .withDisabled(!isPermissible)
                 }
 
-                builder.setActionRows(buttons.chunked(MAX_BUTTONS_PER_ROW) { ActionRow.of(it) })
+                builder.setComponents(buttons.chunked(MAX_BUTTONS_PER_ROW) { ActionRow.of(it) })
             }
             .build(),
     )

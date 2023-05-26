@@ -1,6 +1,7 @@
 package org.randomcat.agorabot.commands
 
-import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.help.help
 import org.randomcat.agorabot.commands.base.requirements.discord.currentGuildId
@@ -165,8 +166,8 @@ class PermissionsCommand(
             }
         }
 
-        val messages = MessageBuilder(fullString).buildAll(MessageBuilder.SplitPolicy.NEWLINE)
-        messages.forEach { respond(it.contentRaw) }
+        val parts = SplitUtil.split(fullString, Message.MAX_CONTENT_LENGTH, SplitUtil.Strategy.NEWLINE)
+        parts.forEach { respond(it) }
     }
 
     override fun BaseCommandImplReceiver.impl() {

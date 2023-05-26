@@ -3,6 +3,7 @@ package org.randomcat.agorabot.commands
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.utils.FileUpload
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
 import org.randomcat.agorabot.commands.base.requirements.discord.currentChannel
@@ -91,9 +92,11 @@ class ArchiveCommand(
                             } else {
                                 currentChannel
                                     .sendMessage("Archive for channels $channelIds")
-                                    .addFile(
-                                        path.toFile(),
-                                        "archive_${formatCurrentDate()}.${archiver.archiveExtension}",
+                                    .setFiles(
+                                        FileUpload.fromData(
+                                            path,
+                                            "archive_${formatCurrentDate()}.${archiver.archiveExtension}",
+                                        ),
                                     )
                                     .queue()
                             }
