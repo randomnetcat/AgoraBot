@@ -175,8 +175,11 @@ fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicM
                 if (tag is StartupBlockTag) return tag.values({
                     coroutineScope.launch {
                         var currentState = try {
+                            val storageText = config.storagePath.readText()
+                            logger.info("Loaded periodic message storage: $storageText")
+
                             PeriodicMessageFeatureState.from(
-                                Json.decodeFromString<PeriodicMessageFeatureStateDto>(config.storagePath.readText())
+                                Json.decodeFromString<PeriodicMessageFeatureStateDto>(storageText)
                             )
                         } catch (e: NioNoSuchFileException) {
                             PeriodicMessageFeatureState(messages = persistentMapOf())
