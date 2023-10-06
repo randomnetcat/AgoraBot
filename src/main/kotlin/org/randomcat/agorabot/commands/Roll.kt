@@ -4,7 +4,7 @@ import org.randomcat.agorabot.commands.base.BaseCommand
 import org.randomcat.agorabot.commands.base.BaseCommandImplReceiver
 import org.randomcat.agorabot.commands.base.BaseCommandStrategy
 import org.randomcat.agorabot.commands.base.RemainingStringArgs
-import org.randomcat.agorabot.util.DISCORD_MAX_MESSAGE_LENGTH
+import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.userFacingRandom
 import java.math.BigInteger
 import kotlin.random.Random
@@ -110,7 +110,7 @@ class RollCommand(strategy: BaseCommandStrategy) : BaseCommand(strategy) {
 
             val fullStr = "$rollStr. $sumStr"
 
-            if (fullStr.length < DISCORD_MAX_MESSAGE_LENGTH)
+            if (fullStr.length < DiscordMessage.MAX_CONTENT_LENGTH)
                 respond(fullStr)
             else
                 respondWithTextAndFile(text = sumStr, fileName = "rng.txt", fileContent = fullStr)

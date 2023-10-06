@@ -3,7 +3,9 @@ package org.randomcat.agorabot.util
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
@@ -13,7 +15,6 @@ import net.dv8tion.jda.api.utils.messages.MessageRequest
 import org.slf4j.LoggerFactory
 
 const val JDA_HISTORY_MAX_RETRIEVE_LIMIT = 100
-const val DISCORD_MAX_MESSAGE_LENGTH = 2000
 const val MAX_BUTTONS_PER_ROW = 5
 
 fun <R : MessageRequest<R>> MessageRequest<R>.disallowMentions() = setAllowedMentions(emptyList())
