@@ -35,7 +35,7 @@ private fun CommandOutputSink.Irc.sendIllegalAttachmentMessage(fileName: String)
 
     channel.sendMultiLineMessage(
         "Well, I *would* send an attachment, and it *would* have been called \"$safeFileName\", " +
-                "but this is a lame forum that doesn't support attachments, so all you get is this message."
+                "but this is a forum that doesn't support attachments, so all you get is this message."
     )
 }
 
