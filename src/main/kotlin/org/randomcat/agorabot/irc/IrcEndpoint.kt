@@ -9,10 +9,13 @@ import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.effectiveSenderName
+import org.slf4j.LoggerFactory
 
 data class IrcRelayEndpointConfig(
     val commandPrefix: String?,
 )
+
+private val logger = LoggerFactory.getLogger("RelayIrc")
 
 private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
     val senderName = message.effectiveSenderName
@@ -70,7 +73,11 @@ private fun addIrcRelay(
             if (!event.isInRelevantChannel()) return
 
             forEachEndpoint {
-                it.sendTextMessage(sender = event.actor.nick, content = event.message)
+                try {
+                    it.sendTextMessage(sender = event.actor.nick, content = event.message)
+                } catch (e: Exception) {
+                    logger.error("Error forwarding message: endpoint: $it, event: $it")
+                }
             }
 
             if (commandParser != null) {
@@ -95,7 +102,11 @@ private fun addIrcRelay(
             if (!message.startsWith("ACTION ")) return // ACTION means a /me command
 
             forEachEndpoint {
-                it.sendSlashMeTextMessage(sender = event.actor.nick, action = message.removePrefix("ACTION "))
+                try {
+                    it.sendSlashMeTextMessage(sender = event.actor.nick, action = message.removePrefix("ACTION "))
+                } catch (e: Exception) {
+                    logger.error("Error forwarding discord message: endpoint: $it, event: $it")
+                }
             }
         }
     }))

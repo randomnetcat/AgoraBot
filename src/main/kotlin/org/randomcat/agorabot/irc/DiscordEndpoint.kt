@@ -10,10 +10,13 @@ import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.disallowMentions
 import org.randomcat.agorabot.util.effectiveSenderName
+import org.slf4j.LoggerFactory
 
 private fun formatRawNameForDiscord(name: String): String {
     return "**$name**"
 }
+
+private val logger = LoggerFactory.getLogger("RelayDiscord")
 
 private fun addDiscordRelay(
     jda: JDA,
@@ -31,7 +34,11 @@ private fun addDiscordRelay(
             if (event.author.id == event.jda.selfUser.id) return
 
             forEachEndpoint {
-                it.sendDiscordMessage(event.message)
+                try {
+                    it.sendDiscordMessage(event.message)
+                } catch (e: Exception) {
+                    logger.error("Error forwarding discord message: endpoint: $it, event: $it")
+                }
             }
         }
     })
