@@ -10,6 +10,7 @@ import org.randomcat.agorabot.irc.sendSplitMultiLineMessage
 import org.randomcat.agorabot.listener.CommandEventSource
 import org.randomcat.agorabot.listener.CommandInvocation
 import org.randomcat.agorabot.util.disallowMentions
+import org.slf4j.LoggerFactory
 
 private fun CommandEventSource.selfSink(): CommandOutputSink {
     return when (this) {
@@ -73,6 +74,10 @@ private fun CommandOutputSink.sendTextAndAttachmentMessage(text: String, fileNam
 data class BaseCommandOutputStrategyByOutputMapping(
     private val outputMapping: CommandOutputMapping,
 ) : BaseCommandOutputStrategy {
+    companion object {
+        private val logger = LoggerFactory.getLogger(BaseCommandOutputStrategyByOutputMapping::class.java)
+    }
+
     private inline fun forEachSinkOf(source: CommandEventSource, block: (CommandOutputSink) -> Unit) {
         block(source.selfSink())
         outputMapping.externalSinksFor(source).forEach(block)
@@ -80,7 +85,14 @@ data class BaseCommandOutputStrategyByOutputMapping(
 
     override suspend fun sendResponse(source: CommandEventSource, invocation: CommandInvocation, message: String) {
         forEachSinkOf(source) { sink ->
-            sink.sendSimpleMessage(message)
+            try {
+                sink.sendSimpleMessage(message)
+            } catch (e: Exception) {
+                logger.error(
+                    "Error sending command output: source = $source, invocation = $invocation, message = $message",
+                    e
+                )
+            }
         }
     }
 
@@ -90,7 +102,14 @@ data class BaseCommandOutputStrategyByOutputMapping(
         message: MessageCreateData,
     ) {
         forEachSinkOf(source) { sink ->
-            sink.sendDiscordMessage(message)
+            try {
+                sink.sendDiscordMessage(message)
+            } catch (e: Exception) {
+                logger.error(
+                    "Error sending command output: source = $source, invocation = $invocation, message = $message",
+                    e
+                )
+            }
         }
     }
 
@@ -101,7 +120,14 @@ data class BaseCommandOutputStrategyByOutputMapping(
         fileContent: String,
     ) {
         forEachSinkOf(source) { sink ->
-            sink.sendAttachmentMessage(fileName = fileName, fileContent = fileContent)
+            try {
+                sink.sendAttachmentMessage(fileName = fileName, fileContent = fileContent)
+            } catch (e: Exception) {
+                logger.error(
+                    "Error sending command file output: source = $source, invocation = $invocation, fileName = $fileName, fileContent = $fileContent",
+                    e
+                )
+            }
         }
     }
 
@@ -113,7 +139,14 @@ data class BaseCommandOutputStrategyByOutputMapping(
         fileContent: String,
     ) {
         forEachSinkOf(source) { sink ->
-            sink.sendTextAndAttachmentMessage(text = textResponse, fileName = fileName, fileContent = fileContent)
+            try {
+                sink.sendTextAndAttachmentMessage(text = textResponse, fileName = fileName, fileContent = fileContent)
+            } catch (e: Exception) {
+                logger.error(
+                    "Error sending command output: source = $source, invocation = $invocation, text = $textResponse, fileName = $fileName, fileContent = $fileContent",
+                    e
+                )
+            }
         }
     }
 }
