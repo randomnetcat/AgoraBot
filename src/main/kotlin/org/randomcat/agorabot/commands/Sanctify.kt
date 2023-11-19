@@ -90,7 +90,7 @@ class SanctifyCommand(
                             }
                         }
 
-                        targetThread.sendMessage(builder.build())
+                        targetThread.sendMessage(builder.build()).await()
                     } finally {
                         builder.closeFiles()
                     }
