@@ -10,16 +10,15 @@ import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.persist.AtomicCachedStorage
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.config.persist.StorageStrategy
-import org.randomcat.agorabot.guild_state.GuildState
-import org.randomcat.agorabot.guild_state.GuildStateMap
+import org.randomcat.agorabot.guild_state.*
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
 import java.nio.file.Files
 import java.nio.file.Path
 
-class JsonGuildState(
+private class StringStateImpl(
     storagePath: Path,
     persistService: ConfigPersistService,
-) : GuildState {
+) : StringState {
     private object StrategyImpl : StorageStrategy<PersistentMap<String, String>> {
         override fun defaultValue(): PersistentMap<String, String> {
             return persistentMapOf()
@@ -86,23 +85,59 @@ class JsonGuildState(
     }
 }
 
-class JsonGuildStateMap(
+private class KeyedStateMap(
     private val storageDirectory: Path,
     private val persistService: ConfigPersistService,
-) : GuildStateMap {
+) {
     init {
         Files.createDirectories(storageDirectory)
     }
 
-    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonGuildState>()
+    private val map = AtomicLoadOnceMap<String /* GuildId */, StringStateImpl>()
 
-    override fun stateForGuild(guildId: String): GuildState {
+    fun stateForKey(guildId: String): StringState {
         return map.getOrPut(guildId) {
-            JsonGuildState(storagePath = storageDirectory.resolve(guildId), persistService = persistService)
+            StringStateImpl(storagePath = storageDirectory.resolve(guildId), persistService = persistService)
         }
     }
 
     fun close() {
         map.closeAndTake().values.forEach { it.close() }
     }
+}
+
+
+private data class GuildStateImpl(private val impl: StringState) : GuildState, StringState by impl
+private data class UserStateImpl(private val impl: StringState) : UserState, StringState by impl
+
+class JsonGuildStateMap(
+    storageDirectory: Path,
+    persistService: ConfigPersistService,
+) : GuildStateMap {
+    private val impl = KeyedStateMap(
+        storageDirectory = storageDirectory,
+        persistService = persistService,
+    )
+
+    override fun stateForGuild(guildId: String): GuildState {
+        return GuildStateImpl(impl.stateForKey(guildId))
+    }
+
+    fun close() = impl.close()
+}
+
+class JsonUserStateMap(
+    storageDirectory: Path,
+    persistService: ConfigPersistService,
+) : UserStateMap {
+    private val impl = KeyedStateMap(
+        storageDirectory = storageDirectory,
+        persistService = persistService,
+    )
+
+    override fun stateForUser(userId: String): UserState {
+        return UserStateImpl(impl.stateForKey(userId))
+    }
+
+    fun close() = impl.close()
 }
