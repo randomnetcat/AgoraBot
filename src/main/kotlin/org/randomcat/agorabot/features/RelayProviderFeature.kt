@@ -3,8 +3,10 @@ package org.randomcat.agorabot.features
 import kotlinx.collections.immutable.toPersistentList
 import net.dv8tion.jda.api.JDA
 import org.randomcat.agorabot.*
+import org.randomcat.agorabot.commands.RelayCommand
 import org.randomcat.agorabot.config.CommandOutputMappingTag
 import org.randomcat.agorabot.config.RelayConnectedEndpointMapTag
+import org.randomcat.agorabot.guild_state.feature.UserStateStorageTag
 import org.randomcat.agorabot.irc.*
 
 private fun ircAndDiscordMapping(
@@ -70,6 +72,7 @@ private fun ircAndDiscordMapping(
 private val ircDep = FeatureDependency.AtMostOne(IrcSetupTag)
 private val jdaDep = FeatureDependency.Single(JdaTag)
 private val coroutineScopeDep = FeatureDependency.Single(CoroutineScopeTag)
+private val userStateMapDep = FeatureDependency.Single(UserStateStorageTag)
 
 @FeatureSourceFactory
 fun relayProviderFeatureSource(): FeatureSource<*> = object : FeatureSource.NoConfig {
@@ -77,7 +80,7 @@ fun relayProviderFeatureSource(): FeatureSource<*> = object : FeatureSource.NoCo
         get() = "relay_data_provider"
 
     override val dependencies: List<FeatureDependency<*>>
-        get() = listOf(ircDep, jdaDep, coroutineScopeDep)
+        get() = listOf(ircDep, jdaDep, coroutineScopeDep, userStateMapDep)
 
     override val provides: List<FeatureElementTag<*>>
         get() = listOf(CommandOutputMappingTag, RelayConnectedEndpointMapTag)
@@ -86,6 +89,7 @@ fun relayProviderFeatureSource(): FeatureSource<*> = object : FeatureSource.NoCo
         val jda = context[jdaDep]
         val ircConfig = context[ircDep]
         val coroutineScope = context[coroutineScopeDep]
+        val userStateMap = context[userStateMapDep]
 
         if (ircConfig != null) {
             val relayConnectedEndpointMap = connectToRelayEndpoints(
@@ -94,6 +98,7 @@ fun relayProviderFeatureSource(): FeatureSource<*> = object : FeatureSource.NoCo
                     ircClientMap = ircConfig.clients,
                     jda = jda,
                     coroutineScope = coroutineScope,
+                    userStateMap = userStateMap,
                 ),
             )
 
@@ -123,3 +128,17 @@ fun relayProviderFeatureSource(): FeatureSource<*> = object : FeatureSource.NoCo
         }
     }
 }
+
+@FeatureSourceFactory
+fun relayCommandsSource(): FeatureSource<*> = FeatureSource.ofBaseCommands(
+    name = "relay_commands",
+    extraDependencies = listOf(userStateMapDep),
+    block = { strategy, context ->
+        mapOf(
+            "relay" to RelayCommand(
+                strategy,
+                userStateMap = context[userStateMapDep],
+            )
+        )
+    },
+)

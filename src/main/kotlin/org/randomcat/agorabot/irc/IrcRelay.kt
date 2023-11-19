@@ -8,6 +8,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import net.dv8tion.jda.api.JDA
 import org.randomcat.agorabot.CommandOutputSink
+import org.randomcat.agorabot.guild_state.UserStateMap
 import org.randomcat.agorabot.listener.CommandRegistry
 import org.randomcat.agorabot.util.DiscordMessage
 import org.slf4j.LoggerFactory
@@ -37,6 +38,7 @@ data class RelayConnectionContext(
     val ircClientMap: IrcClientMap,
     val jda: JDA,
     val coroutineScope: CoroutineScope,
+    val userStateMap: UserStateMap,
 )
 
 data class RelayConnectedEndpointMap(
@@ -62,6 +64,7 @@ fun connectToRelayEndpoints(
                     RelayConnectedDiscordEndpoint(
                         jda = context.jda,
                         coroutineScope = context.coroutineScope,
+                        userStateMap = context.userStateMap,
                         channelId = config.channelId,
                     )
                 }
@@ -109,4 +112,9 @@ fun initializeIrcRelay(
             )
         }
     }
+}
+
+fun formatRelayDiscordContent(content: String): String {
+    // Remove backslash used to indicate that message should always be forwarded
+    return content.removePrefix("\\")
 }

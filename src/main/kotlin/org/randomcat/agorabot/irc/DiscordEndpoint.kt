@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.CommandOutputSink
+import org.randomcat.agorabot.guild_state.UserStateMap
+import org.randomcat.agorabot.guild_state.get
 import org.randomcat.agorabot.util.DiscordMessage
 import org.randomcat.agorabot.util.await
 import org.randomcat.agorabot.util.disallowMentions
@@ -21,9 +23,28 @@ private fun formatRawNameForDiscord(name: String): String {
 
 private val logger = LoggerFactory.getLogger("RelayDiscord")
 
+private fun shouldRelayMessage(
+    userStateMap: UserStateMap,
+    guildId: String,
+    userId: String,
+    content: String,
+): Boolean {
+    // Disable ignoring if message starts with a backslash
+    if (content.startsWith("\\")) return true
+
+    return when (val state = userStateMap.stateForUser(userId).get<RelayUserState>(RELAY_USER_STATE_KEY)) {
+        is RelayUserState.Version0 -> {
+            !state.disabledGuilds.contains(guildId)
+        }
+
+        null -> true
+    }
+}
+
 private fun addDiscordRelay(
     jda: JDA,
     coroutineScope: CoroutineScope,
+    userStateMap: UserStateMap,
     channelId: String,
     endpoints: List<RelayConnectedEndpoint>,
 ) {
@@ -36,6 +57,16 @@ private fun addDiscordRelay(
         fun onMessage(event: MessageReceivedEvent) {
             if (event.channel.id != channelId) return
             if (event.author.id == event.jda.selfUser.id) return
+
+            if (!shouldRelayMessage(
+                    userStateMap = userStateMap,
+                    guildId = event.guild.id,
+                    userId = event.author.id,
+                    content = event.message.contentRaw,
+                )
+            ) {
+                return
+            }
 
             coroutineScope.launch {
                 forEachEndpoint {
@@ -55,6 +86,7 @@ private fun addDiscordRelay(
 data class RelayConnectedDiscordEndpoint(
     val jda: JDA,
     val coroutineScope: CoroutineScope,
+    val userStateMap: UserStateMap,
     val channelId: String,
 ) : RelayConnectedEndpoint() {
     companion object {
@@ -99,14 +131,14 @@ data class RelayConnectedDiscordEndpoint(
             val replySection = if (referencedMessage != null) {
                 val replyName = referencedMessage.retrieveEffectiveSenderName().await()
 
-                "In reply to ${formatRawNameForDiscord(replyName)} saying: ${referencedMessage.contentRaw}\n"
+                "In reply to ${formatRawNameForDiscord(replyName)} saying: ${formatRelayDiscordContent(referencedMessage.contentRaw)}\n"
             } else {
                 ""
             }
 
             val textSection = run {
                 val saysVerb = if (referencedMessage != null) "replies" else "says"
-                "${formatRawNameForDiscord(senderName)} $saysVerb: ${message.contentRaw}"
+                "${formatRawNameForDiscord(senderName)} $saysVerb: ${formatRelayDiscordContent(message.contentRaw)}"
             }
 
             val attachmentsSection = if (message.attachments.isNotEmpty()) {
@@ -129,6 +161,7 @@ data class RelayConnectedDiscordEndpoint(
         addDiscordRelay(
             jda = jda,
             coroutineScope = coroutineScope,
+            userStateMap = userStateMap,
             channelId = channelId,
             endpoints = otherEndpoints,
         )
