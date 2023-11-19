@@ -57,7 +57,12 @@ class CommunityMessageCommand(
                     .permissions(globalCommandPermission(PERMISSION_ACTION_CREATE)) cmd@{ (name, targetChannelId) ->
                         val guildStorage = globalStorage.storageForGuild(currentGuildId)
 
-                        val targetChannel = currentGuild.getTextChannelById(targetChannelId)
+                        val targetChannel = try {
+                            currentGuild.getTextChannelById(targetChannelId)
+                        } catch (e: Exception) {
+                            respond("Unable to parse channel ID: $targetChannelId")
+                            return@cmd
+                        }
 
                         if (targetChannel == null) {
                             respond("Unable to find a channel with that id.")
