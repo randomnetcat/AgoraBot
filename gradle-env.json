@@ -1432,151 +1432,196 @@
           "id": {
             "group": "com.fasterxml",
             "name": "oss-parent",
-            "version": "38",
+            "version": "48",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "oss-parent-38.pom",
-          "path": "com/fasterxml/oss-parent/38",
+          "name": "oss-parent-48.pom",
+          "path": "com/fasterxml/oss-parent/48",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/oss-parent/38/oss-parent-38.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/oss-parent/48/oss-parent-48.pom"
           ],
-          "sha256": "c83f8f45dfdca8d0b6b3661c60b3f84780f671b12e06f91ad5d1c1a1d1f966e8"
+          "sha256": "11bba22d8631816e09b623a200747453d6491a66eac8f5c089c73da2b749014f"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson",
             "name": "jackson-base",
-            "version": "2.10.1",
+            "version": "2.14.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "jackson-base-2.10.1.pom",
-          "path": "com/fasterxml/jackson/jackson-base/2.10.1",
+          "name": "jackson-base-2.14.1.pom",
+          "path": "com/fasterxml/jackson/jackson-base/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.10.1/jackson-base-2.10.1.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-base/2.14.1/jackson-base-2.14.1.pom"
           ],
-          "sha256": "7549f209bc484ceead1b4304f97b4f7e2e5b5ce9804527d0d97170dc5177ae2f"
+          "sha256": "18015d1bacba9a14625a8bf19411f5bfad82d0060df37b27bd02e78132c4676e"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson",
             "name": "jackson-bom",
-            "version": "2.10.1",
+            "version": "2.14.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "jackson-bom-2.10.1.pom",
-          "path": "com/fasterxml/jackson/jackson-bom/2.10.1",
+          "name": "jackson-bom-2.14.1.pom",
+          "path": "com/fasterxml/jackson/jackson-bom/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-bom/2.10.1/jackson-bom-2.10.1.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-bom/2.14.1/jackson-bom-2.14.1.pom"
           ],
-          "sha256": "1fdda1c1be6a2e4ac6f0c30bdff0bbc9d02d62470a80823025c17abb6972d5e4"
+          "sha256": "78fdf99e5050fc485f4117dab8cccbfb6fa6c68385eb5f38a09b655371d4a6cc"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson",
             "name": "jackson-parent",
-            "version": "2.10",
+            "version": "2.14",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "jackson-parent-2.10.pom",
-          "path": "com/fasterxml/jackson/jackson-parent/2.10",
+          "name": "jackson-parent-2.14.pom",
+          "path": "com/fasterxml/jackson/jackson-parent/2.14",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-parent/2.10/jackson-parent-2.10.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/jackson-parent/2.14/jackson-parent-2.14.pom"
           ],
-          "sha256": "a50db80829c4f897c6d0e7e95472cbb43b0ebece135a68e39c27b8a6fe33e481"
+          "sha256": "0906add855ae39f92357d63f485889b08fca4c43a5fe433522d75344e0757b19"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson.core",
             "name": "jackson-annotations",
-            "version": "2.10.1",
+            "version": "2.14.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "jackson-annotations-2.10.1.jar",
-          "path": "com/fasterxml/jackson/core/jackson-annotations/2.10.1",
+          "name": "jackson-annotations-2.14.1.jar",
+          "path": "com/fasterxml/jackson/core/jackson-annotations/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.1/jackson-annotations-2.10.1.jar"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.jar"
           ],
-          "sha256": "673f8ae16becea4fa937404b3a851417faf42df3bbc592028bbe2bfe0cc9d8cb"
+          "sha256": "d255b4b863ff8ec714a8f96fa55c34621d43dbb82b82d3f57476496a4c09e1e7"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson.core",
             "name": "jackson-annotations",
-            "version": "2.10.1",
+            "version": "2.14.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "jackson-annotations-2.14.1.module",
+          "path": "com/fasterxml/jackson/core/jackson-annotations/2.14.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.module"
+          ],
+          "sha256": "267a680bb72cbd752c76b79eb908ae0c0abeb114fcb1c20a9678f0378898b9eb"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-annotations",
+            "version": "2.14.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "jackson-annotations-2.10.1.pom",
-          "path": "com/fasterxml/jackson/core/jackson-annotations/2.10.1",
+          "name": "jackson-annotations-2.14.1.pom",
+          "path": "com/fasterxml/jackson/core/jackson-annotations/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.1/jackson-annotations-2.10.1.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.pom"
           ],
-          "sha256": "ece51103667e8811f0ff7458986af2171862e54b9813c1708cf937904487f95c"
+          "sha256": "89df162386b1ede83a8804e9083970d1a62bdf5d1c69e9e9914761b467f80883"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson.core",
             "name": "jackson-core",
-            "version": "2.10.1",
+            "version": "2.14.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "jackson-core-2.10.1.jar",
-          "path": "com/fasterxml/jackson/core/jackson-core/2.10.1",
+          "name": "jackson-core-2.14.1.jar",
+          "path": "com/fasterxml/jackson/core/jackson-core/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.1/jackson-core-2.10.1.jar"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.jar"
           ],
-          "sha256": "79bffbdcd349f69a5ac252e2b4096131704386af4fa14d95395ea9a0e423cf33"
+          "sha256": "0114187e296b34c931c1bf9e5a84152b62bfab7d182f5623f3982dc2da35e526"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson.core",
             "name": "jackson-core",
-            "version": "2.10.1",
+            "version": "2.14.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "jackson-core-2.14.1.module",
+          "path": "com/fasterxml/jackson/core/jackson-core/2.14.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.module"
+          ],
+          "sha256": "7c8b8035f900f3f1cbdb06b8c79dc2b18b11f6afa13b0b74719cee349ff4c329"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-core",
+            "version": "2.14.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "jackson-core-2.10.1.pom",
-          "path": "com/fasterxml/jackson/core/jackson-core/2.10.1",
+          "name": "jackson-core-2.14.1.pom",
+          "path": "com/fasterxml/jackson/core/jackson-core/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.1/jackson-core-2.10.1.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.pom"
           ],
-          "sha256": "1179090b720b25a9e42664302f0334a2240b30c7280b422425e4f4519e5b2cfe"
+          "sha256": "747b1eebcb8b6def28faeedc0923748f1c153fc6a4b0d8e3b0bca8de5fda637f"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson.core",
             "name": "jackson-databind",
-            "version": "2.10.1",
+            "version": "2.14.1",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "jackson-databind-2.10.1.jar",
-          "path": "com/fasterxml/jackson/core/jackson-databind/2.10.1",
+          "name": "jackson-databind-2.14.1.jar",
+          "path": "com/fasterxml/jackson/core/jackson-databind/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.1/jackson-databind-2.10.1.jar"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.jar"
           ],
-          "sha256": "2d23f47001492233565adf5a34f225f2ae89564cee08024873ec36b7842ede46"
+          "sha256": "423a0c806de4b3fa5eb4a28698305e3a3777c731e1bcfa1b2f3a3760c7b6e773"
         },
         {
           "id": {
             "group": "com.fasterxml.jackson.core",
             "name": "jackson-databind",
-            "version": "2.10.1",
+            "version": "2.14.1",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "jackson-databind-2.14.1.module",
+          "path": "com/fasterxml/jackson/core/jackson-databind/2.14.1",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.module"
+          ],
+          "sha256": "d817977c8a6b0aaeda519fb2a7b8dcba02b38c3c272024fada32c5cce7e3d3cb"
+        },
+        {
+          "id": {
+            "group": "com.fasterxml.jackson.core",
+            "name": "jackson-databind",
+            "version": "2.14.1",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "jackson-databind-2.10.1.pom",
-          "path": "com/fasterxml/jackson/core/jackson-databind/2.10.1",
+          "name": "jackson-databind-2.14.1.pom",
+          "path": "com/fasterxml/jackson/core/jackson-databind/2.14.1",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.1/jackson-databind-2.10.1.pom"
+            "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.pom"
           ],
-          "sha256": "38695065e3f520b05bbd8ea5982e5b6b5bd9f8562967b83dacb7d07ab08c6ae7"
+          "sha256": "7adb23d6d746edcf946d1c062b198ff9a026c0e22b307b8d5d79c1e08538c635"
         },
         {
           "id": {
@@ -1670,36 +1715,6 @@
         },
         {
           "id": {
-            "group": "com.google.code.findbugs",
-            "name": "jsr305",
-            "version": "3.0.2",
-            "type": "jar",
-            "extension": "jar"
-          },
-          "name": "jsr305-3.0.2.jar",
-          "path": "com/google/code/findbugs/jsr305/3.0.2",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
-          ],
-          "sha256": "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7"
-        },
-        {
-          "id": {
-            "group": "com.google.code.findbugs",
-            "name": "jsr305",
-            "version": "3.0.2",
-            "type": "pom",
-            "extension": "pom"
-          },
-          "name": "jsr305-3.0.2.pom",
-          "path": "com/google/code/findbugs/jsr305/3.0.2",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom"
-          ],
-          "sha256": "19889dbdf1b254b2601a5ee645b8147a974644882297684c798afe5d63d78dfe"
-        },
-        {
-          "id": {
             "group": "com.neovisionaries",
             "name": "nv-websocket-client",
             "version": "2.14",
@@ -1732,91 +1747,136 @@
           "id": {
             "group": "com.squareup.okhttp3",
             "name": "okhttp",
-            "version": "3.13.0",
+            "version": "4.10.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "okhttp-3.13.0.jar",
-          "path": "com/squareup/okhttp3/okhttp/3.13.0",
+          "name": "okhttp-4.10.0.jar",
+          "path": "com/squareup/okhttp3/okhttp/4.10.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/3.13.0/okhttp-3.13.0.jar"
+            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.10.0/okhttp-4.10.0.jar"
           ],
-          "sha256": "75d44c91a48cb93f624db0138b135d408e74fdb470956603214bce6d0611d598"
+          "sha256": "7580f14fa1691206e37081ad3f92063b1603b328da0bb316f2fef02e0562e7ec"
         },
         {
           "id": {
             "group": "com.squareup.okhttp3",
             "name": "okhttp",
-            "version": "3.13.0",
-            "type": "pom",
-            "extension": "pom"
+            "version": "4.10.0",
+            "type": "module",
+            "extension": "module"
           },
-          "name": "okhttp-3.13.0.pom",
-          "path": "com/squareup/okhttp3/okhttp/3.13.0",
+          "name": "okhttp-4.10.0.module",
+          "path": "com/squareup/okhttp3/okhttp/4.10.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/3.13.0/okhttp-3.13.0.pom"
+            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.10.0/okhttp-4.10.0.module"
           ],
-          "sha256": "f56dd68b5b7bbcc3fe9444144c5bf77dc8737f391e9f27212e0e8e584ce582e5"
+          "sha256": "6c3070820b591f5ec8c2948497b5a6b742f492b715bcacf4b75115b3a8ffab15"
         },
         {
           "id": {
             "group": "com.squareup.okhttp3",
-            "name": "parent",
-            "version": "3.13.0",
+            "name": "okhttp",
+            "version": "4.10.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "parent-3.13.0.pom",
-          "path": "com/squareup/okhttp3/parent/3.13.0",
+          "name": "okhttp-4.10.0.pom",
+          "path": "com/squareup/okhttp3/okhttp/4.10.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/parent/3.13.0/parent-3.13.0.pom"
+            "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.10.0/okhttp-4.10.0.pom"
           ],
-          "sha256": "bc16bcf27949ed7d0fa94dded35dc92b03325b2418e9cf650d947eeaf936fff7"
+          "sha256": "c7f920b287c838e1d81e2a63f8677bb2fa99137058a2b11e6535afde9c81a0e5"
         },
         {
           "id": {
             "group": "com.squareup.okio",
             "name": "okio",
-            "version": "1.17.2",
+            "version": "3.0.0",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "okio-1.17.2.jar",
-          "path": "com/squareup/okio/okio/1.17.2",
+          "name": "okio-3.0.0.jar",
+          "path": "com/squareup/okio/okio/3.0.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar"
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/3.0.0/okio-3.0.0.jar"
           ],
-          "sha256": "f80ce42d2ffac47ad4c47e1d6f980d604d247ceb1a886705cf4581ab0c9fe2b8"
+          "sha256": "dcbe63ed43b2c90c325e9e6a0863e2e7605980bff5e728c6de1088be5574979e"
         },
         {
           "id": {
             "group": "com.squareup.okio",
             "name": "okio",
-            "version": "1.17.2",
-            "type": "pom",
-            "extension": "pom"
+            "version": "3.0.0",
+            "type": "module",
+            "extension": "module"
           },
-          "name": "okio-1.17.2.pom",
-          "path": "com/squareup/okio/okio/1.17.2",
+          "name": "okio-3.0.0.module",
+          "path": "com/squareup/okio/okio/3.0.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.pom"
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/3.0.0/okio-3.0.0.module"
           ],
-          "sha256": "cd57f75443ab6a714b203da51994ee64ed0e919fea81f04e4f4b5324e4bb03f0"
+          "sha256": "6f9e3a797831e75c5b562d946c075183f9b2be846791e9f88bde45491daed987"
         },
         {
           "id": {
             "group": "com.squareup.okio",
-            "name": "okio-parent",
-            "version": "1.17.2",
+            "name": "okio",
+            "version": "3.0.0",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "okio-parent-1.17.2.pom",
-          "path": "com/squareup/okio/okio-parent/1.17.2",
+          "name": "okio-3.0.0.pom",
+          "path": "com/squareup/okio/okio/3.0.0",
           "urls": [
-            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-parent/1.17.2/okio-parent-1.17.2.pom"
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/3.0.0/okio-3.0.0.pom"
           ],
-          "sha256": "e81f40146f2a0eb394b10fa3a175c85ab9fbe757aa418aa44d4b760efe16f024"
+          "sha256": "960ad535235ec61f5546db813d0195c13af85230a12eabe999751e8a550d154f"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okio",
+            "name": "okio-jvm",
+            "version": "3.0.0",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "okio-jvm-3.0.0.jar",
+          "path": "com/squareup/okio/okio-jvm/3.0.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.0.0/okio-jvm-3.0.0.jar"
+          ],
+          "sha256": "be64a0cc1f28ea9cd5c970dd7e7557af72c808d738c495b397bf897c9921e907"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okio",
+            "name": "okio-jvm",
+            "version": "3.0.0",
+            "type": "module",
+            "extension": "module"
+          },
+          "name": "okio-jvm-3.0.0.module",
+          "path": "com/squareup/okio/okio-jvm/3.0.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.0.0/okio-jvm-3.0.0.module"
+          ],
+          "sha256": "17f48d41775bd84dea78e9dfed8dfbcc66af80567a5c9ec9d9608785ec820cde"
+        },
+        {
+          "id": {
+            "group": "com.squareup.okio",
+            "name": "okio-jvm",
+            "version": "3.0.0",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "okio-jvm-3.0.0.pom",
+          "path": "com/squareup/okio/okio-jvm/3.0.0",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.0.0/okio-jvm-3.0.0.pom"
+          ],
+          "sha256": "b0cb73444c6379583b2a53a2648c48de420eb1f49156675374d8a6756ef3a2fa"
         },
         {
           "id": {
@@ -2167,46 +2227,46 @@
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "5.0.0-alpha.9",
+            "version": "5.0.0-beta.17",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "JDA-5.0.0-alpha.9.jar",
-          "path": "net/dv8tion/JDA/5.0.0-alpha.9",
+          "name": "JDA-5.0.0-beta.17.jar",
+          "path": "net/dv8tion/JDA/5.0.0-beta.17",
           "urls": [
-            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.9/JDA-5.0.0-alpha.9.jar"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-beta.17/JDA-5.0.0-beta.17.jar"
           ],
-          "sha256": "ef3bbddb15e7c5933bdda9e9d76de59d8f3504e9b19c315a836f478b0d8cfc96"
+          "sha256": "b4273ac458fe60d2c5d3201f36f26fc78378fb983bda2d8543f05ea64941be36"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "5.0.0-alpha.9",
+            "version": "5.0.0-beta.17",
             "type": "module",
             "extension": "module"
           },
-          "name": "JDA-5.0.0-alpha.9.module",
-          "path": "net/dv8tion/JDA/5.0.0-alpha.9",
+          "name": "JDA-5.0.0-beta.17.module",
+          "path": "net/dv8tion/JDA/5.0.0-beta.17",
           "urls": [
-            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.9/JDA-5.0.0-alpha.9.module"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-beta.17/JDA-5.0.0-beta.17.module"
           ],
-          "sha256": "9eb9159f81bedbcbb6dd5287b66b6695bb17350b8025bf0f4dbe7692a8c8902b"
+          "sha256": "646a07af4b0525a067fb954e4012c4ab0a65ee0ed9eba3188c36bbb506d33d4c"
         },
         {
           "id": {
             "group": "net.dv8tion",
             "name": "JDA",
-            "version": "5.0.0-alpha.9",
+            "version": "5.0.0-beta.17",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "JDA-5.0.0-alpha.9.pom",
-          "path": "net/dv8tion/JDA/5.0.0-alpha.9",
+          "name": "JDA-5.0.0-beta.17.pom",
+          "path": "net/dv8tion/JDA/5.0.0-beta.17",
           "urls": [
-            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-alpha.9/JDA-5.0.0-alpha.9.pom"
+            "https://repo.maven.apache.org/maven2/net/dv8tion/JDA/5.0.0-beta.17/JDA-5.0.0-beta.17.pom"
           ],
-          "sha256": "84c26f068b13510be2a4483c00ac589d03a07420d5024141bf4513940193cae6"
+          "sha256": "a5e12338efdd5a66b9d2f1b5c5d0a1767b3ca10b3ce4961e5de5c27097af8bb0"
         },
         {
           "id": {
@@ -2332,61 +2392,61 @@
           "id": {
             "group": "org.apache",
             "name": "apache",
-            "version": "16",
+            "version": "21",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "apache-16.pom",
-          "path": "org/apache/apache/16",
+          "name": "apache-21.pom",
+          "path": "org/apache/apache/21",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/apache/apache/16/apache-16.pom"
+            "https://repo.maven.apache.org/maven2/org/apache/apache/21/apache-21.pom"
           ],
-          "sha256": "9f85ff2fd7d6cb3097aa47fb419ee7f0ebe869109f98aba9f4eca3f49e74a40e"
+          "sha256": "af10c108da014f17cafac7b52b2b4b5a3a1c18265fa2af97a325d9143537b380"
         },
         {
           "id": {
             "group": "org.apache.commons",
             "name": "commons-collections4",
-            "version": "4.1",
+            "version": "4.4",
             "type": "jar",
             "extension": "jar"
           },
-          "name": "commons-collections4-4.1.jar",
-          "path": "org/apache/commons/commons-collections4/4.1",
+          "name": "commons-collections4-4.4.jar",
+          "path": "org/apache/commons/commons-collections4/4.4",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar"
+            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar"
           ],
-          "sha256": "b1fe8b5968b57d8465425357ed2d9dc695504518bed2df5b565c4b8e68c1c8a5"
+          "sha256": "1df8b9430b5c8ed143d7815e403e33ef5371b2400aadbe9bda0883762e0846d1"
         },
         {
           "id": {
             "group": "org.apache.commons",
             "name": "commons-collections4",
-            "version": "4.1",
+            "version": "4.4",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "commons-collections4-4.1.pom",
-          "path": "org/apache/commons/commons-collections4/4.1",
+          "name": "commons-collections4-4.4.pom",
+          "path": "org/apache/commons/commons-collections4/4.4",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.pom"
+            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.pom"
           ],
-          "sha256": "c0ad42e9103537960d9a74da58ecc24dd1a37a13d1e4c48f0969be93e4018369"
+          "sha256": "271bd673839af46e73aff957e2918d4bf96f5ac4f6c6cf4d5be93fd1f1271c4d"
         },
         {
           "id": {
             "group": "org.apache.commons",
             "name": "commons-parent",
-            "version": "38",
+            "version": "48",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "commons-parent-38.pom",
-          "path": "org/apache/commons/commons-parent/38",
+          "name": "commons-parent-48.pom",
+          "path": "org/apache/commons/commons-parent/48",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/38/commons-parent-38.pom"
+            "https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/48/commons-parent-48.pom"
           ],
-          "sha256": "558d961745ebadcc5dc391cfde7d474086d4caaee24dd3e6df931ed9f6b5b495"
+          "sha256": "1e1f7de9370a7b7901f128f1dacd1422be74e3f47f9558b0f79e04c0637ca0b4"
         },
         {
           "id": {
@@ -2507,36 +2567,6 @@
             "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.pom"
           ],
           "sha256": "965aeb2bedff369819bdde1bf7a0b3b89b8247dd69c88b86375d76163bb8c397"
-        },
-        {
-          "id": {
-            "group": "org.jetbrains",
-            "name": "annotations",
-            "version": "16.0.1",
-            "type": "jar",
-            "extension": "jar"
-          },
-          "name": "annotations-16.0.1.jar",
-          "path": "org/jetbrains/annotations/16.0.1",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/16.0.1/annotations-16.0.1.jar"
-          ],
-          "sha256": "b11d2523ad1e1f25a13cfccd7b4bc05b89c34647f768183ce4084345574dc9c5"
-        },
-        {
-          "id": {
-            "group": "org.jetbrains",
-            "name": "annotations",
-            "version": "16.0.1",
-            "type": "pom",
-            "extension": "pom"
-          },
-          "name": "annotations-16.0.1.pom",
-          "path": "org/jetbrains/annotations/16.0.1",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/16.0.1/annotations-16.0.1.pom"
-          ],
-          "sha256": "7680ddc26d6ae358e61972d1ae29ca2f575ad3413254e2dbb1d72dbd57ff1f9b"
         },
         {
           "id": {
@@ -2991,6 +3021,36 @@
         {
           "id": {
             "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.6.20",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-1.6.20.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.6.20",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.6.20/kotlin-stdlib-1.6.20.jar"
+          ],
+          "sha256": "eeb51c2b67b26233fd81d0bc4f8044ec849718890905763ceffd84a31e2cb799"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib",
+            "version": "1.6.20",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-1.6.20.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib/1.6.20",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.6.20/kotlin-stdlib-1.6.20.pom"
+          ],
+          "sha256": "a08e83dcb0f298509877de22d526446476ddb31ea1c77530f2c81f24db166f99"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
             "name": "kotlin-stdlib-common",
             "version": "1.6.0",
             "type": "jar",
@@ -3017,6 +3077,36 @@
             "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.6.0/kotlin-stdlib-common-1.6.0.pom"
           ],
           "sha256": "899e97c2028b5f7a2bdaf6751fa2a01b687e3ee2a781767c8a227cbffb6c0184"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.6.20",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "kotlin-stdlib-common-1.6.20.jar",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.6.20",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.6.20/kotlin-stdlib-common-1.6.20.jar"
+          ],
+          "sha256": "8da40a2520d30dcb1012176fe93d24e82d08a3e346c37e0343b0fb6f64f6be01"
+        },
+        {
+          "id": {
+            "group": "org.jetbrains.kotlin",
+            "name": "kotlin-stdlib-common",
+            "version": "1.6.20",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "kotlin-stdlib-common-1.6.20.pom",
+          "path": "org/jetbrains/kotlin/kotlin-stdlib-common/1.6.20",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.6.20/kotlin-stdlib-common-1.6.20.pom"
+          ],
+          "sha256": "3e04cc9351d5cec42a45c060f8733f6e94ebc7e3591310a518e06e88507899c8"
         },
         {
           "id": {
@@ -4072,36 +4162,6 @@
           "id": {
             "group": "org.slf4j",
             "name": "slf4j-api",
-            "version": "1.7.25",
-            "type": "jar",
-            "extension": "jar"
-          },
-          "name": "slf4j-api-1.7.25.jar",
-          "path": "org/slf4j/slf4j-api/1.7.25",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar"
-          ],
-          "sha256": "18c4a0095d5c1da6b817592e767bb23d29dd2f560ad74df75ff3961dbde25b79"
-        },
-        {
-          "id": {
-            "group": "org.slf4j",
-            "name": "slf4j-api",
-            "version": "1.7.25",
-            "type": "pom",
-            "extension": "pom"
-          },
-          "name": "slf4j-api-1.7.25.pom",
-          "path": "org/slf4j/slf4j-api/1.7.25",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.pom"
-          ],
-          "sha256": "7cd9d7a0b5d93dfd461a148891b43509cf403a9c7f9fb49060d3554df1c81e1e"
-        },
-        {
-          "id": {
-            "group": "org.slf4j",
-            "name": "slf4j-api",
             "version": "1.7.32",
             "type": "jar",
             "extension": "jar"
@@ -4131,17 +4191,32 @@
         {
           "id": {
             "group": "org.slf4j",
-            "name": "slf4j-parent",
-            "version": "1.7.25",
+            "name": "slf4j-api",
+            "version": "1.7.36",
+            "type": "jar",
+            "extension": "jar"
+          },
+          "name": "slf4j-api-1.7.36.jar",
+          "path": "org/slf4j/slf4j-api/1.7.36",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+          ],
+          "sha256": "d3ef575e3e4979678dc01bf1dcce51021493b4d11fb7f1be8ad982877c16a1c0"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-api",
+            "version": "1.7.36",
             "type": "pom",
             "extension": "pom"
           },
-          "name": "slf4j-parent-1.7.25.pom",
-          "path": "org/slf4j/slf4j-parent/1.7.25",
+          "name": "slf4j-api-1.7.36.pom",
+          "path": "org/slf4j/slf4j-api/1.7.36",
           "urls": [
-            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.25/slf4j-parent-1.7.25.pom"
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.pom"
           ],
-          "sha256": "18f5c52120db036e88d6136f8839c832d074bdda95c756c6f429249d2db54ac6"
+          "sha256": "fb046a9c229437928bb11c2d27c8b5d773eb8a25e60cbd253d985210dedc2684"
         },
         {
           "id": {
@@ -4157,6 +4232,21 @@
             "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.32/slf4j-parent-1.7.32.pom"
           ],
           "sha256": "5ab349d0f4c7bc08ed0ef1f4d9386cb1940a2f4d6f152150e16dbbecc0b83c70"
+        },
+        {
+          "id": {
+            "group": "org.slf4j",
+            "name": "slf4j-parent",
+            "version": "1.7.36",
+            "type": "pom",
+            "extension": "pom"
+          },
+          "name": "slf4j-parent-1.7.36.pom",
+          "path": "org/slf4j/slf4j-parent/1.7.36",
+          "urls": [
+            "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/1.7.36/slf4j-parent-1.7.36.pom"
+          ],
+          "sha256": "bb388d37fbcdd3cde64c3cede21838693218dc451f04040c5df360a78ed7e812"
         },
         {
           "id": {
@@ -4187,21 +4277,6 @@
             "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-simple/1.7.32/slf4j-simple-1.7.32.pom"
           ],
           "sha256": "5554e6192d00ffba117d24fdf870488f9d03900047e8bab55e00ee83382f41d8"
-        },
-        {
-          "id": {
-            "group": "org.sonatype.oss",
-            "name": "oss-parent",
-            "version": "7",
-            "type": "pom",
-            "extension": "pom"
-          },
-          "name": "oss-parent-7.pom",
-          "path": "org/sonatype/oss/oss-parent/7",
-          "urls": [
-            "https://repo.maven.apache.org/maven2/org/sonatype/oss/oss-parent/7/oss-parent-7.pom"
-          ],
-          "sha256": "b51f8867c92b6a722499557fc3a1fdea77bdf9ef574722fe90ce436a29559454"
         },
         {
           "id": {
