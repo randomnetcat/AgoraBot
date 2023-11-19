@@ -1,5 +1,8 @@
 package org.randomcat.agorabot.irc
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.event.channel.ChannelCtcpEvent
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
@@ -8,7 +11,8 @@ import org.kitteh.irc.client.library.event.helper.ChannelEvent
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.*
 import org.randomcat.agorabot.util.DiscordMessage
-import org.randomcat.agorabot.util.effectiveSenderName
+import org.randomcat.agorabot.util.await
+import org.randomcat.agorabot.util.retrieveEffectiveSenderName
 import org.slf4j.LoggerFactory
 
 data class IrcRelayEndpointConfig(
@@ -17,14 +21,14 @@ data class IrcRelayEndpointConfig(
 
 private val logger = LoggerFactory.getLogger("RelayIrc")
 
-private fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
-    val senderName = message.effectiveSenderName
+private suspend fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
+    val senderName = message.retrieveEffectiveSenderName().await()
 
     val referencedMessage = message.referencedMessage
 
     val replySection = run {
         if (referencedMessage != null) {
-            val replyName = referencedMessage.effectiveSenderName
+            val replyName = referencedMessage.retrieveEffectiveSenderName().await()
             "In response to $replyName saying: ${referencedMessage.contentRaw}\n"
         } else {
             ""
@@ -53,6 +57,7 @@ private fun ircCommandParser(config: IrcRelayEndpointConfig): CommandParser? {
 }
 
 private fun addIrcRelay(
+    coroutineScope: CoroutineScope,
     ircClient: IrcClient,
     ircChannelName: String,
     config: IrcRelayEndpointConfig,
@@ -72,24 +77,30 @@ private fun addIrcRelay(
         override fun onMessage(event: ChannelMessageEvent) {
             if (!event.isInRelevantChannel()) return
 
-            forEachEndpoint {
-                try {
-                    it.sendTextMessage(sender = event.actor.nick, content = event.message)
-                } catch (e: Exception) {
-                    logger.error("Error forwarding message: endpoint: $it, event: $it")
-                }
-            }
-
-            if (commandParser != null) {
-                val source = CommandEventSource.Irc(event)
-
-                @Suppress("UNUSED_VARIABLE")
-                val ensureExhaustive = when (val parseResult = commandParser.parse(source)) {
-                    is CommandParseResult.Ignore -> {
+            coroutineScope.launch {
+                coroutineScope {
+                    forEachEndpoint {
+                        launch {
+                            try {
+                                it.sendTextMessage(sender = event.actor.nick, content = event.message)
+                            } catch (e: Exception) {
+                                logger.error("Error forwarding message: endpoint: $it, event: $it")
+                            }
+                        }
                     }
+                }
 
-                    is CommandParseResult.Invocation -> {
-                        commandRegistry.invokeCommand(source, parseResult.invocation)
+                if (commandParser != null) {
+                    val source = CommandEventSource.Irc(event)
+
+                    @Suppress("UNUSED_VARIABLE")
+                    val ensureExhaustive = when (val parseResult = commandParser.parse(source)) {
+                        is CommandParseResult.Ignore -> {
+                        }
+
+                        is CommandParseResult.Invocation -> {
+                            commandRegistry.invokeCommand(source, parseResult.invocation)
+                        }
                     }
                 }
             }
@@ -101,11 +112,18 @@ private fun addIrcRelay(
             val message = event.message
             if (!message.startsWith("ACTION ")) return // ACTION means a /me command
 
-            forEachEndpoint {
-                try {
-                    it.sendSlashMeTextMessage(sender = event.actor.nick, action = message.removePrefix("ACTION "))
-                } catch (e: Exception) {
-                    logger.error("Error forwarding discord message: endpoint: $it, event: $it")
+            coroutineScope.launch {
+                forEachEndpoint {
+                    launch {
+                        try {
+                            it.sendSlashMeTextMessage(
+                                sender = event.actor.nick,
+                                action = message.removePrefix("ACTION "),
+                            )
+                        } catch (e: Exception) {
+                            logger.error("Error forwarding discord message: endpoint: $it, event: $it")
+                        }
+                    }
                 }
             }
         }
@@ -113,6 +131,7 @@ private fun addIrcRelay(
 }
 
 data class RelayConnectedIrcEndpoint(
+    val coroutineScope: CoroutineScope,
     val client: IrcClient,
     val channelName: String,
     private val config: IrcRelayEndpointConfig,
@@ -125,19 +144,19 @@ data class RelayConnectedIrcEndpoint(
         tryGetChannel()?.let(block)
     }
 
-    override fun sendTextMessage(sender: String, content: String) {
+    override suspend fun sendTextMessage(sender: String, content: String) {
         tryWithChannel { channel ->
             channel.sendSplitMultiLineMessage("$sender says: $content")
         }
     }
 
-    override fun sendSlashMeTextMessage(sender: String, action: String) {
+    override suspend fun sendSlashMeTextMessage(sender: String, action: String) {
         tryWithChannel { channel ->
             channel.sendSplitMultiLineMessage("$sender $action")
         }
     }
 
-    override fun sendDiscordMessage(message: DiscordMessage) {
+    override suspend fun sendDiscordMessage(message: DiscordMessage) {
         tryWithChannel { channel ->
             channel.sendDiscordMessage(message)
         }
@@ -150,6 +169,7 @@ data class RelayConnectedIrcEndpoint(
         client.addChannel(channelName)
 
         addIrcRelay(
+            coroutineScope = coroutineScope,
             ircClient = client,
             ircChannelName = channelName,
             config = config,

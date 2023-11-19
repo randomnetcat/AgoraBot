@@ -64,8 +64,15 @@ inline fun <T> ignoringRestActionOn(jda: JDA, actionFun: () -> RestAction<T>?): 
     return action?.also { check(it.jda === jda) }?.ignoreErrors() ?: emptyRestActionOn(jda)
 }
 
-val Message.effectiveSenderName: String
-    get() = member?.effectiveName ?: author.name
+fun Message.retrieveEffectiveSenderName(): RestAction<String> {
+    val sourceName = member?.effectiveName
+    if (sourceName !== null) return CompletedRestAction.ofSuccess(jda, sourceName)
+
+    val guildId = guildId ?: return CompletedRestAction.ofSuccess(jda, author.name)
+
+    return jda.getGuildById(guildId)?.retrieveMember(author)?.map { it.effectiveName }?.onErrorMap { author.name }
+        ?: CompletedRestAction.ofSuccess(jda, author.name)
+}
 
 fun Message.tryAddReaction(reaction: Emoji): RestAction<Unit> {
     return ignoringRestActionOn(jda) { addReaction(reaction) }

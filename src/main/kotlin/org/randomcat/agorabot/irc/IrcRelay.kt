@@ -5,6 +5,7 @@ package org.randomcat.agorabot.irc
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineScope
 import net.dv8tion.jda.api.JDA
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.listener.CommandRegistry
@@ -17,9 +18,9 @@ private val logger = LoggerFactory.getLogger("AgoraBotIRC")
 data class RelayEventHandlerContext(val commandRegistry: CommandRegistry)
 
 sealed class RelayConnectedEndpoint {
-    abstract fun sendTextMessage(sender: String, content: String)
-    abstract fun sendSlashMeTextMessage(sender: String, action: String)
-    abstract fun sendDiscordMessage(message: DiscordMessage)
+    abstract suspend fun sendTextMessage(sender: String, content: String)
+    abstract suspend fun sendSlashMeTextMessage(sender: String, action: String)
+    abstract suspend fun sendDiscordMessage(message: DiscordMessage)
 
     abstract fun registerSourceEventHandler(
         context: RelayEventHandlerContext,
@@ -35,6 +36,7 @@ sealed class RelayConnectedEndpoint {
 data class RelayConnectionContext(
     val ircClientMap: IrcClientMap,
     val jda: JDA,
+    val coroutineScope: CoroutineScope,
 )
 
 data class RelayConnectedEndpointMap(
@@ -59,6 +61,7 @@ fun connectToRelayEndpoints(
                 is RelayEndpointConfig.Discord -> {
                     RelayConnectedDiscordEndpoint(
                         jda = context.jda,
+                        coroutineScope = context.coroutineScope,
                         channelId = config.channelId,
                     )
                 }
@@ -70,6 +73,7 @@ fun connectToRelayEndpoints(
                     client.addChannel(config.channelName)
 
                     RelayConnectedIrcEndpoint(
+                        coroutineScope = context.coroutineScope,
                         client = client,
                         channelName = config.channelName,
                         config = IrcRelayEndpointConfig(

@@ -1,5 +1,7 @@
 package org.randomcat.agorabot.irc
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -8,8 +10,9 @@ import net.dv8tion.jda.api.hooks.SubscribeEvent
 import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.CommandOutputSink
 import org.randomcat.agorabot.util.DiscordMessage
+import org.randomcat.agorabot.util.await
 import org.randomcat.agorabot.util.disallowMentions
-import org.randomcat.agorabot.util.effectiveSenderName
+import org.randomcat.agorabot.util.retrieveEffectiveSenderName
 import org.slf4j.LoggerFactory
 
 private fun formatRawNameForDiscord(name: String): String {
@@ -20,6 +23,7 @@ private val logger = LoggerFactory.getLogger("RelayDiscord")
 
 private fun addDiscordRelay(
     jda: JDA,
+    coroutineScope: CoroutineScope,
     channelId: String,
     endpoints: List<RelayConnectedEndpoint>,
 ) {
@@ -33,18 +37,26 @@ private fun addDiscordRelay(
             if (event.channel.id != channelId) return
             if (event.author.id == event.jda.selfUser.id) return
 
-            forEachEndpoint {
-                try {
-                    it.sendDiscordMessage(event.message)
-                } catch (e: Exception) {
-                    logger.error("Error forwarding discord message: endpoint: $it, event: $it")
+            coroutineScope.launch {
+                forEachEndpoint {
+                    launch {
+                        try {
+                            it.sendDiscordMessage(event.message)
+                        } catch (e: Exception) {
+                            logger.error("Error forwarding discord message: endpoint: $it, event: $it")
+                        }
+                    }
                 }
             }
         }
     })
 }
 
-data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : RelayConnectedEndpoint() {
+data class RelayConnectedDiscordEndpoint(
+    val jda: JDA,
+    val coroutineScope: CoroutineScope,
+    val channelId: String,
+) : RelayConnectedEndpoint() {
     companion object {
         private fun relayToChannel(channel: MessageChannel, text: String) {
             val parts = SplitUtil.split(text, Message.MAX_CONTENT_LENGTH, SplitUtil.Strategy.NEWLINE)
@@ -66,26 +78,26 @@ data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : 
         tryGetChannel()?.let(block)
     }
 
-    override fun sendTextMessage(sender: String, content: String) {
+    override suspend fun sendTextMessage(sender: String, content: String) {
         tryWithChannel { channel ->
             relayToChannel(channel, formatRawNameForDiscord(sender) + " says: " + content)
         }
     }
 
-    override fun sendSlashMeTextMessage(sender: String, action: String) {
+    override suspend fun sendSlashMeTextMessage(sender: String, action: String) {
         tryWithChannel { channel ->
             relayToChannel(channel, formatRawNameForDiscord(sender) + " " + action)
         }
     }
 
-    override fun sendDiscordMessage(message: DiscordMessage) {
+    override suspend fun sendDiscordMessage(message: DiscordMessage) {
         tryWithChannel { channel ->
-            val senderName = message.effectiveSenderName
+            val senderName = message.retrieveEffectiveSenderName().await()
 
             val referencedMessage = message.referencedMessage
 
             val replySection = if (referencedMessage != null) {
-                val replyName = referencedMessage.effectiveSenderName
+                val replyName = referencedMessage.retrieveEffectiveSenderName().await()
 
                 "In reply to ${formatRawNameForDiscord(replyName)} saying: ${referencedMessage.contentRaw}\n"
             } else {
@@ -116,6 +128,7 @@ data class RelayConnectedDiscordEndpoint(val jda: JDA, val channelId: String) : 
     ) {
         addDiscordRelay(
             jda = jda,
+            coroutineScope = coroutineScope,
             channelId = channelId,
             endpoints = otherEndpoints,
         )
