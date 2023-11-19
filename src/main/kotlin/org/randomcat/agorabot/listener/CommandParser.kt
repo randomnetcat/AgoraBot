@@ -18,12 +18,14 @@ interface CommandParser {
  * Throws [IllegalArgumentException] if [prefix] is empty.
  */
 fun parsePrefixCommand(prefix: String, message: String): CommandParseResult {
+    val effectiveMessage = message.removePrefix("\\")
+
     require(prefix.isNotEmpty())
 
-    val payload = message.removePrefix(prefix)
+    val payload = effectiveMessage.removePrefix(prefix)
 
     // If the prefix was not there to remove (when payload == message), there is no prefix, so no command.
-    if (payload == message) return CommandParseResult.Ignore
+    if (payload == effectiveMessage) return CommandParseResult.Ignore
 
     return parseNoPrefixCommand(payload)
 }
