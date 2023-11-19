@@ -44,7 +44,7 @@ private suspend fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
             ?: ""
 
     val saysVerb = if (referencedMessage != null) "replies" else "says"
-    val textSection = "$senderName $saysVerb: ${message.contentDisplay}"
+    val textSection = "$senderName $saysVerb: ${message.contentRaw}"
 
     val fullMessage = replySection + textSection + attachmentSection
 
