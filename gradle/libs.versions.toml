@@ -10,7 +10,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.3.1" }
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk8", version = "1.5.2" }
 kotlinx-collectionsImmutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.3.4" }
-jda = { group = "net.dv8tion", name = "JDA", version = "5.0.0-beta.12" }
+jda = { group = "net.dv8tion", name = "JDA", version = "5.0.0-beta.17" }
 kitteh = { group = "org.kitteh.irc", name = "client-lib", version = "8.0.0" }
 clikt = { group = "com.github.ajalt.clikt", name = "clikt", version = "3.3.0" }
 kotlinUtils = { group = "org.randomcat", name = "kotlin-utils", version = "2.0.1" }
