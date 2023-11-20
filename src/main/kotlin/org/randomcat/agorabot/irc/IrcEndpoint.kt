@@ -26,10 +26,12 @@ private suspend fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
 
     val referencedMessage = message.referencedMessage
 
+    // Use contentDisplay to resolve mentions.
+
     val replySection = run {
         if (referencedMessage != null) {
             val replyName = referencedMessage.retrieveEffectiveSenderName().await()
-            "In response to $replyName saying: ${formatRelayDiscordContent(referencedMessage.contentRaw)}\n"
+            "In response to $replyName saying: ${formatRelayDiscordContent(referencedMessage.contentDisplay)}\n"
         } else {
             ""
         }
@@ -44,7 +46,7 @@ private suspend fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
             ?: ""
 
     val saysVerb = if (referencedMessage != null) "replies" else "says"
-    val textSection = "$senderName $saysVerb: ${formatRelayDiscordContent(message.contentRaw)}"
+    val textSection = "$senderName $saysVerb: ${formatRelayDiscordContent(message.contentDisplay)}"
 
     val fullMessage = replySection + textSection + attachmentSection
 
