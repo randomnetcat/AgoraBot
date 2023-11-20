@@ -19,7 +19,7 @@ private fun readConfig(
     type: String,
     context: FeatureSetupContext,
 ): KeyedStateStorageConfig {
-    return KeyedStateStorageConfig(storageDir = context.paths.storagePath.resolve("$type`_storage"))
+    return KeyedStateStorageConfig(storageDir = context.paths.storagePath.resolve("${type}_storage"))
 }
 
 private val persistServiceDep = FeatureDependency.Single(ConfigPersistServiceTag)
