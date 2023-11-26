@@ -48,7 +48,7 @@ private fun randomResponse(): String {
 private suspend fun BaseCommandExecutionReceiver.respondFourFactor() {
     fun textForFactor(factor: String): String {
         val isTrue = userFacingRandom().nextBoolean()
-        return "Is the statement supported by $factor? ${if (isTrue) "TRUE" else "FALSE"}"
+        return "The is statement supported by $factor: ${if (isTrue) "TRUE" else "FALSE"}."
     }
 
     respond("I will now begin a full four factors analysis.")
