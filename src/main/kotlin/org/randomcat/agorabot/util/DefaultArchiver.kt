@@ -369,7 +369,11 @@ private suspend fun receiveGlobalData(
 
                     Json.createObjectBuilder().run {
                         add("username", user.name)
-                        add("global_name", user.globalName)
+
+                        val globalName = user.globalName
+                        if (globalName != null) {
+                            add("global_name", globalName)
+                        }
 
                         if (nickname != null) {
                             add("nickname", nickname)
