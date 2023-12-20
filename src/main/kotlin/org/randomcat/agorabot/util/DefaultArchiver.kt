@@ -392,19 +392,19 @@ private suspend fun archiveChannels(
     archiveBasePath: Path,
     channelIds: Set<String>,
 ) {
-    coroutineScope {
-        val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
+    val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
 
-        launch {
-            receiveGlobalData(
-                dataChannel = globalDataChannel,
-                guild = guild,
-                outPath = archiveBasePath.resolve("global_data.json"),
-            )
-        }
+    try {
+        coroutineScope {
+            launch {
+                receiveGlobalData(
+                    dataChannel = globalDataChannel,
+                    guild = guild,
+                    outPath = archiveBasePath.resolve("global_data.json"),
+                )
+            }
 
-        try {
-            coroutineScope {
+            launch {
                 val channelsDir = archiveBasePath.resolve("channels")
                 channelsDir.createDirectory()
 
@@ -427,9 +427,9 @@ private suspend fun archiveChannels(
                     }
                 }
             }
-        } finally {
-            globalDataChannel.close()
         }
+    } finally {
+        globalDataChannel.close()
     }
 }
 
