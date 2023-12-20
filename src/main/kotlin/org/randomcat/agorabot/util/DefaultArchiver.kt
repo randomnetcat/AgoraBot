@@ -413,6 +413,8 @@ class DefaultDiscordArchiver(
             workDir.createDirectory()
 
             zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
+                val archiveBasePath = zipFs.getPath("archive")
+
                 coroutineScope {
                     val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
 
@@ -420,12 +422,15 @@ class DefaultDiscordArchiver(
                         receiveGlobalData(
                             dataChannel = globalDataChannel,
                             guild = guild,
-                            outPath = zipFs.getPath("global_data.json"),
+                            outPath = archiveBasePath.resolve("global_data.json"),
                         )
                     }
 
                     try {
                         coroutineScope {
+                            val channelsDir = archiveBasePath.resolve("channels")
+                            channelsDir.createDirectory()
+
                             for (channelId in channelIds) {
                                 val channel = guild.getTextChannelById(channelId)
 
@@ -434,7 +439,7 @@ class DefaultDiscordArchiver(
                                 }
 
                                 launch {
-                                    val outDir = zipFs.getPath(channelId)
+                                    val outDir = channelsDir.resolve(channelId)
                                     outDir.createDirectory()
 
                                     archiveChannel(
