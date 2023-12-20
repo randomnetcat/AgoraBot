@@ -369,6 +369,7 @@ private suspend fun receiveGlobalData(
 
                     Json.createObjectBuilder().run {
                         add("username", user.name)
+                        add("global_name", user.globalName)
 
                         if (nickname != null) {
                             add("nickname", nickname)
