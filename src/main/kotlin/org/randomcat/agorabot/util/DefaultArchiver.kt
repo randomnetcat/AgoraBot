@@ -13,8 +13,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import org.randomcat.agorabot.commands.DiscordArchiver
+import org.slf4j.LoggerFactory
 import java.io.OutputStream
 import java.io.Writer
 import java.math.BigInteger
@@ -27,6 +30,8 @@ import kotlin.io.path.*
 
 private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
 private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.UTC)
+
+private val logger = LoggerFactory.getLogger("DefaultArchiver")
 
 private fun writeMessageTextTo(
     message: Message,
@@ -282,6 +287,35 @@ private suspend fun archiveChannel(
                 attachmentChannel = attachmentChannel,
                 attachmentsDir = attachmentsDir,
             )
+        }
+
+        if (channel is IThreadContainer) {
+            launch(Dispatchers.Default) {
+                val threadChannels = buildList<ThreadChannel> {
+                    addAll(channel.threadChannels)
+                    addAll(channel.retrieveArchivedPublicThreadChannels().await())
+                    addAll(channel.retrieveArchivedPrivateJoinedThreadChannels().await())
+
+                    try {
+                        // We may not be able to retrieve private thread channels we have not joined.
+                        addAll(channel.retrieveArchivedPrivateThreadChannels().await())
+                    } catch (e: Exception) {
+                        logger.warn("Failed to retrieve private thread channels: " + e.stackTraceToString())
+                    }
+                }.distinctBy { it.id }
+
+                if (threadChannels.isNotEmpty()) {
+                    val threadsDirectory = basePath.resolve("threads").createDirectory()
+
+                    for (thread in threadChannels) {
+                        archiveChannel(
+                            channel = thread,
+                            globalDataChannel = globalDataChannel,
+                            basePath = threadsDirectory.resolve(thread.id),
+                        )
+                    }
+                }
+            }
         }
     }
 }
