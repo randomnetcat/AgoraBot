@@ -80,7 +80,6 @@ private suspend fun receivePendingDownloads(
     attachmentChannel: ReceiveChannel<PendingAttachmentDownload>,
     attachmentsDir: Path,
 ) {
-    @Suppress("BlockingMethodInNonBlockingContext")
     withContext(Dispatchers.IO) {
         for (pendingDownload in attachmentChannel) {
             launch {
@@ -237,7 +236,6 @@ private suspend fun archiveChannel(
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     basePath: Path,
 ) {
-    @Suppress("BlockingMethodInNonBlockingContext")
     withContext(Dispatchers.IO) {
         globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
 
@@ -349,7 +347,6 @@ private suspend fun receiveGlobalData(
         }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     withContext(Dispatchers.IO) {
         outPath.bufferedWriter().use { reader ->
             // This with close the reader, but that's fine, since close is idempotent
@@ -412,7 +409,6 @@ class DefaultDiscordArchiver(
         val workDir = storageDir.resolve("archive-$archiveNumber")
         val archivePath = workDir.resolve("generated-archive.zip")
 
-        @Suppress("BlockingMethodInNonBlockingContext")
         withContext(Dispatchers.IO) {
             workDir.createDirectory()
 
