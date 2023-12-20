@@ -531,7 +531,7 @@ class DefaultDiscordArchiver(
             workDir.createDirectory()
 
             zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
-                val archiveBasePath = zipFs.getPath("archive")
+                val archiveBasePath = zipFs.getPath("archive").createDirectory()
 
                 archiveChannels(
                     guild = guild,
