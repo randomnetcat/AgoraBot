@@ -311,7 +311,7 @@ private suspend fun archiveChannel(
                         archiveChannel(
                             channel = thread,
                             globalDataChannel = globalDataChannel,
-                            basePath = threadsDirectory.resolve(thread.id),
+                            basePath = threadsDirectory.resolve(thread.id).createDirectory(),
                         )
                     }
                 }
