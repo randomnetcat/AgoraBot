@@ -3,16 +3,17 @@ package org.randomcat.agorabot.util
 import jakarta.json.Json
 import jakarta.json.JsonObject
 import jakarta.json.stream.JsonGenerator
-import kotlinx.coroutines.Dispatchers
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -118,6 +119,11 @@ private data class PendingAttachmentDownload(
     val attachmentNumber: BigInteger,
 )
 
+private data class PendingReactionInfo(
+    val messageId: String,
+    val reactions: ImmutableList<MessageReaction>,
+)
+
 private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out: OutputStream) {
     attachment.proxy.download().await().use { downloadStream ->
         downloadStream.copyTo(out)
@@ -144,6 +150,55 @@ private suspend fun receivePendingDownloads(
                 }
             }
         }
+    }
+}
+
+private suspend fun receiveReactions(
+    reactionChannel: ReceiveChannel<PendingReactionInfo>,
+    globalDataChannel: SendChannel<ArchiveGlobalData>,
+    reactionOut: Writer,
+) {
+    Json.createGenerator(reactionOut.nonClosingView()).use { generator ->
+        generator.writeStartObject()
+        generator.writeKey("messages")
+        generator.writeStartObject()
+
+        withContext(Dispatchers.IO) {
+            for (reactionInfo in reactionChannel) {
+                generator.writeKey(reactionInfo.messageId)
+                generator.writeStartObject()
+
+                generator.writeKey("reactions")
+                generator.writeStartArray()
+
+                val reactions = reactionInfo.reactions
+                val reactionUsers = reactions.map { it.retrieveUsers().submit().asDeferred() }.awaitAll()
+
+                for ((emoji, users) in (reactions zip reactionUsers)) {
+                    generator.writeStartObject()
+
+                    generator.write("emoji", emoji.emoji.asReactionCode)
+                    generator.write("user_count", users.size)
+
+                    generator.writeKey("users")
+                    generator.writeStartArray()
+
+                    for (user in users) {
+                        generator.write(user.id)
+                        globalDataChannel.send(ArchiveGlobalData.ReferencedUser(id = user.id))
+                    }
+
+                    generator.writeEnd()
+                    generator.writeEnd()
+                }
+
+                generator.writeEnd()
+                generator.writeEnd()
+            }
+        }
+
+        generator.writeEnd()
+        generator.writeEnd()
     }
 }
 
@@ -210,6 +265,7 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
 private suspend fun receiveMessages(
     messageChannel: ReceiveChannel<Message>,
     attachmentChannel: SendChannel<PendingAttachmentDownload>,
+    reactionChannel: SendChannel<PendingReactionInfo>,
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     textOut: Writer,
     jsonOut: Writer,
@@ -267,6 +323,17 @@ private suspend fun receiveMessages(
 
             writeMessageTextTo(message, attachmentNumbers, textOut)
             jsonGenerator.writeMessage(message, attachmentNumbers)
+
+            val reactions = message.reactions
+
+            if (reactions.isNotEmpty()) {
+                reactionChannel.send(
+                    PendingReactionInfo(
+                        messageId = message.id,
+                        reactions = reactions.toImmutableList(),
+                    ),
+                )
+            }
         }
 
         jsonGenerator.writeEndMessages()
@@ -291,28 +358,50 @@ private suspend fun archiveChannel(
             withChannel<PendingAttachmentDownload>(
                 capacity = 10,
                 send = { attachmentChannel ->
-                    val textPath = basePath.resolve("messages.txt")
-                    val jsonPath = basePath.resolve("messages.json")
+                    withChannel<PendingReactionInfo>(
+                        capacity = 100,
+                        send = { reactionChannel ->
+                            val textPath = basePath.resolve("messages.txt")
+                            val jsonPath = basePath.resolve("messages.json")
 
-                    textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
-                        jsonPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { jsonOut ->
-                            withChannel<DiscordMessage>(
-                                capacity = 100,
-                                send = { messageChannel ->
-                                    channel.sendForwardHistoryTo(messageChannel)
-                                },
-                                receive = { messageChannel ->
-                                    receiveMessages(
-                                        messageChannel = messageChannel,
-                                        attachmentChannel = attachmentChannel,
+                            textPath
+                                .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                .use { textOut ->
+                                    jsonPath
+                                        .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                        .use { jsonOut ->
+                                            withChannel<DiscordMessage>(
+                                                capacity = 100,
+                                                send = { messageChannel ->
+                                                    channel.sendForwardHistoryTo(messageChannel)
+                                                },
+                                                receive = { messageChannel ->
+                                                    receiveMessages(
+                                                        messageChannel = messageChannel,
+                                                        attachmentChannel = attachmentChannel,
+                                                        reactionChannel = reactionChannel,
+                                                        globalDataChannel = globalDataChannel,
+                                                        textOut = textOut,
+                                                        jsonOut = jsonOut,
+                                                    )
+                                                }
+                                            )
+                                        }
+                                }
+                        },
+                        receive = { reactionChannel ->
+                            val reactionsPath = basePath.resolve("reactions.json")
+
+                            reactionsPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                .use { reactionOut ->
+                                    receiveReactions(
+                                        reactionChannel = reactionChannel,
                                         globalDataChannel = globalDataChannel,
-                                        textOut = textOut,
-                                        jsonOut = jsonOut,
+                                        reactionOut = reactionOut,
                                     )
                                 }
-                            )
-                        }
-                    }
+                        },
+                    )
                 },
                 receive = { attachmentChannel ->
                     val attachmentsDir = basePath.resolve("attachments")
