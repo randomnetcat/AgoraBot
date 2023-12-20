@@ -387,6 +387,52 @@ private suspend fun receiveGlobalData(
     }
 }
 
+private suspend fun archiveChannels(
+    guild: Guild,
+    archiveBasePath: Path,
+    channelIds: Set<String>,
+) {
+    coroutineScope {
+        val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
+
+        launch {
+            receiveGlobalData(
+                dataChannel = globalDataChannel,
+                guild = guild,
+                outPath = archiveBasePath.resolve("global_data.json"),
+            )
+        }
+
+        try {
+            coroutineScope {
+                val channelsDir = archiveBasePath.resolve("channels")
+                channelsDir.createDirectory()
+
+                for (channelId in channelIds) {
+                    val channel = guild.getTextChannelById(channelId)
+
+                    requireNotNull(channel) {
+                        "Invalid channel id: $channelId"
+                    }
+
+                    launch {
+                        val outDir = channelsDir.resolve(channelId)
+                        outDir.createDirectory()
+
+                        archiveChannel(
+                            channel = channel,
+                            globalDataChannel = globalDataChannel,
+                            basePath = outDir,
+                        )
+                    }
+                }
+            }
+        } finally {
+            globalDataChannel.close()
+        }
+    }
+}
+
 private val ZIP_FILE_SYSTEM_CREATE_OPTIONS = mapOf("create" to "true")
 
 class DefaultDiscordArchiver(
@@ -415,45 +461,11 @@ class DefaultDiscordArchiver(
             zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
                 val archiveBasePath = zipFs.getPath("archive")
 
-                coroutineScope {
-                    val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
-
-                    launch {
-                        receiveGlobalData(
-                            dataChannel = globalDataChannel,
-                            guild = guild,
-                            outPath = archiveBasePath.resolve("global_data.json"),
-                        )
-                    }
-
-                    try {
-                        coroutineScope {
-                            val channelsDir = archiveBasePath.resolve("channels")
-                            channelsDir.createDirectory()
-
-                            for (channelId in channelIds) {
-                                val channel = guild.getTextChannelById(channelId)
-
-                                requireNotNull(channel) {
-                                    "Invalid channel id: $channelId"
-                                }
-
-                                launch {
-                                    val outDir = channelsDir.resolve(channelId)
-                                    outDir.createDirectory()
-
-                                    archiveChannel(
-                                        channel = channel,
-                                        globalDataChannel = globalDataChannel,
-                                        basePath = outDir,
-                                    )
-                                }
-                            }
-                        }
-                    } finally {
-                        globalDataChannel.close()
-                    }
-                }
+                archiveChannels(
+                    guild = guild,
+                    archiveBasePath = archiveBasePath,
+                    channelIds = channelIds,
+                )
             }
         }
 
