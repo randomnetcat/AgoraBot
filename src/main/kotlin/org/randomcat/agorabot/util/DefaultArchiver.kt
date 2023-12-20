@@ -33,6 +33,49 @@ private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.U
 
 private val logger = LoggerFactory.getLogger("DefaultArchiver")
 
+private suspend fun <T> withChannel(
+    capacity: Int,
+    send: suspend (SendChannel<T>) -> Unit,
+    receive: suspend (ReceiveChannel<T>) -> Unit,
+) {
+    val channel = Channel<T>(capacity = capacity)
+
+    suspend fun ensureClosed(block: suspend () -> Unit) {
+        var exception: Exception? = null
+
+        try {
+            block()
+        } catch (e: Exception) {
+            exception = e
+            throw e
+        } finally {
+            if (exception == null) {
+                channel.close()
+            } else {
+                try {
+                    channel.close(exception)
+                } catch (closeExcept: Exception) {
+                    exception.addSuppressed(closeExcept)
+                }
+            }
+        }
+    }
+
+    ensureClosed {
+        coroutineScope {
+            launch {
+                ensureClosed {
+                    send(channel)
+                }
+            }
+
+            launch {
+                receive(channel)
+            }
+        }
+    }
+}
+
 private fun writeMessageTextTo(
     message: Message,
     attachmentNumbers: List<BigInteger>,
@@ -241,51 +284,45 @@ private suspend fun archiveChannel(
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     basePath: Path,
 ) {
-    withContext(Dispatchers.IO) {
-        globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
+    globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
 
-        val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 10)
+    coroutineScope {
+        launch(Dispatchers.IO) {
+            withChannel<PendingAttachmentDownload>(
+                capacity = 10,
+                send = { attachmentChannel ->
+                    val textPath = basePath.resolve("messages.txt")
+                    val jsonPath = basePath.resolve("messages.json")
 
-        launch {
-            val textPath = basePath.resolve("messages.txt")
-            val jsonPath = basePath.resolve("messages.json")
-
-            try {
-                textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
-                    jsonPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { jsonOut ->
-                        coroutineScope {
-                            val messageChannel = Channel<DiscordMessage>(capacity = 100)
-
-                            launch {
-                                receiveMessages(
-                                    messageChannel = messageChannel,
-                                    attachmentChannel = attachmentChannel,
-                                    globalDataChannel = globalDataChannel,
-                                    textOut = textOut,
-                                    jsonOut = jsonOut,
-                                )
-                            }
-
-                            try {
-                                channel.sendForwardHistoryTo(messageChannel)
-                            } finally {
-                                messageChannel.close()
-                            }
+                    textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
+                        jsonPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { jsonOut ->
+                            withChannel<DiscordMessage>(
+                                capacity = 100,
+                                send = { messageChannel ->
+                                    channel.sendForwardHistoryTo(messageChannel)
+                                },
+                                receive = { messageChannel ->
+                                    receiveMessages(
+                                        messageChannel = messageChannel,
+                                        attachmentChannel = attachmentChannel,
+                                        globalDataChannel = globalDataChannel,
+                                        textOut = textOut,
+                                        jsonOut = jsonOut,
+                                    )
+                                }
+                            )
                         }
                     }
+                },
+                receive = { attachmentChannel ->
+                    val attachmentsDir = basePath.resolve("attachments")
+                    attachmentsDir.createDirectory()
+
+                    receivePendingDownloads(
+                        attachmentChannel = attachmentChannel,
+                        attachmentsDir = attachmentsDir,
+                    )
                 }
-            } finally {
-                attachmentChannel.close()
-            }
-        }
-
-        launch {
-            val attachmentsDir = basePath.resolve("attachments")
-            attachmentsDir.createDirectory()
-
-            receivePendingDownloads(
-                attachmentChannel = attachmentChannel,
-                attachmentsDir = attachmentsDir,
             )
         }
 
@@ -431,22 +468,13 @@ private suspend fun archiveChannels(
     archiveBasePath: Path,
     channelIds: Set<String>,
 ) {
-    val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
+    withChannel<ArchiveGlobalData>(
+        capacity = 100,
+        send = { globalDataChannel ->
+            val channelsDir = archiveBasePath.resolve("channels")
+            channelsDir.createDirectory()
 
-    try {
-        coroutineScope {
-            launch {
-                receiveGlobalData(
-                    dataChannel = globalDataChannel,
-                    guild = guild,
-                    outPath = archiveBasePath.resolve("global_data.json"),
-                )
-            }
-
-            launch {
-                val channelsDir = archiveBasePath.resolve("channels")
-                channelsDir.createDirectory()
-
+            coroutineScope {
                 for (channelId in channelIds) {
                     val channel = guild.getTextChannelById(channelId)
 
@@ -466,10 +494,15 @@ private suspend fun archiveChannels(
                     }
                 }
             }
+        },
+        receive = { globalDataChannel ->
+            receiveGlobalData(
+                dataChannel = globalDataChannel,
+                guild = guild,
+                outPath = archiveBasePath.resolve("global_data.json"),
+            )
         }
-    } finally {
-        globalDataChannel.close()
-    }
+    )
 }
 
 private val ZIP_FILE_SYSTEM_CREATE_OPTIONS = mapOf("create" to "true")
