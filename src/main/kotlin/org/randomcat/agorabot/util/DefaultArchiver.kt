@@ -253,6 +253,18 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
             },
         )
 
+        add("stickers", Json.createArrayBuilder().apply {
+            for (sticker in message.stickers) {
+                add(Json.createObjectBuilder().apply {
+                    add("id", sticker.id)
+                    add("name", sticker.name)
+                    add("instant_created", DateTimeFormatter.ISO_INSTANT.format(sticker.timeCreated))
+                    add("icon_url", sticker.iconUrl)
+                    add("format_type", sticker.formatType.name)
+                })
+            }
+        })
+
         build()
     }
 
