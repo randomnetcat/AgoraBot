@@ -426,6 +426,7 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
 }
 
 private suspend fun receiveMessages(
+    channelId: String,
     messageChannel: ReceiveChannel<Message>,
     attachmentChannel: SendChannel<PendingAttachmentDownload>,
     reactionChannel: SendChannel<PendingReactionInfo>,
@@ -434,11 +435,17 @@ private suspend fun receiveMessages(
     jsonOut: Writer,
 ) {
     var currentAttachmentNumber = BigInteger.ZERO
+    var messageCount = 0L
 
     Json.createGenerator(jsonOut.nonClosingView()).use { jsonGenerator ->
         jsonGenerator.writeStartMessages()
 
         for (message in messageChannel) {
+            ++messageCount
+            if (messageCount % 100L == 0L) {
+                logger.info("Archiving channel $channelId: on message $messageCount")
+            }
+
             val attachmentNumbers = message.attachments.map {
                 val number = ++currentAttachmentNumber
                 attachmentChannel.send(PendingAttachmentDownload(it, number))
@@ -514,6 +521,8 @@ private suspend fun archiveChannel(
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     basePath: Path,
 ) {
+    logger.info("Beginning archive of channel ${channel.id}")
+
     globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
 
     coroutineScope {
@@ -540,6 +549,7 @@ private suspend fun archiveChannel(
                                                 },
                                                 receive = { messageChannel ->
                                                     receiveMessages(
+                                                        channelId = channel.id,
                                                         messageChannel = messageChannel,
                                                         attachmentChannel = attachmentChannel,
                                                         reactionChannel = reactionChannel,
@@ -607,6 +617,8 @@ private suspend fun archiveChannel(
             }
         }
     }
+
+    logger.info("Finished archive of channel ${channel.id}")
 }
 
 private fun forumTagData(it: ForumTag) = buildJsonObject {
