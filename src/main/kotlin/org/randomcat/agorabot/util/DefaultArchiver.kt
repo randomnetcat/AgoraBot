@@ -14,11 +14,13 @@ import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.channel.attribute.*
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.interactions.components.Component
 import org.randomcat.agorabot.commands.DiscordArchiver
 import org.slf4j.LoggerFactory
 import java.io.OutputStream
@@ -258,6 +260,81 @@ private fun Collection<BigInteger>.toJsonArray(): JsonArray {
     }
 }
 
+private fun componentJsonData(component: Component): JsonObject {
+    return buildJsonObject {
+        add("type", component.type.name)
+        add("data", component.toData().toString())
+    }
+}
+
+private fun embedJsonData(embed: MessageEmbed): JsonObject {
+    return buildJsonObject {
+        add("type", embed.type.name)
+        add("color", embed.colorRaw)
+
+        embed.url?.let { add("url", it) }
+        embed.title?.let { add("title", it) }
+        embed.description?.let { add("description", it) }
+        embed.timestamp?.let { add("timestamp_instant", DateTimeFormatter.ISO_INSTANT.format(it)) }
+
+        embed.author?.let { author ->
+            add("author", buildJsonObject {
+                author.name?.let { add("name", it) }
+                author.url?.let { add("url", it) }
+                author.iconUrl?.let { add("icon_url", it) }
+            })
+        }
+
+        embed.image?.let { image ->
+            add("image", buildJsonObject {
+                image.url?.let { add("url", it) }
+                add("width", image.width)
+                add("height", image.height)
+            })
+        }
+
+        embed.videoInfo?.let { video ->
+            add("video_info", buildJsonObject {
+                video.url?.let { add("url", it) }
+                add("width", video.width)
+                add("height", video.height)
+            })
+        }
+
+        embed.thumbnail?.let { thumbnail ->
+            add("thumbnail", buildJsonObject {
+                thumbnail.url?.let { add("url", it) }
+                add("width", thumbnail.width)
+                add("height", thumbnail.height)
+            })
+        }
+
+        embed.footer?.let { footer ->
+            add("footer", buildJsonObject {
+                footer.text?.let { add("text", it) }
+                footer.iconUrl?.let { add("icon_url", it) }
+            })
+        }
+
+        add("fields", embed.fields.mapToJsonArray { field ->
+            buildJsonObject {
+                add("name", field.name)
+                add("value", field.value)
+                add("is_inline", field.isInline)
+            }
+        })
+
+        embed.siteProvider?.let { siteProvider ->
+            add("site_provider", buildJsonObject {
+                siteProvider.name?.let { add("name", it) }
+                siteProvider.url?.let { add("url", it) }
+            })
+        }
+
+        add("data", embed.toData().toString())
+    }
+}
+
 private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List<BigInteger>) {
     val messageObject = buildJsonObject {
         add("type", message.type.name)
@@ -337,6 +414,9 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
                 add("format_type", sticker.formatType.name)
             }
         })
+
+        add("components", message.components.mapToJsonArray(::componentJsonData))
+        add("embeds", message.embeds.mapToJsonArray(::embedJsonData))
     }
 
     write(
