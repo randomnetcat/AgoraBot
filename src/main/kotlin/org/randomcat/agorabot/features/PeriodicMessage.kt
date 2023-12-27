@@ -219,6 +219,8 @@ fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicM
 
                                     if (previousScheduled == null || checkTime >= previousScheduled) {
                                         try {
+                                            logger.info("Sending periodic message with ID $id")
+
                                             jda
                                                 .getTextChannelById(messageConfig.discordChannelId)
                                                 ?.sendMessage(messageConfig.options.random(userFacingRandom()))
@@ -226,19 +228,23 @@ fun periodicMessageSource(): FeatureSource<*> = object : FeatureSource<PeriodicM
 
                                             // Don't need to use an update method because there is only one writer.
 
+                                            val nextTime = randomNextInterval(
+                                                checkTime,
+                                                messageConfig.randomInterval,
+                                            )
+
                                             currentState.set(
                                                 currentState.get().copy(
                                                     messages = currentState.get().messages.put(
                                                         id,
                                                         PeriodicMessageState(
-                                                            scheduledTime = randomNextInterval(
-                                                                checkTime,
-                                                                messageConfig.randomInterval,
-                                                            ),
+                                                            scheduledTime = nextTime,
                                                         ),
                                                     ),
                                                 )
                                             )
+
+                                            logger.info("Scheduling period message: ID $id; sent at $checkTime; next send at $nextTime")
                                         } catch (e: Exception) {
                                             logger.error("Error handling periodic message", e)
                                         }
