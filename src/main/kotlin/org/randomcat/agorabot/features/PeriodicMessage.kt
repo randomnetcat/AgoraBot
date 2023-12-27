@@ -26,6 +26,7 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.temporal.ChronoField
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.seconds
@@ -137,6 +138,7 @@ private fun randomNextInterval(baseTime: Instant, interval: PeriodicMessageInter
                     .ofInstant(baseTime, ZoneOffset.UTC)
                     .plusWeeks(1)
                     .with(ChronoField.DAY_OF_WEEK, 1)
+                    .truncatedTo(ChronoUnit.DAYS)
 
             val startOfWeekAfterNext = startOfNextWeek.plusWeeks(1)
 
