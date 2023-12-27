@@ -1,7 +1,8 @@
+@file:OptIn(ExperimentalTypeInference::class)
+
 package org.randomcat.agorabot.util
 
-import jakarta.json.Json
-import jakarta.json.JsonObject
+import jakarta.json.*
 import jakarta.json.stream.JsonGenerator
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -14,8 +15,13 @@ import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageReaction
+import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel
+import net.dv8tion.jda.api.entities.channel.attribute.IPositionableChannel
+import net.dv8tion.jda.api.entities.channel.attribute.IPostContainer
+import net.dv8tion.jda.api.entities.channel.attribute.ISlowmodeChannel
 import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
+import net.dv8tion.jda.api.entities.channel.forums.ForumTag
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import org.randomcat.agorabot.commands.DiscordArchiver
 import org.slf4j.LoggerFactory
@@ -27,6 +33,7 @@ import java.nio.file.StandardOpenOption
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.experimental.ExperimentalTypeInference
 import kotlin.io.path.*
 
 private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
@@ -213,8 +220,50 @@ private fun JsonGenerator.writeEndMessages() {
     writeEnd() // End top-level object
 }
 
+private inline fun buildJsonObject(builder: JsonObjectBuilder.() -> Unit): JsonObject {
+    return Json.createObjectBuilder().apply(builder).build()
+}
+
+private inline fun buildJsonArray(builder: JsonArrayBuilder.() -> Unit): JsonArray {
+    return Json.createArrayBuilder().apply(builder).build()
+}
+
+@OverloadResolutionByLambdaReturnType
+@JvmName("mapToJsonArrayOfString")
+private inline fun <T> Collection<T>.mapToJsonArray(@BuilderInference mapper: (T) -> String): JsonArray {
+    if (isEmpty()) return JsonValue.EMPTY_JSON_ARRAY
+
+    return buildJsonArray {
+        forEach { add(mapper(it)) }
+    }
+}
+
+@OverloadResolutionByLambdaReturnType
+@JvmName("mapToJsonArrayOfObject")
+private inline fun <T> Collection<T>.mapToJsonArray(mapper: (T) -> JsonObject): JsonArray {
+    if (isEmpty()) return JsonValue.EMPTY_JSON_ARRAY
+
+    return buildJsonArray {
+        forEach { add(mapper(it)) }
+    }
+}
+
+@OverloadResolutionByLambdaReturnType
+@JvmName("mapToJsonArrayOfObjectBuilder")
+private inline fun <T> Collection<T>.mapToJsonArray(mapper: (T) -> JsonObjectBuilder): JsonArray {
+    return mapToJsonArray { mapper(it).build() }
+}
+
+private fun Collection<BigInteger>.toJsonArray(): JsonArray {
+    if (isEmpty()) return JsonValue.EMPTY_JSON_ARRAY
+
+    return buildJsonArray {
+        forEach(this::add)
+    }
+}
+
 private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List<BigInteger>) {
-    val messageObject = with(Json.createObjectBuilder()) {
+    val messageObject = buildJsonObject {
         add("type", message.type.name)
         add("author_id", message.author.id)
         add("raw_text", message.contentRaw)
@@ -223,12 +272,10 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
         message.messageReference?.let {
             add(
                 "referenced_message",
-                with(Json.createObjectBuilder()) {
+                buildJsonObject {
                     add("guild_id", it.guildId)
                     add("channel_id", it.channelId)
                     add("message_id", it.messageId)
-
-                    build()
                 }
             )
         }
@@ -244,12 +291,12 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
         add("is_webhook_message", message.isWebhookMessage)
         add("is_tts", message.isTTS)
         add("is_pinned", message.isPinned)
-        add("flags", Json.createArrayBuilder().apply { message.flags.map { it.name }.forEach(this::add) })
+        add("flags", message.flags.mapToJsonArray { it.name })
 
         message.applicationId?.let { add("application_id", it) }
 
         message.interaction?.let {
-            add("interaction", Json.createObjectBuilder().apply {
+            add("interaction", buildJsonObject {
                 add("id", it.id)
                 add("name", it.name)
                 add("type", it.type.name)
@@ -257,29 +304,21 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
             })
         }
 
-        add("mentions", Json.createObjectBuilder().apply {
-            add("user_ids", Json.createArrayBuilder().apply {
-                message.mentions.usersBag.forEach { add(it.id) }
-            })
-
-            add("role_ids", Json.createArrayBuilder().apply {
-                message.mentions.rolesBag.forEach { add(it.id) }
-            })
-
-            add("channel_ids", Json.createArrayBuilder().apply {
-                message.mentions.channelsBag.forEach { add(it.id) }
-            })
+        add("mentions", buildJsonObject {
+            add("user_ids", message.mentions.usersBag.mapToJsonArray { it.id })
+            add("role_ids", message.mentions.rolesBag.mapToJsonArray { it.id })
+            add("channel_ids", message.mentions.channelsBag.mapToJsonArray { it.id })
         })
 
         message.startedThread?.id?.let { add("started_thread_id", it) }
 
         message.activity?.let { activity ->
-            add("activity", Json.createObjectBuilder().apply {
+            add("activity", buildJsonObject {
                 add("type", activity.type.name)
                 add("party_id", activity.partyId)
 
                 activity.application?.let { app ->
-                    add("application", Json.createObjectBuilder().apply {
+                    add("application", buildJsonObject {
                         add("id", app.id)
                         add("name", app.name)
                         add("description", app.description)
@@ -290,21 +329,12 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
 
         add(
             "attachment_numbers",
-            if (attachmentNumbers.isNotEmpty()) {
-                Json
-                    .createArrayBuilder()
-                    .apply {
-                        attachmentNumbers.forEach(this::add)
-                    }
-                    .build()
-            } else {
-                JsonObject.EMPTY_JSON_ARRAY
-            },
+            attachmentNumbers.toJsonArray(),
         )
 
-        add("stickers", Json.createArrayBuilder().apply {
+        add("stickers", buildJsonArray {
             for (sticker in message.stickers) {
-                add(Json.createObjectBuilder().apply {
+                add(buildJsonObject {
                     add("id", sticker.id)
                     add("name", sticker.name)
                     add("instant_created", DateTimeFormatter.ISO_INSTANT.format(sticker.timeCreated))
@@ -521,10 +551,8 @@ private suspend fun receiveGlobalData(
             is ArchiveGlobalData.ReferencedChannel -> {
                 channelObjects.computeIfAbsent(data.id) { id ->
                     guild.getGuildChannelById(id)?.let { channel ->
-                        Json.createObjectBuilder().run {
+                        buildJsonObject {
                             add("name", channel.name)
-
-                            build()
                         }
                     }
                 }
@@ -533,10 +561,8 @@ private suspend fun receiveGlobalData(
             is ArchiveGlobalData.ReferencedRole -> {
                 roleObjects.computeIfAbsent(data.id) { id ->
                     guild.getRoleById(id)?.let { role ->
-                        Json.createObjectBuilder().run {
+                        buildJsonObject {
                             add("name", role.name)
-
-                            build()
                         }
                     }
                 }
@@ -554,7 +580,7 @@ private suspend fun receiveGlobalData(
                             ?: runCatching { guild.jda.retrieveUserById(id).await() }.getOrNull()
                             ?: return@getOrPut null
 
-                    Json.createObjectBuilder().run {
+                    buildJsonObject {
                         add("username", user.name)
 
                         val globalName = user.globalName
@@ -565,8 +591,6 @@ private suspend fun receiveGlobalData(
                         if (nickname != null) {
                             add("nickname", nickname)
                         }
-
-                        build()
                     }
                 }
             }
