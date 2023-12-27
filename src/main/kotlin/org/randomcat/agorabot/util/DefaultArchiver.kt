@@ -15,11 +15,7 @@ import kotlinx.coroutines.future.await
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageReaction
-import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel
-import net.dv8tion.jda.api.entities.channel.attribute.IPositionableChannel
-import net.dv8tion.jda.api.entities.channel.attribute.IPostContainer
-import net.dv8tion.jda.api.entities.channel.attribute.ISlowmodeChannel
-import net.dv8tion.jda.api.entities.channel.attribute.IThreadContainer
+import net.dv8tion.jda.api.entities.channel.attribute.*
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -537,6 +533,14 @@ private suspend fun archiveChannel(
     }
 }
 
+private fun forumTagData(it: ForumTag) = buildJsonObject {
+    add("id", it.id)
+    add("name", it.name)
+    add("position", it.position)
+    add("is_moderated", it.isModerated)
+    it.emoji?.asReactionCode?.let { add("emoji", it) }
+}
+
 private suspend fun receiveGlobalData(
     dataChannel: ReceiveChannel<ArchiveGlobalData>,
     guild: Guild,
@@ -553,6 +557,34 @@ private suspend fun receiveGlobalData(
                     guild.getGuildChannelById(id)?.let { channel ->
                         buildJsonObject {
                             add("name", channel.name)
+                            add("type", channel.type.name)
+                            add("instant_created", DateTimeFormatter.ISO_INSTANT.format(channel.timeCreated))
+
+                            if (channel is IAgeRestrictedChannel) {
+                                add("is_nsfw", channel.isNSFW)
+                            }
+
+                            if (channel is ISlowmodeChannel) {
+                                add("slowmode", channel.slowmode)
+                            }
+
+                            if (channel is IPositionableChannel) {
+                                add("position", channel.position)
+                            }
+
+                            if (channel is IPostContainer) {
+                                channel.topic?.let { add("post_topic", it) }
+
+                                add("post_tags", buildJsonArray {
+                                    channel.availableTags.forEach {
+                                        add(forumTagData(it))
+                                    }
+                                })
+
+                                channel.defaultReaction?.let { add("post_default_reaction", it.asReactionCode) }
+                                add("post_is_tag_required", channel.isTagRequired)
+                                add("post_default_sort_order", channel.defaultSortOrder.name)
+                            }
                         }
                     }
                 }
@@ -562,7 +594,7 @@ private suspend fun receiveGlobalData(
                 roleObjects.computeIfAbsent(data.id) { id ->
                     guild.getRoleById(id)?.let { role ->
                         buildJsonObject {
-                            add("name", role.name)
+                            add("name", role.name)a
                         }
                     }
                 }
