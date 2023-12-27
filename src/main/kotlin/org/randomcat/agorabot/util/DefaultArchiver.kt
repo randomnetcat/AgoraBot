@@ -337,8 +337,6 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
                 add("format_type", sticker.formatType.name)
             }
         })
-
-        build()
     }
 
     write(
