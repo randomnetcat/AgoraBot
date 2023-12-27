@@ -328,15 +328,13 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
             attachmentNumbers.toJsonArray(),
         )
 
-        add("stickers", buildJsonArray {
-            for (sticker in message.stickers) {
-                add(buildJsonObject {
-                    add("id", sticker.id)
-                    add("name", sticker.name)
-                    add("instant_created", DateTimeFormatter.ISO_INSTANT.format(sticker.timeCreated))
-                    add("icon_url", sticker.iconUrl)
-                    add("format_type", sticker.formatType.name)
-                })
+        add("stickers", message.stickers.mapToJsonArray { sticker ->
+            buildJsonObject {
+                add("id", sticker.id)
+                add("name", sticker.name)
+                add("instant_created", DateTimeFormatter.ISO_INSTANT.format(sticker.timeCreated))
+                add("icon_url", sticker.iconUrl)
+                add("format_type", sticker.formatType.name)
             }
         })
 
@@ -575,12 +573,7 @@ private suspend fun receiveGlobalData(
                             if (channel is IPostContainer) {
                                 channel.topic?.let { add("post_topic", it) }
 
-                                add("post_tags", buildJsonArray {
-                                    channel.availableTags.forEach {
-                                        add(forumTagData(it))
-                                    }
-                                })
-
+                                add("post_tags", channel.availableTags.mapToJsonArray(::forumTagData))
                                 channel.defaultReaction?.let { add("post_default_reaction", it.asReactionCode) }
                                 add("post_is_tag_required", channel.isTagRequired)
                                 add("post_default_sort_order", channel.defaultSortOrder.name)
