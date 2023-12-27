@@ -594,7 +594,12 @@ private suspend fun receiveGlobalData(
                 roleObjects.computeIfAbsent(data.id) { id ->
                     guild.getRoleById(id)?.let { role ->
                         buildJsonObject {
-                            add("name", role.name)a
+                            add("name", role.name)
+                            add("position", role.position)
+                            add("is_public_role", role.isPublicRole)
+                            add("color", role.colorRaw)
+                            add("is_hoisted", role.isHoisted)
+                            add("is_managed", role.isManaged)
                         }
                     }
                 }
