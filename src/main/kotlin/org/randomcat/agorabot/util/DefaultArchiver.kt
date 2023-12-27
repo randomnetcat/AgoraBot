@@ -239,6 +239,55 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
             add("instant_edited", DateTimeFormatter.ISO_INSTANT.format(timeEdited))
         }
 
+        add("is_edited", message.isEdited)
+        add("is_ephemeral", message.isEphemeral)
+        add("is_webhook_message", message.isWebhookMessage)
+        add("is_tts", message.isTTS)
+        add("is_pinned", message.isPinned)
+        add("flags", Json.createArrayBuilder().apply { message.flags.map { it.name }.forEach(this::add) })
+
+        message.applicationId?.let { add("application_id", it) }
+
+        message.interaction?.let {
+            add("interaction", Json.createObjectBuilder().apply {
+                add("id", it.id)
+                add("name", it.name)
+                add("type", it.type.name)
+                add("user_id", it.user.id)
+            })
+        }
+
+        add("mentions", Json.createObjectBuilder().apply {
+            add("user_ids", Json.createArrayBuilder().apply {
+                message.mentions.usersBag.forEach { add(it.id) }
+            })
+
+            add("role_ids", Json.createArrayBuilder().apply {
+                message.mentions.rolesBag.forEach { add(it.id) }
+            })
+
+            add("channel_ids", Json.createArrayBuilder().apply {
+                message.mentions.channelsBag.forEach { add(it.id) }
+            })
+        })
+
+        message.startedThread?.id?.let { add("started_thread_id", it) }
+
+        message.activity?.let { activity ->
+            add("activity", Json.createObjectBuilder().apply {
+                add("type", activity.type.name)
+                add("party_id", activity.partyId)
+
+                activity.application?.let { app ->
+                    add("application", Json.createObjectBuilder().apply {
+                        add("id", app.id)
+                        add("name", app.name)
+                        add("description", app.description)
+                    })
+                }
+            })
+        }
+
         add(
             "attachment_numbers",
             if (attachmentNumbers.isNotEmpty()) {
