@@ -342,6 +342,17 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
         add("raw_text", message.contentRaw)
         if (!message.type.isSystem) add("display_text", message.contentDisplay)
 
+        if (message.isWebhookMessage) {
+            val author = message.author
+
+            add("author_webhook", buildJsonObject {
+                add("id", author.id)
+                add("name", author.name)
+                author.globalName?.let { add("global_name", it) }
+                author.avatarUrl?.let { add("avatar_url", it) }
+            })
+        }
+
         message.messageReference?.let {
             add(
                 "referenced_message",
