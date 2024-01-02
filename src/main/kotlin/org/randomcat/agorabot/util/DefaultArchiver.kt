@@ -165,6 +165,7 @@ private suspend fun receivePendingDownloads(
 }
 
 private suspend fun receiveReactions(
+    channelId: String,
     reactionChannel: ReceiveChannel<PendingReactionInfo>,
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     reactionOut: Writer,
@@ -209,7 +210,15 @@ private suspend fun receiveReactions(
                     }
                 },
                 receive = { resultChannel ->
+                    var count = 0L
+
                     for (result in resultChannel) {
+                        ++count
+
+                        if (count % 100L == 0L) {
+                            logger.info("Receiving reactions for channel $channelId: writing message $count")
+                        }
+
                         generator.write(result.first, result.second)
                     }
                 },
@@ -461,6 +470,7 @@ private suspend fun receiveMessages(
 ) {
     var currentAttachmentNumber = BigInteger.ZERO
     var messageCount = 0L
+    var messageWithReactionCount = 0L
 
     Json.createGenerator(jsonOut.nonClosingView()).use { jsonGenerator ->
         jsonGenerator.writeStartMessages()
@@ -522,6 +532,8 @@ private suspend fun receiveMessages(
             val reactions = message.reactions
 
             if (reactions.isNotEmpty()) {
+                ++messageWithReactionCount
+
                 reactionChannel.send(
                     PendingReactionInfo(
                         messageId = message.id,
@@ -533,6 +545,8 @@ private suspend fun receiveMessages(
 
         jsonGenerator.writeEndMessages()
     }
+
+    logger.info("Finished processing message for channel $channelId: $messageCount messages, of which $messageWithReactionCount had reactions to be processed")
 }
 
 private sealed class ArchiveGlobalData {
@@ -602,6 +616,7 @@ private suspend fun archiveChannel(
                                         logger.info("Receiving reactions for channel $channelId")
 
                                         receiveReactions(
+                                            channelId = channelId,
                                             reactionChannel = reactionChannel,
                                             globalDataChannel = globalDataChannel,
                                             reactionOut = reactionOut,
