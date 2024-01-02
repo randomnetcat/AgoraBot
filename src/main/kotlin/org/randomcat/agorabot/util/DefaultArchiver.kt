@@ -532,9 +532,11 @@ private suspend fun archiveChannel(
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     basePath: Path,
 ) {
-    logger.info("Beginning archive of channel ${channel.id}")
+    val channelId = channel.id
 
-    globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
+    logger.info("Beginning archive of channel $channelId")
+
+    globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channelId))
 
     coroutineScope {
         launch(Dispatchers.IO) {
@@ -560,7 +562,7 @@ private suspend fun archiveChannel(
                                                 },
                                                 receive = { messageChannel ->
                                                     receiveMessages(
-                                                        channelId = channel.id,
+                                                        channelId = channelId,
                                                         messageChannel = messageChannel,
                                                         attachmentChannel = attachmentChannel,
                                                         reactionChannel = reactionChannel,
@@ -614,22 +616,32 @@ private suspend fun archiveChannel(
                     }
                 }.distinctBy { it.id }
 
-                if (threadChannels.isNotEmpty()) {
-                    val threadsDirectory = basePath.resolve("threads").createDirectory()
+                logger.info("Archiving ${threadChannels.size} threads of channel $channelId")
 
-                    for (thread in threadChannels) {
-                        archiveChannel(
-                            channel = thread,
-                            globalDataChannel = globalDataChannel,
-                            basePath = threadsDirectory.resolve(thread.id).createDirectory(),
-                        )
+                coroutineScope {
+                    if (threadChannels.isNotEmpty()) {
+                        val threadsDirectory = basePath.resolve("threads").createDirectory()
+
+                        for (thread in threadChannels) {
+                            launch {
+                                logger.info("Archiving thread ${thread.id} of channel $channelId")
+
+                                archiveChannel(
+                                    channel = thread,
+                                    globalDataChannel = globalDataChannel,
+                                    basePath = threadsDirectory.resolve(thread.id).createDirectory(),
+                                )
+                            }
+                        }
                     }
                 }
+
+                logger.info("Done archiving threads of channel $channelId")
             }
         }
     }
 
-    logger.info("Finished archive of channel ${channel.id}")
+    logger.info("Finished archive of channel $channelId")
 }
 
 private fun forumTagData(it: ForumTag) = buildJsonObject {
