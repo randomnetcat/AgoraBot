@@ -1,20 +1,29 @@
+@file:OptIn(ExperimentalTypeInference::class)
+
 package org.randomcat.agorabot.util
 
-import jakarta.json.Json
-import jakarta.json.JsonObject
+import jakarta.json.*
 import jakarta.json.stream.JsonGenerator
-import kotlinx.coroutines.Dispatchers
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.MessageReaction
+import net.dv8tion.jda.api.entities.channel.attribute.*
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
+import net.dv8tion.jda.api.entities.channel.forums.ForumTag
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.interactions.components.Component
 import org.randomcat.agorabot.commands.DiscordArchiver
+import org.slf4j.LoggerFactory
 import java.io.OutputStream
 import java.io.Writer
 import java.math.BigInteger
@@ -23,10 +32,56 @@ import java.nio.file.StandardOpenOption
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.experimental.ExperimentalTypeInference
 import kotlin.io.path.*
 
 private val DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
 private val TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneOffset.UTC)
+
+private val logger = LoggerFactory.getLogger("DefaultArchiver")
+
+private suspend fun <T> withChannel(
+    capacity: Int,
+    send: suspend CoroutineScope.(SendChannel<T>) -> Unit,
+    receive: suspend CoroutineScope.(ReceiveChannel<T>) -> Unit,
+) {
+    val channel = Channel<T>(capacity = capacity)
+
+    suspend fun ensureClosed(block: suspend () -> Unit) {
+        var exception: Exception? = null
+
+        try {
+            block()
+        } catch (e: Exception) {
+            exception = e
+            throw e
+        } finally {
+            if (exception == null) {
+                channel.close()
+            } else {
+                try {
+                    channel.close(exception)
+                } catch (closeExcept: Exception) {
+                    exception.addSuppressed(closeExcept)
+                }
+            }
+        }
+    }
+
+    ensureClosed {
+        coroutineScope {
+            launch {
+                ensureClosed {
+                    send(channel)
+                }
+            }
+
+            launch {
+                receive(channel)
+            }
+        }
+    }
+}
 
 private fun writeMessageTextTo(
     message: Message,
@@ -70,6 +125,11 @@ private data class PendingAttachmentDownload(
     val attachmentNumber: BigInteger,
 )
 
+private data class PendingReactionInfo(
+    val messageId: String,
+    val reactions: ImmutableList<MessageReaction>,
+)
+
 private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out: OutputStream) {
     attachment.proxy.download().await().use { downloadStream ->
         downloadStream.copyTo(out)
@@ -77,10 +137,10 @@ private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out
 }
 
 private suspend fun receivePendingDownloads(
+    channelId: String,
     attachmentChannel: ReceiveChannel<PendingAttachmentDownload>,
     attachmentsDir: Path,
 ) {
-    @Suppress("BlockingMethodInNonBlockingContext")
     withContext(Dispatchers.IO) {
         for (pendingDownload in attachmentChannel) {
             launch {
@@ -92,11 +152,72 @@ private suspend fun receivePendingDownloads(
 
                 val outPath = attachmentDir.resolve(fileName)
 
+                logger.info("Downloading channel $channelId attachment $number: $fileName")
+
                 outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
                     writeAttachmentContentTo(pendingDownload.attachment, outStream)
                 }
+
+                logger.info("Finished downloading channel $channelId attachment $number")
             }
         }
+    }
+}
+
+private suspend fun receiveReactions(
+    reactionChannel: ReceiveChannel<PendingReactionInfo>,
+    globalDataChannel: SendChannel<ArchiveGlobalData>,
+    reactionOut: Writer,
+) {
+    Json.createGenerator(reactionOut.nonClosingView()).use { generator ->
+        generator.writeStartObject()
+        generator.writeKey("messages")
+        generator.writeStartObject()
+
+        withContext(Dispatchers.IO) {
+            withChannel<Pair<String, JsonObject>>(
+                capacity = 100,
+                send = { resultChannel ->
+                    coroutineScope {
+                        for (reactionInfo in reactionChannel) {
+                            launch {
+                                val reactions = reactionInfo.reactions
+                                val reactionUsers =
+                                    reactions.map { it.retrieveUsers().submit().asDeferred() }.awaitAll()
+
+                                launch {
+                                    resultChannel.send(reactionInfo.messageId to buildJsonObject {
+                                        add("reactions", buildJsonArray {
+                                            for ((emoji, users) in (reactions zip reactionUsers)) {
+                                                add(buildJsonObject {
+                                                    add("emoji", emoji.emoji.asReactionCode)
+                                                    add("user_count", users.size)
+                                                    add("users", users.mapToJsonArray { it.id })
+                                                })
+                                            }
+                                        })
+                                    })
+                                }
+
+                                launch {
+                                    for (user in reactionUsers.asSequence().flatten()) {
+                                        globalDataChannel.send(ArchiveGlobalData.ReferencedUser(id = user.id))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                receive = { resultChannel ->
+                    for (result in resultChannel) {
+                        generator.write(result.first, result.second)
+                    }
+                },
+            )
+        }
+
+        generator.writeEnd()
+        generator.writeEnd()
     }
 }
 
@@ -111,22 +232,148 @@ private fun JsonGenerator.writeEndMessages() {
     writeEnd() // End top-level object
 }
 
+private inline fun buildJsonObject(builder: JsonObjectBuilder.() -> Unit): JsonObject {
+    return Json.createObjectBuilder().apply(builder).build()
+}
+
+private inline fun buildJsonArray(builder: JsonArrayBuilder.() -> Unit): JsonArray {
+    return Json.createArrayBuilder().apply(builder).build()
+}
+
+@OverloadResolutionByLambdaReturnType
+@JvmName("mapToJsonArrayOfString")
+private inline fun <T> Collection<T>.mapToJsonArray(@BuilderInference mapper: (T) -> String): JsonArray {
+    if (isEmpty()) return JsonValue.EMPTY_JSON_ARRAY
+
+    return buildJsonArray {
+        forEach { add(mapper(it)) }
+    }
+}
+
+@OverloadResolutionByLambdaReturnType
+@JvmName("mapToJsonArrayOfObject")
+private inline fun <T> Collection<T>.mapToJsonArray(mapper: (T) -> JsonObject): JsonArray {
+    if (isEmpty()) return JsonValue.EMPTY_JSON_ARRAY
+
+    return buildJsonArray {
+        forEach { add(mapper(it)) }
+    }
+}
+
+@OverloadResolutionByLambdaReturnType
+@JvmName("mapToJsonArrayOfObjectBuilder")
+private inline fun <T> Collection<T>.mapToJsonArray(mapper: (T) -> JsonObjectBuilder): JsonArray {
+    return mapToJsonArray { mapper(it).build() }
+}
+
+private fun Collection<BigInteger>.toJsonArray(): JsonArray {
+    if (isEmpty()) return JsonValue.EMPTY_JSON_ARRAY
+
+    return buildJsonArray {
+        forEach(this::add)
+    }
+}
+
+private fun componentJsonData(component: Component): JsonObject {
+    return buildJsonObject {
+        add("type", component.type.name)
+        add("data", component.toData().toString())
+    }
+}
+
+private fun embedJsonData(embed: MessageEmbed): JsonObject {
+    return buildJsonObject {
+        add("type", embed.type.name)
+        add("color", embed.colorRaw)
+
+        embed.url?.let { add("url", it) }
+        embed.title?.let { add("title", it) }
+        embed.description?.let { add("description", it) }
+        embed.timestamp?.let { add("timestamp_instant", DateTimeFormatter.ISO_INSTANT.format(it)) }
+
+        embed.author?.let { author ->
+            add("author", buildJsonObject {
+                author.name?.let { add("name", it) }
+                author.url?.let { add("url", it) }
+                author.iconUrl?.let { add("icon_url", it) }
+            })
+        }
+
+        embed.image?.let { image ->
+            add("image", buildJsonObject {
+                image.url?.let { add("url", it) }
+                add("width", image.width)
+                add("height", image.height)
+            })
+        }
+
+        embed.videoInfo?.let { video ->
+            add("video_info", buildJsonObject {
+                video.url?.let { add("url", it) }
+                add("width", video.width)
+                add("height", video.height)
+            })
+        }
+
+        embed.thumbnail?.let { thumbnail ->
+            add("thumbnail", buildJsonObject {
+                thumbnail.url?.let { add("url", it) }
+                add("width", thumbnail.width)
+                add("height", thumbnail.height)
+            })
+        }
+
+        embed.footer?.let { footer ->
+            add("footer", buildJsonObject {
+                footer.text?.let { add("text", it) }
+                footer.iconUrl?.let { add("icon_url", it) }
+            })
+        }
+
+        add("fields", embed.fields.mapToJsonArray { field ->
+            buildJsonObject {
+                add("name", field.name)
+                add("value", field.value)
+                add("is_inline", field.isInline)
+            }
+        })
+
+        embed.siteProvider?.let { siteProvider ->
+            add("site_provider", buildJsonObject {
+                siteProvider.name?.let { add("name", it) }
+                siteProvider.url?.let { add("url", it) }
+            })
+        }
+
+        add("data", embed.toData().toString())
+    }
+}
+
 private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List<BigInteger>) {
-    val messageObject = with(Json.createObjectBuilder()) {
+    val messageObject = buildJsonObject {
         add("type", message.type.name)
         add("author_id", message.author.id)
         add("raw_text", message.contentRaw)
         if (!message.type.isSystem) add("display_text", message.contentDisplay)
 
+        if (message.isWebhookMessage) {
+            val author = message.author
+
+            add("author_webhook", buildJsonObject {
+                add("id", author.id)
+                add("name", author.name)
+                author.globalName?.let { add("global_name", it) }
+                author.avatarUrl?.let { add("avatar_url", it) }
+            })
+        }
+
         message.messageReference?.let {
             add(
                 "referenced_message",
-                with(Json.createObjectBuilder()) {
+                buildJsonObject {
                     add("guild_id", it.guildId)
                     add("channel_id", it.channelId)
                     add("message_id", it.messageId)
-
-                    build()
                 }
             )
         }
@@ -137,21 +384,64 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
             add("instant_edited", DateTimeFormatter.ISO_INSTANT.format(timeEdited))
         }
 
+        add("is_edited", message.isEdited)
+        add("is_ephemeral", message.isEphemeral)
+        add("is_webhook_message", message.isWebhookMessage)
+        add("is_tts", message.isTTS)
+        add("is_pinned", message.isPinned)
+        add("flags", message.flags.mapToJsonArray { it.name })
+
+        message.applicationId?.let { add("application_id", it) }
+
+        message.interaction?.let {
+            add("interaction", buildJsonObject {
+                add("id", it.id)
+                add("name", it.name)
+                add("type", it.type.name)
+                add("user_id", it.user.id)
+            })
+        }
+
+        add("mentions", buildJsonObject {
+            add("user_ids", message.mentions.usersBag.mapToJsonArray { it.id })
+            add("role_ids", message.mentions.rolesBag.mapToJsonArray { it.id })
+            add("channel_ids", message.mentions.channelsBag.mapToJsonArray { it.id })
+        })
+
+        message.startedThread?.id?.let { add("started_thread_id", it) }
+
+        message.activity?.let { activity ->
+            add("activity", buildJsonObject {
+                add("type", activity.type.name)
+                add("party_id", activity.partyId)
+
+                activity.application?.let { app ->
+                    add("application", buildJsonObject {
+                        add("id", app.id)
+                        add("name", app.name)
+                        add("description", app.description)
+                    })
+                }
+            })
+        }
+
         add(
             "attachment_numbers",
-            if (attachmentNumbers.isNotEmpty()) {
-                Json
-                    .createArrayBuilder()
-                    .apply {
-                        attachmentNumbers.forEach(this::add)
-                    }
-                    .build()
-            } else {
-                JsonObject.EMPTY_JSON_ARRAY
-            },
+            attachmentNumbers.toJsonArray(),
         )
 
-        build()
+        add("stickers", message.stickers.mapToJsonArray { sticker ->
+            buildJsonObject {
+                add("id", sticker.id)
+                add("name", sticker.name)
+                add("instant_created", DateTimeFormatter.ISO_INSTANT.format(sticker.timeCreated))
+                add("icon_url", sticker.iconUrl)
+                add("format_type", sticker.formatType.name)
+            }
+        })
+
+        add("components", message.components.mapToJsonArray(::componentJsonData))
+        add("embeds", message.embeds.mapToJsonArray(::embedJsonData))
     }
 
     write(
@@ -161,18 +451,26 @@ private fun JsonGenerator.writeMessage(message: Message, attachmentNumbers: List
 }
 
 private suspend fun receiveMessages(
+    channelId: String,
     messageChannel: ReceiveChannel<Message>,
     attachmentChannel: SendChannel<PendingAttachmentDownload>,
+    reactionChannel: SendChannel<PendingReactionInfo>,
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     textOut: Writer,
     jsonOut: Writer,
 ) {
     var currentAttachmentNumber = BigInteger.ZERO
+    var messageCount = 0L
 
     Json.createGenerator(jsonOut.nonClosingView()).use { jsonGenerator ->
         jsonGenerator.writeStartMessages()
 
         for (message in messageChannel) {
+            ++messageCount
+            if (messageCount % 100L == 0L) {
+                logger.info("Archiving channel $channelId: on message $messageCount")
+            }
+
             val attachmentNumbers = message.attachments.map {
                 val number = ++currentAttachmentNumber
                 attachmentChannel.send(PendingAttachmentDownload(it, number))
@@ -220,6 +518,17 @@ private suspend fun receiveMessages(
 
             writeMessageTextTo(message, attachmentNumbers, textOut)
             jsonGenerator.writeMessage(message, attachmentNumbers)
+
+            val reactions = message.reactions
+
+            if (reactions.isNotEmpty()) {
+                reactionChannel.send(
+                    PendingReactionInfo(
+                        messageId = message.id,
+                        reactions = reactions.toImmutableList(),
+                    ),
+                )
+            }
         }
 
         jsonGenerator.writeEndMessages()
@@ -233,59 +542,143 @@ private sealed class ArchiveGlobalData {
 }
 
 private suspend fun archiveChannel(
-    channel: MessageChannel,
+    channel: GuildChannel,
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     basePath: Path,
 ) {
-    @Suppress("BlockingMethodInNonBlockingContext")
-    withContext(Dispatchers.IO) {
-        globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channel.id))
+    val channelId = channel.id
 
-        val attachmentChannel = Channel<PendingAttachmentDownload>(capacity = 10)
+    logger.info("Beginning archive of channel $channelId")
 
-        launch {
-            val textPath = basePath.resolve("messages.txt")
-            val jsonPath = basePath.resolve("messages.json")
+    globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channelId))
 
-            try {
-                textPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { textOut ->
-                    jsonPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW)).use { jsonOut ->
-                        coroutineScope {
-                            val messageChannel = Channel<DiscordMessage>(capacity = 100)
+    coroutineScope {
+        if (channel is MessageChannel) {
+            launch(Dispatchers.IO) {
+                withChannel<PendingAttachmentDownload>(
+                    capacity = 100,
+                    send = { attachmentChannel ->
+                        withChannel<PendingReactionInfo>(
+                            capacity = 100,
+                            send = { reactionChannel ->
+                                val textPath = basePath.resolve("messages.txt")
+                                val jsonPath = basePath.resolve("messages.json")
 
+                                textPath
+                                    .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                    .use { textOut ->
+                                        jsonPath
+                                            .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                            .use { jsonOut ->
+                                                withChannel<DiscordMessage>(
+                                                    capacity = 100,
+                                                    send = { messageChannel ->
+                                                        channel.sendForwardHistoryTo(messageChannel)
+                                                    },
+                                                    receive = { messageChannel ->
+                                                        logger.info("Receiving messages for channel $channelId")
+
+                                                        receiveMessages(
+                                                            channelId = channelId,
+                                                            messageChannel = messageChannel,
+                                                            attachmentChannel = attachmentChannel,
+                                                            reactionChannel = reactionChannel,
+                                                            globalDataChannel = globalDataChannel,
+                                                            textOut = textOut,
+                                                            jsonOut = jsonOut,
+                                                        )
+
+                                                        logger.info("Finished receiving messages for channel $channelId")
+                                                    }
+                                                )
+                                            }
+                                    }
+                            },
+                            receive = { reactionChannel ->
+                                val reactionsPath = basePath.resolve("reactions.json")
+
+                                reactionsPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                    .use { reactionOut ->
+                                        logger.info("Receiving reactions for channel $channelId")
+
+                                        receiveReactions(
+                                            reactionChannel = reactionChannel,
+                                            globalDataChannel = globalDataChannel,
+                                            reactionOut = reactionOut,
+                                        )
+
+                                        logger.info("Finished receiving reactions for channel $channelId")
+                                    }
+                            },
+                        )
+                    },
+                    receive = { attachmentChannel ->
+                        val attachmentsDir = basePath.resolve("attachments")
+                        attachmentsDir.createDirectory()
+
+                        logger.info("Receiving attachments for channel $channelId")
+
+                        receivePendingDownloads(
+                            channelId = channelId,
+                            attachmentChannel = attachmentChannel,
+                            attachmentsDir = attachmentsDir,
+                        )
+
+                        logger.info("Finished receiving attachments for channel $channelId")
+                    }
+                )
+            }
+        }
+
+        if (channel is IThreadContainer) {
+            launch(Dispatchers.Default) {
+                val threadChannels = buildList<ThreadChannel> {
+                    addAll(channel.threadChannels)
+                    addAll(channel.retrieveArchivedPublicThreadChannels().await())
+                    addAll(channel.retrieveArchivedPrivateJoinedThreadChannels().await())
+
+                    try {
+                        // We may not be able to retrieve private thread channels we have not joined.
+                        addAll(channel.retrieveArchivedPrivateThreadChannels().await())
+                    } catch (e: Exception) {
+                        logger.warn("Failed to retrieve private thread channels: " + e.stackTraceToString())
+                    }
+                }.distinctBy { it.id }
+
+                logger.info("Archiving ${threadChannels.size} threads of channel $channelId")
+
+                coroutineScope {
+                    if (threadChannels.isNotEmpty()) {
+                        val threadsDirectory = basePath.resolve("threads").createDirectory()
+
+                        for (thread in threadChannels) {
                             launch {
-                                receiveMessages(
-                                    messageChannel = messageChannel,
-                                    attachmentChannel = attachmentChannel,
-                                    globalDataChannel = globalDataChannel,
-                                    textOut = textOut,
-                                    jsonOut = jsonOut,
-                                )
-                            }
+                                logger.info("Archiving thread ${thread.id} of channel $channelId")
 
-                            try {
-                                channel.sendForwardHistoryTo(messageChannel)
-                            } finally {
-                                messageChannel.close()
+                                archiveChannel(
+                                    channel = thread,
+                                    globalDataChannel = globalDataChannel,
+                                    basePath = threadsDirectory.resolve(thread.id).createDirectory(),
+                                )
                             }
                         }
                     }
                 }
-            } finally {
-                attachmentChannel.close()
+
+                logger.info("Done archiving threads of channel $channelId")
             }
         }
-
-        launch {
-            val attachmentsDir = basePath.resolve("attachments")
-            attachmentsDir.createDirectory()
-
-            receivePendingDownloads(
-                attachmentChannel = attachmentChannel,
-                attachmentsDir = attachmentsDir,
-            )
-        }
     }
+
+    logger.info("Finished archive of channel $channelId")
+}
+
+private fun forumTagData(it: ForumTag) = buildJsonObject {
+    add("id", it.id)
+    add("name", it.name)
+    add("position", it.position)
+    add("is_moderated", it.isModerated)
+    it.emoji?.asReactionCode?.let { add("emoji", it) }
 }
 
 private suspend fun receiveGlobalData(
@@ -302,10 +695,31 @@ private suspend fun receiveGlobalData(
             is ArchiveGlobalData.ReferencedChannel -> {
                 channelObjects.computeIfAbsent(data.id) { id ->
                     guild.getGuildChannelById(id)?.let { channel ->
-                        Json.createObjectBuilder().run {
+                        buildJsonObject {
                             add("name", channel.name)
+                            add("type", channel.type.name)
+                            add("instant_created", DateTimeFormatter.ISO_INSTANT.format(channel.timeCreated))
 
-                            build()
+                            if (channel is IAgeRestrictedChannel) {
+                                add("is_nsfw", channel.isNSFW)
+                            }
+
+                            if (channel is ISlowmodeChannel) {
+                                add("slowmode", channel.slowmode)
+                            }
+
+                            if (channel is IPositionableChannel) {
+                                add("position", channel.position)
+                            }
+
+                            if (channel is IPostContainer) {
+                                channel.topic?.let { add("post_topic", it) }
+
+                                add("post_tags", channel.availableTags.mapToJsonArray(::forumTagData))
+                                channel.defaultReaction?.let { add("post_default_reaction", it.asReactionCode) }
+                                add("post_is_tag_required", channel.isTagRequired)
+                                add("post_default_sort_order", channel.defaultSortOrder.name)
+                            }
                         }
                     }
                 }
@@ -314,10 +728,13 @@ private suspend fun receiveGlobalData(
             is ArchiveGlobalData.ReferencedRole -> {
                 roleObjects.computeIfAbsent(data.id) { id ->
                     guild.getRoleById(id)?.let { role ->
-                        Json.createObjectBuilder().run {
+                        buildJsonObject {
                             add("name", role.name)
-
-                            build()
+                            add("position", role.position)
+                            add("is_public_role", role.isPublicRole)
+                            add("color", role.colorRaw)
+                            add("is_hoisted", role.isHoisted)
+                            add("is_managed", role.isManaged)
                         }
                     }
                 }
@@ -335,21 +752,23 @@ private suspend fun receiveGlobalData(
                             ?: runCatching { guild.jda.retrieveUserById(id).await() }.getOrNull()
                             ?: return@getOrPut null
 
-                    Json.createObjectBuilder().run {
+                    buildJsonObject {
                         add("username", user.name)
+
+                        val globalName = user.globalName
+                        if (globalName != null) {
+                            add("global_name", globalName)
+                        }
 
                         if (nickname != null) {
                             add("nickname", nickname)
                         }
-
-                        build()
                     }
                 }
             }
         }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     withContext(Dispatchers.IO) {
         outPath.bufferedWriter().use { reader ->
             // This with close the reader, but that's fine, since close is idempotent
@@ -390,6 +809,48 @@ private suspend fun receiveGlobalData(
     }
 }
 
+private suspend fun archiveChannels(
+    guild: Guild,
+    archiveBasePath: Path,
+    channelIds: Set<String>,
+) {
+    withChannel<ArchiveGlobalData>(
+        capacity = 100,
+        send = { globalDataChannel ->
+            val channelsDir = archiveBasePath.resolve("channels")
+            channelsDir.createDirectory()
+
+            coroutineScope {
+                for (channelId in channelIds) {
+                    val channel = guild.getGuildChannelById(channelId)
+
+                    requireNotNull(channel) {
+                        "Invalid channel id: $channelId"
+                    }
+
+                    launch {
+                        val outDir = channelsDir.resolve(channelId)
+                        outDir.createDirectory()
+
+                        archiveChannel(
+                            channel = channel,
+                            globalDataChannel = globalDataChannel,
+                            basePath = outDir,
+                        )
+                    }
+                }
+            }
+        },
+        receive = { globalDataChannel ->
+            receiveGlobalData(
+                dataChannel = globalDataChannel,
+                guild = guild,
+                outPath = archiveBasePath.resolve("global_data.json"),
+            )
+        }
+    )
+}
+
 private val ZIP_FILE_SYSTEM_CREATE_OPTIONS = mapOf("create" to "true")
 
 class DefaultDiscordArchiver(
@@ -412,47 +873,17 @@ class DefaultDiscordArchiver(
         val workDir = storageDir.resolve("archive-$archiveNumber")
         val archivePath = workDir.resolve("generated-archive.zip")
 
-        @Suppress("BlockingMethodInNonBlockingContext")
         withContext(Dispatchers.IO) {
             workDir.createDirectory()
 
             zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
-                coroutineScope {
-                    val globalDataChannel = Channel<ArchiveGlobalData>(capacity = 100)
+                val archiveBasePath = zipFs.getPath("archive").createDirectory()
 
-                    launch {
-                        receiveGlobalData(
-                            dataChannel = globalDataChannel,
-                            guild = guild,
-                            outPath = zipFs.getPath("global_data.json"),
-                        )
-                    }
-
-                    try {
-                        coroutineScope {
-                            for (channelId in channelIds) {
-                                val channel = guild.getTextChannelById(channelId)
-
-                                requireNotNull(channel) {
-                                    "Invalid channel id: $channelId"
-                                }
-
-                                launch {
-                                    val outDir = zipFs.getPath(channelId)
-                                    outDir.createDirectory()
-
-                                    archiveChannel(
-                                        channel = channel,
-                                        globalDataChannel = globalDataChannel,
-                                        basePath = outDir,
-                                    )
-                                }
-                            }
-                        }
-                    } finally {
-                        globalDataChannel.close()
-                    }
-                }
+                archiveChannels(
+                    guild = guild,
+                    archiveBasePath = archiveBasePath,
+                    channelIds = channelIds,
+                )
             }
         }
 

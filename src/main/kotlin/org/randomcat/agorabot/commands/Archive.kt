@@ -1,8 +1,12 @@
 package org.randomcat.agorabot.commands
 
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.channel.concrete.Category
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
 import net.dv8tion.jda.api.utils.FileUpload
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
@@ -40,6 +44,29 @@ private fun formatCurrentDate(): String {
     return DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC).format(Instant.now())
 }
 
+private sealed interface RecursiveChannelsResult {
+    data class Success(val channels: ImmutableList<GuildChannel>) : RecursiveChannelsResult
+    data class NotFound(val channelId: String) : RecursiveChannelsResult
+}
+
+private fun recursiveChannels(guild: Guild, channelIds: Set<String>): RecursiveChannelsResult {
+    val out = mutableListOf<GuildChannel>()
+
+    for (channelId in channelIds) {
+        val channel = guild.getGuildChannelById(channelId) ?: return RecursiveChannelsResult.NotFound(channelId)
+        out.add(channel)
+
+        if (channel is Category) {
+            when (val subResult = recursiveChannels(guild, channel.channels.map { it.id }.toSet())) {
+                is RecursiveChannelsResult.Success -> out.addAll(subResult.channels)
+                is RecursiveChannelsResult.NotFound -> return subResult
+            }
+        }
+    }
+
+    return RecursiveChannelsResult.Success(out.distinctBy { it.id }.toImmutableList())
+}
+
 class ArchiveCommand(
     strategy: BaseCommandStrategy,
     private val archiver: DiscordArchiver,
@@ -55,33 +82,35 @@ class ArchiveCommand(
                 .requires(InGuild)
                 .permissions(ARCHIVE_PERMISSION) cmd@{ (args) ->
                     val isStoreLocally = args.contains("store_locally")
-                    val isCategoryIds = args.contains("categories")
+                    val isAll = args.contains("all")
 
-                    val rawIds = args - listOf("store_locally", "categories")
+                    val rawIds = args - listOf("store_locally", "all")
 
                     if (isStoreLocally && !senderHasPermission(BotScope.admin())) {
                         respond("Archives can only be stored locally by bot admins.")
                         return@cmd
                     }
 
-                    val channelIds = if (isCategoryIds) {
-                        val categories =
-                            rawIds.mapNotNull { id ->
-                                currentGuild.getCategoryById(id).also {
-                                    if (it == null) {
-                                        respond("Unable to find category by id $it")
-                                        return@cmd
-                                    }
-                                }
-                            }
+                    if (rawIds.isEmpty() && !isAll) {
+                        respond("Must provide IDs or \"all\".")
+                        return@cmd
+                    }
 
-                        categories.flatMap { it.textChannels }.map { it.id }
+                    val channels = if (isAll) {
+                        currentGuild.channels
                     } else {
-                        rawIds
+                        when (val channelResult = recursiveChannels(currentGuild, channelIds = rawIds.toSet())) {
+                            is RecursiveChannelsResult.Success -> channelResult.channels
+
+                            is RecursiveChannelsResult.NotFound -> {
+                                respond("Unknown channel ID: ${channelResult.channelId}")
+                                return@cmd
+                            }
+                        }
                     }
 
                     doArchive(
-                        channelIds = channelIds.distinct(),
+                        channels = channels.distinctBy { it.id },
                         storeArchiveResult = { path ->
                             if (isStoreLocally) {
                                 withContext(Dispatchers.IO) {
@@ -91,7 +120,7 @@ class ArchiveCommand(
                                 }
                             } else {
                                 currentChannel
-                                    .sendMessage("Archive for channels $channelIds")
+                                    .sendMessage("Archive for channels ${channels.map { it.id }}")
                                     .setFiles(
                                         FileUpload.fromData(
                                             path,
@@ -107,31 +136,22 @@ class ArchiveCommand(
     }
 
     private suspend fun BaseCommandExecutionReceiverGuilded.doArchive(
-        channelIds: List<String>,
+        channels: List<GuildChannel>,
         storeArchiveResult: suspend BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
     ) {
         val member = currentMessageEvent.member ?: error("Member should exist because this is in a Guild")
 
-        val distinctChannelIds = channelIds.toSet()
-
-        for (channelId in channelIds) {
-            val channel = currentGuild.getTextChannelById(channelId)
-
-            if (channel == null) {
-                respond("The channel id $channelId does not exist.")
-                return
-            }
-
+        for (channel in channels) {
             if (
                 !member.hasPermission(channel, DiscordPermission.VIEW_CHANNEL) ||
                 !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
             ) {
-                respond("You do not have permission to read in the channel <#$channelId>.")
+                respond("You do not have permission to read in the channel <#${channel.id}>.")
                 return
             }
         }
 
-        val channelNamesString = channelIds.joinToString(", ") { "<#$it>" }
+        val channelNamesString = channels.joinToString(", ") { "<#${it.id}>" }
 
         val statusMessage =
             currentChannel.sendMessage("Running archive job for channels $channelNamesString...").await()
@@ -151,7 +171,7 @@ class ArchiveCommand(
                     storeArchiveResult(
                         archiver.createArchiveFrom(
                             guild = currentGuild,
-                            channelIds = distinctChannelIds,
+                            channelIds = channels.map { it.id }.toSet(),
                         ),
                     )
 
