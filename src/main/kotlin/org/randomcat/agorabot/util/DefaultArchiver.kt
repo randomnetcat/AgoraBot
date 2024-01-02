@@ -634,11 +634,20 @@ private suspend fun archiveChannel(
             launch(Dispatchers.Default) {
                 val threadChannels = buildList<ThreadChannel> {
                     addAll(channel.threadChannels)
-                    addAll(channel.retrieveArchivedPublicThreadChannels().await())
-                    addAll(channel.retrieveArchivedPrivateJoinedThreadChannels().await())
 
                     try {
-                        // We may not be able to retrieve private thread channels we have not joined.
+                        addAll(channel.retrieveArchivedPublicThreadChannels().await())
+                    } catch (e: Exception) {
+                        logger.warn("Failed to retrieve archived public thread channels: " + e.stackTraceToString())
+                    }
+
+                    try {
+                        addAll(channel.retrieveArchivedPrivateJoinedThreadChannels().await())
+                    } catch (e: Exception) {
+                        logger.warn("Failed to retrieve archived joined private thread channels: " + e.stackTraceToString())
+                    }
+
+                    try {
                         addAll(channel.retrieveArchivedPrivateThreadChannels().await())
                     } catch (e: Exception) {
                         logger.warn("Failed to retrieve private thread channels: " + e.stackTraceToString())
