@@ -176,7 +176,7 @@ private suspend fun receiveReactions(
         generator.writeKey("messages")
         generator.writeStartObject()
 
-        withContext(Dispatchers.IO) {
+        coroutineScope {
             withChannel<Pair<String, JsonObject>>(
                 capacity = 100,
                 send = { resultChannel ->
@@ -211,16 +211,18 @@ private suspend fun receiveReactions(
                     }
                 },
                 receive = { resultChannel ->
-                    var count = 0L
+                    withContext(Dispatchers.IO) {
+                        var count = 0L
 
-                    for (result in resultChannel) {
-                        ++count
+                        for (result in resultChannel) {
+                            ++count
 
-                        if (count % 100L == 0L) {
-                            logger.info("Receiving reactions for channel $channelId: writing message $count")
+                            if (count % 100L == 0L) {
+                                logger.info("Receiving reactions for channel $channelId: writing message $count")
+                            }
+
+                            generator.write(result.first, result.second)
                         }
-
-                        generator.write(result.first, result.second)
                     }
                 },
             )
@@ -569,7 +571,7 @@ private suspend fun archiveChannel(
 
     coroutineScope {
         if (channel is MessageChannel) {
-            launch(Dispatchers.IO) {
+            launch {
                 withChannel<PendingAttachmentDownload>(
                     capacity = 100,
                     send = { attachmentChannel ->
@@ -588,7 +590,9 @@ private suspend fun archiveChannel(
                                                 withChannel<DiscordMessage>(
                                                     capacity = 100,
                                                     send = { messageChannel ->
-                                                        channel.sendForwardHistoryTo(messageChannel)
+                                                        withContext(Dispatchers.IO) {
+                                                            channel.sendForwardHistoryTo(messageChannel)
+                                                        }
                                                     },
                                                     receive = { messageChannel ->
                                                         logger.info("Receiving messages for channel $channelId")
@@ -647,7 +651,7 @@ private suspend fun archiveChannel(
         }
 
         if (channel is IThreadContainer) {
-            launch(Dispatchers.Default) {
+            launch {
                 val threadChannels = buildList<ThreadChannel> {
                     addAll(channel.threadChannels)
 
@@ -902,7 +906,7 @@ class DefaultDiscordArchiver(
         val workDir = storageDir.resolve("archive-$archiveNumber")
         val archivePath = workDir.resolve("generated-archive.zip")
 
-        withContext(Dispatchers.IO) {
+        coroutineScope {
             workDir.createDirectory()
 
             zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
