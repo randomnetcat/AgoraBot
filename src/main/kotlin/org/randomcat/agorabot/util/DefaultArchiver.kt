@@ -607,6 +607,11 @@ private suspend fun archiveChannel(
                                                             jsonOut = jsonOut,
                                                         )
 
+                                                        attachmentChannel.close()
+                                                        reactionChannel.close()
+
+                                                        // Do NOT close globalDataChannel, since it's an argument
+
                                                         logger.info("Finished receiving messages for channel $channelId")
                                                     }
                                                 )
