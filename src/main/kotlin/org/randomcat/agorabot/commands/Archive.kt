@@ -5,9 +5,11 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.concrete.Category
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
 import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
 import org.randomcat.agorabot.commands.base.requirements.discord.currentChannel
@@ -153,8 +155,18 @@ class ArchiveCommand(
 
         val channelNamesString = channels.joinToString(", ") { "<#${it.id}>" }
 
-        val statusMessage =
-            currentChannel.sendMessage("Running archive job for channels $channelNamesString...").await()
+        val statusParts = SplitUtil.split(
+            "Running archive job for channels $channelNamesString...",
+            Message.MAX_CONTENT_LENGTH,
+            true,
+            SplitUtil.Strategy.onChar(',')
+        )
+
+        val statusMessage = currentChannel.sendMessage(statusParts.first()).await()
+
+        for (part in statusParts.drop(1)) {
+            currentChannel.sendMessage(part).await()
+        }
 
         fun markFailed() {
             statusMessage.editMessage("Archive job failed!").queue()
@@ -175,7 +187,13 @@ class ArchiveCommand(
                         ),
                     )
 
-                    statusMessage.editMessage("Archive done for channels $channelNamesString.").await()
+                    // Always replace start with a shorter string so that length cannot be an issue
+                    statusMessage.editMessage(
+                        statusMessage.contentRaw.replace(
+                            "Running archive job",
+                            "Finished archive"
+                        ).replace("...", "!")
+                    ).await()
                 } catch (t: Throwable) {
                     markFailedWith(t)
                 }
