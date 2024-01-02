@@ -174,39 +174,51 @@ private suspend fun receiveReactions(
         generator.writeStartObject()
 
         withContext(Dispatchers.IO) {
-            for (reactionInfo in reactionChannel) {
-                logger.info("Handling reactions for message ${reactionInfo.messageId}")
+            withChannel<Pair<String, JsonObject>>(
+                capacity = 100,
+                send = { resultChannel ->
+                    coroutineScope {
+                        for (reactionInfo in reactionChannel) {
+                            launch {
+                                logger.info("Retrieving reaction users for message ${reactionInfo.messageId}")
 
-                generator.writeKey(reactionInfo.messageId)
-                generator.writeStartObject()
+                                val reactions = reactionInfo.reactions
+                                val reactionUsers =
+                                    reactions.map { it.retrieveUsers().submit().asDeferred() }.awaitAll()
 
-                generator.writeKey("reactions")
-                generator.writeStartArray()
+                                logger.info("Retrieved reaction users for message ${reactionInfo.messageId}")
 
-                val reactions = reactionInfo.reactions
-                val reactionUsers = reactions.map { it.retrieveUsers().submit().asDeferred() }.awaitAll()
+                                launch {
+                                    resultChannel.send(reactionInfo.messageId to buildJsonObject {
+                                        add("reactions", buildJsonArray {
+                                            for ((emoji, users) in (reactions zip reactionUsers)) {
+                                                add(buildJsonObject {
+                                                    add("emoji", emoji.emoji.asReactionCode)
+                                                    add("user_count", users.size)
+                                                    add("users", users.mapToJsonArray { it.id })
+                                                })
+                                            }
+                                        })
+                                    })
+                                }
 
-                for ((emoji, users) in (reactions zip reactionUsers)) {
-                    generator.writeStartObject()
-
-                    generator.write("emoji", emoji.emoji.asReactionCode)
-                    generator.write("user_count", users.size)
-
-                    generator.writeKey("users")
-                    generator.writeStartArray()
-
-                    for (user in users) {
-                        generator.write(user.id)
-                        globalDataChannel.send(ArchiveGlobalData.ReferencedUser(id = user.id))
+                                launch {
+                                    for (user in reactionUsers.asSequence().flatten()) {
+                                        globalDataChannel.send(ArchiveGlobalData.ReferencedUser(id = user.id))
+                                    }
+                                }
+                            }
+                        }
                     }
-
-                    generator.writeEnd()
-                    generator.writeEnd()
-                }
-
-                generator.writeEnd()
-                generator.writeEnd()
-            }
+                },
+                receive = { resultChannel ->
+                    for (result in resultChannel) {
+                        logger.info("Writing reaction result for message ${result.first}")
+                        generator.write(result.first, result.second)
+                        logger.info("Wrote reaction result for message ${result.first}")
+                    }
+                },
+            )
         }
 
         generator.writeEnd()
@@ -548,7 +560,7 @@ private suspend fun archiveChannel(
     coroutineScope {
         launch(Dispatchers.IO) {
             withChannel<PendingAttachmentDownload>(
-                capacity = 10,
+                capacity = 100,
                 send = { attachmentChannel ->
                     withChannel<PendingReactionInfo>(
                         capacity = 100,
