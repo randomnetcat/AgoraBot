@@ -56,28 +56,45 @@ class ArchiveCommand(
                 .permissions(ARCHIVE_PERMISSION) cmd@{ (args) ->
                     val isStoreLocally = args.contains("store_locally")
                     val isCategoryIds = args.contains("categories")
+                    val isAll = args.contains("all")
 
-                    val rawIds = args - listOf("store_locally", "categories")
+                    val rawIds = args - listOf("store_locally", "categories", "all")
 
                     if (isStoreLocally && !senderHasPermission(BotScope.admin())) {
                         respond("Archives can only be stored locally by bot admins.")
                         return@cmd
                     }
 
-                    val channelIds = if (isCategoryIds) {
-                        val categories =
-                            rawIds.mapNotNull { id ->
-                                currentGuild.getCategoryById(id).also {
-                                    if (it == null) {
-                                        respond("Unable to find category by id $it")
-                                        return@cmd
+                    if (isAll && isCategoryIds) {
+                        respond("Cannot have both all and categories flags.")
+                        return@cmd
+                    }
+
+                    if (rawIds.isEmpty() && !isAll) {
+                        respond("Must provide IDs or \"all\".")
+                        return@cmd
+                    }
+
+                    val channelIds = when {
+                        isAll -> {
+                            currentGuild.channels.map { it.id }
+                        }
+
+                        isCategoryIds -> {
+                            val categories =
+                                rawIds.mapNotNull { id ->
+                                    currentGuild.getCategoryById(id).also {
+                                        if (it == null) {
+                                            respond("Unable to find category by id $it")
+                                            return@cmd
+                                        }
                                     }
                                 }
-                            }
 
-                        categories.flatMap { it.textChannels }.map { it.id }
-                    } else {
-                        rawIds
+                            categories.flatMap { it.textChannels }.map { it.id }
+                        }
+
+                        else -> rawIds
                     }
 
                     doArchive(
@@ -115,7 +132,7 @@ class ArchiveCommand(
         val distinctChannelIds = channelIds.toSet()
 
         for (channelId in channelIds) {
-            val channel = currentGuild.getTextChannelById(channelId)
+            val channel = currentGuild.getGuildChannelById(channelId)
 
             if (channel == null) {
                 respond("The channel id $channelId does not exist.")
