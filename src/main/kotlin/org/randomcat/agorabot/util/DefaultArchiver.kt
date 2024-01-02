@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.entities.MessageReaction
 import net.dv8tion.jda.api.entities.channel.attribute.*
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.interactions.components.Component
 import org.randomcat.agorabot.commands.DiscordArchiver
@@ -547,7 +548,7 @@ private sealed class ArchiveGlobalData {
 }
 
 private suspend fun archiveChannel(
-    channel: MessageChannel,
+    channel: GuildChannel,
     globalDataChannel: SendChannel<ArchiveGlobalData>,
     basePath: Path,
 ) {
@@ -558,79 +559,81 @@ private suspend fun archiveChannel(
     globalDataChannel.send(ArchiveGlobalData.ReferencedChannel(channelId))
 
     coroutineScope {
-        launch(Dispatchers.IO) {
-            withChannel<PendingAttachmentDownload>(
-                capacity = 100,
-                send = { attachmentChannel ->
-                    withChannel<PendingReactionInfo>(
-                        capacity = 100,
-                        send = { reactionChannel ->
-                            val textPath = basePath.resolve("messages.txt")
-                            val jsonPath = basePath.resolve("messages.json")
+        if (channel is MessageChannel) {
+            launch(Dispatchers.IO) {
+                withChannel<PendingAttachmentDownload>(
+                    capacity = 100,
+                    send = { attachmentChannel ->
+                        withChannel<PendingReactionInfo>(
+                            capacity = 100,
+                            send = { reactionChannel ->
+                                val textPath = basePath.resolve("messages.txt")
+                                val jsonPath = basePath.resolve("messages.json")
 
-                            textPath
-                                .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
-                                .use { textOut ->
-                                    jsonPath
-                                        .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
-                                        .use { jsonOut ->
-                                            withChannel<DiscordMessage>(
-                                                capacity = 100,
-                                                send = { messageChannel ->
-                                                    channel.sendForwardHistoryTo(messageChannel)
-                                                },
-                                                receive = { messageChannel ->
-                                                    logger.info("Receiving messages for channel $channelId")
+                                textPath
+                                    .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                    .use { textOut ->
+                                        jsonPath
+                                            .bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                            .use { jsonOut ->
+                                                withChannel<DiscordMessage>(
+                                                    capacity = 100,
+                                                    send = { messageChannel ->
+                                                        channel.sendForwardHistoryTo(messageChannel)
+                                                    },
+                                                    receive = { messageChannel ->
+                                                        logger.info("Receiving messages for channel $channelId")
 
-                                                    receiveMessages(
-                                                        channelId = channelId,
-                                                        messageChannel = messageChannel,
-                                                        attachmentChannel = attachmentChannel,
-                                                        reactionChannel = reactionChannel,
-                                                        globalDataChannel = globalDataChannel,
-                                                        textOut = textOut,
-                                                        jsonOut = jsonOut,
-                                                    )
+                                                        receiveMessages(
+                                                            channelId = channelId,
+                                                            messageChannel = messageChannel,
+                                                            attachmentChannel = attachmentChannel,
+                                                            reactionChannel = reactionChannel,
+                                                            globalDataChannel = globalDataChannel,
+                                                            textOut = textOut,
+                                                            jsonOut = jsonOut,
+                                                        )
 
-                                                    logger.info("Finished receiving messages for channel $channelId")
-                                                }
-                                            )
-                                        }
-                                }
-                        },
-                        receive = { reactionChannel ->
-                            val reactionsPath = basePath.resolve("reactions.json")
+                                                        logger.info("Finished receiving messages for channel $channelId")
+                                                    }
+                                                )
+                                            }
+                                    }
+                            },
+                            receive = { reactionChannel ->
+                                val reactionsPath = basePath.resolve("reactions.json")
 
-                            reactionsPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
-                                .use { reactionOut ->
-                                    logger.info("Receiving reactions for channel $channelId")
+                                reactionsPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
+                                    .use { reactionOut ->
+                                        logger.info("Receiving reactions for channel $channelId")
 
-                                    receiveReactions(
-                                        reactionChannel = reactionChannel,
-                                        globalDataChannel = globalDataChannel,
-                                        reactionOut = reactionOut,
-                                    )
+                                        receiveReactions(
+                                            reactionChannel = reactionChannel,
+                                            globalDataChannel = globalDataChannel,
+                                            reactionOut = reactionOut,
+                                        )
 
-                                    logger.info("Finished receiving reactions for channel $channelId")
-                                }
-                        },
-                    )
-                },
-                receive = { attachmentChannel ->
-                    val attachmentsDir = basePath.resolve("attachments")
-                    attachmentsDir.createDirectory()
+                                        logger.info("Finished receiving reactions for channel $channelId")
+                                    }
+                            },
+                        )
+                    },
+                    receive = { attachmentChannel ->
+                        val attachmentsDir = basePath.resolve("attachments")
+                        attachmentsDir.createDirectory()
 
-                    logger.info("Receiving attachments for channel $channelId")
+                        logger.info("Receiving attachments for channel $channelId")
 
-                    receivePendingDownloads(
-                        channelId = channelId,
-                        attachmentChannel = attachmentChannel,
-                        attachmentsDir = attachmentsDir,
-                    )
+                        receivePendingDownloads(
+                            channelId = channelId,
+                            attachmentChannel = attachmentChannel,
+                            attachmentsDir = attachmentsDir,
+                        )
 
-                    logger.info("Finished receiving attachments for channel $channelId")
-                }
-            )
+                        logger.info("Finished receiving attachments for channel $channelId")
+                    }
+                )
+            }
         }
 
         if (channel is IThreadContainer) {
@@ -825,7 +828,7 @@ private suspend fun archiveChannels(
 
             coroutineScope {
                 for (channelId in channelIds) {
-                    val channel = guild.getTextChannelById(channelId)
+                    val channel = guild.getGuildChannelById(channelId)
 
                     requireNotNull(channel) {
                         "Invalid channel id: $channelId"
