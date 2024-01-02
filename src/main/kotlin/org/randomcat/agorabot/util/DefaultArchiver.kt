@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel
 import net.dv8tion.jda.api.interactions.components.Component
 import org.randomcat.agorabot.commands.DiscordArchiver
 import org.slf4j.LoggerFactory
@@ -734,6 +735,10 @@ private suspend fun receiveGlobalData(
 
                             if (channel is IPositionableChannel) {
                                 add("position", channel.position)
+                            }
+
+                            if (channel is StandardGuildMessageChannel) {
+                                channel.topic?.let { add("topic", it) }
                             }
 
                             if (channel is IPostContainer) {
