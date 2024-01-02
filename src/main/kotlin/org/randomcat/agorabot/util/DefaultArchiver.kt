@@ -549,7 +549,7 @@ private suspend fun receiveMessages(
         jsonGenerator.writeEndMessages()
     }
 
-    logger.info("Finished processing message for channel $channelId: $messageCount messages, of which $messageWithReactionCount had reactions to be processed")
+    logger.info("Finished processing messages for channel $channelId: $messageCount messages, of which $messageWithReactionCount had reactions to be processed")
 }
 
 private sealed class ArchiveGlobalData {
