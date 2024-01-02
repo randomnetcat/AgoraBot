@@ -181,13 +181,9 @@ private suspend fun receiveReactions(
                     coroutineScope {
                         for (reactionInfo in reactionChannel) {
                             launch {
-                                logger.info("Retrieving reaction users for message ${reactionInfo.messageId}")
-
                                 val reactions = reactionInfo.reactions
                                 val reactionUsers =
                                     reactions.map { it.retrieveUsers().submit().asDeferred() }.awaitAll()
-
-                                logger.info("Retrieved reaction users for message ${reactionInfo.messageId}")
 
                                 launch {
                                     resultChannel.send(reactionInfo.messageId to buildJsonObject {
@@ -214,9 +210,7 @@ private suspend fun receiveReactions(
                 },
                 receive = { resultChannel ->
                     for (result in resultChannel) {
-                        logger.info("Writing reaction result for message ${result.first}")
                         generator.write(result.first, result.second)
-                        logger.info("Wrote reaction result for message ${result.first}")
                     }
                 },
             )
