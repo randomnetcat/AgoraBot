@@ -151,15 +151,24 @@ private suspend fun receivePendingDownloads(
                 val attachmentDir = attachmentsDir.resolve("attachment-$number")
                 attachmentDir.createDirectory()
 
-                val outPath = attachmentDir.resolve(fileName)
+                try {
+                    val outPath = attachmentDir.resolve(fileName)
 
-                logger.info("Downloading channel $channelId attachment $number: $fileName")
+                    logger.info("Downloading channel $channelId attachment $number; name: $fileName; url: ${pendingDownload.attachment.url}")
 
-                outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
-                    writeAttachmentContentTo(pendingDownload.attachment, outStream)
+                    outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
+                        writeAttachmentContentTo(pendingDownload.attachment, outStream)
+                    }
+
+                    logger.info("Finished downloading channel $channelId attachment $number")
+                } catch (e: Exception) {
+                    logger.error(
+                        "Error downloading channel $channelId attachment $number; name: $fileName; url: ${pendingDownload.attachment.url}",
+                        e,
+                    )
+
+                    attachmentDir.resolve("ERROR.txt").writeText(e.stackTraceToString())
                 }
-
-                logger.info("Finished downloading channel $channelId attachment $number")
             }
         }
     }
