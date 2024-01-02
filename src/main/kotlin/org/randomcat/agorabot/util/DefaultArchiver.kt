@@ -41,8 +41,8 @@ private val logger = LoggerFactory.getLogger("DefaultArchiver")
 
 private suspend fun <T> withChannel(
     capacity: Int,
-    send: suspend (SendChannel<T>) -> Unit,
-    receive: suspend (ReceiveChannel<T>) -> Unit,
+    send: suspend CoroutineScope.(SendChannel<T>) -> Unit,
+    receive: suspend CoroutineScope.(ReceiveChannel<T>) -> Unit,
 ) {
     val channel = Channel<T>(capacity = capacity)
 
