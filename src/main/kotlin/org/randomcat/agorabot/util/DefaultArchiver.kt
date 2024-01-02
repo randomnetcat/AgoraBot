@@ -136,6 +136,7 @@ private suspend fun writeAttachmentContentTo(attachment: Message.Attachment, out
 }
 
 private suspend fun receivePendingDownloads(
+    channelId: String,
     attachmentChannel: ReceiveChannel<PendingAttachmentDownload>,
     attachmentsDir: Path,
 ) {
@@ -150,9 +151,13 @@ private suspend fun receivePendingDownloads(
 
                 val outPath = attachmentDir.resolve(fileName)
 
+                logger.info("Downloading channel $channelId attachment $number: $fileName")
+
                 outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
                     writeAttachmentContentTo(pendingDownload.attachment, outStream)
                 }
+
+                logger.info("Finished downloading channel $channelId attachment $number")
             }
         }
     }
@@ -170,6 +175,8 @@ private suspend fun receiveReactions(
 
         withContext(Dispatchers.IO) {
             for (reactionInfo in reactionChannel) {
+                logger.info("Handling reactions for message ${reactionInfo.messageId}")
+
                 generator.writeKey(reactionInfo.messageId)
                 generator.writeStartObject()
 
@@ -561,6 +568,8 @@ private suspend fun archiveChannel(
                                                     channel.sendForwardHistoryTo(messageChannel)
                                                 },
                                                 receive = { messageChannel ->
+                                                    logger.info("Receiving messages for channel $channelId")
+
                                                     receiveMessages(
                                                         channelId = channelId,
                                                         messageChannel = messageChannel,
@@ -570,6 +579,8 @@ private suspend fun archiveChannel(
                                                         textOut = textOut,
                                                         jsonOut = jsonOut,
                                                     )
+
+                                                    logger.info("Finished receiving messages for channel $channelId")
                                                 }
                                             )
                                         }
@@ -580,11 +591,15 @@ private suspend fun archiveChannel(
 
                             reactionsPath.bufferedWriter(options = arrayOf(StandardOpenOption.CREATE_NEW))
                                 .use { reactionOut ->
+                                    logger.info("Receiving reactions for channel $channelId")
+
                                     receiveReactions(
                                         reactionChannel = reactionChannel,
                                         globalDataChannel = globalDataChannel,
                                         reactionOut = reactionOut,
                                     )
+
+                                    logger.info("Finished receiving reactions for channel $channelId")
                                 }
                         },
                     )
@@ -593,10 +608,15 @@ private suspend fun archiveChannel(
                     val attachmentsDir = basePath.resolve("attachments")
                     attachmentsDir.createDirectory()
 
+                    logger.info("Receiving attachments for channel $channelId")
+
                     receivePendingDownloads(
+                        channelId = channelId,
                         attachmentChannel = attachmentChannel,
                         attachmentsDir = attachmentsDir,
                     )
+
+                    logger.info("Finished receiving attachments for channel $channelId")
                 }
             )
         }
