@@ -12,10 +12,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.future.await
-import net.dv8tion.jda.api.entities.Guild
-import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.entities.MessageReaction
+import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.channel.attribute.*
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag
@@ -28,8 +25,10 @@ import org.slf4j.LoggerFactory
 import java.io.OutputStream
 import java.io.Writer
 import java.math.BigInteger
+import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
@@ -566,6 +565,9 @@ private sealed class ArchiveGlobalData {
     data class ReferencedUser(val id: String) : ArchiveGlobalData()
     data class ReferencedRole(val id: String) : ArchiveGlobalData()
     data class ReferencedChannel(val id: String) : ArchiveGlobalData()
+
+    data class StartTime(val startInstant: Instant) : ArchiveGlobalData()
+    data class EndTime(val endInstant: Instant) : ArchiveGlobalData()
 }
 
 private suspend fun archiveChannel(
@@ -717,6 +719,18 @@ private suspend fun archiveChannel(
     logger.info("Finished archive of channel $channelId")
 }
 
+private inline fun <R> usePathGenerator(
+    path: Path,
+    options: Array<OpenOption> = arrayOf(StandardOpenOption.CREATE_NEW),
+    block: (JsonGenerator) -> R,
+): R {
+    return path.bufferedWriter(options = options).use { writer ->
+        Json.createGenerator(writer).use { generator ->
+            block(generator)
+        }
+    }
+}
+
 private fun forumTagData(it: ForumTag) = buildJsonObject {
     add("id", it.id)
     add("name", it.name)
@@ -725,65 +739,94 @@ private fun forumTagData(it: ForumTag) = buildJsonObject {
     it.emoji?.asReactionCode?.let { add("emoji", it) }
 }
 
-private suspend fun receiveGlobalData(
+private fun channelMetadataJson(channel: GuildChannel) = buildJsonObject {
+    add("id", channel.id)
+    add("name", channel.name)
+    add("type", channel.type.name)
+    add("instant_created", DateTimeFormatter.ISO_INSTANT.format(channel.timeCreated))
+
+    if (channel is IAgeRestrictedChannel) {
+        add("is_nsfw", channel.isNSFW)
+    }
+
+    if (channel is ISlowmodeChannel) {
+        add("slowmode", channel.slowmode)
+    }
+
+    if (channel is IPositionableChannel) {
+        add("position", channel.position)
+    }
+
+    if (channel is StandardGuildMessageChannel) {
+        channel.topic?.let { add("topic", it) }
+    }
+
+    if (channel is IPostContainer) {
+        channel.topic?.let { add("post_topic", it) }
+
+        add("post_tags", channel.availableTags.mapToJsonArray(::forumTagData))
+        channel.defaultReaction?.let { add("post_default_reaction", it.asReactionCode) }
+        add("post_is_tag_required", channel.isTagRequired)
+        add("post_default_sort_order", channel.defaultSortOrder.name)
+    }
+}
+
+
+private fun roleMetadataJson(role: Role) = buildJsonObject {
+    add("id", role.id)
+    add("name", role.name)
+    add("position", role.position)
+    add("is_public_role", role.isPublicRole)
+    add("color", role.colorRaw)
+    add("is_hoisted", role.isHoisted)
+    add("is_managed", role.isManaged)
+}
+
+private suspend fun receiveGlobalDataWithGenerators(
     dataChannel: ReceiveChannel<ArchiveGlobalData>,
     guild: Guild,
-    outPath: Path,
+    channelIds: Set<String>,
+    metadataGenerator: JsonGenerator,
+    usersGenerator: JsonGenerator,
+    rolesGenerator: JsonGenerator,
+    channelsGenerator: JsonGenerator,
 ) {
-    val userObjects = mutableMapOf<String, JsonObject?>()
-    val roleObjects = mutableMapOf<String, JsonObject?>()
-    val channelObjects = mutableMapOf<String, JsonObject?>()
+    val generatorKeys = listOf(usersGenerator to "users", rolesGenerator to "roles", channelsGenerator to "channels")
+
+    withContext(Dispatchers.IO) {
+        for ((generator, key) in generatorKeys) {
+            generator.writeStartObject()
+            generator.writeKey(key)
+            generator.writeStartObject()
+        }
+    }
+
+    val metadataObject = Json.createObjectBuilder()
+    metadataObject.add("guild_id", guild.id)
+    metadataObject.add("channel_ids", channelIds.sorted().mapToJsonArray { it })
+
+    val seenUserIds = mutableSetOf<String>()
+    val seenRoleIds = mutableSetOf<String>()
+    val seenChannelIds = mutableSetOf<String>()
 
     for (data in dataChannel) {
         when (data) {
             is ArchiveGlobalData.ReferencedChannel -> {
-                channelObjects.computeIfAbsent(data.id) { id ->
-                    guild.getGuildChannelById(id)?.let { channel ->
-                        buildJsonObject {
-                            add("name", channel.name)
-                            add("type", channel.type.name)
-                            add("instant_created", DateTimeFormatter.ISO_INSTANT.format(channel.timeCreated))
+                if (seenChannelIds.add(data.id)) {
+                    val channel = guild.getGuildChannelById(data.id)
 
-                            if (channel is IAgeRestrictedChannel) {
-                                add("is_nsfw", channel.isNSFW)
-                            }
-
-                            if (channel is ISlowmodeChannel) {
-                                add("slowmode", channel.slowmode)
-                            }
-
-                            if (channel is IPositionableChannel) {
-                                add("position", channel.position)
-                            }
-
-                            if (channel is StandardGuildMessageChannel) {
-                                channel.topic?.let { add("topic", it) }
-                            }
-
-                            if (channel is IPostContainer) {
-                                channel.topic?.let { add("post_topic", it) }
-
-                                add("post_tags", channel.availableTags.mapToJsonArray(::forumTagData))
-                                channel.defaultReaction?.let { add("post_default_reaction", it.asReactionCode) }
-                                add("post_is_tag_required", channel.isTagRequired)
-                                add("post_default_sort_order", channel.defaultSortOrder.name)
-                            }
-                        }
+                    if (channel != null) {
+                        channelsGenerator.write(data.id, channelMetadataJson(channel))
                     }
                 }
             }
 
             is ArchiveGlobalData.ReferencedRole -> {
-                roleObjects.computeIfAbsent(data.id) { id ->
-                    guild.getRoleById(id)?.let { role ->
-                        buildJsonObject {
-                            add("name", role.name)
-                            add("position", role.position)
-                            add("is_public_role", role.isPublicRole)
-                            add("color", role.colorRaw)
-                            add("is_hoisted", role.isHoisted)
-                            add("is_managed", role.isManaged)
-                        }
+                if (seenRoleIds.add(data.id)) {
+                    val role = guild.getRoleById(data.id)
+
+                    if (role != null) {
+                        rolesGenerator.write(data.id, roleMetadataJson(role))
                     }
                 }
             }
@@ -791,66 +834,83 @@ private suspend fun receiveGlobalData(
             is ArchiveGlobalData.ReferencedUser -> {
                 val id = data.id
 
-                // Have to suspend in the body, so computeIfAbsent is not usable
-                userObjects.getOrPut(id) {
+                if (seenUserIds.add(id)) {
                     val member = runCatching { guild.retrieveMemberById(id).await() }.getOrNull()
                     val nickname = member?.nickname
                     val user =
                         member?.user
                             ?: runCatching { guild.jda.retrieveUserById(id).await() }.getOrNull()
-                            ?: return@getOrPut null
 
-                    buildJsonObject {
-                        add("username", user.name)
-
-                        val globalName = user.globalName
-                        if (globalName != null) {
-                            add("global_name", globalName)
-                        }
-
-                        if (nickname != null) {
-                            add("nickname", nickname)
-                        }
+                    val userJson = buildJsonObject {
+                        add("id", id)
+                        user?.name?.let { add("username", it) }
+                        user?.globalName?.let { add("global_name", it) }
+                        nickname?.let { add("nickname", it) }
                     }
+
+                    usersGenerator.write(data.id, userJson)
                 }
+            }
+
+            is ArchiveGlobalData.StartTime -> {
+                metadataObject.add("start_instant", DateTimeFormatter.ISO_INSTANT.format(data.startInstant))
+            }
+
+            is ArchiveGlobalData.EndTime -> {
+                metadataObject.add("end_instant", DateTimeFormatter.ISO_INSTANT.format(data.endInstant))
             }
         }
     }
 
     withContext(Dispatchers.IO) {
-        outPath.bufferedWriter().use { reader ->
-            // This with close the reader, but that's fine, since close is idempotent
-            Json.createGenerator(reader).use { generator ->
-                with(generator) {
-                    writeStartObject() // start top-level
-                    writeStartObject("users")
+        metadataGenerator.writeStartObject()
+        metadataGenerator.write("metadata", metadataObject.build())
+        metadataGenerator.writeEnd()
 
-                    for ((id, userObject) in userObjects) {
-                        if (userObject != null) {
-                            write(id, userObject)
+        for ((generator, _) in generatorKeys) {
+            generator.writeEnd()
+            generator.writeEnd()
+        }
+    }
+}
+
+private fun writeGuildMetadata(globalDataDir: Path, guild: Guild) {
+    usePathGenerator(globalDataDir.resolve("guild.json")) { guildGenerator ->
+        guildGenerator.writeStartObject()
+        guildGenerator.write("id", guild.id)
+        guildGenerator.write("name", guild.name)
+        guild.description?.let { guildGenerator.write("description", it) }
+        guild.iconUrl?.let { guildGenerator.write("icon_url", it) }
+        guild.bannerUrl?.let { guildGenerator.write("banner_url", it) }
+        guild.splashUrl?.let { guildGenerator.write("splash_url", it) }
+        guildGenerator.writeEnd()
+    }
+}
+
+private suspend fun receiveGlobalData(
+    dataChannel: ReceiveChannel<ArchiveGlobalData>,
+    guild: Guild,
+    channelIds: Set<String>,
+    metadataPath: Path,
+    globalDataDir: Path,
+) {
+    coroutineScope {
+        launch {
+            usePathGenerator(metadataPath) { metadataGenerator ->
+                usePathGenerator(globalDataDir.resolve("users.json")) { usersGenerator ->
+                    usePathGenerator(globalDataDir.resolve("roles.json")) { rolesGenerator ->
+                        usePathGenerator(globalDataDir.resolve("channels.json")) { channelsGenerator ->
+                            receiveGlobalDataWithGenerators(
+                                dataChannel = dataChannel,
+                                guild = guild,
+                                channelIds = channelIds,
+                                metadataGenerator = metadataGenerator,
+                                usersGenerator = usersGenerator,
+                                rolesGenerator = rolesGenerator,
+                                channelsGenerator = channelsGenerator,
+                            )
                         }
                     }
-
-                    writeEnd() // end users
-                    writeStartObject("roles")
-
-                    for ((id, roleObject) in roleObjects) {
-                        if (roleObject != null) {
-                            write(id, roleObject)
-                        }
-                    }
-
-                    writeEnd() // end roles
-                    writeStartObject("channels")
-
-                    for ((id, channelObject) in channelObjects) {
-                        if (channelObject != null) {
-                            write(id, channelObject)
-                        }
-                    }
-
-                    writeEnd() // end channels
-                    writeEnd() // end top-level
                 }
             }
         }
@@ -862,11 +922,20 @@ private suspend fun archiveChannels(
     archiveBasePath: Path,
     channelIds: Set<String>,
 ) {
+    val globalDataDir = archiveBasePath.resolve("global_data").createDirectory()
+
+    writeGuildMetadata(
+        guild = guild,
+        globalDataDir = globalDataDir,
+    )
+
     withChannel<ArchiveGlobalData>(
         capacity = 100,
         send = { globalDataChannel ->
             val channelsDir = archiveBasePath.resolve("channels")
             channelsDir.createDirectory()
+
+            globalDataChannel.send(ArchiveGlobalData.StartTime(Instant.now()))
 
             coroutineScope {
                 for (channelId in channelIds) {
@@ -889,12 +958,16 @@ private suspend fun archiveChannels(
                     }
                 }
             }
+
+            globalDataChannel.send(ArchiveGlobalData.EndTime(Instant.now()))
         },
         receive = { globalDataChannel ->
             receiveGlobalData(
                 dataChannel = globalDataChannel,
                 guild = guild,
-                outPath = archiveBasePath.resolve("global_data.json"),
+                channelIds = channelIds,
+                metadataPath = archiveBasePath.resolve("metadata.json"),
+                globalDataDir = globalDataDir,
             )
         }
     )
