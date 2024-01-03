@@ -996,23 +996,17 @@ class DefaultDiscordArchiver(
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
         val workDir = storageDir.resolve("archive-$archiveNumber")
-        val archivePath = workDir.resolve("generated-archive.zip")
+        val archivePath = workDir.resolve("archive")
 
         coroutineScope {
             workDir.createDirectory()
 
-            zipFileSystemProvider().newFileSystem(archivePath, ZIP_FILE_SYSTEM_CREATE_OPTIONS).use { zipFs ->
-                val archiveBasePath = zipFs.getPath("archive").createDirectory()
-
-                archiveChannels(
-                    guild = guild,
-                    archiveBasePath = archiveBasePath,
-                    channelIds = channelIds,
-                )
-            }
+            archiveChannels(
+                guild = guild,
+                archiveBasePath = archivePath,
+                channelIds = channelIds,
+            )
         }
-
-        check(archivePath.isRegularFile())
 
         return archivePath
     }
