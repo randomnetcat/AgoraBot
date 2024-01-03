@@ -500,6 +500,10 @@ private suspend fun receiveMessages(
                 number
             }
 
+            if (attachmentNumbers.isNotEmpty()) {
+                logger.info("Channel $channelId message ${message.id} has attachments: ${attachmentNumbers.joinToString()}")
+            }
+
             globalDataChannel.send(
                 ArchiveGlobalData.ReferencedUser(
                     id = message.author.id,
@@ -1006,7 +1010,7 @@ class DefaultDiscordArchiver(
             )
         }
 
-        return archivePath
+        return workDir
     }
 
     override val archiveExtension: String?
