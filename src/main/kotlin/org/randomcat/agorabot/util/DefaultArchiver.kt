@@ -877,12 +877,15 @@ private suspend fun receiveGlobalDataWithGenerators(
 private fun writeGuildMetadata(globalDataDir: Path, guild: Guild) {
     usePathGenerator(globalDataDir.resolve("guild.json")) { guildGenerator ->
         guildGenerator.writeStartObject()
+        guildGenerator.writeKey("guild")
+        guildGenerator.writeStartObject()
         guildGenerator.write("id", guild.id)
         guildGenerator.write("name", guild.name)
         guild.description?.let { guildGenerator.write("description", it) }
         guild.iconUrl?.let { guildGenerator.write("icon_url", it) }
         guild.bannerUrl?.let { guildGenerator.write("banner_url", it) }
         guild.splashUrl?.let { guildGenerator.write("splash_url", it) }
+        guildGenerator.writeEnd()
         guildGenerator.writeEnd()
     }
 }
