@@ -995,12 +995,10 @@ class DefaultDiscordArchiver(
     ): Path {
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
-        val workDir = storageDir.resolve("archive-$archiveNumber")
-        val archivePath = workDir.resolve("archive")
+        val workDir = storageDir.resolve("archive-$archiveNumber").createDirectory()
+        val archivePath = workDir.resolve("archive").createDirectory()
 
         coroutineScope {
-            workDir.createDirectory()
-
             archiveChannels(
                 guild = guild,
                 archiveBasePath = archivePath,
