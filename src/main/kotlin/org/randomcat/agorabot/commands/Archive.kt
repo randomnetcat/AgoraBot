@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalPathApi::class)
+
 package org.randomcat.agorabot.commands
 
 import kotlinx.collections.immutable.ImmutableList
@@ -8,7 +10,6 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.concrete.Category
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
-import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.SplitUtil
 import org.randomcat.agorabot.commands.base.*
 import org.randomcat.agorabot.commands.base.requirements.discord.BaseCommandExecutionReceiverGuilded
@@ -28,6 +29,8 @@ import java.nio.file.Path
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.copyToRecursively
 
 private val ARCHIVE_PERMISSION = GuildScope.command("archive")
 
@@ -88,6 +91,11 @@ class ArchiveCommand(
 
                     val rawIds = args - listOf("store_locally", "all")
 
+                    if (!isStoreLocally) {
+                        respond("Uploading archives is currently not supported")
+                        return@cmd
+                    }
+
                     if (isStoreLocally && !senderHasPermission(BotScope.admin())) {
                         respond("Archives can only be stored locally by bot admins.")
                         return@cmd
@@ -117,19 +125,11 @@ class ArchiveCommand(
                             if (isStoreLocally) {
                                 withContext(Dispatchers.IO) {
                                     val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
-                                    Files.copy(path, localStorageDir.resolve(fileName))
-                                    respond("Stored file locally at $fileName")
+                                    path.copyToRecursively(localStorageDir.resolve(fileName), followLinks = false)
+                                    respond("Stored archive locally at $fileName")
                                 }
                             } else {
-                                currentChannel
-                                    .sendMessage("Archive for channels ${channels.map { it.id }}")
-                                    .setFiles(
-                                        FileUpload.fromData(
-                                            path,
-                                            "archive_${formatCurrentDate()}.${archiver.archiveExtension}",
-                                        ),
-                                    )
-                                    .queue()
+                                TODO("uploading not supported")
                             }
                         },
                     )
