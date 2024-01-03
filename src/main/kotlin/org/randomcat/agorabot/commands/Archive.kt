@@ -42,7 +42,11 @@ interface DiscordArchiver {
         channelIds: Set<String>,
     ): Path
 
-    val archiveExtension: String
+    /**
+     * The file extension of the resulting archive format, or null if the archiver produces a directory rather than a
+     * file.
+     */
+    val archiveExtension: String?
 }
 
 private fun formatCurrentDate(): String {
@@ -124,7 +128,14 @@ class ArchiveCommand(
                         storeArchiveResult = { path ->
                             if (isStoreLocally) {
                                 withContext(Dispatchers.IO) {
-                                    val fileName = "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
+                                    val extension = archiver.archiveExtension
+
+                                    val fileName = if (extension != null) {
+                                        "archive_${formatCurrentDate()}.${archiver.archiveExtension}"
+                                    } else {
+                                        "archive_${formatCurrentDate()}"
+                                    }
+
                                     path.copyToRecursively(localStorageDir.resolve(fileName), followLinks = false)
                                     respond("Stored archive locally at $fileName")
                                 }

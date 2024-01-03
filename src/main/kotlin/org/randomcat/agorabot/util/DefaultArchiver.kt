@@ -1011,6 +1011,6 @@ class DefaultDiscordArchiver(
         return archivePath
     }
 
-    override val archiveExtension: String
-        get() = "zip"
+    override val archiveExtension: String?
+        get() = null
 }
