@@ -901,12 +901,16 @@ private suspend fun receiveGlobalData(
     metadataPath: Path,
     globalDataDir: Path,
 ) {
-    coroutineScope {
-        launch {
-            usePathGenerator(metadataPath) { metadataGenerator ->
-                usePathGenerator(globalDataDir.resolve("users.json")) { usersGenerator ->
-                    usePathGenerator(globalDataDir.resolve("roles.json")) { rolesGenerator ->
-                        usePathGenerator(globalDataDir.resolve("channels.json")) { channelsGenerator ->
+    // Here, do all the opening and closing on the I/O dispatcher, so blocking reads/writes don't block on the default
+    // dispatcher, but then return to the default dispatcher for the actual work, which should not be doing much
+    // blocking I/O (and, in any case, receiveGlobalDataWithGenerators can switch dispatchers itself if it needs to).
+
+    withContext(Dispatchers.IO) {
+        usePathGenerator(metadataPath) { metadataGenerator ->
+            usePathGenerator(globalDataDir.resolve("users.json")) { usersGenerator ->
+                usePathGenerator(globalDataDir.resolve("roles.json")) { rolesGenerator ->
+                    usePathGenerator(globalDataDir.resolve("channels.json")) { channelsGenerator ->
+                        withContext(Dispatchers.Default) {
                             receiveGlobalDataWithGenerators(
                                 dataChannel = dataChannel,
                                 guild = guild,
