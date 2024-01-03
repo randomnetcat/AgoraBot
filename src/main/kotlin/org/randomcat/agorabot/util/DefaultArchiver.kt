@@ -152,7 +152,8 @@ private suspend fun receivePendingDownloads(
                 attachmentDir.createDirectory()
 
                 try {
-                    val outPath = attachmentDir.resolve(fileName)
+                    val outPath = attachmentDir.resolve(fileName).normalize()
+                    check(outPath.startsWith(attachmentDir))
 
                     logger.info("Downloading channel $channelId attachment $number; name: $fileName; url: ${pendingDownload.attachment.url}")
 
@@ -876,7 +877,8 @@ private suspend fun archiveChannels(
                     }
 
                     launch {
-                        val outDir = channelsDir.resolve(channelId)
+                        val outDir = channelsDir.resolve(channelId).normalize()
+                        check(outDir.startsWith(channelsDir))
                         outDir.createDirectory()
 
                         archiveChannel(
