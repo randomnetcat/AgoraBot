@@ -163,7 +163,7 @@ private class AgoraBotCommand : CliktCommand() {
     private fun readBotDataPaths(): BotDataPaths {
         return when (dataVersion) {
             1 -> BotDataPaths.Version1(readBotDataStandardPaths())
-            else -> throw PrintMessage("Invalid data version $dataVersion", error = true)
+            else -> throw PrintMessage("Invalid data version $dataVersion", statusCode = 1, printError = true)
         }
     }
 
