@@ -21,6 +21,7 @@ import org.randomcat.agorabot.commands.base.requirements.permissions.permissions
 import org.randomcat.agorabot.commands.base.requirements.permissions.senderHasPermission
 import org.randomcat.agorabot.permissions.BotScope
 import org.randomcat.agorabot.permissions.GuildScope
+import org.randomcat.agorabot.permissions.LogicalOrPermission
 import org.randomcat.agorabot.util.DiscordPermission
 import org.randomcat.agorabot.util.await
 import org.slf4j.LoggerFactory
@@ -32,7 +33,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.copyToRecursively
 
-private val ARCHIVE_PERMISSION = GuildScope.command("archive")
+private val ARCHIVE_PERMISSION = LogicalOrPermission(listOf(GuildScope.command("archive"), BotScope.admin()))
 
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
