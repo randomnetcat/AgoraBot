@@ -624,7 +624,22 @@ private suspend fun archiveChannel(
                                                     capacity = 100,
                                                     send = { messageChannel ->
                                                         withContext(Dispatchers.IO) {
-                                                            channel.sendForwardHistoryTo(messageChannel)
+                                                            try {
+                                                                channel.sendForwardHistoryTo(messageChannel)
+                                                            } catch (e: Exception) {
+                                                                val errorPath = basePath.resolve("ERROR_messages.txt")
+                                                                errorPath.writeText(
+                                                                    e.stackTraceToString(),
+                                                                    options = arrayOf(StandardOpenOption.CREATE_NEW)
+                                                                )
+
+                                                                // Resolve ambiguity on getId
+                                                                val channelSnowflake: ISnowflake = channel
+                                                                logger.error(
+                                                                    "Failed to get messages when archiving channel ${channelSnowflake.id}",
+                                                                    e,
+                                                                )
+                                                            }
                                                         }
                                                     },
                                                     receive = { messageChannel ->
