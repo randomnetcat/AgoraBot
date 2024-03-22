@@ -33,7 +33,9 @@ import java.time.format.DateTimeFormatter
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.copyToRecursively
 
-private val ARCHIVE_PERMISSION = LogicalOrPermission(listOf(GuildScope.command("archive"), BotScope.admin()))
+private val ARCHIVE_PERMISSION = GuildScope.command("archive")
+private val FORCE_PERMISSION = BotScope.admin()
+private val OVERALL_PERMISSION = LogicalOrPermission(listOf(ARCHIVE_PERMISSION, FORCE_PERMISSION))
 
 private val LOGGER = LoggerFactory.getLogger("AgoraBotArchiveCommand")
 
@@ -90,11 +92,12 @@ class ArchiveCommand(
         matchFirst {
             args(RemainingStringArgs("marker_or_id"))
                 .requires(InGuild)
-                .permissions(ARCHIVE_PERMISSION) cmd@{ (args) ->
+                .permissions(OVERALL_PERMISSION) cmd@{ (args) ->
                     val isStoreLocally = args.contains("store_locally")
                     val isAll = args.contains("all")
+                    val isForce = args.contains("force")
 
-                    val rawIds = args - listOf("store_locally", "all")
+                    val rawIds = args - listOf("store_locally", "all", "force")
 
                     if (!isStoreLocally) {
                         respond("Uploading archives is currently not supported")
@@ -104,6 +107,18 @@ class ArchiveCommand(
                     if (isStoreLocally && !senderHasPermission(BotScope.admin())) {
                         respond("Archives can only be stored locally by bot admins.")
                         return@cmd
+                    }
+
+                    if (isForce) {
+                        if (!senderHasPermission(FORCE_PERMISSION)) {
+                            respond("Only a bot admin can forcibly archive a server.")
+                            return@cmd
+                        }
+                    } else {
+                        if (!senderHasPermission(ARCHIVE_PERMISSION)) {
+                            respond("You do not have permission: need $ARCHIVE_PERMISSION")
+                            return@cmd
+                        }
                     }
 
                     if (rawIds.isEmpty() && !isAll) {
@@ -145,6 +160,7 @@ class ArchiveCommand(
                                 TODO("uploading not supported")
                             }
                         },
+                        force = isForce,
                     )
                 }
         }
@@ -153,16 +169,19 @@ class ArchiveCommand(
     private suspend fun BaseCommandExecutionReceiverGuilded.doArchive(
         channels: List<GuildChannel>,
         storeArchiveResult: suspend BaseCommandExecutionReceiverGuilded.(Path) -> Unit,
+        force: Boolean,
     ) {
         val member = currentMessageEvent.member ?: error("Member should exist because this is in a Guild")
 
-        for (channel in channels) {
-            if (
-                !member.hasPermission(channel, DiscordPermission.VIEW_CHANNEL) ||
-                !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
-            ) {
-                respond("You do not have permission to read in the channel <#${channel.id}>.")
-                return
+        if (!force) {
+            for (channel in channels) {
+                if (
+                    !member.hasPermission(channel, DiscordPermission.VIEW_CHANNEL) ||
+                    !member.hasPermission(channel, DiscordPermission.MESSAGE_HISTORY)
+                ) {
+                    respond("You do not have permission to read in the channel <#${channel.id}>.")
+                    return
+                }
             }
         }
 
