@@ -145,7 +145,9 @@ private suspend fun receivePendingDownloads(
         for (pendingDownload in attachmentChannel) {
             launch {
                 val number = pendingDownload.attachmentNumber
-                val originalFilename = pendingDownload.attachment.fileName
+
+                val attachment = pendingDownload.attachment
+                val originalFilename = attachment.fileName
 
                 // Some discord attachments have extremely long filenames. So, we replace everything but the extension
                 // with "content" and then, just to be sure, only take the first 20 characters of the adjusted name
@@ -163,24 +165,38 @@ private suspend fun receivePendingDownloads(
                     val outPath = attachmentDir.resolve(adjustedFileName).normalize()
                     check(outPath.startsWith(attachmentDir))
 
-                    logger.info("Downloading channel $channelId attachment $number; original name: $originalFilename; stored name: $adjustedFileName; url: ${pendingDownload.attachment.url}")
+                    logger.info("Downloading channel $channelId attachment $number; original name: $originalFilename; stored name: $adjustedFileName; url: ${attachment.url}")
 
                     attachmentDir.resolve("metadata.json").outputStream(StandardOpenOption.CREATE_NEW).use { out ->
-                        Json.createGenerator(out).use {
-                            it.writeStartObject()
-                            it.write("original_filename", originalFilename)
-                            it.writeEnd()
+                        Json.createGenerator(out).use { json ->
+                            json.writeStartObject()
+
+                            json.write("id", attachment.id)
+                            json.write("url", attachment.url)
+                            json.write("original_filename", originalFilename)
+                            json.write("size", attachment.size)
+                            json.write("is_spoiler", attachment.isSpoiler)
+                            json.write("is_ephemeral", attachment.isEphemeral)
+                            json.write("is_image", attachment.isImage)
+                            json.write("is_video", attachment.isVideo)
+                            attachment.description?.let { json.write("description", it) }
+                            attachment.contentType?.let { json.write("content_type", it) }
+                            attachment.width.takeIf { it != -1 }?.let { json.write("width", it) }
+                            attachment.height.takeIf { it != -1 }?.let { json.write("height", it) }
+                            attachment.duration.takeIf { it != 0.0 }?.let { json.write("duration", it) }
+
+                            json.writeEnd()
                         }
                     }
 
                     outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
-                        writeAttachmentContentTo(pendingDownload.attachment, outStream)
+                        writeAttachmentContentTo(attachment, outStream)
                     }
 
                     logger.info("Finished downloading channel $channelId attachment $number")
                 } catch (e: Exception) {
                     logger.error(
-                        "Error downloading channel $channelId attachment $number; name: $originalFilename; stored name: $adjustedFileName; url: ${pendingDownload.attachment.url}",
+                        "Error downloading channel $channelId attachment $number; name: $originalFilename; stored name: $adjustedFileName; url: ${attachment.url}",
                         e,
                     )
 
