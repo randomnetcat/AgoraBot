@@ -31,7 +31,12 @@ private suspend fun IrcChannel.sendDiscordMessage(message: DiscordMessage) {
     val replySection = run {
         if (referencedMessage != null) {
             val replyName = referencedMessage.retrieveEffectiveSenderName().await()
-            "In response to $replyName saying: ${formatRelayDiscordContent(referencedMessage.contentDisplay)}\n"
+            val cleanContent = formatRelayDiscordContent(referencedMessage.contentDisplay)
+
+            val contentLines = cleanContent.lines()
+            val ellipsis = if (contentLines.size > 1) "..." else ""
+
+            "In response to $replyName saying: ${contentLines.first()}$ellipsis\n"
         } else {
             ""
         }
