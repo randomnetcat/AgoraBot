@@ -145,16 +145,33 @@ private suspend fun receivePendingDownloads(
         for (pendingDownload in attachmentChannel) {
             launch {
                 val number = pendingDownload.attachmentNumber
-                val fileName = pendingDownload.attachment.fileName
+                val originalFilename = pendingDownload.attachment.fileName
+
+                // Some discord attachments have extremely long filenames. So, we replace everything but the extension
+                // with "content" and then, just to be sure, only take the first 20 characters of the adjusted name
+                // are used.
+                val adjustedFileName = if (originalFilename.contains(".")) {
+                    "content.${originalFilename.substringAfterLast('.')}".take(20)
+                } else {
+                    "content"
+                }
 
                 val attachmentDir = attachmentsDir.resolve("attachment-$number")
                 attachmentDir.createDirectory()
 
                 try {
-                    val outPath = attachmentDir.resolve(fileName).normalize()
+                    val outPath = attachmentDir.resolve(adjustedFileName).normalize()
                     check(outPath.startsWith(attachmentDir))
 
-                    logger.info("Downloading channel $channelId attachment $number; name: $fileName; url: ${pendingDownload.attachment.url}")
+                    logger.info("Downloading channel $channelId attachment $number; original name: $originalFilename; stored name: $adjustedFileName; url: ${pendingDownload.attachment.url}")
+
+                    attachmentDir.resolve("metadata.json").outputStream(StandardOpenOption.CREATE_NEW).use { out ->
+                        Json.createGenerator(out).use {
+                            it.writeStartObject()
+                            it.write("original_filename", originalFilename)
+                            it.writeEnd()
+                        }
+                    }
 
                     outPath.outputStream(StandardOpenOption.CREATE_NEW).use { outStream ->
                         writeAttachmentContentTo(pendingDownload.attachment, outStream)
@@ -163,7 +180,7 @@ private suspend fun receivePendingDownloads(
                     logger.info("Finished downloading channel $channelId attachment $number")
                 } catch (e: Exception) {
                     logger.error(
-                        "Error downloading channel $channelId attachment $number; name: $fileName; url: ${pendingDownload.attachment.url}",
+                        "Error downloading channel $channelId attachment $number; name: $originalFilename; stored name: $adjustedFileName; url: ${pendingDownload.attachment.url}",
                         e,
                     )
 
