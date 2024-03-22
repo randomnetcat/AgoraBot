@@ -1001,6 +1001,8 @@ class DefaultDiscordArchiver(
         guild: Guild,
         channelIds: Set<String>,
     ): Path {
+        logger.info("Beginning archive of guild ${guild.id} (${guild.name})")
+
         val archiveNumber = archiveCount.getAndUpdate { it + BigInteger.ONE }
 
         val workDir = storageDir.resolve("archive-$archiveNumber").createDirectory()
@@ -1013,6 +1015,8 @@ class DefaultDiscordArchiver(
                 channelIds = channelIds,
             )
         }
+
+        logger.info("Finished archive of guild ${guild.id} (${guild.name})")
 
         return workDir
     }

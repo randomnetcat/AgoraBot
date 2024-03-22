@@ -138,6 +138,7 @@ class ArchiveCommand(
 
                                     path.copyToRecursively(localStorageDir.resolve(fileName), followLinks = false)
                                     respond("Stored archive locally at $fileName")
+                                    LOGGER.info("Stored archive of guild ${currentGuild.id} (${currentGuild.name}) at $fileName")
                                 }
                             } else {
                                 TODO("uploading not supported")
