@@ -25,17 +25,20 @@ class AtomicLoadOnceMap<K, V> {
     private var isClosed: Boolean = false
 
     fun getOrPut(key: K, initOnce: () -> V): V {
-        lock.withLock {
+        val loadOnceValue = lock.withLock {
             check(!isClosed)
 
-            if (data.containsKey(key))
-                return data.getValue(key).value.getOrThrow()
+            if (data.containsKey(key)) {
+                data.getValue(key)
+            } else {
+                val value = LoadOnceValue(initOnce)
+                data = data.put(key, value)
 
-            val value = LoadOnceValue<V>(initOnce)
-            data = data.put(key, value)
-
-            return value.value.getOrThrow()
+                value
+            }
         }
+
+        return loadOnceValue.value.getOrThrow()
     }
 
     /**
