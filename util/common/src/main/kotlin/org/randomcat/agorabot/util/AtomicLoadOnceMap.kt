@@ -2,10 +2,8 @@ package org.randomcat.agorabot.util
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
-import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class AtomicLoadOnceMap<K, V> {
     private class LoadOnceValue<V>(init: () -> V) {
@@ -22,41 +20,21 @@ class AtomicLoadOnceMap<K, V> {
         }
     }
 
-    private val closeLock = ReentrantReadWriteLock()
-
-    // Only accessed under closeLock.
+    private val lock = ReentrantLock()
+    private var data: PersistentMap<K, LoadOnceValue<V>> = persistentMapOf()
     private var isClosed: Boolean = false
 
-    private val data: AtomicReference<PersistentMap<K, LoadOnceValue<V>>> = AtomicReference(persistentMapOf())
-
     fun getOrPut(key: K, initOnce: () -> V): V {
-        closeLock.read {
+        lock.withLock {
             check(!isClosed)
 
-            run {
-                val origMap = data.get()
+            if (data.containsKey(key))
+                return data.getValue(key).value.getOrThrow()
 
-                // getOrElse is not atomic, but origMap is immutable, so that's fine.
-                // If the key is not in the map, getOrElse will return from the run block, so the below updateAndGet
-                // call will run. If it is in the map, getOrElse will return the LoadOnceValue, and the lazy value will
-                // be read, and the standard library will handle thread-safely invoking the callable exactly once.
-                return origMap.getOrElse(key) {
-                    return@run
-                }.value.getOrThrow()
-            }
+            val value = LoadOnceValue<V>(initOnce)
+            data = data.put(key, value)
 
-            return data.updateAndGet {
-                if (it.containsKey(key))
-                    it
-                else
-                // If multiple threads get here, they will race to return a new map with a value. Because this is an atomic
-                // operation, then only one of them will succeed (returning and initializing the value), and the rest will
-                // get to try again. They will find that it already contains the key, and return the existing map, ensuring
-                // that only one LoadOnceValue escapes to the outside world. That LoadOnceValue will then thread-safely
-                // initialize the value once, ensuring that initOnce is called exactly once for each key (assuming it never
-                // throws an exception).
-                    it.put(key, LoadOnceValue<V>(initOnce))
-            }.getValue(key).value.getOrThrow()
+            return value.value.getOrThrow()
         }
     }
 
@@ -67,17 +45,19 @@ class AtomicLoadOnceMap<K, V> {
      * Any entries produced by functions that threw during evaluation are not included.
      */
     fun closeAndTake(): Map<K, V> {
-        closeLock.write {
+        lock.withLock {
             check(!isClosed)
             isClosed = true
 
-            // All accesses to the value property occur under the read lock, so this should not run code under the
-            // lock.
-            return data.get().filterValues {
+            val out = data.filterValues {
                 // Take only values where accessing value itself does not throw and where the init function actually
                 // produced a value.
                 runCatching { it.value.isSuccess }.getOrDefault(false)
             }.mapValues { (_, v) -> v.value.getOrThrow() }
+
+            data = persistentMapOf()
+
+            return out
         }
     }
 }
