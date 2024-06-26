@@ -45,19 +45,20 @@ class AtomicLoadOnceMap<K, V> {
      * Any entries produced by functions that threw during evaluation are not included.
      */
     fun closeAndTake(): Map<K, V> {
-        lock.withLock {
+        val map = lock.withLock {
             check(!isClosed)
             isClosed = true
 
-            val out = data.filterValues {
-                // Take only values where accessing value itself does not throw and where the init function actually
-                // produced a value.
-                runCatching { it.value.isSuccess }.getOrDefault(false)
-            }.mapValues { (_, v) -> v.value.getOrThrow() }
-
+            val out = data
             data = persistentMapOf()
 
-            return out
+            out
         }
+
+        return map.filterValues {
+            // Take only values where accessing value itself does not throw and where the init function actually
+            // produced a value.
+            runCatching { it.value.isSuccess }.getOrDefault(false)
+        }.mapValues { (_, v) -> v.value.getOrThrow() }
     }
 }
