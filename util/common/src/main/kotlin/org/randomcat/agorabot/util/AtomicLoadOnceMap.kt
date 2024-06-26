@@ -28,9 +28,7 @@ class AtomicLoadOnceMap<K, V> {
         val loadOnceValue = lock.withLock {
             check(!isClosed)
 
-            if (data.containsKey(key)) {
-                data.getValue(key)
-            } else {
+            data.getOrElse(key) {
                 val value = LoadOnceValue(initOnce)
                 data = data.put(key, value)
 
