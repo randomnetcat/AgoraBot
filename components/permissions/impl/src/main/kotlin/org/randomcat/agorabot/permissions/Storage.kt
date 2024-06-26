@@ -4,7 +4,6 @@ import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.persist.AtomicCachedStorage
@@ -85,7 +84,7 @@ class JsonGuildPermissionMap(
         Files.createDirectories(storageDir)
     }
 
-    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonPermissionMap>()
+    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonPermissionMap>(closer = { it.close() })
 
     override fun mapForGuild(guildId: String): MutablePermissionMap {
         return map.getOrPut(guildId) {
@@ -94,6 +93,6 @@ class JsonGuildPermissionMap(
     }
 
     fun close() {
-        map.closeAndTake().values.forEach { it.close() }
+        map.close()
     }
 }

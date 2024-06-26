@@ -2,10 +2,12 @@ package org.randomcat.agorabot.util
 
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-class AtomicLoadOnceMap<K, V> {
+class AtomicLoadOnceMap<K, V>(private val closer: ((V) -> Unit)?) {
     private class LoadOnceValue<V>(init: () -> V) {
         // Only accessed under the lock of lazy.
         private var attempted = false
@@ -22,11 +24,13 @@ class AtomicLoadOnceMap<K, V> {
 
     private val lock = ReentrantLock()
     private var data: PersistentMap<K, LoadOnceValue<V>> = persistentMapOf()
-    private var isClosed: Boolean = false
+
+    private val isClosing = AtomicBoolean(false)
+    private val fullyClosedLatch = CountDownLatch(1)
 
     fun getOrPut(key: K, initOnce: () -> V): V {
         val loadOnceValue = lock.withLock {
-            check(!isClosed)
+            check(!isClosing.get())
 
             data.getOrElse(key) {
                 val value = LoadOnceValue(initOnce)
@@ -39,27 +43,38 @@ class AtomicLoadOnceMap<K, V> {
         return loadOnceValue.value.getOrThrow()
     }
 
-    /**
-     * Closes this AtomicLoadOnceMap (meaning that all future calls to getOrPut will throw) and retrieves the internal
-     * map of keys to values. This method can only be called once; any further calls will throw.
-     *
-     * Any entries produced by functions that threw during evaluation are not included.
-     */
-    fun closeAndTake(): Map<K, V> {
-        val map = lock.withLock {
-            check(!isClosed)
-            isClosed = true
-
-            val out = data
-            data = persistentMapOf()
-
-            out
+    fun close() {
+        if (isClosing.getAndSet(true)) {
+            fullyClosedLatch.await()
+            return
         }
 
-        return map.filterValues {
-            // Take only values where accessing value itself does not throw and where the init function actually
-            // produced a value.
-            runCatching { it.value.isSuccess }.getOrDefault(false)
-        }.mapValues { (_, v) -> v.value.getOrThrow() }
+        try {
+            val closer = closer
+
+            if (closer != null) {
+                // If any concurrent writes calls to getOrPut happen before this, we will see their effects, which is
+                // fine. Any current calls to getOrPut that happen after this must see isClosing = true and thus
+                // throw before writing.
+                val map = lock.withLock {
+                    val out = data
+                    data = persistentMapOf()
+
+                    out
+                }
+
+                sequentiallyClose(
+                    map
+                        .values
+                        .asSequence()
+                        .map { it.value }
+                        .filter { it.isSuccess }
+                        .map { { closer(it.getOrThrow()) } }
+                        .asIterable(),
+                )
+            }
+        } finally {
+            fullyClosedLatch.countDown()
+        }
     }
 }

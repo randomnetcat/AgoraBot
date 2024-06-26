@@ -4,7 +4,6 @@ import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.putAll
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.persist.AtomicCachedStorage
@@ -93,7 +92,7 @@ private class KeyedStateMap(
         Files.createDirectories(storageDirectory)
     }
 
-    private val map = AtomicLoadOnceMap<String /* GuildId */, StringStateImpl>()
+    private val map = AtomicLoadOnceMap<String /* GuildId */, StringStateImpl>(closer = { it.close() })
 
     fun stateForKey(guildId: String): StringState {
         return map.getOrPut(guildId) {
@@ -102,7 +101,7 @@ private class KeyedStateMap(
     }
 
     fun close() {
-        map.closeAndTake().values.forEach { it.close() }
+        map.close()
     }
 }
 

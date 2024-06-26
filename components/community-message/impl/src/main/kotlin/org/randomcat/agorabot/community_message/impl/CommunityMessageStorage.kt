@@ -364,7 +364,7 @@ private val ZIP_FS_OPTIONS = mapOf("create" to true)
 class JsonCommunityMessageStorage(
     private val baseDir: Path,
 ) : CommunityMessageStorage {
-    private val guildMap = AtomicLoadOnceMap<String, JsonCommunityMessageGuildStorage>()
+    private val guildMap = AtomicLoadOnceMap<String, JsonCommunityMessageGuildStorage>(closer = { it.close() })
 
     init {
         baseDir.resolve("guilds").createDirectories()
@@ -392,6 +392,6 @@ class JsonCommunityMessageStorage(
     }
 
     fun close() {
-        guildMap.closeAndTake().values.forEach { it.close() }
+        guildMap.close()
     }
 }

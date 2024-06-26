@@ -202,7 +202,7 @@ class JsonGuildDigestMap(
     private val backupDirectory
         get() = storageDirectory.resolve("cleared")
 
-    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonDigest>()
+    private val map = AtomicLoadOnceMap<String /* GuildId */, JsonDigest>(closer = { it.close() })
 
     override fun digestForGuild(guildId: String): MutableDigest {
         return map.getOrPut(guildId) {
@@ -215,6 +215,6 @@ class JsonGuildDigestMap(
     }
 
     fun close() {
-        map.closeAndTake().values.forEach { it.close() }
+        map.close()
     }
 }
