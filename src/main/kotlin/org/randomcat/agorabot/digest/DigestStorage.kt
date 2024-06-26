@@ -4,16 +4,18 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.config.persist.ConfigPersistService
 import org.randomcat.agorabot.util.AtomicLoadOnceMap
-import org.randomcat.agorabot.util.updateAndMap
 import org.randomcat.agorabot.util.withTempFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,8 +24,6 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -108,76 +108,81 @@ private class JsonDigest(
         }
     }
 
-    private val rawMessages = AtomicReference(readFromFile(storagePath).toPersistentList())
-    private val backupCounter = AtomicLong()
-
-    private val persistHandle =
-        persistService.schedulePersistence({ rawMessages.get() }, { writeToFile(storagePath, it) })
-
-    private val closedLock = ReentrantReadWriteLock()
+    private val lock = ReentrantReadWriteLock()
     private var isClosed = false
 
+    private var rawMessages = readFromFile(storagePath).toPersistentList()
+    private var backupCounter: ULong = 0.toULong()
+
+    private val persistHandle =
+        persistService.schedulePersistence({
+            lock.read {
+                ensureOpen()
+                rawMessages
+            }
+        }, { writeToFile(storagePath, it) })
+
+    private fun ensureOpen() {
+        check(!isClosed)
+    }
+
     override fun messages(): ImmutableList<DigestMessage> {
-        closedLock.read {
-            check(!isClosed)
-            return rawMessages.get().map { it.toMessage() }.toImmutableList()
+        lock.read {
+            ensureOpen()
+            return rawMessages.map { it.toMessage() }.toImmutableList()
         }
     }
 
     @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun add(newMessages: Iterable<DigestMessage>) {
-        closedLock.read {
-            check(!isClosed)
+        lock.write {
+            ensureOpen()
 
-            val newRaw = newMessages.map { DigestMessageDto.fromMessage(it) }
-
-            rawMessages.getAndUpdate {
-                it.addAll(newRaw).distinctById().toPersistentList()
-            }
+            rawMessages = rawMessages
+                .addAll(newMessages.map { DigestMessageDto.fromMessage(it) })
+                .distinctById()
+                .toPersistentList()
         }
     }
 
     override fun addCounted(messages: Iterable<DigestMessage>): Int {
-        closedLock.read {
-            check(!isClosed)
+        lock.write {
+            ensureOpen()
 
             val newRaw = messages.map { DigestMessageDto.fromMessage(it) }
 
-            return rawMessages.updateAndMap { orig ->
-                // This requires that orig already be distinct by id. add upholds this invariant when adding
-                val result = orig.addAll(newRaw).distinctById().toPersistentList()
-                result to (result.size - orig.size)
-            }
+            val oldSize = rawMessages.size
+            rawMessages = rawMessages.addAll(newRaw).distinctById().toPersistentList()
+
+            return rawMessages.size - oldSize
         }
     }
 
     override fun clear() {
-        closedLock.read {
-            check(!isClosed)
-
-            val oldValue = rawMessages.getAndSet(persistentListOf())
+        lock.write {
+            ensureOpen()
 
             Files.createDirectories(backupDir)
 
             // I refuse to believe that a Guild will run through all of the possible Long values for backups within a single
-            // second. A Long will suffice here.
+            // second. A ULong will suffice here.
             val backupPath = backupDir.resolve(
                 DateTimeFormatter
                     .ISO_LOCAL_DATE_TIME
                     .withZone(ZoneOffset.UTC)
                     .format(Instant.now())
                         + "-" +
-                        "%020d".format(backupCounter.getAndUpdate { old ->
-                            if (old == Long.MAX_VALUE) 0 else (old + 1) // Don't allow negative numbers
-                        })
+                        "%020d".format(++backupCounter)
             )
 
-            writeToFile(backupPath, oldValue)
+            writeToFile(backupPath, rawMessages)
+
+            rawMessages = persistentListOf()
         }
     }
 
     fun close() {
-        closedLock.write {
+        lock.write {
             if (isClosed) return
             isClosed = true
 
