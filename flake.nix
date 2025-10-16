@@ -1,6 +1,5 @@
 {
   description = "A very basic flake";
-
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
@@ -10,36 +9,46 @@
     url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  inputs.gradle2nix = {
+    url = "github:tadfisher/gradle2nix/v2";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = { self, nixpkgs, flake-utils, gradle2nix, ... }:
     let
       overlay = final: prev: {
         randomcat.agorabot =
           let
             jdk = final.javaPackages.compiler.openjdk17;
             buildGradle = final.callPackage ./gradle-env.nix {};
-            unwrappedBuild = buildGradle {
-              envSpec = ./gradle-env.json;
+            unwrappedBuild = gradle2nix.builders.${final.buildPlatform.system}.buildGradlePackage {
+              pname = "agorabot";
+              version = "1.0-SNAPSHOT";
 
-              src = final.lib.cleanSourceWith {
-                filter = final.lib.cleanSourceFilter;
-                src = final.lib.cleanSourceWith {
-                  filter = path: type: let baseName = baseNameOf path; in !(
-                    (type == "directory" && (
-                      baseName == "build" ||
-                      baseName == ".idea" ||
-                      baseName == ".gradle"
-                    )) ||
-                    (final.lib.hasSuffix ".iml" baseName)
-                  );
-                  src = ./.;
-                };
-              };
-
-              gradleFlags = [ "installDist" "--no-watch-fs" "--parallel" ];
+              src = ./.;
+              lockFile = ./gradle.lock;
 
               buildJdk = jdk;
 
+              gradleFlags = [
+                "--console=plain"
+                "--no-daemon"
+                "--no-watch-fs"
+                "--parallel"
+                "-Dorg.gradle.java.home=${jdk.home}"
+              ];
+
+              buildPhase = ''
+                set -x
+                gradle assemble $gradleFlags
+              '';
+
+              checkPhase = ''
+                gradle check $gradleFlags
+              '';
+
               installPhase = ''
+                gradle installDist $gradleFlags
                 mkdir -p  -- "$out"
                 cp -rT -- "build/install/AgoraBot" "$out"
               '';
