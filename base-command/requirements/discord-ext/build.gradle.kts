@@ -7,8 +7,8 @@ dependencies {
     implementation(projects.baseCommand.api)
     implementation(projects.baseCommand.requirements.discord)
     implementation(projects.baseCommand.requirements.permissions)
-    implementation(projects.components.buttons.api)
-    implementation(projects.components.guildState.api)
+    implementation(projects.components.buttons)
+    implementation(projects.components.guildState)
     implementation(libs.jda)
     implementation(libs.kotlinx.collectionsImmutable)
 }

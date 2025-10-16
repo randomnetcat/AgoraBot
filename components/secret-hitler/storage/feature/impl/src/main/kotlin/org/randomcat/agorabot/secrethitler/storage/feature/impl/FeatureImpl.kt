@@ -2,7 +2,6 @@ package org.randomcat.agorabot.secrethitler.storage.feature.impl
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.randomcat.agorabot.*
 import org.randomcat.agorabot.config.persist.feature.ConfigPersistServiceTag

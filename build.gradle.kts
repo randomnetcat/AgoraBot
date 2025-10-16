@@ -69,24 +69,12 @@ dependencies {
     implementation(projects.baseCommand.requirements.permissions)
     implementation(projects.baseCommand.requirements.haltable)
 
-    implementation(projects.components.persist.feature.api)
-    runtimeOnly(projects.components.persist.feature.impl)
-
-    implementation(projects.components.permissions.feature.api)
-    runtimeOnly(projects.components.permissions.feature.impl)
-
-    implementation(projects.components.guildState.feature.api)
-    runtimeOnly(projects.components.guildState.feature.impl)
-
-    implementation(projects.components.buttons.feature.api)
-    runtimeOnly(projects.components.buttons.feature.impl)
-
-    implementation(projects.components.communityMessage.feature.api)
-    runtimeOnly(projects.components.communityMessage.feature.impl)
-
-    implementation(projects.components.versioningStorage.feature.api)
-    runtimeOnly(projects.components.versioningStorage.feature.impl)
-
+    implementation(projects.components.persist)
+    implementation(projects.components.permissions)
+    implementation(projects.components.guildState)
+    implementation(projects.components.buttons)
+    implementation(projects.components.communityMessage)
+    implementation(projects.components.versioningStorage)
     implementation(projects.components.secretHitler.model)
     implementation(projects.components.secretHitler.context)
     implementation(projects.components.secretHitler.buttonData)
