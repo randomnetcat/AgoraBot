@@ -4,10 +4,11 @@ import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 
-private val threadRandom = ThreadLocal.withInitial { SecureRandom().asKotlinRandom() }
+// SecureRandom is documented to be safe to concurrently access.
+private val userRandom = SecureRandom().asKotlinRandom()
 
 fun userFacingRandom(): Random {
-    return threadRandom.get()
+    return userRandom
 }
 
 fun insecureRandom(): Random {
